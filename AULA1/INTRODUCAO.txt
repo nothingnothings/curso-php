@@ -1,0 +1,908 @@
+
+
+
+
+
+
+
+
+
+APRENDEREMOS DO BÁSICO....
+
+
+
+
+
+
+
+-> VAMOS COMECAR COM O MATERIAL BÁSICO,
+
+
+E AÍ SEGUIR PARA O CONTEUDO MAIS AVANÇADO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS O QUE É PHP...
+
+
+
+
+
+
+
+
+
+
+PHP SIGNIFICA 
+
+
+
+""HYPERTEXT PREPROCESSOR""
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É UMA SCRIPTING LANGUAGE 
+
+OPEN SOURCE, 
+
+
+USADA PRINCIPALMENTE PARA WEB DEVELOPMENT....
+
+
+
+
+
+
+
+
+
+
+
+--> COMO É UMA SCRIPTING LANGUAGE,
+
+
+
+É UMA PROGRAMMING LANGUAGE...
+
+
+
+
+
+
+a diferenca principal entre 
+
+SCRIPTING LANGUAGES E PROGRAMMING LANGUAGES 
+
+
+
+RESIDE NA SUA EXECUÇAO....
+
+
+
+
+
+
+ENQUANTO QUE 
+
+PROGRAMMING LANGUAGES PRECISAM SER COMPILADAS
+
+EM __ MACHINE LANGUAGE PARA SEREM EXECUTADAS,
+
+
+
+
+
+AS SCRIPTING LANGUAGES PRECISAM 
+
+
+
+SER __ INTERPRETADAS__ (interpreted)....
+
+
+
+
+
+
+
+
+
+
+EXEMPLO:
+
+
+
+
+
+
+
+PROGRAMMING LANGUAGE --> JAVA, C OU C++ 
+
+
+SOURCE CODE --> MACHINE CODE --> MACHINE...
+
+
+
+
+
+
+
+
+
+SCRIPTING LANGUAGE:
+
+
+
+SOURCE CODE --> INTERPRETER....
+
+
+
+
+
+
+
+
+--> java, c, c++ --> sao programming LANGUAGES 
+
+que 
+
+precisam ser compiladas 
+
+
+para serem executadas...
+
+
+
+
+
+
+
+
+
+--> JAVASCRIPT E PHP ---> 
+
+
+ESSAS 2 PROGRAMMING/SCRIPTING LANGUAGES 
+
+
+APENAS PRECISAM DE 1 __ INTERPRETADOR__ 
+
+PARA SEREM EXECUTADAS....
+
+
+
+
+
+
+
+
+
+--> AO CONTRÁRIO DO JAVASCRIPT,
+
+
+QUE RODA __ NO CLIENT (bROWSEr),
+
+
+O PHP 
+
+
+
+PRECISA DE 1 SERVER PARA PODER RODAR...
+
+
+
+
+
+
+
+
+--> UMA REPRESENTACAO BÁSICA DE COMO O PHP FUNCIONA:
+
+
+
+
+
+
+
+
+
+CLIENT (BROWSER) ---> DISPARA REQUEST 
+
+
+CONTRA O SERVER 
+
+
+
+SERVER --> TEM O INTERPRETER,
+
+INTERPRETA E PROCESSA PHP --->  
+
+
+
+
+
+
+O SERVER TAMBEM PODE FAZER 
+
+
+OUTRAS COISAS NO SEU INTERIOR,
+
+COMO SE CONECTAR A DATABASES 
+
+E CONVERSAR COM APIs...
+
+
+
+
+
+
+
+
+
+FINALMENTE,
+
+
+
+O SERVER __ RESPONDE,
+
+
+ENVIA A RESPONSE 
+
+
+AO BROWSER...
+
+
+
+
+
+------------------------------
+
+
+
+
+
+
+
+PQ APRENDER PHP:
+
+
+
+
+
+1) É FÁCIL DE APRENDER...
+
+MAS POR SER SIMPLES,
+
+
+VC PODE ESCREVER 1 CÓDIGO BEM RUIM,
+
+
+QUE VAI RODAR IGUAL NO BROWSER (MESMO SENDO RUIM)....
+
+
+
+
+
+mas nao deixe isso te desencorajar do PHP....
+
+
+
+
+
+
+-> VAMOS APRENDER PHP DA MANEIRA CERTA...
+
+
+
+
+
+
+
+
+
+2) PHP É MT FORTE ->  VC PODE 
+
+
+
+CONSTRUIR APPS SIMPLES, SIM,
+ 
+
+
+ MAS TAMBÉM PODE CONSTRUIR 
+
+ APPS GIGANTES, ENTERPRISE-LEVEL...
+
+
+
+
+
+
+3) TEM UM ECOSSISTEMA ENORME,
+
+
+
+E ALGUNS DOS MELHORES FRAMEWORKS...
+
+
+
+
+
+
+
+
+--> VC PODE CONSTRUIR ECOMMERCE,
+
+CONSTRUIR CRM SYSTEMS,
+
+WAREHOUSE MANAGEMENT, ETC...
+
+
+
+
+
+
+
+
+4) PHP IS DEAD ---> VC VAI ENCONTRAR 
+
+
+ESSA PERGUNTA --> NAO ESTA DEAD...
+
+
+
+
+
+
+
+
+75% DOS SITES SAO POWERED 
+
+
+POR PHP....
+
+
+
+
+
+
+
+
+
+
+
+--> PQ SE O PHP 
+
+
+MORRER,
+
+
+75% DOS SITES TERAO DE TROCAR PARA 
+
+
+
+
+OUTRA PROGRAMMING LANGUAGE...
+
+
+
+
+
+
+
+
+5) CODIGO PHP PODE SER RUIM,
+
+
+MAS VC PODE ESCREVER CODIGO RUIM EM QUALQUER LINGUAGEM..
+
+
+
+
+
+
+
+
+
+
+6) PHP EVOLUIU 
+
+
+MT DESDE A VERSAO 
+
+4 E 5....
+
+
+
+
+
+
+
+
+
+7) ERA PROCEDURAL EM 4 E 5,
+
+
+
+
+MAS AGORA JÁ SE TORNOU MAIS OBJECT-ORIENTED...
+
+
+
+
+
+
+
+
+8) O PHP JÁ INTRODUZIU UM MONTE DE SUPORTE 
+
+
+A STRICT TYPES...
+
+
+
+
+
+
+
+
+
+9) PODEMOS PULAR DIRETO PARA O 
+
+
+BUILD DE SITES,
+
+
+MAS ISSO NAO É RECOMENDADO....
+
+
+
+
+
+
+
+
+
+DEVEMOS APRENDER 
+
+PHP ALÉM DO 
+
+BEGINNER-LEVEL...
+
+
+
+
+
+
+
+
+
+
+
+--> ESTE CURSO...
+
+
+
+
+
+
+
+3 SECTIONS....
+
+
+
+
+
+
+
+
+
+1) BASIC PHP (PROCEDURAL) ....
+
+
+
+
+
+
+
+2) INTERMEDIATE PHP (OBJECT ORIENTED PROGRAMMING)
+
+
+
+
+
+
+
+3) POR FIM, ADVANCED PHP,
+
+EM QUE 
+
+APRENDEREMOS ALGUNS 
+
+
+ADVANCED CONCEPTS E TECHNIQUES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+BASIC PHP: 
+
+
+
+1) GETTING PHP INSTALLED AND RUNNING 
+
+
+2) SYNTAX E OPERATORS...
+
+
+3) VARIABLE E DATA TYPES 
+
+
+
+4) CONTROL STRUCTURES E FUNCTIONS 
+
+
+
+
+5) TYPE CASTING E ERROR HANDLING 
+
+
+
+
+6) PHP.INI E WEB SERVER CONFIGS 
+
+
+
+
+
+
+7) TRABALHO COM ARRAYS 
+
+
+8) TRABALHO COM DATES...
+
+
+
+
+
+
+
+NA OPINIAO DO PROFESSOR, VC 
+
+DEVE 
+
+APRENDER A MEXER 
+
+
+
+
+
+COM AS CONFIG FILES DE SEU SERVER,
+
+E O PHP CONFIG FILE,
+
+
+ANTES 
+
+DE SEGUIR PARA DATABASES 
+
+
+OU OBJECT ORIENTED....
+
+
+
+
+
+
+--------------------------
+
+
+
+
+
+
+INTERMEDIATE PHP 
+
+
+
+
+
+
+
+
+
+
+--> OBJECT ORIENTED 
+
+
+
+-_> CLASSES E METHODS 
+
+
+
+--> CODE STYLE E PSR 
+
+
+
+---> NAMESPACES E AUTOLOADING...
+
+
+
+
+
+
+--> DEPENDENCY MANAGEMENT 
+
+
+
+
+--> SUPER GLOBALS ($_*)
+
+
+
+
+--> COOKIES E SESSIONS 
+
+
+
+
+-> DATABASES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK, MAS E SUPER GLOBALS E COOKIES NO BASIC PHP...?
+
+
+
+BEM, PQ NAO É BASIC...
+
+
+
+-> DEVEMOS 
+
+SABER MAIS COISAS PARA COMPREENDER ISSO...
+
+
+
+
+
+
+
+
+
+
+
+------------------------------------
+
+
+ADVANCED PHP...
+
+
+
+
+
+
+
+
+TÓPICOS COMO:
+
+
+
+
+1) TESTING, PHPUNIT, TDD, BDD
+
+
+
+
+2) INTRO TO MVC E ROUTING 
+
+
+
+
+3) DEPENDENCY INJECTION CONTAINER 
+
+
+
+
+4) CACHING E SECURITY 
+
+
+
+
+
+
+5) FRAMEWORKS 
+
+
+
+6) PHP 8 
+
+
+
+
+7) HOSTING E DEPLOYMENT
+
+
+
+
+8) BEST PRACTICES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---->  COMO VC PODE VER,
+
+MT CONTEÚDO,
+E O PROFESSOR 
+
+AINDA NAO MENCIONOU TUDO...
+
+
+
+
+
+
+
+
+
+--> QUANDO
+ TERMINAR ESSE CURSO,
+
+ O PROFESSOR ESPERA QUE 
+
+ VC 
+
+ TENHA CONHECIMENTO PARA CONSTRUIR 
+
+ ALGO LEGAL,
+
+
+
+
+
+ NAO INTERESSA SE FOR COM O VANILLA PHP OU COM 
+
+
+ ALGUM FRAMEWORK...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ --> SÓ PRECISAMOS SABER HTML 
+ PARA COMEÇAR COM 
+
+
+ ESSE CURSO...
+
+
+
+
+
+
+ --> SE VC JA CONHECE 1 LINGUAGEM COMO JAVASCRIPT,
+
+
+ ESSE CURSO SERÁ MAIS FÁCIL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
