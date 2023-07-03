@@ -1,0 +1,2184 @@
+
+
+
+
+
+
+
+AGORA DEVEMOS FALAR SOBRE CONSTANTS...
+
+
+
+
+
+
+
+CONSTANTS SAO VARIABLES QUE NAO PODEM SER REASSIGNADAS... (
+    ao contrário de variables comuns,
+
+    com LET...
+)
+
+
+
+
+
+
+
+
+
+
+-> CONSTANTS SAO VALUES QUE NAO PODER SER ALTERADOS DEPOIS DE SEREM SETTADOS....
+
+
+
+
+
+
+
+
+
+
+--> VARIABLES 
+
+NORMAIS PODEM SER ALTERADAS DEPOIS DE SEREM SETTADAS (overwrite)..
+
+
+
+
+
+
+
+
+
+
+
+
+-> EX:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+// EXEMPLO DE VARIABLES E CONSTANTS...
+
+
+
+
+
+
+$firstName = 'Arthur';
+
+
+
+
+$firstName = 'Joe';
+
+
+
+
+
+echo $firstName; ## VAI OUTPUTTAR ""JOE""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ok..
+
+
+
+
+
+
+
+
+aqui reassignamos o nome como sendo ""joe"",
+
+
+e depois o outputtamos...
+
+
+
+
+
+
+
+
+
+
+
+
+---> ESSAS SAO AS VARIABLES __ COMUNS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS PARA CONSTANTS,
+
+
+ASSIM QUE 
+VC DEFINIU 1 CONSTANT,
+
+VC 
+
+
+NAO PODE 
+
+
+_AS OVERWRITTAR/MUDAR O VALUE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> HÁ 2 MANEIRAS DE DEFINIR 1 CONSTANT,
+
+NO PHP...
+
+
+
+
+
+
+
+-> VEREMOS AS DUAS...
+
+
+
+
+
+
+
+
+
+
+
+-> A PRIMEIRA 
+
+
+MANEIRA É POR MEIO DA FUNCTION DE ""define()""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VEREMOS AS FUNCTIONS EM DETALHES 
+
+
+EM 1 VIDEO NO FUTURO...
+
+
+
+
+
+
+
+
+
+
+--> PARA DEFINIR 1 CONSTANT,
+
+
+VC ESCREVE ASSIM:
+
+
+
+
+
+
+
+
+
+define('nome', 'valor123');
+
+
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA,
+
+
+O PRIMEIRO PARAM É O 
+
+NOME _ DA VARIÁVEL,
+
+E O SEGUNDO 
+
+É O VALUE...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+// EXEMPLO DE VARIABLES E CONSTANTS...
+
+
+
+
+
+
+// EXEMPLO DE VARIÁVEL CLÁSSICA (que pode ser alterada)...
+
+$firstName = 'Arthur';
+
+$firstName = 'Joe';
+
+echo $firstName; ## VAI OUTPUTTAR ""JOE""
+
+
+// EXEMPLO DE __CONSTANTE__ (nao pode ser alterada)...
+
+// PARA DEFINIR CONSTANTES, NO PHP, SOMOS OBRIGADOS A USAR A FUNCTION DE define()...
+
+
+
+define('secondName', 'Panazolo'); /// aqui criamos 1 constante de nome secondName, de value PANAZOLO
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK....
+
+
+
+
+
+
+
+TAMBÉM HÁ UM TERCEIRO PARAM,
+
+MAS AINDA NAO VAMOS O UTILIZAR...
+
+
+
+
+
+
+
+
+
+
+--> O TERCEIRO PARAM --> TE DEIXA 
+
+SETTAR ""TRUE"" OU ""FALSE"",
+
+
+A DEPENDER 
+
+SE 
+
+SUA 
+
+
+CONSTANT É CASE-SENSITIVE OU NAO...
+
+
+
+
+
+
+
+
+
+
+--> ISSO JÁ FOI DEPRECADO... (ESSE TERCEIRO PARAM)...
+
+
+
+
+
+
+
+
+
+
+--> OK... E O NOME DA CONSTANT 
+
+SEGUE 
+
+A MESMA 
+
+REGRA 
+
+
+DA VARIABLE...
+
+
+
+
+(devemos usar ou first_name ou firstName)...
+
+
+
+
+
+
+
+(também podemos usar _first_name ou _firstName)
+
+
+
+
+--> OS NOMES DAS VARIABLES 
+
+TAMBÉM 
+
+SAO 
+
+CASE-SENSITIVE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK.... MAS A CONVENTION 
+
+DAS CONSTANTS,
+
+
+NO CASO,
+
+É QUE 
+
+
+
+
+__ TODAS AS LETRAS DEVEM SER UPPERCASE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+AÍ, SE VC QUISER USAR ESSA CONSTANT, 
+
+
+BASTA USAR 
+
+SEU NOME...
+
+
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+// EXEMPLO DE VARIABLES E CONSTANTS...
+
+
+
+
+
+
+// EXEMPLO DE VARIÁVEL CLÁSSICA (que pode ser alterada)...
+
+$firstName = 'Arthur';
+
+$firstName = 'Joe';
+
+echo $firstName; ## VAI OUTPUTTAR ""JOE""
+
+
+// EXEMPLO DE __CONSTANTE__ (nao pode ser alterada)...
+
+// PARA DEFINIR CONSTANTES, NO PHP, SOMOS OBRIGADOS A USAR A FUNCTION DE define()...
+
+
+
+define('SECOND_NAME', 'Panazolo'); /// aqui criamos 1 constante de nome SECOND_NAME, de value PANAZOLO
+
+
+
+
+
+define('A_NAME', "Sujeito"); // A NAMING CONVENTION DE CONSTANTES É __ TUDO EM UPPERCASE_...
+
+
+
+
+echo SECOND_NAME, A_NAME;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS AQUI TEMOS UMA DIFERENCA CRUCIAL...
+
+
+
+
+
+
+
+
+
+
+
+COM VARIABLES,
+
+
+QUANDO 
+
+AS UTILIZAMOS,
+
+
+
+
+
+
+ESCREVEMOS 
+
+'$' na frente...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+JÁ COM CONSTANTS,
+
+
+QUANDO QUEREMOS AS UTILIZAR,
+
+
+
+
+USAMOS SEUS NOMES 
+
+
+_ SEM '$' NO INÍCIO...
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+
+define('SECOND_NAME', 'Panazolo'); /// aqui criamos 1 constante de nome SECOND_NAME, de value PANAZOLO
+
+
+
+
+
+define('A_NAME', "Sujeito"); // A NAMING CONVENTION DE CONSTANTES É __ TUDO EM UPPERCASE_...
+
+
+
+
+echo SECOND_NAME, A_NAME;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+conforme mencionado,
+
+vc 
+
+nao pode 
+
+
+
+REDEFINIR 
+
+
+O VALUE 
+
+DE CONSTANTS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VC TAMBÉM PODE CHECAR 
+
+SE 
+
+1 CONSTANT 
+
+
+
+
+
+JÁ FOI DEFINIDA.... 
+
+
+
+
+
+
+
+
+
+
+
+-> PARA CHECAR SE 1 CONSTANT JÁ FOI DEFINIDA,
+
+
+
+VC DEVE USAR A FUNCTION DE ""defined()""...
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+defined(SECOND_NAME); ## SERVE PARA _ CHECAR_ SE 1 DETERMINADO CONSTANT NAME ( 1 constant) JÁ FOI USADO/DEFINIDO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> certo...
+ 
+
+ essa é uma function...
+
+
+
+
+
+
+
+
+
+ -> É ASSIM QUE 
+
+ CHECAMOS 
+
+ SE 
+
+ 1 
+
+ CONSTANT JÁ FOI DEFINIDA...
+
+
+
+
+
+
+
+
+
+
+
+ -> ok... e isso retorna 0 OU 1,
+
+
+ A DEPENDER 
+
+ SE 
+
+
+A CONSTANT JÁ FOI DEFINIDA OU NAO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> BOOLEAN VALUE --> TRUE --> 1 ...
+
+
+
+
+
+
+
+
+MAS SE CHECAMOS POR 
+
+OUTRA CONSTANT,
+
+
+
+COMO STATUS_VOID,
+
+RECEBEMOS 0 (porque isso nao foi definido...)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2) A SEGUNDA MANEIRA 
+
+
+DE 
+
+
+DEFINIR __ CONSTANTES É POR MEIO 
+
+
+
+__ DA KEYWORD DE ""const""
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+const A_NEW_CONSTANT = "EXEMPLO"; ## É OUTRA MANEIRA DE DEFINIR CONSTANTS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS HÁ UMA DIFERENCA ENTRE 
+
+DEFINIR 
+
+
+CONSTANTS 
+
+
+COM ""define()""
+
+
+
+e com 
+
+
+
+
+""const""...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A DIFERENCA ENTRE 
+
+
+
+
+OS 2 APPROACHES É QUE 
+
+
+
+
+
+
+
+AS CONSTANTS 
+
+DEFINIDAS 
+
+
+
+COM ""const"" 
+
+
+SÃO DEFINIDAS __ DURANTE__ O ""COMPILE TIME""...
+
+
+
+
+
+
+
+
+
+
+JÁ CONSTANTS CRIADAS COM A FUNCTION DE ""define()""
+
+
+
+SAO DEFINIDAS _ DURANTE _ O RUNTIME...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK.... MAS QUAL É O EFEITO PRÁTICO DISSO...
+
+
+
+
+
+
+
+
+--> O EFEITO É 
+
+QUE 
+
+VC _ SÓ __ PODE __ DEFINIR __ CONSTANTES _ 
+
+
+
+
+DENTRO DE _ _CONTROL STRUCTURES (for loops, while statements, if-else, etc)
+
+
+
+_ por meio _ da FUNCTION DE DEFINE()....
+
+
+
+
+
+
+
+
+
+A KEYWORD DE """CONST"" NAO FUNCIONA, PARA DEFINIR CONSTANTES,
+
+DENTRO 
+
+
+
+DE CONTROL STRUCTURES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR FALARÁ SOBRE CONTROL STRUCTURES
+
+EM VIDEOS FUTUROS,...
+
+
+
+
+
+
+
+MAS O QUE INTERESSA É QUE:
+
+
+
+
+
+
+
+if (true) {
+    define('STATUS_PAID', 9);
+}
+
+
+
+
+
+
+
+
+ISSO FUNCIONA...
+
+
+
+
+
+
+JÁ ISTO:
+
+
+
+if (true) {
+    
+    const STATUS_PAID = 9;
+}
+
+
+
+
+
+
+NÃO FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+//  ISTO FUNCIONA...
+if (true) {
+    define('STATUS_PAID', 9);
+}
+
+
+// ISTO NAO FUNCIONA
+
+// if (true) {
+//    const STATUS_PAID = 9; //! ERRADO - CONST KEYWORD DENTRO DE CONTROL STRUCTURE...
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+HÁ MAIS DIFERENCAS,
+
+MAS O PROFESSOR 
+
+NAO FALARA
+ 
+ SOBRE 
+
+ ELAS 
+
+
+ AGORA...
+
+
+
+
+
+
+
+
+
+--> MAS HÁ MAIS 
+
+1 COISA QUE ELE QUER NOS MOSTRAR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VC PODE USAR VARIABLES __ PARA __ DEFINIR __ 
+
+
+SEUS CONSTANT NAMES...
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+
+$paid = 'PAID';
+
+
+
+define('STATUS_' . $paid, $paid);
+
+
+echo STATUS_PAID;
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO,
+
+
+
+
+
+
+O STATUS_PAID 
+
+ESTARÁ COMO DEFINED...
+
+
+
+
+
+--> NÓS CRIAMOS O NOME/CONSTANTE 
+
+DINAMICAMENTE,
+
+O QUE 
+
+
+QUER DIZER QUE 
+
+
+ESSA CONSTANT REALMENTE EXISTE...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+$paid = 'PAID';
+
+
+
+define('STATUS_' . $paid, $paid); ##PODEMOS CRIAR NOSSA CONSTANT/DEFINIR O CONSTANT NAME _ DINAMICAMENTE...
+
+
+echo STATUS_PAID; //isso ficará definido...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+MAS QUANDO VC DEVE USAR CONSTANTS?
+
+
+
+
+
+
+
+
+SEMPRE QUE VC TIVER DATA QUE NAO MUDA COM MT FREQUENCIA...
+
+
+
+
+
+
+
+
+
+POR EXEMPLO,
+
+PODEMOS USÁ-LAS 
+
+PARA 
+
+STATUSES,
+
+
+COMO 
+
+
+""sTATUS_PAID"",
+
+
+
+""STATUS_VOID"",
+
+
+
+""PENDING"",
+
+
+""DECLINED"",
+
+
+
+etc...
+
+
+
+
+
+
+
+
+
+
+-> ALÉM DE CUSTOM CONSTANTS,
+
+QUE DEFINIMOS NÓS MESMOS,
+
+
+
+
+HÁ ALGUMAS 
+
+PRE-DEFINED CONSTANTS, 
+
+QUE 
+
+SAO PROVIDENCIADAS PELO PRÓPRIO PHP...
+
+
+
+
+
+
+
+
+
+
+
+--> POR EXEMPLO,
+
+
+
+PODEMOS PRINTAR A VERSION DO NOSSO PHP,
+
+
+
+por meio
+
+
+
+
+
+
+DE 1 PRE-DEFINED CONSTANT...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+// TAMBÉM EXISTEM PRE-DEFINED (magical) CONSTANTS, NO MUNDO PHP...
+
+
+
+// AS CONSTANTS SAO COISAS COMO PHP_VERSION, PHP_BINARY, PHP_BINARY_READ, PHP_EXTRA_VERSION, etc..
+
+
+
+// ex: 
+
+
+echo PHP_VERSION; ## ISSO NOS MOSTRA A VERSION DO PHP QUE ESTÁ EXECUTANDO ESSA FILE..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ATUALMENTE,
+
+O PROFESSOR ESTÁ USANDO 7.4,
+
+
+MAS ELE 
+VAI UPAR PARA O PHP 8,
+
+PQ 
+
+ELE FOI LANCADO HÁ POUCO TEMPO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR MENCIONOU MAGIC CONSTANTS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK, MAS O QUE SAO ELAS...?
+
+
+
+
+
+
+
+
+
+
+
+
+--> SAO BASICAMENTE 
+
+
+CONSTANTS,
+
+MAS SAO CHAMADAS 
+
+DE MAGIC 
+
+PQ 
+
+
+SEU VALUE 
+PODE ACTUALLY MUDAR 
+
+
+
+__DEPENDENDO __ 
+
+
+
+DO LOCAL EM QUE SAO USADAS...
+
+
+
+
+
+
+
+
+
+
+
+
+por exemplo,
+
+UMA DAS MAGIC CONSTANTS É 
+
+
+
+
+__LINE__...
+
+
+
+
+
+
+
+
+
+
+//  EXEMPLO DE MAGIC CONSTANT -> __LINE__...
+
+
+
+// ex:
+
+
+echo __LINE__; ## PRINTA A LINHA ATUAL DESTE ARQUIVO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSA CONSTANT VAI SIMPLESMENTE CONTER O VALUE 
+
+
+
+
+DA LINE EM QUE 
+
+FOI USADO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO....
+
+
+
+
+
+
+
+
+TEMOS A MESMA COISA COM O 
+
+
+__FILE__ -->  ISSO VAI PRINTAR O FILE_PATH 
+
+EM QUE 
+É USADO...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+echo __LINE__; ## PRINTA A LINHA ATUAL DESTE ARQUIVO... ---> vai printar 274...
+
+
+
+
+
+// TEMOS A MESMA COISA COM O 
+
+
+// __FILE__ -->  ISSO VAI PRINTAR O FILE_PATH EM QUE É USADO esse arquivo... O FULL PATH...
+
+
+
+
+
+
+
+
+
+
+--------------------------------
+
+
+
+
+
+
+
+
+
+
+FINALMENTE,
+
+O PROFESSOR QUER NOS MOSTRAR O CONCEITO DE """"VARIABLE VARIABLES"""'
+
+
+
+
+
+
+
+
+
+
+----> para isso,
+
+
+
+O PROFESSOR DEFINE ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+$exemplo = 'super-exemplo';
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+// EXEMPLO DE VARIABLE VARIABLES...
+
+
+$exemplo = 'super-exemplo';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO... -> 
+
+
+
+
+
+
+DEPOIS DISSO,
+
+O PROFESSOR 
+
+
+
+ESCREVE ASSIM:
+
+
+
+$exemplo = 'super-exemplo';
+
+
+
+
+$$exemplo = 'super-exemploxxxx';
+
+
+
+
+
+
+
+
+
+
+OK.... MAS O QUE DIABOS ISSO FAZ...?
+
+
+
+
+
+
+
+
+
+O QUE FAZ UMA VARIABLE VARIABLE...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+// EXEMPLO DE VARIABLE VARIABLES...
+
+
+$exemplo = 'arroz';
+
+
+
+
+$$exemplo = 'feijao';   //essa é uma VARIABLE VARIABLE...
+
+
+
+
+
+
+
+
+
+
+
+BEM, 
+
+
+
+
+1 VARIABLE VARIABLE 
+
+
+
+
+
+__ESSENCIALMENTE_ 
+
+
+PEGA O VALUE 
+
+
+DA VARIABLE,
+
+E AÍ 
+
+
+
+
+__TRATA ___ COMO __ O ___ NOME __ DA 
+
+
+NOVA VARIABLE...
+
+
+
+
+
+
+
+
+
+--> ISSO QUER DIZER, EM OUTRAS PALAVRAS,
+
+
+
+
+
+
+
+QUE 
+
+
+
+$$exemplo = 'feijao';
+
+
+
+
+
+
+
+
+
+
+
+
+É ___ A MESMA COISA __ QUE ESCREVER 
+
+
+
+
+
+
+$arroz = 'feijao';
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO ACONTECE BASICAMENTE POR CONTA DE ""EXPANSION""...
+
+
+
+
+
+
+
+
+
+
+
+--> isso pq "$exemplo", ESSA VARIÁVEL,
+É EQUIVALENTE AO VALUE DE 
+
+"arroz"....
+
+
+
+
+
+
+
+agora imagine assim:
+
+
+$($exemplo) 
+
+
+
+AÍ TROCAMOS O EXEMPLO POR "arroz",
+o que 
+quer dizer que fica assim:
+
+
+
+
+$(arroz) ------> E AÍ TERMINA ASSIM:
+
+
+
+$arroz 
+
+
+
+
+
+
+
+
+--> E, AÍ ,
+
+
+A PARTE DO VALUE CONTINUA A MESMA, TIPO ASSIM:
+
+
+
+
+
+
+$arroz = 'feijao';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+----> BASICAMENTE DIZEMOS 
+
+
+"""PEGUE O VALUE DA VARIÁVEL EXEMPLO (arroz)
+
+__ E ENTAO USE ISSO COMO __ NOME _ DA NOVA VARIÁVEL (que vai ser 'arroz', com value de feijao)"" 
+
+
+
+
+
+
+
+------------------------------------
+
+
+
+
+
+
+o IDE PODE mostrar que isso está errado, mas está certo...
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE VC QUISER EVENTUALMENTE PRINTAR 
+
+
+
+ESSA VARIABLE, VC PODE 
+
+
+ESCREVER OU 
+
+
+$arroz ou 
+
+$$exemplo...
+
+
+
+
+TIPO ASSIM:
+
+
+
+echo $arroz, $$exemplo; //ambos funcionam, e ambos printarão 'feijao'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------> ok... mas se vc quiser 
+
+
+
+
+ENFIAR ESSA VARIABLE VARIABLE DENTRO 
+
+DE QUOTES,
+
+
+
+
+vc precisa da sintaxe alternativa,
+
+
+
+
+de 
+
+
+{$$exemplo}
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+// EXEMPLO DE VARIABLE VARIABLES...
+
+
+$exemplo = 'arroz';
+
+
+
+
+$$exemplo = 'feijao';   //essa é uma VARIABLE VARIABLE...
+
+
+
+echo $arroz, $$exemplo; //ambos funcionam, e ambos printarão 'feijao'
+
+
+
+
+echo "string exemplo com variable variable no interior {$$exemplo}"; ## faça isso, se quiser outputtar essa VARIABLE VARIABLE no interior de uma string... (expansion)..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ E O RECURSO 
+
+
+ DE VARIABLE VARIABLES 
+
+ É MT ÚTIL PQ __ TE DÁ A FLEXIBILIDADE 
+
+
+
+
+PARA _ _ CONSTRUIR __ VARIABLE _ NAMES __ 
+DINAMICAMENTE...
+
+
+
+
+
+
+
+
+
+
+VEREMOS 
+MAIS 
+
+USE-CASES 
+
+AVANCADOS
+
+
+
+DE VARIABLE VARIABLES COM ARRAYS E OBJECTS EM VIDEOS FUTUROS...
+
+
+
+
