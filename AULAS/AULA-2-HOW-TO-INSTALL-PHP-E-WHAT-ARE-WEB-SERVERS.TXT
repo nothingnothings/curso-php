@@ -177,8 +177,1101 @@ AO LONGO DE MÚLTIPLOS WEBSITES...
 
 
 
-AQUI HÁ UM SIMPLES DIAGRAMA DE COMO ISSO FUNCIONA:
 
 
 
 
+
+
+
+
+--> CERTO...
+
+
+
+
+
+OS 2 WEB SERVERS MAIS COMUNS SAO 
+
+
+APACHE E NGINX...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VC PODE INSTALAR O PHP... ÀS VEZES O PHP VEM INSTALADO COM A OS..
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS SE VC QUISER 
+
+
+INSTALAR TUDO DE UMA VEZ SÓ,
+
+PHP,
+
+
+WEB SERVER E DATABASES,
+
+
+
+E OUTRAS FERRAMENTAS,
+
+
+
+VC 
+
+PODE USAR 
+
+
+BUNDLERS 
+
+
+
+
+
+
+
+COMO 
+
+
+
+XAMPP MAMP E WAMP...
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSAS COISAS 
+BUNDLAM TUDO EM 1 COISA SÓ,
+
+
+
+
+E __ JÁ VEM PRECONFIGURADOS...
+
+
+
+
+
+
+
+
+-> DEIXAM BEM EASY PARA BEGINNERS COMEÇAREM COM PHP...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OUTROS 
+
+
+EXEMPLOS DE SETUP 
+
+
+
+
+SAO DOCKER 
+
+
+
+E 
+
+VIRTUAL MACHINES...
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR DIZ QUE MTAS VEZES SAO ALTERNATIVAS 
+
+
+MELHORES DO QUE O XAMPP MAMP E WAMP...
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR USA 
+
+O DOCKER PARA TER 
+
+
+1 
+
+
+PHP ENVIRONMENT...
+
+
+
+
+
+
+
+
+
+
+--> E ELE TERÁ 
+
+UM VIDEO SEPARADO 
+
+
+
+SOBRE COMO TER 
+
+
+1 
+
+SETUP 
+PHP COM O DOCKER (como o do professor max)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+MAS TODA ESSA FLEXIBILIDADE DO XAMPP,
+
+
+
+
+PARA INSTALAR 
+
+O PHP,
+
+
+
+VEM 
+
+A UM PREÇO...
+
+
+
+
+
+
+
+
+
+O PREÇO É FLEXIBILIDADE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> XAMPP....
+
+
+
+
+EU JÁ TENHO INSTALADO...
+
+
+
+
+
+
+
+
+
+DESVANTAGENS:
+
+
+
+
+
+1) VC NAO PODE TER MÚLTIPLAS VERSOES DE PHP INSTALADAS AO MESMO TEMPO,
+OUT OF THE BOX.... HÁ MANEIRAS DE CONSEGUIR ISSO COM O XAMPP,
+
+
+
+MAS ISSO NAO É FÁCIL DE FAZER..
+
+
+
+
+
+
+
+
+2) VC TALVEZ TAMBÉM PRECISE DE 1 VERSAO DIFERENTE DA DATABASE 
+
+PARA CADA PROJECT (VERSAO DO MYSQL)...
+
+
+
+
+
+
+
+3) TAMBÉM PODE __ SER __ DIFÍCIL 
+
+
+
+DE MANAGEAR E MAINTAIN MÚLTIPLOS PROJECTS,
+
+
+
+
+PRINCIPALMENTE QUANDO VC TENTA UPGRADEAR SUA 
+
+VERSAO 
+
+DO PHP...
+
+
+
+
+
+
+
+
+
+4) UM PONTO FATAL É QUE __ 
+
+O XAMPP É USADO 
+
+APENAS PARA DEVELOPMENT....
+
+
+
+--> ELE NAO 
+
+É BOM PARA PRODUCTION,
+
+
+
+
+DEVIDO A SUAS FALHAS DE SEGURANÇA...
+
+
+
+
+
+
+
+
+5) COMO VC NAO VAI USAR O XAMPP PARA PRODUCTION,
+
+VC TIPICAMENTE 
+
+TERÁ 
+
+
+ALGUMAS DIFERENCAS ENTRE O LOCAL SETUP E 
+
+O SETUP DE PRODUCTION ---> ESSAS DIFERENCAS 
+
+
+PODEM SER 
+
+
+_MINOR__ (SE VC SABE O QUE ESTÁ FAZENDO),
+
+OU MAJOR (
+
+
+    se estamos falando DA VERSAO DO PHP,
+
+    OU DOS PACKAGES QUE 
+    ESTAO INSTALADAS... 
+)
+
+
+
+
+
+
+
+
+6) ESSES PROBLEMAS DO XAMPP, DE DIFERENCA DE SETUP DE DEV 
+
+E DE PRODUCTION,
+
+PODEM 
+LEVAR 
+
+AO PROBLEMA 
+
+DE 
+
+""WORKS IN MY LOCAL MY MACHINE, BUT DOES NOT WORK IN PRODUCTION""...
+
+
+
+
+
+
+
+
+
+
+--> NAO HÁ NADA DE ERRADO COM O USO DE XAMPP 
+
+PARA HOBBY PROJECTS,
+
+OU APENAS PARA O PLAY AROUND COM O PHP,
+
+
+PARA 
+
+GET 
+
+STARTED O MAIS RÁPIDO POSSÍVEL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> DEPENDE DE VC COMO VC QUER 
+
+SETTAR SEU LOCAL ENVIRONMENT...
+
+
+
+
+
+
+
+
+
+--> SE VC É UM INICIANTE, 
+
+
+O PROFESSOR RECOMENDA 
+
+
+O XAMPP...
+
+
+
+DEVEMOS BUSCAR POR OUTRAS ALTERNATIVAS APENAS SE 
+
+SOMOS MAIS EXPERIENTES...
+
+
+
+
+
+
+
+
+
+
+
+
+BAIXE O XAMPP...
+
+
+
+ETC ETC...
+
+
+
+
+
+
+
+
+
+
+
+ELE PEDE POR QUAIS SERVICES VC QUER INCLUIR NO BUNDLE...
+
+
+
+
+
+
+
+
+
+
+OK.... AÍ TEMOS O XAMPP CONTROL PANEL...
+
+
+
+
+
+
+
+
+apertei em start mysql... startou, sem problemas...
+
+
+
+
+
+
+APERTEI EM START NO APACHE... funcionou...
+
+
+
+
+
+
+
+AS PORTS DEVEM 
+ESTAR LIMPAS, PARA PODERMOS 
+
+RODAR AS COISAS NELAS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> a mesma coisa pode acontecer com o apache... a port pode estar ocupada...
+
+
+
+
+
+
+-> na config,
+ podemos 
+
+ mudar o default text editor, etc...
+
+
+
+
+
+
+
+
+
+ VEREMOS AS CONFIG FILES MAIS TARDE...
+
+
+
+
+
+
+
+
+
+ NO BROWSER,
+
+
+ 
+ podemos escrever 
+
+
+
+ http:localhost
+
+
+
+
+
+
+
+
+ --> ISSO DEVERIA ABRIR O DASHBOARD PARA O XAMPP,
+
+ MAS 
+
+ ISSO NAO ACONTECEU PARA MIM...
+
+
+
+
+
+
+
+
+
+
+
+
+ --> bem, é claro que nao estava funcionando,
+
+
+ o servidor apache estava desligado...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ COM ELE LIGADO,
+
+
+
+
+
+
+
+ PODEMOS ACESSAR A PÁGINA INICIAL DO XAMPP...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ --> AGORA VC PODE SE PERGUNTAR: 
+
+
+ OK, MAS ONDE COLOCO MEU SOURCE CODE?
+
+
+
+
+
+
+
+
+
+
+
+
+ -> BEM, ISSO DEPENDE 
+
+ DE __ COMO __ O WEBSERVER 
+
+
+
+ ESTÁ CONFIGURADO...
+
+
+
+
+
+
+
+
+
+
+ --> LÁ NO XAMPP,
+
+ DEVEMOS CLICAR NO ÍCONE DO EXPLORER... -> ISSO 
+
+ VAI ABRIR 
+
+  O FOLDER 
+
+  EM QUE 
+  O XAMPP 
+  ESTÁ INSTALADO..
+
+
+
+
+
+
+
+
+
+TEMOS VÁRIAS COISAS INTERESSANTES INSTALADAS...
+
+
+
+
+
+
+
+
+
+1) apache 
+
+
+2) pHP 
+
+
+
+3) MYSQL...
+
+
+
+
+
+
+
+
+
+-> A ÚNICA COISA QUE TEMOS QUE SABER, 
+
+
+AQUI,
+
+
+É QUE 
+
+
+
+O FOLDER 
+
+
+DE ""htdocs""
+
+
+É SEU 
+
+
+
+"""""DOCUMENT ROOT""""""
+
+
+
+
+
+
+
+
+
+QUER DIZER QUE 
+
+É NESSE LOCAL 
+
+QUE FICARÁ 
+
+
+SEU SOURCE CODE E SUAS PROJECT FILES...
+
+
+
+
+
+
+
+
+
+
+SE ENTRAMOS 
+
+NISSO AÍ, 
+
+
+
+
+
+
+PERCEBEMOS QUE O DASHBOARD É RENDERIZADO POR TODAS ESSAS FILES...
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR VAI EM FRENTE E DELETA TUDO ISSO...
+
+
+
+
+
+
+PQ AGORA VAMOS ADICIONAR NOSSA PRÓPRIAS FILES...
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... MAS O QUE VAI ACONTECER, AGORA,
+
+QUANDO 
+
+
+VC FOR ATÉ LOCALHOST,
+
+
+É QUE 
+
+ELE 
+
+VAI 
+
+TENTAR 
+
+LOCALIZAR 
+
+
+
+1 ARQUIVO DE NOME 
+
+""index.php""
+
+
+
+DENTRO 
+
+
+
+
+
+__ DO DOCUMENT ROOT,
+
+QUE É 
+AQUELE FOLDER DE ""htdocs"""
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE ELE ENCONTRA O ARQUIVO index.php,
+
+
+
+
+
+
+-> AÍ ELE VAI _ fAZER __ O SERVE DO SITE,
+
+USANDO 
+
+
+ESSE ARQUIVO...
+
+
+
+
+
+SE ELE __ NÀO CONSEGUE/NAO CONSEGUIR 
+
+ENCONTRAR ESSE ARQUIVO,
+
+
+ELE VAI SIMPLESMENTE 
+
+LISTAR 
+
+
+
+__ AS _ FILES __ E DIRECTORIES 
+
+
+DENTRO 
+
+DO DOCUMENT ROOT...
+
+
+
+
+
+
+
+
+--> para demonstrar isso, o professor 
+
+
+cria 1 file qualquer,
+
+
+E AÍ 
+
+
+DIGITA LOCALHOST --> aí o servidor 
+
+apache vai SIMPLESMENTE 
+
+
+APENAS MOSTRAR 
+
+
+O 
+
+ROOT DE NOSSO 
+
+
+FILESYSTEM,
+DESSE ARQUIVO...
+
+
+
+
+
+
+
+
+
+
+-> CERTO...
+ 
+
+ TUDO ISSO FAZ TOTAL SENTIDO...
+
+
+
+
+
+
+
+
+
+
+
+
+--> O QUE PODEMOS FAZER, AQUI,
+
+É CRIAR 
+
+DIRECTORIES ALI..
+
+
+
+
+
+-> O PROFESSOR COMECA PELO CREATE DE 1 ARQUIVO PHP,
+
+
+
+
+index.php...
+
+
+
+
+
+
+
+
+
+
+
+
+
+COLOCAMOS 1 STRING DE ""Hello World!""
+
+
+
+
+
+
+
+
+
+
+-> ISSO É 1 TEXT SIMPLES,
+
+NAO É NENHUM código php...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+
+FAZ TOTAL SENTIDO... E QUANDO ACESSAMOS 
+
+1 DAS PASTAS,
+
+PASTA COM 
+
+
+1 INDEX.PHP NO INTERIOR,
+
+
+
+ACONTECEM 2 COISAS:
+
+
+
+
+
+1) O NOME DA PASTA FICA COMO O NOME DO PATH, LÁ NA URL 
+
+
+
+2) O CONTEÚDO DE ""index.php"" é carregado, nessa página...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AINDA NAO ESCREVEMOS NENHUM CÓDIGO PHP,
+
+
+
+MAS JÁ TEMOS O SERVE 
+
+DE CONTEÚDO...
+
+
+
+
+
+
+
+
+
+
+
+-> MAS PRECISAMOS VER A SINTAXE PHP...
+
+
+
+
+
+
+
+-> É BOM TRABALHAR COM 1 CODE EDITOR...
+
+
+
+
+
+
+
+
+--> O PROFESSOR ACHA MELHOR O VISUAL STUDIO CODE...
+
+
+
+
+
+
+-> O PHPSTORM TAMBÉM É BOM...
