@@ -1,0 +1,1380 @@
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK....
+
+
+
+
+
+
+STRINGS SAO SERIES DE CARACTERES..
+
+
+
+
+
+
+
+
+
+E JÁ COBRIMOS STRINGS NOS VIDEOS ANTERIORES..
+
+
+
+
+
+
+
+
+
+
+
+--> MAS VAMOS FAZER 1 BREVE REVIEW,
+
+
+
+E ENTAO VAMOS VER ALGUNS DETAILS  ADICIONAIS SOBRE STRINGS..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> 
+<?php
+
+
+
+
+
+
+// STRING DATA TYPES
+
+$firstName = "eu";
+
+
+
+$firstName2 = 'eu2';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> strings podem ser representadas com single quotes e double quotes...
+
+
+
+
+
+
+
+
+
+-> 
+
+
+
+A DIFERENCA PRINCIPAL ENTRE SINGLE QUOTES E DOUBLE QUOTES 
+
+É QUE 
+
+
+
+
+COM SINGLE QUOTES VC NAO PODE USAR VARIABLE INJECTIOJN..
+
+
+
+EX:
+
+
+
+
+
+
+
+<?php
+
+
+
+
+
+
+// STRING DATA TYPES
+
+$firstName = "eu";
+
+
+
+$firstName2 = 'eu2';
+
+
+
+$completeName = "voce e {$firstName}";
+
+
+
+
+$failedCompleteName = 'voce e {$firstName}';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+QUER DIZER QUE O ""eu"" é outputtado no primeiro,
+
+
+e no segundo 
+
+isso 
+
+
+nao 
+
+
+funcionará..
+
+
+
+
+
+
+
+
+O DOLLAR SIGN PODE OU FICAR NO LADO DE DENTRO, OU NO LADO DE FORA,
+dos curly braces...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... DEVEMOS VER OUTRAS COISAS..
+
+
+
+
+
+
+
+
+
+
+OUTRA COISA QUE PODEMOS VER É 
+
+
+
+
+"""PODEMOS ACESSAR 1 CARACTER ESPECÍFICO EM 1 STRING"""...
+
+
+
+
+
+
+
+
+ANTES DE MAIS NADA,
+
+O PROFESSOR 
+
+
+
+
+
+CRIA 
+
+
+
+VARIABLES DE FIRST E LAST NAME,
+
+E ENTAO OS CONCATENA COM O CONCATENATE OPERATOR (.)...
+
+
+
+Ex:
+
+
+
+
+
+
+
+
+// CONCATENATION EXAMPLE:
+
+$myFirstName = "Arthur";
+
+
+$mySecondName = "Panazolo";
+
+
+$myFullName = $myFirstName . " " . $mySecondName; ///o DOT é o CONCATENATE OPERATOR.
+
+
+
+
+
+-----------------------------------
+
+
+
+
+
+
+
+
+
+PARA ACESSAR 1 CARACTER ESPECÍFICO EM 1 STRING,
+
+VC PODE USAR O 0-BASED INDEXING....
+
+
+
+
+
+
+
+
+É A MESMA COISA QUE ACESSAR ELEMENTS EM ARRAYS..
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+// CONCATENATION EXAMPLE:
+
+$myFirstName = "Arthur";
+
+
+$mySecondName = "Panazolo";
+
+
+$myFullName = $myFirstName . " " . $mySecondName; ///o DOT é o CONCATENATE OPERATOR.
+
+
+
+
+$firstNameFirstLetter = $myFirstName[0];
+
+
+echo $name;
+
+echo '<br />';
+
+
+echo $firstNameFirstLetter;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+isso funciona...
+
+
+
+
+
+
+
+MAS SE QUISERMOS ACESSAR DA PARTE DA DIREITA PARA A ESQUERDA,
+
+PODEMOS USAR NÚMEROS NEGATIVOS...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+// CONCATENATION EXAMPLE:
+
+$myFirstName = "Arthur";
+
+
+$mySecondName = "Panazolo";
+
+
+$myFullName = $myFirstName . " " . $mySecondName; ///o DOT é o CONCATENATE OPERATOR.
+
+
+
+
+$firstNameFirstLetter = $myFirstName[0];
+
+
+$firstNameLastLetter = $myFirstName[-1]; // "r"
+
+$penultimate = $myFirstName[-2];   // "u"
+
+echo $name;
+
+echo '<br />';
+
+
+echo $firstNameFirstLetter;
+
+echo $firstNameLastLetter;
+
+echo $penultimate;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA O PROFESSOR QUER ALTERAR 
+
+
+O VALUE DA PRIMEIRA LETRA,
+
+
+DEIXÁ-LA COMO MINUSCULA.. 
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS FAZER ISSO ACESSANDO A PRIMEIRA LETRA COM O [],
+
+
+e depois com algum method como toLowerCase() (ou algo assim)...
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+// CONCATENATION EXAMPLE:
+
+$myFirstName = "Arthur";
+
+
+$mySecondName = "Panazolo";
+
+
+$myFirstName[0] = strtolower($myFirstName[0]); //com isso, transformei a primeira letra do primeiro nome em MINÚSCULA..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+QUANDO FAZEMOS 
+
+var_dump de uma string,
+
+
+ficamos com 
+
+
+
+
+
+algo como 
+
+
+string(10) "Will Smith"
+
+
+
+
+
+
+
+ISSO QUER DIZER QUE O INDEX DO ÚLTIMO CARACTER É 9... (e que temos 10 caracteres)...
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS SE VC SETTAR 
+
+
+
+
+1 VALUE EM UM ESPACO COMO 15, por exemplo (que nao existe, nessa string ,
+
+no momento),
+
+o que O 
+
+
+
+php VAI FAZER __ É PAD_ _ 
+
+A _ STRING __ COM EMPTY SPACES...
+
+
+
+tipo 
+
+
+"Will Smith     I"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OUTRA COISA QUE DEVEMOS TER EM MENTE É QUE 
+
+EXISTIA 
+
+
+__ OUTRA MANEIRA _ 
+
+
+DE 
+
+
+
+ACESSAR __ STRING _ CHARACTERS,
+
+
+
+
+
+
+
+E OUTRA MANEIRA DE ACESSAR 
+
+
+
+ARRAY ELEMENTS,
+
+
+COM O FORMATO 
+
+
+CURLY BRACES  ({}),
+
+em vez dos square brackets.
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE ANTIGAMENTE 
+
+
+TÍNHAMOS ISTO:
+
+
+
+echo $name{1};
+
+
+
+
+
+
+
+
+
+
+ISSO FOI DEPRECADO EM PHP 8...
+
+
+
+
+
+
+
+
+
+
+-- PQ FOI DEPRECADO EM PHP 7.4...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... VIMOS AS SINTAXES SINGLE E DOUBLE QUOTES, ATÉ AGORA,
+
+PARA 
+
+REPRESENTAR STRINGS...
+
+
+
+
+
+
+
+
+
+
+
+-> MAS EXISTEM MAIS 2 SINTAXES...
+
+
+
+
+
+
+
+
+
+SAO AS SINTAXES 
+
+
+
+HEREDOC
+
+
+
+
+E NOWDOC..
+
+
+
+
+
+
+
+
+
+
+
+// SINGLE QUOTES E DOUBLE QUOTES SAO AS MANEIRAS TRADICIONAIS DE REPRESENTAR STRINGS...
+
+
+
+// MAS EXISTEM OUTRAS MANEIRAS...
+
+
+
+
+
+
+
+// AS MANEIRAS SAO HEREDOC E NOWDOC....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// AS MANEIRAS SAO HEREDOC E NOWDOC.... --> SAO
+ MANEIRAS DE HANDLAR LONGAS E MULTILINE STRINGS, 
+ QUE TALVEZ CONTENHAM EXPRESSOES COMPLEXAS...
+
+
+
+
+
+
+
+
+
+
+ -> SAO USADOS PARA EXPRESSOES LONGAS EM STRING,
+
+
+ QUE POSSAM CONTER TANTO SINGLE QUOTES COMO 
+ DOUBLE QUOTES (sem a necessidade de fazer escape dos 2)..
+
+
+
+
+
+
+
+
+
+
+
+
+ EX:
+
+
+
+
+
+
+
+
+
+
+ // A DIFERENCA ENTRE OS 2 É QUE O ""HEREDOC"" CONSIDERA STRINGS COMO ENCASED IN DOUBLE QUOTES...
+
+
+
+
+
+
+
+
+// JÁ O NOWDOCS TRATA STRINGS COMO SINGLE QUOTES..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EM OUTRAS PALAVRAS,
+
+
+
+
+NO HEREDOCS __ VOCE PODE TER VARIABLES,
+
+
+
+
+
+
+COISA QUE VOCE NAO PODE TER COM OS NOWDOC...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+// SINTAXE HEREDOC:
+
+
+// É UMA SINTAXE BEM ESQUISITA...
+
+// "<<<" (isso identifica que é um heredoc) "IDENTIFIER" (pode ser qualquer coisa)  ___CONTEÚDO__  "IDENTIFIER_DE_NOVO;"
+
+
+
+
+// EXEMPLO DE HEREDOC... (podemos usar variables no seu interior)
+$text = <<<TEXT
+  conteúdo da string: $myFullName
+ TEXT;
+
+
+
+
+
+
+
+A PARTE QUE 
+
+INTERESSA É TUDO 
+
+QUE 
+
+
+
+VC 
+
+COLOCA NO LUGAR ""conteúdo da string""...
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+// EXEMPLO DE HEREDOC... (podemos usar variables no seu interior)
+$heredocText = <<<TEXT
+  conteúdo da string: $myFullName
+ TEXT;
+
+
+
+echo $heredocText;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+
+
+
+
+MAS SE QUISERMOS 
+
+FAZER OUTPUT DE CONTEÚDO MULTILINE,
+
+NO BROWSER,
+
+
+
+DEVEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+
+
+
+// EXEMPLO DE HEREDOC... (podemos usar variables no seu interior)
+$heredocText = <<<TEXT
+  conteúdo da string: $myFullName
+  exemplo-multiline
+  exemplo-multiline
+  exemplo-multiline
+  exemplo-multiline
+  exemplo-multiline
+  exemplo-multiline
+ TEXT;
+
+
+
+echo $heredocText; //vai displayar tudo em 1 linha só
+
+
+echo nl2br($heredocText); //vai displayar tudo em MULTILINE, no browser...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK...
+
+
+
+
+
+
+
+
+
+
+HEREDOC, portanto,
+
+
+É UM FORMATO QUE PODE SER BEM ÚTIL (é parecido com template string, portanto)...
+
+
+
+
+
+
+
+
+
+
+
+--> A SINTAXE PARA NOWDOC é a mesma coisa que o HEREDOC,
+
+A ÚNICA DIFERENCA 
+
+
+É QUE 
+
+
+
+
+O IDENTIFIER TEM QUE 
+
+
+SER _ ENCLOSED COM SINGLE QUOTES,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+// SINTAXE NOWDOC (é a mesma sintaxe do HEREDOC, mas seu identifier tem que ficar em SINGLE QUOTES):
+
+
+
+
+
+// EXEMPLO DE NOWDOC... (NÃO podemos usar variables no seu interior)
+$nowDocText = <<<'TEXT'
+conteúdo da string: $myFullName
+exemplo-multiline
+exemplo-multiline
+exemplo-multiline
+exemplo-multiline
+exemplo-multiline
+exemplo-multiline
+TEXT;
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+--------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+// SINTAXE NOWDOC (é a mesma sintaxe do HEREDOC, mas seu identifier tem que ficar em SINGLE QUOTES):
+
+
+
+
+
+// EXEMPLO DE NOWDOC... (NÃO podemos usar variables no seu interior)
+$nowDocText = <<<'TEXT'
+conteúdo da string: $myFullName
+exemplo-multiline
+exemplo-multiline
+exemplo-multiline
+exemplo-multiline
+exemplo-multiline
+exemplo-multiline
+TEXT;
+
+
+echo $nowDocText; //vai displayar tudo em 1 linha só
+
+
+echo nl2br($nowDocText); //vai displayar tudo em MULTILINE, no browser...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+VC TALVEZ SE PERGUNTE,
+
+QUAIS 
+
+SAO OS USE-CASES 
+
+PARA ELES...
+
+
+
+
+
+
+
+
+
+
+EXISTEM MT USE-CASES... ->  BEM,
+
+QUANDO 
+
+TEMOS 
+
+
+
+
+MULTI-LINE 
+
+STRINGS COM COMPLEX EXPRESSIONS,
+
+
+
+
+O HEREDOC 
+
+E 
+
+NOWDOC 
+
+
+
+SAO BEM MAIS READABLE,
+
+
+
+
+
+E É BEM MELHOR DO QUE TER 1 MONTE DE CONCATENATIONS 
+
+E QUOTES... E ESCAPE DE QUOTES, ETC...
+
+
+
+
+
+
+
+
+--> PODEMOS TER SINGLE QUOTES E DOUBLE QUOTES DENTRO 
+
+DE HEREDOCS 
+E
+ 
+ NOWDOCS... O QUE É MT ÚTIL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OUTRO USE-CASE INSANAMENTE ÚTIL É QUE 
+
+VC TALVEZ 
+
+
+GERARÁ 
+
+HTML
+
+DINAMICAMENTE...
+
+
+
+
+
+
+NESSES CASES,
+
+
+OS 
+
+
+
+HEREDOCS 
+
+PODEM 
+
+TER HTML TAGS COMPLETAS 
+
+EM SEU INTERIOR,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+ $hereDocText2 = <<<TEXT
+    <p>THIS IS AN EXAMPLE PARAGRAPH</p>
+ TEXT;
+
+echo $hereDocText; //vai displayar tudo em 1 linha só
+
+
+echo nl2br($hereDocText); //vai displayar tudo em MULTILINE, no browser...
+
+
+
+echo $hereDocText2; // VAI DISPLAYAR TAMBÉM HTML (o heredoc e o nowdoc sao capazes disso)....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK.. MAS UMA COISA QUE DEVEMOS TER EM MENTE 
+
+É QUE TODOS OS SPACES 
+NO NOWDOC/HEREDOC 
+
+
+
+VAO SER CONTABILIZADOS/CONSIDERADOS NA STRING FINAL...
+
+
+
+JÁ COBRIMOS OS 4 SCALAR DATA TYPES 
+
+
+
+strings, ints, booleans, floats...
+
+
+
+
+
+
+
+
+
+NO PRÓXIMO VIDEO,
+
+VEREMOS O SPECIAL TYPE DE NULL....
+
+
+
+
+
+
+
+-> DEPOIS VEREMOS ARRAYS...
+
+
+
+
+--> O CALLABLE, ITERABLE, OBJECT E _ RESOURCE(especial)
+
+SERAO
+
+COVERED MAIS TARDE
+ 
+ NO CURSO... 
+
+
+
+
+
+
+
+
+
+ PRECISAMOS FALAR DE OBJECTS E CLASSES PARA CONSEGUIRMOS FALAR 
+
+ SOBRE OBJECTS..
+
+
+ 
