@@ -1,0 +1,3257 @@
+
+
+
+
+
+
+
+
+
+
+--> OK... ESTUDAREMOS ARRAYS...
+
+
+
+
+
+
+
+
+
+
+
+DIGAMOS QUE VC PRECISE DE UMA VARIABLE PARA ARMAZENAR
+
+PROGRAMMING LANGUAGES...
+
+
+
+
+
+
+
+
+
+
+PODEMOS ASSIGNAR CADA PROGRAMMING LANGUAGE 
+
+COMO 
+
+1 
+
+
+
+VARIABLE SEPARADA, TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+
+
+
+
+// ESTUDAREMOS ARRAYS...
+
+
+$programmingLanguage1 = 'PHP';
+$programmingLanguage2 = 'Java';
+$programmingLanguage3 = 'Python';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+E ISSO PODE SER FINE SE VC TIVER APENAS 1 OU 2 
+
+PROGRAMMING LANGUAGES...
+
+
+
+
+
+
+MAS ISSO NAO ""FEELS"" NEM ""LOOKS"" FINE 
+
+
+PQ ESTAMOS 
+
+REPETINDO 
+
+
+
+
+A FRASE programmingLanguage 
+
+1 milhao de vezes...
+
+
+
+
+
+
+
+
+
+
+QUANDO VC TIVER 1 MILHAO DE PROGRAMMING LANAGUAGES,
+
+
+VC 
+
+TERÁ 
+
+MT REPETITION NAS 
+
+
+SUAS VARIABLE NAMES -->  QUANDO VC PERCEBE ISSO 
+
+
+NOS SEUS VARIABLE NAMES,
+
+
+ISSO 
+
+GERALMENTE SIGNIFICA QUE 
+
+VC 
+
+PRECISA 
+
+ESTRUTURAR 
+
+SUA 
+
+DATA 
+
+DE 
+
+MANEIRA MELHOR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> HÁ UMA MANEIRA MELHOR DE FAZER ISSO,
+ 
+
+ E É CHAMADA DE ARRAYS...
+
+
+
+
+
+
+
+
+-----> ARRAYS SAO UMA LISTA DE VALUES,
+
+EM QUE 
+
+
+
+ESSES VALUES PODEM SER DE MÚLTIPLOS DATA TYPES...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+
+
+
+
+// ESTUDAREMOS ARRAYS...
+
+
+$programmingLanguage1 = 'PHP';
+$programmingLanguage2 = 'Java';
+$programmingLanguage3 = 'Python';
+
+
+
+
+
+
+
+$programmingLanguages = [];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TEMOS ESSE EMPTY ARRAY..
+
+
+
+
+
+
+
+-> AÍ PODEMOS TER 
+
+
+QUAISQUER VALUES NO INTERIOR...
+
+TIPO ASSIM:
+
+
+
+
+
+
+// ESTUDAREMOS ARRAYS...
+
+
+$programmingLanguage1 = 'PHP';
+$programmingLanguage2 = 'Java';
+$programmingLanguage3 = 'Python';
+
+
+
+
+
+
+
+$programmingLanguages = [];
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+
+// ESTUDAREMOS ARRAYS...
+
+
+$programmingLanguage1 = 'PHP';
+$programmingLanguage2 = 'Java';
+$programmingLanguage3 = 'Python';
+
+
+
+
+
+
+
+// $programmingLanguages = [];
+
+$programmingLanguages = ['PHP', 'Java', 'Python'];
+
+
+
+
+
+
+
+
+
+
+
+HÁ TAMBÉM UMA MANEIRA OLD 
+
+
+
+DE 
+DEFINIR 
+
+ARRAYS,
+
+QUE É 
+
+
+A 
+
+array(exemplo1, exemplo2, exemplo3)...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+<?php
+
+
+
+
+
+// ESTUDAREMOS ARRAYS...
+
+
+$programmingLanguage1 = 'PHP';
+$programmingLanguage2 = 'Java';
+$programmingLanguage3 = 'Python';
+
+
+
+
+
+
+
+// $programmingLanguages = [];
+
+// SINTAXE ANTIGA --> array(exemplo1, exemplo2, exemplo3)
+
+$programmingLanguages = ['PHP', 'Java', 'Python'];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+AGORA DEVEMOS EM COMO 
+
+ACESSARÍAMOS CADA ELEMENT EM 1 ARRAY....
+
+
+
+
+
+
+
+
+
+
+ASSIM COMO STRINGS,
+
+PODEMOS 
+
+ACESSAR 
+
+OS ARRAYS  
+
+POR MEIO DE INDEXING...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+
+// ESTUDAREMOS ARRAYS...
+
+
+$programmingLanguage1 = 'PHP';
+$programmingLanguage2 = 'Java';
+$programmingLanguage3 = 'Python';
+
+
+
+
+
+
+
+// $programmingLanguages = [];
+
+// SINTAXE ANTIGA --> array(exemplo1, exemplo2, exemplo3)
+
+$programmingLanguages = ['PHP', 'Java', 'Python'];
+
+
+
+
+
+
+$item1 = $programmingLanguages[0];
+$item2 = $programmingLanguages[1];
+$item3 = $programmingLanguages[2];
+$item4 = $programmingLanguages[3];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... MAS, AO CONTRÁRIO DE STRINGS,
+
+
+
+
+NAO PODEMOS ACESSAR AS PARTES """"dE TRÁS DO ARRAY"""" 
+
+por meio de números negativos...
+
+
+
+
+
+
+
+
+
+
+
+nao podemos fazer isso:
+
+
+
+
+
+
+
+
+
+
+// $programmingLanguages = [];
+
+// SINTAXE ANTIGA --> array(exemplo1, exemplo2, exemplo3)
+
+$programmingLanguages = ['PHP', 'Java', 'Python'];
+
+
+
+$exampleString = 'Exemplo';
+
+$iniitalLetter = $exampleString[0]; ///retorna 'E'
+$finalLetter = $exampleString[-1]; //retorna 'o' (letra final)... --> ESSA SINTAXE DE ""DE TRÁS PRA FRENTE" no indexing NAO FUNCIONA COM ARRAYS...
+
+
+$item1 = $programmingLanguages[0];
+$item2 = $programmingLanguages[1];
+$item3 = $programmingLanguages[2];
+$item4 = $programmingLanguages[3];
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> 
+
+
+
+NAO PODEMOS RODAR $item5 = $programmingLanguages[-1]; //! ISSO VAI DAR O THROW DE 1 ERROR... (pq nao podemos usar a sintaxe de números negativos com ARRAYS... apenas com strings)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO QUER DIZER QUE 
+
+
+
+"""" 1 VALUE NAO EXISTE NO INDEX 
+
+NEGATIVE 1.... --> SÓ TEMOS OS INDEXES 0, 1, 2 E 3..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SÓ TEMOS ESSES INDEXES...
+
+
+
+
+
+
+
+-> QUER DIZER QUE 
+
+O NÚMERO QUE TEMOS DENTRO DE [], 
+
+NOS ARRAYS,
+
+É CHAMADO 
+
+
+
+
+DE """"INDEX"""",
+
+
+ou de KEY...
+
+
+
+
+
+
+
+
+
+
+-> VC É CAPAZ _ DE DEFINIR SUAS PRÓPRIAS KEYS,
+
+DENTRO 
+
+DE ARRAYS,
+
+NO PHP... (como se fossem objects... tipo isso)....
+
+
+
+
+LOGO FALAREMOS SOBRE ISSO...
+
+
+
+---------------------------
+
+
+
+MAS SE VC NAO DEFINIR NENHUMA KEY PARA 1 ITEM, DENTRO 
+
+DE 1 ARRAY,
+
+
+O PHP VAI AUTOMATICAMENTE 
+
+ASSIGNAR 
+
+
+
+NUMBERS A ESSES ITEMS... (comecando por 0)...
+
+
+
+
+
+
+
+
+VOCE É BASICAMENTE 
+
+CAPAZ 
+DE 
+
+TRATAR 
+
+
+
+
+___ ARRAYS __ COMO SE FOSSEM __ DIFERENTES TIPOS 
+
+DE DATA STRUCTURES,
+
+
+
+
+
+COMO 
+
+
+
+
+__ STACKS, QUEUES, COLLECTIONS,
+
+HASH TABLES,
+E ASSIM POR DIANTE... ISSO DEIXA ARRAYS MT POWERFUL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E SE VC TENTA ACESSAR 1 ITEM QUE NAO EXISTE, 
+
+DENTRO 
+
+
+DE 1 ARRAY,
+
+VC 
+VAI GANHAR 1 WARNING...
+
+
+
+
+
+
+-------------------------
+
+
+
+
+
+
+
+
+
+TAMBEM PERCEBA QUE,
+
+
+AINDA QUE 
+
+VC 
+
+
+PROSSIGA COM ESSE WARNING,
+
+
+
+O VALUE QUE VC VAI OBTER, DESSA KEY,
+
+
+AINDA SERÁ DE NULL...
+
+
+
+
+
+
+
+
+
+
+
+-> OK.. QUER DIZER QUE SE FIZERMOS 
+
+
+
+O VAR_DUMP DESSE VALUE,
+
+
+
+
+VAMOS GANHAR _UM WARNING___.... junto com o value de null....
+
+
+
+
+
+
+
+
+
+
+--> PARA EVITAR ERRORS 
+
+
+COMO ESSES,
+
+
+PODEMOS CHECAR SE O ITEM EXISTE 
+
+
+NESSA 
+
+KEY/INDEX ESPECÍFICO...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA CHECARMOS SE O ITEM EXISTE NESSA KEY/INDEX, SEM TER 1 ERROR (no caso de nao existir),
+
+
+PODEMOS 
+
+USAR 
+
+
+
+A FUNCTION/METHOD DE 
+
+
+
+isset(array[index]),
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+// TIPO ASSIM:
+
+
+var_dump(isset($programmingLanguages[1000])); ///vai retornar bool(false);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK...
+
+
+
+
+
+
+
+
+
+SE VC NAO SOUBER SE 1 ITEM EXISTE EM 1 ARRAY 
+
+NESSE INDEX ESPECÍFICO,
+
+
+
+VOCE 
+
+
+PODE CHECAR SE ELE EXISTE COM isset(array[index]),
+
+
+
+
+e aí entao tentar acessar isso....
+
+
+
+
+
+
+
+
+
+
+
+
+TAMBÉM É POSSÍVEL MUTAR 1 ARRAY,
+
+
+
+MUTAR 
+
+O VALUE 
+
+
+DE 1 ITEM DENTRO DESSE ARRAY,
+
+
+
+
+EM 1 DETERMINADO INDEX...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA VER O CONTENT DE 1 ARRAY,  PODEMOS:
+
+
+
+
+
+
+
+1) USAR ECHO 
+
+
+
+
+2) usar var_dump() --> MAS ESSA É UMA MANEIRA BEM VERBOSE, PQ TE DÁ OS TYPES TAMBÉm (de cada item no array)...
+
+
+
+
+
+3) print_r()
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+///COMO VER TODOS OS CONTEÚDOS DE 1 ARRAY.... 
+
+
+
+
+// 1a maneira -> var_dump() --> É BEM MAIS VERBOSE (te diz os types de cada 1 dos item no array)...
+
+
+var_dump($programmingLanguages);
+
+
+// 2a maneira -> print_r() --> É MENOS VERBOSE...
+
+
+
+print_r($programmingLanguages);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE VOCE QUER SER EXTRA FANCY,
+
+E OUTPUTTAR 
+
+ESSE NEGÓCIO DE FORMA MAIS BONITA,
+
+
+
+BASTA 
+
+
+
+
+
+ENVELOPPAR O ""print_r""
+
+
+COM TAGS DE <pre>..
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+echo '<pre>';
+print_r($programmingLanguages);
+echo '</pre>';
+
+
+
+
+
+
+
+
+
+
+
+
+
+PARA CONSEGUIRMOS A LENGTH DE UM ARRAY,
+
+
+PODEMOS 
+
+USAR 
+
+1
+ FUNCTION CHAMADA DE ""count""
+
+
+
+
+ TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+// PARA CONSEGUIRMOS A LENGTH DE UM ARRAY,
+
+
+// PODEMOS 
+
+// USAR  1 FUNCTION CHAMADA DE ""count""
+
+
+//  TIPO ASSIM:
+
+
+count($programmingLanguages);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO TE DÁ O NÚMERO DE ELEMENTOS NAQUELE ARRAY...
+
+
+
+
+
+
+
+
+--> OK...
+
+
+
+
+AGORA DIGAMOS QUE 
+
+QUEREMOS 
+
+ADICIONAR 
+
+
+1 NOVO ELEMENTO NO NOSSO ARRAY... (tipo .push()) ...
+
+
+
+
+
+
+
+
+
+para isso,
+
+
+
+
+
+
+
+
+
+PRECISAMOS USAR A SINTAXE DE [] MAIS UMA VEZ...
+
+
+
+
+
+
+
+
+
+
+
+-> MAS NAO VAMOS USAR ESSA SINTAXE PARA  ALTERAR 1 VALUE NO ARRAY,
+
+
+E SIM 
+
+VAMOS A UTILIZAR 
+
+PARA FAZER PUSH...
+
+
+
+
+
+
+
+
+-- tipo assim:
+
+
+
+
+
+
+
+
+$programmingLanguages[] = 'C++';
+
+
+
+
+
+
+
+
+
+
+
+
+-> 
+
+
+
+
+$programmingLanguages[] = 'C++'; // isso vai fazer """PUSH"" dessa string para dentro do array, no último slot...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---> ESSA SINTAXE FAZ PUSH DE ELEMENTS AO FINAL DE 1 ARRAY...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS EXISTE OUTRA MANEIRA DE FAZER PUSH DE 1 ELEMENTO AO FINAL DE 1 ARRAY....
+
+
+
+
+
+
+
+
+
+-. é por meio do method de 
+
+
+
+array_push()...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+// OUTRA MANEIRA DE FAZER ISSO É COM ""array_push()"" --> 
+
+
+
+
+array_push($programmingLanguages, 'Opa', 'Que', 'Legal');
+
+
+
+echo '<pre>';
+print_r($programmingLanguages);
+echo '<pre>';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> array_push() --> ISSO __ MUTA__ O ARRAY... -> 
+
+
+
+QUER DIZER QUE 
+
+
+
+
+
+
+
+
+
+TUDO QUE ESSE METHOD FAZ __ VAI _MODIFICAR _ O ORIGINAL ARRAY (
+
+ou seja,
+
+é como se fosse push, mesmo...
+
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... CONFORME O PROFESSOR HAVIA MENCIONADO,
+
+
+
+
+SOMOS CAPAZES DE DEFINIR E NAME NOSSAS KEYS dentro de um array....
+
+
+-> CADA KEY _ DEVE __ SER OU 1 STRING OU 1 INTEGER...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> QUANDO TEMOS __ NAMED__ KEYS DENTRO 
+DE 
+
+1 ARRAY,
+
+
+ESSE ARRAY É CHAMADO DE UM  ""ASSOCIATIVE ARRAY"...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+por exemplo,
+
+EM VEZ DE 
+
+ESCREVERMOS 
+
+
+
+
+
+''var_dump($programmingLanguages[0])''''',
+
+
+
+
+
+
+seria bem mais legal se pudéssemos 
+
+escrever algo como 
+
+
+
+
+
+
+
+
+var_dump($programmingLanguages['php']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO NOS DARIA/DÁ MAIS INFORMATIONS SOBRE ESSA KEY ESPECÍFICA...'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+QUER DIZER QUE ISSO É _ QUASE_ IGUAL A OBJECTS, NO JAVASCRIPT...
+
+
+
+
+
+
+
+
+NO PHP, SOMOS CAPAZES DE DEFINIR NOSSAS PRÓPRIAS KEYS... (dentro de arrays)...
+
+
+
+
+
+
+
+
+
+OK, FAZEMOS UM SEGUNDO ARRAY,
+
+
+
+
+AGORA 1 ARRAY COM CUSTOM KEYS (strings)...
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+$frontendFrameworks = ['Angular', 'React', 'Vue'];
+
+
+
+
+
+
+
+
+
+
+
+COMECA ASSIM, SIM....
+
+
+
+
+
+
+
+
+
+
+
+-> MAS AGORA VAMOS DEFINIR 1 KEY PARA CADA VALUE, TIPO ASSIM:
+
+
+
+
+
+
+
+
+$frontendFrameworks = [
+    'ang' => 'Angular',
+];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... ESSA É A SINTAXE BÁSICA...
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+$frontendFrameworks = [
+    'ang' => 'Angular',
+    'v' => 'Vue',
+    'r' => 'React'
+];
+
+
+
+$val1 = $frontendFrameworks['ang'];
+$val2 = $frontendFrameworks['v'];
+$val2 = $frontendFrameworks['r'];
+
+
+echo ($val1);
+echo ($val2);
+echo ($val3);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+AGORA SOMOS CAPAZES DE ACESSAR 
+
+
+ESSES VALUES POR MEIO DESSAS KEYS...
+
+
+
+
+
+
+----------------------
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+TAMBÉM PODEMOS ACESSAR MAIS ITEMS 
+
+A ESSE ARRAY,
+
+POR MEIO 
+
+DO ASSIGN DE KEYS DIFERENTES com [],
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+$val1 = $frontendFrameworks['ang']; //podemos tentar acessar os values POR MEIO DAS KEYS..
+$val2 = $frontendFrameworks['v'];
+$val2 = $frontendFrameworks['r'];
+
+
+$val2 = $frontendFrameworks['node']; // se tentamos acessar 1 key que nao existe, ganhamos 1 error/warning. (undefined array key ""asdsadasd"")
+
+echo ($val1);
+echo ($val2);
+echo ($val3);
+
+
+
+
+$frontendFrameworks['novo-framework'] = 'jQuery'; //maneira de adicionar novas keys/items no seu array.. (key 'novo-framework', value jquery)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OUTRA COISA LEGAL DE ARRAYS É QUE 
+
+VC 
+
+
+PODE ACESSAR 
+
+ELEMENTOS 
+
+
+
+
+
+
+
+
+COM VALUES DINAMICOS DENTRO DE [],
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+$dynamicVariable = 'ang';
+
+
+
+var_dump($frontendFrameworks[$dynamicVariable]);
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... ATÉ AÍ, TUDO BEM...
+
+
+
+
+
+
+
+
+
+
+CONFORME MENCIONADO PELO PROFESSOR,
+
+ARRAYS PODEM 
+
+TER ITEMS DE MÚLTIPLOS DATA TYPES 
+
+
+
+DEFINIDOS NO SEU INTERIOR...
+
+
+
+
+
+
+
+
+
+
+
+
+-> podem ter integers,
+
+floats,
+
+
+strings,
+
+
+e até mesmo arrays... também objects...
+
+
+
+
+
+
+
+
+
+
+-------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR ESCREVE ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+$nestedProgrammingLanguages = [
+    'php' => [
+        'creator' => 'Someone',
+        'extension' => '.php',
+        'website' => 'php.net',
+        'isOpenSource' => true,
+        'versions' => [
+            ['version' => 8, 'releaseDate' => 'Nov 26, 2020'],
+            ['version' => 7.4, 'releaseDate' => 'Nov 28, 2019'],
+        ]
+    ],
+
+        'python' => [
+        'creator' => 'Guido',
+        'extension' => '.py',
+        'website' => 'python.org',
+        'isOpenSource' => true,
+        'versions' => [
+            ['version' => 3.9, 'releaseDate' => 'Oct 5, 2020'],
+            ['version' => 3.8, 'releaseDate' => 'Nov 14, 2019'],
+        ]
+    ],
+
+]
+
+
+
+
+
+
+
+
+
+
+
+
+PRINTAMOS ISSO NA TELA...
+
+
+
+
+
+
+
+
+
+
+-> FICAMOS COM UMA INFO BEM MAIS DETALHADA...
+
+
+
+
+
+
+
+
+--> OK.. QUER DIZER QUE AQUI FICAMOS COM MÚLTIPLOS DATA TYPES...
+
+
+
+
+
+--> ARRAYS, BOOLEANS, STRINGS, INTS,
+
+
+ETC...
+
+
+
+
+
+
+
+-> ISSO TUDO É MT POWERFUL...
+
+
+
+
+
+
+E SE TORNA MAIS POWERFUL QUANDO VC APRENDE LOOPS E BUILT-IN FUNCTIONS,...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ACESSAR MULTI-DIMENSIONAL ARRAYS É BEM SIMPLES...
+
+
+
+
+
+
+
+
+
+-> BASTA IR ESPECIFICANDO AS KEYS QUE VC QUER ENTRAR,
+
+
+NOS DIVERSOS NÍVEIS,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+// NOS DIVERSOS NÍVEIS,
+
+// TIPO ASSIM:
+
+
+
+$neededValue = $nestedProgrammingLanguages['php']['creator'];
+
+
+$neededValue2 = $nestedProgrammingLanguages['php']['versions'][0]; //como 'versions' é um array sem KEYS especificadas para os array items, acessamo-nos com 0,1, os indexes...
+
+
+
+
+
+
+
+
+QUANDO 
+
+
+1 PEDACO
+ 
+
+ DOS SEUS NESTED 
+
+
+ ARRAYS 
+
+
+ NAO 
+
+ TIVER 
+
+
+
+
+ KEYS ASSIGNADAS,
+
+
+ VC DEVE USAR OS INDEXADORES (como usei agora, com as versions)...
+
+
+
+
+
+ISSO FUNCIONA TAMBÉM NO JAVASCRIPT, COM POUCAS VARIACOES...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+// --> ACESSAR MULTI-DIMENSIONAL ARRAYS É BEM SIMPLES...
+
+// -> BASTA IR ESPECIFICANDO AS KEYS QUE VC QUER ENTRAR,
+
+
+// NOS DIVERSOS NÍVEIS,
+
+// TIPO ASSIM:
+
+
+
+$neededValue = $nestedProgrammingLanguages['php']['creator'];
+
+
+$neededValue2 = $nestedProgrammingLanguages['php']['versions'][0]['releaseDate']; //como 'versions' é um array sem KEYS especificadas para os array items, acessamo-nos com 0,1, os indexes...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE VC TENTAR ACESSAR 1 KEY QUE NAO EXISTE EM NENHUM DOS ARRAYS,
+
+VC 
+
+VAI GANHAR WARNING..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... OUTRO DETALHE..
+
+
+
+
+
+
+
+
+SE VC TIVER MÚLTIPLAS KEYS 
+
+
+
+QUE __ SAO DE MESMO NOME/VALUE,
+
+
+
+EM 
+
+1 ARRAY,
+
+
+
+
+O _ ÚLTIMO ELEMENTO 
+
+SERÁ 
+
+AQUELE QUE SERÁ CONSIDERADO...
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+$array = [
+    0 => 'foo',
+    1 => 'bar',
+   '1' => 'baz'
+]
+
+
+
+
+
+print_r($array);
+
+
+
+
+
+
+
+
+O QUE SERÁ PRINTADO, AQUI,
+
+SERÁ 
+
+
+
+""""""
+
+
+
+Array ( [0] => foo [1] => baz )
+
+
+""""""
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+O ÚLTIMO VALUE DEU """"OVERWRITE"""" NO PRIMEIRO, PQ TINHA A MESMA KEY...
+
+
+
+
+
+
+--------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok... O baz tinha 1 key com mesmo value de bar,
+
+o que fez com que baz fosse overwrittado...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AS KEYS TAMBÉM DEVEM SER _ STRINGS OU INTEGERS...
+
+
+
+
+
+
+
+
+
+-> MAS O PHP VAI TENTAR FAZER __ CAST__ DAS KEYS,
+
+
+QUANDO POSSÍVEL...
+
+
+
+
+
+
+
+
+
+------------------------------
+
+
+
+
+
+
+
+
+
+O PROFESSOR COLOCA ALGUNS FLOATS... ELES SAO CONVERTIDOS PARA INTEGERS,
+
+PELO PHP (sao castados....)
+
+
+
+
+
+
+
+
+EXEMPLO:
+
+
+
+
+
+
+
+
+$array = [
+    true => 'a',
+    1 => 'b',
+    1.8 => 'd'
+];
+
+
+
+print_r($array);
+
+
+
+
+
+
+-> NESSE CASO,
+
+
+
+O ARRAY FICARÁ COM APENAS UM ÚNICO VALUE, 
+
+
+KEY DE nome "1",
+
+e seu value será de 'd'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> O FLOAT FICA CAST COMO INTEGER (e isso é 1)...
+
+
+
+
+
+o true -> é cast como 1...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO...
+
+
+
+
+
+
+
+E null, como key,
+
+TAMBEM 
+
+
+SAO CASTADOS COMO EMPTY STRING...
+
+
+
+
+
+
+
+
+
+
+--> SIGNIFICA QUE 1 KEY DE NULL FICA ASSIM:
+
+
+
+
+
+
+
+
+
+$array = [
+    true => 'a',
+    1 => 'b',
+    null => 'd'
+];
+
+
+
+
+echo $array['']; //ISSO VAI PRINTAR O d...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ESSAS KEYS, NO PHP,
+
+NAO SAO OBRIGATÓRIAS..
+
+
+
+
+
+
+
+PODEMOS TER __ ARRAYS SEM DEFINIR KEYS..
+
+
+
+
+
+
+ELE TAMBÉM TE DEIXA 
+
+
+
+DEFINIR KEYS EM APENAS ALGUNS ELEMENTOS DO ARRAY...
+
+
+
+
+
+
+
+
+--> QUANDO NAO É DEFINIDA 1 KEY PARA 
+
+
+1 CERTO VALUE,
+
+O 
+
+PHP SIMPLESMENTE DEFINE """" 1 INCREMENTO DO MAIOR VALUE INTEGER ANTERIOR 
+À POSICAO DESSA KEY""",
+
+
+same old story...
+
+
+
+
+
+
+
+
+-> SE NAO HÁ NENHUMA PREVIOUS KEY,
+
+ELE COMECA POR 0...
+
+
+
+
+
+--> PODEMOS 
+
+VER ISSO COM 
+
+
+LETRAS:
+
+
+
+
+
+
+
+
+$array = ['a', 'b', 'c', 'd', 'e'];
+
+
+
+print_r($array);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+$arrayGamma = ['a', 'b', 50 => 'c', 'd', 'e']; // a = 0, b = 1, c = 50, d = 51, e = 52.
+
+
+print_r($arrayGamma);
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO.... DEVEMOS TER ISSO EM MENTE,
+
+
+
+QUANDO ESTAMOS SETTANDO NUMERIC KEYS EM APENAS ALGUNS ELEMENTS DE 1 ARRAY...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-----------------------------
+
+
+
+
+
+
+
+
+MAS COMO PODEMOS REMOVER ELEMENTS DE 1 ARRAY...?
+
+
+
+
+
+
+
+
+
+
+
+
+1a maneira -> POR MEIO DE UMA FUNCTION CHAMADA DE array_pop() 
+
+
+
+
+
+
+
+
+
+-> É A MESMA COISA QUE array.pop(),
+
+no javascript,
+
+que é uma 
+
+FUNCTION QUE REMOVE O ULTIMO ELEMENTO DE 1 ARRAY E O RETORNA...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+$arrayGamma = ['a', 'b', 50 => 'c', 'd', 'e']; // a = 0, b = 1, c = 50, d = 51, e = 52.
+
+
+print_r($arrayGamma);
+
+
+
+
+
+
+
+echo array_pop($arrayGamma); // array_pop é a mesma coisa que array.pop ---> ele modifica o array, removendo o último elemento (que é 'e', nesse caso).. E RETORNANDO ESSE ELEMENTO (podemos armazenar em uma variable, por exemplo)..
+
+
+
+
+print_r($arrayGamma); //PERCEBEMOS QUE O ELEMENTO NAO ESTARÁ MAIS NO ÚLTIMO SLOT DO ARRAY...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TAMBÉM PODEMOS RODAR array_shift,
+
+QUE É 
+
+A MESMA COISA QUE O array_pop,
+
+
+
+MAS QUE 
+
+
+_REMOVE __ 1 ELEMENTO LÁ DO INÍCIO DO ARRAY, E NAO DO FINAL...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+echo array_pop($arrayGamma); // array_pop é a mesma coisa que array.pop ---> ele modifica o array, removendo o último elemento (que é 'e', nesse caso).. E RETORNANDO ESSE ELEMENTO (podemos armazenar em uma variable, por exemplo)..
+
+
+
+
+print_r($arrayGamma); //PERCEBEMOS QUE O ELEMENTO NAO ESTARÁ MAIS NO ÚLTIMO SLOT DO ARRAY...
+
+
+
+
+echo array_shift($arrayGamma); ///mesma coisa que array_pop(), mas com o PRIMEIRO ELEMENTO DE 1 ARRAY...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO.... MAS VC DEVE PERCEBER QUE 
+
+
+
+__ O ARRAY TODO ACABA """"REINDEXED"""" QUANDO 
+REMOVEMOS ELEMENTOS...
+
+
+(principalmente o primeiro elemento,  pq isso vai reindexar o array inteiro)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK...
+
+
+
+
+
+
+
+
+
+
+
+
+--> O REINDEXING ACONTECE APENAS COM UNNAMED KEYS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- OUTRA MANEIRA DE REMOVER 1 ELEMENTO DE 1 ARRAY 
+É POR MEIO 
+
+DA FUNCTION 
+DE unset()...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+// OUTRA MANEIRA DE REMOVER 1 ELEMENTO DE 1 ARRAY É POR MEIO DA FUNCTION DE unset()...
+
+// USAMOS O unset() anteriormente, para remover 1 variable...
+// MAS O unset() COM ARRAYS  VAI __ REMOVER __ O ELEMENT _ DO ARRAY...
+
+// SE VC RODAR O UNSET EM 1 ARRAY, SEM ESPECIFICAR O INDEX, VC REMOVE O ARRAY INTEIRO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+// unset($arrayGamma); //isso vai DESTRUIR O ARRAY INTEIRO.
+
+
+
+unset($arrayGamma[2]); ///isso vai destruir apenas o terceiro elemento do array...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TAMBÉM PODEMOS REMOVER MÚLTIPLOS ITEMS 
+
+
+COM UNSET,
+
+
+
+BASTA ESPECIFICAR MÚLTIPLOS ARGUMENTS,
+TIPO ASSIM:
+
+
+
+
+
+unset($arrayGamma[2]); ///isso vai destruir apenas o terceiro elemento do array...
+
+
+
+$arrayGamma = ['a', 'b', 'c', 'd', 'e']; 
+
+unset($arrayGamma[0], $arrayGamma[1], $arrayGamma[2]); // isso vai remover 3 elements do array... 
+
+
+
+print_r($arrayGamma);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+->  OK... MAS AQUI TEMOS UMA DIFERENCA CRUCIAL...
+
+
+
+
+
+
+
+
+
+
+O POP E SHIFT, QUANDO ALTERAM 
+
+ARRAYS (sempre),
+
+
+
+
+
+
+ELES _ ACABAM FAZENDO O RE-INDEX DO ARRAY INTEIRO (os items que sobraram 
+
+ganham diferentes indexes)...
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO NAO ACONTECE QUANDO RODAMOS O unset() --> AS COISAS NAO VAO 
+
+
+
+SOFRER REINDEX....
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+unset($arrayGamma[2]); ///isso vai destruir apenas o terceiro elemento do array...
+
+
+
+$arrayGamma = ['a', 'b', 'c', 'd', 'e']; 
+
+unset($arrayGamma[0], $arrayGamma[1], $arrayGamma[2]); // isso vai remover 3 elements do array... 
+
+
+ 
+print_r($arrayGamma); // vai printar  ( [3] => d, [4] => e)
+
+
+
+array_push($arrayGamma, 'f');
+
+
+
+print_r($arrayGamma); // vai printar  ( [3] => d, [4] => e, [5] => f)
+
+
+
+
+
+
+
+
+
+
+------
+
+
+
+
+
+
+
+
+
+OK... POR FIM, FALAREMOS SOBRE CASTING...
+
+
+
+
+
+
+
+CRIAMOS UMA VARIABLE ASSIM:
+
+
+
+
+
+
+
+
+
+$x = 5;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AGORA TENTAMOS CASTAR ISSO COMO ARRAY:
+
+
+
+
+
+
+
+
+$x = (array) 5;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+$x = (array) 5; //queremos castar 5 como se fosse 1 array...
+
+
+
+var_dump($x); // SE TENTAMOS CASTAR 1 SCALAR VALUE (primitive) COMO SE FOSSE 1 ARRAY, O QUE O PHP VAI FAZER É _ CONVERTER/CASTAR ESSE VALUE COMO 1 ARRAY,
+
+// tipo Array(1) { [0] => int(5) }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE ISSO VAI TRANSFORMAR ESSE VALUE EM 1 ARRAY,
+
+E A COISA SERÁ O VALUE DO PRIMEIRO INDEX NO ARRAY...
+
+
+
+
+
+
+
+
+
+
+
+
+-------. JÁ SE VC FAZ CAST DE NULL como 1 array,
+
+
+VC CRIARÁ UM ARRAY VAZIO...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+$sss = (array) null;
+
+
+var_dump($sss); /// PRINTARÁ 1 ARRAY VAZIO (pq null CASTADO como array type VIRA 1 ARRAY VAZIO)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> POR FIM, O PROFESSOR NOS MOSTRA OUTRA MANEIRA DE CHECAR 
+
+PELA EXISTENCIA DE 1 ITEM EM 1 ARRAY....
+
+
+
+
+
+
+
+
+
+É A FUNCTION DE 
+
+
+
+
+
+array_key_exists() -------> BASTA ESPECIFICAR A _ KEY__ COMO 
+
+
+
+PRIMEIRO ARGUMENTO,
+
+E AÍ O ARRAY COMO SEGUNDO ARGUMENT...
+
+
+
+
+
+
+
+
+
+
+EX:"
+
+
+
+
+
+
+
+
+
+// A ALTERNATIVA A ""isset()"" é """"array_key_exists()"""" (para checar se alguma key existe em 1 array)...
+
+
+
+var_dump(array_key_exists('php' , $nestedProgrammingLanguages)); //array_key_exists(key, nome_do_array); // VAI PRINTAR TRUE...
+
+
+//  vai retornar bool(true)
+
+
+
+
+
+
+
+
+--------------------------
+
+
+
+
+
+
+
+
+OK, MAS QUAL É A DIFERENCA ENTRE ISSO E ""isset()""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+BEM,
+TEMOS ISTO:
+
+
+
+
+
+
+var_dump(array_key_exists('php', $nestedProgrammingLanguages)); //array_key_exists(key, nome_do_array); // VAI PRINTAR TRUE...
+//  vai retornar bool(true)
+
+
+
+// isset É DIFERENTE DE array_key_exists...
+var_dump(isset($nestedProgrammingLanguages['php']));
+//  vai retornar bool(true)
+
+
+
+
+
+
+
+
+
+
+
+-> OS 2 RETORNAM bool(true)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS O array_key_exists
+
+
+TE 
+
+DIZ 
+
+
+SE
+A 
+
+
+KEY EXISTE NO ARRAY OU NAO...
+
+
+
+
+
+
+-> JÁ  isset TE DIZ __ SE A KEY EXISTE _ E SE ELA NAO É NULL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+
+
+
+
+ESSE É O EXEMPLO ADEQUADO:
+
+
+
+
+
+
+
+
+
+
+
+
+
+$nestedProgrammingLanguages = [
+    'end' => null,
+    'php' => [
+
+        'creator' => 'Someone',
+        'extension' => '.php',
+        'website' => 'php.net',
+        'isOpenSource' => true,
+        'versions' => [
+            ['version' => 8, 'releaseDate' => 'Nov 26, 2020'],
+            ['version' => 7.4, 'releaseDate' => 'Nov 28, 2019'],
+        ]
+    ],
+
+    'python' => [
+        'creator' => 'Guido',
+        'extension' => '.py',
+        'website' => 'python.org',
+        'isOpenSource' => true,
+        'versions' => [
+            ['version' => 3.9, 'releaseDate' => 'Oct 5, 2020'],
+            ['version' => 3.8, 'releaseDate' => 'Nov 14, 2019'],
+        ]
+    ],
+
+];
+
+
+var_dump(array_key_exists('end', $nestedProgrammingLanguages));
+// vai retornar bool(true) --> ISSO PQ ELA EXISTE, REALMENTE
+
+var_dump(isset($nestedProgrammingLanguages['end']));
+// vai retornar bool(false) --> ISSO PQ ELA EXISTE, MAS NAO FOI SETTADA... (value está como NULL)
+
+
+
+
+
+
+
+
+-----------------------------------------
+
+
+
+
+
+
+OK... DEVEMOS TER ISSO EM MENTE QUANDO USAMOS isset 
+
+
+e array_key_exists...
+
+
+
+

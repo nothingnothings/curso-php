@@ -1,0 +1,1612 @@
+
+
+
+
+
+-> 1 BOOLEAN É UMA SIMPLES REPRESENTACAO 
+
+
+DE 
+1
+ 
+ TRUE OU FALSE VALUE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TEMOS 1 VARIÁVEL:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php 
+
+
+// BOOLEANS 
+
+
+
+
+$isComplete = true;
+
+
+
+$isDone = false;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-. OK... 2 VARIÁVEIS...
+
+
+
+
+
+
+
+
+
+
+
+-> NO PHP,
+
+
+
+PODEMOS 
+
+
+DEFINIR BOOLEAN VALUES OU COM UPPERCASE, OU COM LOWERCASE...
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR PREFERE LOWER CASE...
+
+
+
+
+
+
+
+
+
+
+-> USAMOS BOOLEAN VALUES COM CONTROL STRUCTURES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+$isComplete1 = TRUE;
+
+
+$isComplete2 = FALSE;
+
+
+
+
+if ($isComplete) {
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+
+
+
+
+
+-----------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+$isComplete1 = TRUE;
+
+
+$isComplete2 = FALSE;
+
+
+
+
+if ($isComplete) { // É TRUE... -- o if vai executar...
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+
+
+if ($isComplete2) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+
+MAS É CLARO QUE EXISTEM DATA TYPES 
+
+
+QUE PODEM SER CONVERTIDOS PARA BOOLEANS,
+
+
+ON THE FLY,
+
+USANDO O PHP...
+
+
+
+
+
+
+
+
+
+
+
+E ESSES DATA TYPES PODEM SER EVALUATED COMO TRUE OU FALSE...
+
+
+
+
+
+
+OS INTEGERS 0 E -0 (negative 0)
+
+
+SEMPRE VAO 
+
+
+SER CONSIDERADOS COMO FALSE.. (mesma coisa no javascript)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+$aZero = 0; //value falsy 
+
+
+$aNegativeZero = -0; //value falsy também...
+
+
+$aFloatZero = 0.0; //value falsy também...
+
+
+if ($aZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+if ($aNegativeZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+if ($aFloatZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+
+
+
+
+
+
+
+
+-----------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+POR FIM,
+
+
+NO PHP TEMOS 1 DIFERENCA..
+
+
+
+
+
+
+
+
+--> SE VC TIVER 1 STRING 
+
+
+
+COM VALUE DE '0' --> ISSO VAI SER EVALUATED TAMBÉM COMO FALSY...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+$aZero = 0; //value falsy 
+
+
+$aNegativeZero = -0; //value falsy também...
+
+
+$aFloatZero = 0.0; //value falsy também...
+
+
+$aStringZero = '0'; //value falsy  tasmbém..
+
+
+if ($aZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+if ($aNegativeZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+if ($aFloatZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+if ($aStringZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OUTRA DIFERENÇA.... -> EMPTY ARRAYS 
+
+TAMBÉM SAO CONSIDERADOS COMO FALSE (
+    no javascript, esse nao é o caso...
+)
+
+
+
+
+
+
+
+
+
+
+
+--> NULLL, O SPECIAL TYPE, TAMBÉM É CONSIDERADO COMO FALSE...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+$aZero = 0; //value falsy 
+
+
+$aNegativeZero = -0; //value falsy também...
+
+
+$aFloatZero = 0.0; //value falsy também...
+
+
+$aStringZero = '0'; //value falsy  também.. (DIFERENTE DO JAVASCRIPT)
+
+
+$anEmptyArray = []; //value falsy, também (DIFERENTE DO JAVASCRIPT)
+
+
+
+if ($aZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+if ($aNegativeZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+if ($aFloatZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+if ($aStringZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PRATICAMENTE TODAS AS OUTRAS COISAS SERAO EVALUATED 
+
+COMO TRUE...
+
+
+ATÉ MESMO NÚMEROS NEGATIVOS (eles nao sao 0, nao sao false)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+$aZero = 0; //value falsy 
+
+
+$aNegativeZero = -0; //value falsy também...
+
+
+$aFloatZero = 0.0; //value falsy também...
+
+
+$aStringZero = '0'; //value falsy  também.. (DIFERENTE DO JAVASCRIPT)
+
+
+$anEmptyArray = []; //value falsy, também (DIFERENTE DO JAVASCRIPT)
+
+
+//PRATICAMENTE TODAS AS OUTRAS COISAS SERAO EVALUATED COMO 1 (true), PQ NAO SERAO 0... ATÉ MESMO NEGATIVE NUMBERS...
+
+
+
+if ($aZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+if ($aNegativeZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+if ($aFloatZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+if ($aStringZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX: 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+$aZero = 0; //value falsy 
+
+
+$aNegativeZero = -0; //value falsy também...
+
+
+$aFloatZero = 0.0; //value falsy também...
+
+
+$aStringZero = '0'; //value falsy  também.. (DIFERENTE DO JAVASCRIPT)
+
+
+$anEmptyArray = []; //value falsy, também (DIFERENTE DO JAVASCRIPT)
+
+
+//PRATICAMENTE TODAS AS OUTRAS COISAS SERAO EVALUATED COMO 1 (true), PQ NAO SERAO 0... ATÉ MESMO NEGATIVE NUMBERS...
+
+
+
+$aNumber = 5; ///é true
+
+if ($aZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+if ($aNegativeZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+if ($aFloatZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+if ($aStringZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+if ($aNumber) { // É TRUE--> o if vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+$aZero = 0; //value falsy 
+
+
+$aNegativeZero = -0; //value falsy também...
+
+
+$aFloatZero = 0.0; //value falsy também...
+
+
+$aStringZero = '0'; //value falsy  também.. (DIFERENTE DO JAVASCRIPT)
+
+
+$anEmptyArray = []; //value falsy, também (DIFERENTE DO JAVASCRIPT)
+
+
+//PRATICAMENTE TODAS AS OUTRAS COISAS SERAO EVALUATED COMO 1 (true), PQ NAO SERAO 0... ATÉ MESMO NEGATIVE NUMBERS...
+
+
+
+$aNumber = 5; ///é true
+
+if ($aZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+if ($aNegativeZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+if ($aFloatZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+if ($aStringZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+if ($anEmptyArray) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+
+if ($aNumber) { // É TRUE--> o if vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+
+
+
+---------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+$aZero = 0; //value falsy 
+
+
+$aNegativeZero = -0; //value falsy também...
+
+
+$aFloatZero = 0.0; //value falsy também...
+
+
+$aStringZero = '0'; //value falsy  também.. (DIFERENTE DO JAVASCRIPT)
+
+
+$anEmptyArray = []; //value falsy, também (DIFERENTE DO JAVASCRIPT)
+
+
+//PRATICAMENTE TODAS AS OUTRAS COISAS SERAO EVALUATED COMO 1 (true), PQ NAO SERAO 0... ATÉ MESMO NEGATIVE NUMBERS...
+
+$aNumber = 5; ///é true
+
+//FILLED ARRAY 
+
+$aFilledArray = [1, 2, 3, 4];
+
+if ($aZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+if ($aNegativeZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+if ($aFloatZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+if ($aStringZero) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+if ($anEmptyArray) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+if ($aNumber) { // É TRUE--> o if vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+if ($aFilledArray) { // É TRUE--> o if vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+
+
+
+
+
+
+
+
+-----------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS COMO PODEMOS _ ACTUALLY PRINTAR 1 BOOLEAN (
+
+    e nao printar "1" (true) ou BLANK (false)..
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> BEM, 1 MANEIRA DE PRINTAR 
+
+BOOLEANS É ACTUALLY USAR CONDITIONS, COMO FIZEMOS AGORA...
+
+
+
+
+
+EM QUE VC NAO FAZ ACTUALLY 1 PRINT DE BOOLEAN,
+
+E SIM 
+
+
+FAZ 
+
+
+PRINT 
+
+DE ALGO SE FOR TRUE/FALSE, TIPO ASSIM:
+
+
+
+
+if ($isComplete2) { // É false --> o else vai executar
+    echo $isComplete;
+} else {
+
+    echo 'something went wrong';
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OUTRA MANEIRA 
+
+
+
+
+
+
+
+É O SIMPLES ECHOING OUT DO BOOLEAN....
+
+
+
+
+
+
+tipo:
+
+
+
+
+
+
+
+
+echo $isComplete2;
+
+
+
+
+
+
+---------------------------------------
+
+
+
+
+
+
+
+
+-> ISSO VAI ECOAR COMO 1...
+
+
+
+
+
+
+--> SE DEFINIMOS COMO FALSE,
+VEMOS NADA (
+    pq o FALSE É UMA EMPTY STRING... ""
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> já vimos isso antes..
+
+
+
+
+
+
+MAS PQ DIABOS ELE PRINTA 1 EMPTY STRING PARA FALSE,
+
+
+
+E PQ 
+
+
+ELE 
+PRINTA 1 PARA TRUE?
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> A RAZAO PARA ISSO É QUE 
+
+
+
+
+
+"" QUANDO VC PRINTA ALGO NO PHP,
+
+
+O __ PHP _ TENTA CASTAR _ SEU VALUE _ 
+
+COMO 1 STRING"""--> 
+
+
+
+
+
+
+
+ou seja,
+
+
+quando 
+
+VC 
+
+
+TENTA PRINTAR 
+
+ALGO COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+$isComplete2 = false;
+
+
+
+
+echo $isComplete2;
+
+
+
+
+
+
+
+,
+
+
+
+
+
+
+
+O SEU CÓDIGO ACABA SENDO EXECUTADO ASSIM:
+
+
+
+
+
+
+
+$isComplete2 = false;
+
+
+
+
+echo (string) $isComplete2; /////TYPE CASTING...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... E, QUANDO 
+
+
+BOOLEANS SAO CASTADOS COMO STRINGS,
+
+SEMPRE (isso é o comportamento do php)
+
+
+O 
+
+FALSE SE TORNA UMA EMPTY STRING,
+
+
+
+E O TRUE SE TORNA 1...
+
+
+
+
+
+
+
+
+
+
+--> E PODEMOS CHECAR TUDO ISSO POR MEIO 
+DE 
+
+
+var_dump...
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+
+
+var_dump($isComplete2); 
+
+
+
+
+
+RETORNA 
+
+bool(false)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+var_dump($isComplete); ///vai retornar bool(true)
+
+
+
+var_dump($isDone); ///vai retornar bool(false)
+
+
+
+
+
+
+
+
+
+
+
+-------------------
+
+
+
+
+
+
+
+
+
+SE QUISERMOS QUE o var_dump _ PRINTE 
+
+
+ESSE BOOLEAN CONVERTIDO 
+
+
+COMO STRING,
+
+BASTA FAZER CASTING DO VALUE DE "false"
+
+como sendo uma string, lá na variável,
+
+assim:
+
+
+
+
+
+
+
+
+
+$isComplete = (string) false;
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+$isComplete = true;
+
+$isDone = false;
+
+$isCompleteCasted = (string) true;
+
+$isDoneCasted = (string) false;
+
+
+
+
+
+var_dump($isComplete); ///vai retornar bool(true)
+
+var_dump($isCompleteCasted); ///vai retornar string(1) "1"
+
+var_dump($isDone); ///vai retornar bool(false)
+
+var_dump($isDoneCasted); //vai retornar string(0) ""
+
+
+
+
+
+
+
+
+
+
+OK... É ISSO QUE ACONTECE, PORTANTO,
+
+
+
+QUANDO 
+
+ESCREVEMOS 
+
+
+"""echo $isComplete""
+
+
+
+e 
+
+""echo $isDone""  -> ele roda esse type casting,
+
+e depois 
+
+
+faz output 
+
+
+do value desses booleans,
+
+como se fossem strings...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... VAR_DUMP,
+
+
+PORTANTO,
+É UMA MANEIRA DE CHECAR O TYPE DE 1 DATA,
+
+
+
+
+E TAMBÉM DE 1 BOOLEAN (se é true ou false)...
+
+
+
+
+
+
+
+
+------------------------------
+
+
+
+
+
+
+
+
+
+
+OUTRA MANEIRA DE CHECAR O TYPE PARA 1 BOOLEAN 
+
+
+
+
+
+
+
+
+É _ POR MEIO _ DO USO _ DA FUNCTION DE is_bool() --------> ELA RETORNA 
+
+TRUE OU FALSE,
+
+
+
+DEPENDENDO 
+
+
+
+SE A VARIABLE É TRUE OU FALSE...
+
+
+
+
+
+
+-------------------------
+
+
+
+
+
+
+
+
+
+
+
+POR FIM.... O PROFESSOR MENCIONA:
+
+
+
+
+
+
+
+
+
+
+
+"""SE VC TEM UMA STRING 
+
+
+
+
+
+
+
+
+COM VALUE DE 'false' """',
+
+
+
+
+
+
+ISSO NAO SERÁ EVALUATED COMO FALSE,
+E SIM 
+SERÁ EVALUATED COMO TRUE...
+
+
+
+
+
+
+
+
+
+
+$aFakeFalse = 'false'; //é true (TUDO QUE NAO É AQUELES CASOS ALI DE CIMA SERÁ EVALUATED COMO TRUE)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OU SEJA,
+
+
+
+AS UNICAS STRINGS QUE SAO FALSY 
+
+SAO 
+
+EMPTY STRINGS...
+
+
+
+
+
+
+
+EMPTY STRINGS, 0s e arrays vazios... isso sao FALSY...

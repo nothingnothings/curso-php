@@ -1,0 +1,1262 @@
+
+
+
+
+
+
+
+
+
+
+--> OK... AGORA INTEGER DATA TYPES...
+
+
+
+
+
+
+
+
+
+INTEGERS SAO NUMBERS SEM QUAISQUER DECIMAL POINTS...
+
+
+
+
+
+
+
+
+
+
+COMO 0, 1, -5, ETC...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O TAMANHO MÁXIMO DE 1 INTEGER, NO ENTANTO,
+
+
+DEPENDE 
+
+DA PLATAFORMA...
+
+
+
+
+
+
+
+
+
+
+
+
+-----> EM 32 BIT SYSTEMS,
+
+
+É 
+
+DE -2 BILHOES A +2 BILHOES
+
+
+
+
+
+
+
+
+
+
+
+-> PARA 64 BIT SYSTEMS,
+
+É MT MT MAIS...
+
+
+
+
+
+
+
+
+-> E VC PODE CHECAR TUDO ISSO COM AS PRE-DEFINED CONSTANTS 
+
+QUE 
+
+VIMOS NOS VIDEOS ANTERIORES...
+
+
+
+
+
+
+
+
+
+
+
+
+--> AS VARIAVEIS 
+
+SAO 
+
+
+
+PHP_INT_MAX 
+
+
+
+
+PHP_INT_MIN
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+<?php 
+
+
+
+$PHP_INT_MAX; //número máximo int possível - pode ser 4 bilhoes (32 bit systems) ou muito mais (64 bit systems).. 
+
+
+
+
+$PHP_INT_MIN; //número mínimo int possível - pode ser 4 bilhoes (32 bit systems) ou muito mais (64 bit systems).. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+INTEGERS PODEM SER ESPECIFICADOS:
+
+
+
+
+
+
+1) decimais ->  NA BASE 10...
+
+
+
+
+
+
+
+sao os clássicos:
+
+
+
+
+
+$x = 5;
+
+
+
+echo $x;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OS NUMBERS TAMBÉM PODEM SER DISPLAYED EM FORMATO  
+
+HEX,
+
+HEXADECIMAL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> E HEXADECIMAL NUMBERS, 
+
+NO PHP, 
+
+
+SAO SEMPRE 
+
+
+PREFIXADOS POR 
+
+0x...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+$x = 5;  ///números podem ser displayed na base 10...
+
+
+
+echo $x;
+
+
+$y = 0x2A; ///exemplo de REPRESENTACAO DE HEXADECIMAL NUMBER, NO PHP... --> esse value é 42..
+
+
+
+echo $y;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VOCE TAMBÉM PODE DEFINIR INTEGERS COMO OCTAL NUMBERS,
+
+NO PHP...
+
+
+
+
+OCTAL NUMBERS 
+
+SAO PREFIXADOS POR 0...
+
+
+
+
+
+
+
+
+
+
+
+
+--> quer dizer que se vc ESCREVER 
+
+
+
+05, isso vai ser representado como 5...
+
+
+
+
+
+MAS SE VC ESCREVER 
+
+
+
+
+
+055, 
+
+ISSO VAI SER REPRESENTADO COMO 45..
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+$x = 5;  ///números podem ser displayed na base 10...
+
+
+
+echo $x;
+
+
+$y = 0x2A; ///exemplo de REPRESENTACAO DE HEXADECIMAL NUMBER, NO PHP... --> esse value é 42..
+
+
+
+echo $y;
+
+
+
+
+// NÚMEROS OCTAIS SAO PREFIXADOS POR "0"...
+$z = 05; //exemplo de representacao de NÚMERO OCTAL, NO PHP ---> se ecoado, vai outputtar 5... 
+
+
+
+echo $z;
+
+
+$z2 = 055; //055 OCTAL --> SE ECOADO, OUTPUTTA 45...
+
+
+echo $z2;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+JÁ NÚMEROS BINÁRIOS 
+
+
+
+SAO SEMPRE PREFIXADOS 
+
+
+
+
+POR 
+""0b""..
+
+
+
+
+
+
+
+
+
+TIPO 
+
+
+
+
+
+0b11 ... --> ISSO É 3...
+
+
+
+
+
+ou 
+
+
+
+0b110 -->  ISSO É 6...
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+$x = 5;  ///números podem ser displayed na base 10...
+
+
+
+echo $x;
+
+
+$y = 0x2A; ///exemplo de REPRESENTACAO DE HEXADECIMAL NUMBER, NO PHP... --> esse value é 42..
+
+
+
+echo $y;
+
+
+
+
+// NÚMEROS OCTAIS SAO PREFIXADOS POR "0"...
+$z = 05; //exemplo de representacao de NÚMERO OCTAL, NO PHP ---> se ecoado, vai outputtar 5... 
+
+
+
+echo $z;
+
+
+$z2 = 055; //055 OCTAL --> SE ECOADO, OUTPUTTA 45...
+
+
+echo $z2;
+
+
+
+
+// NÚMEROS OCTAIS SAO PREFIXADOS POR "0b"...
+$binary1 = 0b11; /// ISSO É 3....
+
+
+echo $binary1;
+
+
+
+
+$binary2 = 0b001; ///isso ecoa como 1...
+
+echo $binary2;
+
+$binary3 = 0b110; ///ISSO ECOA COMO 6 (em binários, 110 é 6...)
+
+
+echo $binary3;
+
+
+
+
+
+
+---------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+ok... mas o que acontece, no php,
+
+
+
+SE 
+
+
+
+NÓS FAZEMOS OVERFLOW de 1 variable...?
+
+
+
+
+
+
+
+
+
+para conseguir um overflow,
+
+podemos escrever assim:
+
+
+
+
+
+
+
+
+$x = PHP_INT_MAX + 1;
+
+
+var_dump($x);
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+// EXEMPLO DE OVERFLOW NO PHP
+
+
+
+$x = PHP_INT_MAX + 1;
+
+
+var_dump($x);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE ADICIONAMOS 1 A ISSO,
+
+
+O NEGÓCIO QUEBRA.... ----> E QUANDO ELE QUEBRA,
+
+
+
+
+O __ _INTEGER __ DATA TYPE __ 
+
+
+SE TORNA __ 
+
+
+
+
+O __ FLOAT __ DATA TYPE___... ESSE É O COMPORTAMENTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+QUANDO 1 INTEGER VAI OUT OF BOUNDS,
+
+ELE SE TRANSFORMA 
+
+
+NO DATA TYPE DE FLOAT...
+
+
+
+
+
+
+
+
+
+FALAREMOS SOBRE FLOATS NA PRÓXIMA AULA..
+
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA FALAREMOS SOBRE 
+
+
+
+CASTING...
+
+
+
+
+
+
+
+LEMBRE-SE,
+
+VC PODE CASTAR USANDO () ao lado do value,
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+
+$x = (string) 4;
+
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS CASTAR ALGO COMO INTEGER ASSIM:
+
+
+
+
+
+
+
+$x = (int) 100;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+AGORA DEVEMOS FAZER REVIEW 
+
+DE COMO 
+
+OS OUTROS DATA TYPES 
+
+
+
+FICAM,
+QUANDO CASTADOS COMO INTEGER...
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+$x = (int) true; /////SERÁ CASTADO COMO "1"...
+
+$x = (int) false; ///////SERÁ CASTADO COMO 0...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO.... E SE CASTAMOS 1 FLOAT COMO INTEGER,
+
+
+
+ESSE FLOAT __ VAI PERDER O DECIMAL PLACE,
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+$xxx = (int) 10.99;
+
+
+
+
+
+
+
+VAI FICAR COMO 
+
+
+
+
+$x = 10;
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+$zzz = (int) 100;  //exemplo de type casting.
+
+$x = (int) true; //SERÁ CASTADO COMO "1"... (pq convertemos esse boolean em 1 int, e a representacao int é 1...)
+
+$x = (int) false; //SERÁ CASTADO COMO 0... (pq convertemos esse boolean em 1 int, e a representacao int é 0...)
+
+$xxx = (int) 10.99; //será castado como 10 (perderá a casa decimal)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+QUER DIZER QUE 
+
+
+
+ISSO SERÁ ""ROUNDED DOWN""
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... 
+
+
+
+
+
+
+QUANDO CASTAMOS 1 STRING 
+
+COMO INTEGER,
+
+SE O VALUE 
+
+DA STRING É UM NUMBER (tipo "5"),
+
+
+
+
+O VALUE SERÁ CONVERTIDO EM 1 INTEGER...
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+$zzz = (int) 100;  //exemplo de type casting.
+
+$x = (int) true; //SERÁ CASTADO COMO "1"... (pq convertemos esse boolean em 1 int, e a representacao int é 1...)
+
+$x = (int) false; //SERÁ CASTADO COMO 0... (pq convertemos esse boolean em 1 int, e a representacao int é 0...)
+
+$xxx = (int) 10.99; //será castado como 10 (perderá a casa decimal)...
+
+$ddd = (int) "5"; //será castado como 5 (será convertido, de string para number).
+
+
+
+
+----------------------------------------------
+
+
+
+
+
+
+
+
+
+
+CERTO... 
+
+
+
+
+
+
+MAS E SE A STRING CONTER NUMBER + TEXT, no meio?
+
+
+
+
+
+
+
+
+-. tipo assim:
+
+
+
+
+
+
+
+
+
+
+
+$x = (int) '85sadassda';
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+$zzz = (int) 100;  //exemplo de type casting.
+
+$x = (int) true; //SERÁ CASTADO COMO "1"... (pq convertemos esse boolean em 1 int, e a representacao int é 1...)
+
+$x = (int) false; //SERÁ CASTADO COMO 0... (pq convertemos esse boolean em 1 int, e a representacao int é 0...)
+
+$xxx = (int) 10.99; //será castado como 10 (perderá a casa decimal)...
+
+$ddd = (int) "5"; //será castado como 5 (será convertido, de string para number).
+
+$x = (int) '85sadassda'; ///será castado como 85 (o php tentará converter isso, sem erro.)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... O PHP TENTA CONVERT E RESOLVE ISSO COMO 1 INTEGER...
+
+
+
+
+
+
+
+
+
+
+--> MAS SE A STRING 
+
+NAO CONSEGUIR SER CONVERTIDA 
+
+
+EM UM INTEGER,
+
+ELA VAI SIMPLESMENTE SER CONVERTIDA EM 0...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+$xdadas = (int) 'exemplo'; ///VAI SER CASTADO COMO 0... (nao foi possível converter a string em um integer)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> certo... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> E QUANDO CONVERTEMOS NULLS EM INTEGERS,
+
+
+
+
+
+
+ELES TAMBÉM SERAO CONVERTIDOS A 0...
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+
+
+$zero = (int) null; //TAMBÉM VAI SER CASTADO/CONVERTIDO COMO 0...
+
+
+
+
+
+
+
+
+
+
+
+PARA CHECAR SE 1 DETERMINADA 
+
+
+
+VARIABLE É UM INTEGER,
+
+PODEMOS USAR A FUNCTION DE is_int()...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+is_int($zzz); ///retorna true ou false, a depender se a variável é um integer ou nao... (no caso, true)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+AGORA HÁ UMA FEATURE DE READABILITY...
+
+
+
+
+
+
+
+
+--> DEPOIS DO PHP 7.4,
+
+VC PODE USAR 
+
+
+_ (underline)
+
+NAS SUAS INTEGERS,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+200_000; --> É A MESMA COISA QUE 200.000, MAS É MAIS READABLE...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+$readableNumber = 2_000_000_000; //é a mesma coisa que 2 bilhoes, mas é mais readable (do que escrever 2000000000)
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OS UNDERSCORES SAO BASICAMENTE REMOVIDOS E IGNORADOS PELO PHP...
+
+
+
+
+
+MAS ISSO NAO FUNCIONA SE ESTIVER EM 
+
+1 FORMATO 
+
+STRING...
+
+
+
+
+-> e se vc CASTAR ISSO COMO INT,
+
+
+ELE VAI 
+
+FICAR COMO "2" (pq tudo depois do 2 será removido)...
+
+
+
+
+
+
+
+
+
+
+
+
+NA PRÓXIMA AULA, FALAREMOS SOBRE FLOATS....
+
+
+
+
+
+
+
+HÁ ALGUMAS COISAS MT IMPORTANTES SOBRE FLOATS...

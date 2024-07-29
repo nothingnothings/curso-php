@@ -1,0 +1,955 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+UM PHP SCRIPT É FEITO DE UMA SÉRIE DE STATEMENTS..
+
+
+
+
+
+
+
+
+
+-> UM STATEMENT PODE SER:
+
+
+
+
+
+
+1) UM ASSIGNMENT 
+
+
+2) UMA FUNCTION CALL
+
+
+3) UM LOOP 
+
+
+4) IF ELSE CONDITIONS 
+
+
+
+
+
+
+
+
+
+E ASSIM POR DIANTE...
+
+
+
+
+
+
+
+
+
+--> NO PHP,
+
+
+
+SOMOS CAPAZES DE AGRUPAR MÚLTIPLOS STATEMENTS,
+
+POR MEIO 
+
+DE CURLY BRACES...
+
+
+
+
+
+
+
+
+
+-> UMA CONTROL STRUCTURE É ALGO QUE 
+
+TE DEIXA 
+
+
+___ AGRUPAR MÚLTIPLOS STATEMENTS 
+
+E 
+
+CONTROLAR 
+
+O FLOW 
+
+DA CODE EXECUTION --> POR EXEMPLO,
+
+PODEMOS 
+
+EXECUTAR 
+
+"A"
+
+
+APENAS 
+
+
+__ SE A CONDICAO B PASSA, 
+
+
+
+
+
+
+OU ENTAO 
+
+
+CONTINUAR _ EXECUTANDO "A"
+
+ATÉ A CONDICAO B FOR MET...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OS CONDITIONAL STATEMENTS IF SAO ASSIM:
+
+
+
+
+
+
+
+
+
+
+if ($condition) {
+
+
+}
+
+
+
+
+
+
+
+
+
+DENTRO DAS CURLY BRACES,
+
+VC BOTA 
+
+OS BLOCKS OF CODE QUE 
+
+SERAO EXECUTADOS APENAS SE 
+A
+ EXPRESSION FOR EVALUATED COMO TRUE...
+
+
+
+
+
+
+-> PODEMOS COLOCAR 
+
+
+QUALQUER EXPRESSION...
+
+
+
+
+
+
+
+--> PODEMOS COLOCAR APENAS 1 VARIABLE,
+
+ALGO ASSIM,
+
+
+OU 
+
+
+
+USAR 
+
+
+
+
+VARIOS OPERATORS...
+
+
+
+
+
+if ($condition) {
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO...
+
+
+
+PODEMOS IMPLEMENTAR 1 SIMPLES GRADING SYSTEM..
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+$score = 85;
+
+
+
+
+
+
+
+if ($score >= 90) {
+    echo 'A';
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PARA SIMPLE STATEMENTS,
+
+
+EM QUE TEMOS APENAS 1 STATEMENT,
+
+PODEMOS 
+
+
+ACTUALLY REMOVER OS CURLY BRACES,
+
+E O NEGÓCIO AINDA FUNCIONARÁ:
+
+
+
+
+if ($score >= 90) 
+    echo 'A';
+
+
+
+
+MAS ESSA SINTAXE É RUIM, 
+É POUCO LEGÍVEL...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+$score = 95;
+
+
+
+
+
+if ($score >= 90) {
+    echo 'A';  //essa condition vai falhar.... se temos 1 else block, ele é triggado.
+}
+
+
+
+
+
+
+
+
+-----------------------
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+MAS O QUE ACONTECE QUANDO A CONDITION FALHA...
+
+
+
+
+
+
+
+
+-> PODEMOS DEFINIR 1 DEFAULT CODE BLOCK,
+
+QUE É ADICIONADO POR MEIO DO ELSE,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+if ($score >= 90) {
+    echo 'A';  //essa condition vai falhar.... se temos 1 else block, ele é triggado.
+} else {
+    echo 'F';
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... MAS É CLARO QUE PODEMOS COLOCAR MAIS CONDITIONS,
+
+COLOCAR ELSEIF...
+
+
+
+
+
+
+
+
+BASTA ESCREVER ASSIM:
+
+
+
+
+
+
+
+if ($score >= 90) {
+    echo 'A';  //essa condition vai falhar.... se temos 1 else block, ele é triggado.
+} elseif ($score >= 80) {
+    echo 'B';
+} elseif ($score >= 70) {
+    echo 'C';
+} elseif ($score >= 60) {
+    echo 'D';
+} else {
+    echo 'F';
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK...
+
+
+
+
+
+E PODEMOS CHAINAR QUANTOS ELSEIF STATEMENTS QUISERMOS...
+
+
+
+
+
+
+
+
+A OUTRA MANEIRA DE DEFINIR 
+
+
+
+ELSEIF É COM ""else if""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS EXISTE UMA DIFERENCA SINTATICA ENTRE 
+
+""ELSEIF e else if'""
+
+
+
+
+
+
+
+EXISTE ESSA DIFERENCA, SIM, 
+
+MAS QUANDO 
+
+VC USA 
+
+
+
+
+A SINTAXE ALTERNATIVA,
+
+
+
+QUE O PROFESSOR LOGO MOSTRARÁ,
+
+
+
+VC 
+
+
+_PRECISA __ 
+
+
+USAR _ A QUE NAO TEM ESPACO...
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR __ SEMPRE __ USA A VERSAO 
+
+
+
+""elseif""
+
+em vez 
+
+de 
+""else if""...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+// EXISTE A SINTAXE ""else if"", MAS QUASE 
+NUNCA É USADA... DEVEMOS USAR elseif, pq funciona no html (a outra nao funciona)...
+
+
+
+-----------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+VOCE TAMBÉM PODE NESTEAR 
+
+
+QUANTAS IF ELSE CONDITIONS VC QUISR...
+
+
+
+
+
+MAS É CLARO QUE ISSO FICA BEM DIFÍCIL DE LER...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ok.. agora vamos embeddar isso no código html, para ver o que acontece...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+<html>
+
+<head>
+
+<body>
+
+    <?php
+
+    if ($score >= 90) {
+        echo 'A';  //essa condition vai falhar.... se temos 1 else block, ele é triggado.
+    } elseif ($score >= 80) {
+        echo 'B';
+    } elseif ($score >= 70) {
+        echo 'C';
+    } elseif ($score >= 60) {
+        echo 'D';
+    } else {
+        echo 'F';
+    }
+
+    ?>
+
+
+</body>
+</head>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS ISSO FICA FEIO...
+
+
+
+
+
+
+--> COLOCAR TODO PHP DENTRO DE HTML... --> ISSO É FEIO...
+
+
+
+
+
+
+
+--. E FICARIA AINDA MAIS FEIO SE TENTÁSSEMOS 
+
+
+PRINTAR ALGUM TIPO DE STYLING OU HTML ELEMENTS COM NOSSOS VALUES....
+
+
+
+
+
+
+--> PODERÍAMOS ESCREVER COISAS ASSIM:
+
+
+
+
+
+echo '<strong>A</strong>',
+
+
+
+MAS É CLARO QUE 
+
+
+
+ESCREVER ISSO 
+
+
+
+
+TUDO NO PHP, DENTRO DESSE HTML,
+
+É HORRÍVEL..
+
+
+
+
+
+
+
+
+
+-> O PHP OFERECE SINTAXES ALTERNATIVAS...
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS COMECAR ASSIM:
+
+
+
+
+
+
+
+<html>
+
+<head>
+
+<body>
+
+    <?php $score = 95 ?>
+
+    <?php if ($score >= 90) {
+
+    } ?>
+
+
+</body>
+</head>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS ISSO TAMBÉM NAO FICA BOM..
+
+
+
+--> É POR ISSO QUE O PHP OFERECE UMA SINTAXE ALTERNATIVA...
+
+
+
+
+
+
+
+
+em vez de escrevermos if() {},
+
+
+
+
+
+PODEMOS SUBSTITUIR O "{}"
+
+
+
+
+por um ":",
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+<html>
+
+<head>
+
+<body>
+
+    <?php $score = 95 ?>
+
+    <?php if ($score >= 90): ?>
+        <strong>CONDIITIONAL OUTPUT - A</strong>
+    <?php elseif ($score >= 80): ?>
+        <strong>CONDIITIONAL OUTPUT - B</strong>
+    <?php elseif ($score >= 70): ?>
+        <strong>CONDIITIONAL OUTPUT - C</strong>
+    <?php elseif ($score >= 60): ?>
+        <strong>CONDIITIONAL OUTPUT - D</strong>
+    <?php endif ?>
+</body>
+</head>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+---------------
+
+
+
+
+
+
+
+
+É IMPORTANTE 
+
+FAZER """CLOSE""  DO IF STATEMENT ORIGINAL,
+
+COM ""endif"" naquela tag final...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+<html>
+
+<head>
+
+<body>
+
+    <?php $score = 95 ?>
+
+    <?php if ($score >= 90): ?>
+        <strong>CONDIITIONAL OUTPUT - A</strong>
+    <?php elseif ($score >= 80): ?>
+        <strong>CONDIITIONAL OUTPUT - B</strong>
+    <?php elseif ($score >= 70): ?>
+        <strong>CONDIITIONAL OUTPUT - C</strong>
+    <?php elseif ($score >= 60): ?>
+        <strong>CONDIITIONAL OUTPUT - D</strong>
+    <?php else: ?>
+        <strong>CONDIITIONAL OUTPUT - F</strong>
+    <?php endif ?>
+</body>
+</head>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA SE RECARREGARMOS A PAGE,
+
+ELA FUNCIONA COMO O ESPERADO...
+
+
+
+
+
+
+
+
+
+--> TAMBÉM PODEMOS COLOCAR ATTRIBUTES DENTRO 
+
+DESSE HTML CONDICIONAL, TIPO ASSIM:
+
+
+
+
+
+
+<html>
+
+<head>
+
+<body>
+
+    <?php $score = 95 ?>
+
+    <?php if ($score >= 90): ?>
+        <strong style="color: green;">CONDIITIONAL OUTPUT - A</strong>
+    <?php elseif ($score >= 80): ?>
+        <strong>CONDIITIONAL OUTPUT - B</strong>
+    <?php elseif ($score >= 70): ?>
+        <strong>CONDIITIONAL OUTPUT - C</strong>
+    <?php elseif ($score >= 60): ?>
+        <strong>CONDIITIONAL OUTPUT - D</strong>
+    <?php else: ?>
+        <strong>CONDIITIONAL OUTPUT - F</strong>
+    <?php endif ?>
+</body>
+</head>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+----------> TEMOS QUE USAR O ELSEIF TUDO JUNTO,
+
+e nao separado (pq isso te dá um syntax error)...
+
+
+
+
+
+
+
+
+
+NA PRÓXIMA AULA VEREMOS LOOPS...

@@ -1,0 +1,1196 @@
+
+
+
+
+
+
+
+
+
+
+--> OK... AGORA VEREMOS 
+
+
+
+
+O SWITCH CASE STATEMENT NO PHP...
+
+
+
+
+
+
+
+
+
+
+ELE É SIMILAR AOS STATEMENTS 
+
+
+DE 
+
+IF-ELSE,
+
+
+
+
+E NOS AJUDA 
+
+
+
+
+
+
+A CONTROLAR AS EXPRESSOES,
+
+
+
+
+
+
+NOS DEIXA RODAR DIFERENTES PARTES DE CÓDIGO,
+
+
+
+
+A PARTIR 
+
+DE 
+
+QUAL STATEMENT É SATISFEITO...
+
+
+
+
+
+
+
+
+
+
+
+ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+$paymentStatus = 'paid';
+
+
+
+switch ($paymentStatus) {
+    case 'paid':
+        echo 'Paid';
+        break;
+    case 'declined':
+        echo 'Payment Declined';
+        break;
+    case 'pending':
+        echo 'Pending Payment';
+        break;
+    default:
+        echo 'Unknown Payment Status';
+        break;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK.... É EXATAMENTE COMO 1 SWITCH CASE NO JAVASCRIPT..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+----> TEMOS DIFERENTES CASES...
+
+
+
+
+
+
+
+
+A EXPRESSION NO SWITCH CASE PODE SER SUPER COMPLEXA,
+
+OU SUPER SIMPLES...
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE NENHUM MATCH É ENCONTRADO,
+ 
+ O DEFAULT CASE É 
+
+ EXECUTADO...
+
+
+
+
+
+
+
+
+-> O DEFAULT CASE NAO É OBRIGATÓRIO....
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> break statemnets --> sao usados --> SAO USADOS COM LOOPS,
+
+
+E SERVEM O MESMO PROPÓSITO AQUI...
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ENTENDER COMO O BREAK FUNCIONA DENTRO 
+
+DE SWITCH STATEMENTS,
+
+
+VC TEM QUE ENTENDER COMO O SWITCH FUNCIONA...
+
+
+
+
+
+
+
+
+
+--> O SWITCH-CASE COMECA A SER EXECUTADO 
+
+__ LINE__ POR LINE... --> MAS ELE SÓ COMECA 
+
+A EXECUTAR __ LINE _ POR _ LINE __ 
+
+DEPOIS 
+
+
+
+__ DE ELE TER _ ENCONTRADO___ O MATCHING CASE....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> POR EXEMPLO,
+
+
+
+OS 
+
+
+
+BLOCKS 
+
+
+
+
+de paid,
+
+declined 
+
+
+
+e 
+pending 
+
+NUNCA SAO 
+
+EXECUTADOS 
+
+
+SE NENHUM MATCHING CASE FOR ENCONTRADO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ASSIM QUE 
+
+1 DOS CASES __ PASSA __ O CHECK,
+
+
+
+ELE COMECA 
+
+A EXECUTAR 
+
+
+
+STATEMENTS LINE POR LINE,
+
+ATÉ O 
+
+
+__ __ FINAL __ DO SWITCH BLOCK,
+
+OU ATÉ O PRIMEIRO BREAK STATEMENT (ok, mesma coisa do javascript)...
+
+
+
+
+
+
+
+
+
+------------------------
+
+
+
+
+
+
+
+
+
+OK.. NO BREAK STATEMENT,
+
+ELE PARA A EXECUCAO... -> SE REMOVEMOS 1 BREAK STATEMENT,
+
+
+
+
+ELE CONTINUA EXECUTANDO,
+E VAI 
+
+
+ATÉ O PRÓXIMO 
+
+
+CÓDIGO, MESMO QUE O CASE NAO SEJA MATCHING...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO PODE OU NAO SER O INTENDED BEHAVIOR,
+
+E PODE 
+
+
+INTRODUZIR BUGS INDESEJADOS...
+
+
+
+
+
+
+
+
+
+
+--> MAS EXISTEM ALGUNS USE-CASES 
+
+PARA SEGUIR 
+
+ESSA FALL-THROUGH 
+
+STRATEGY...
+
+
+
+
+
+
+
+
+
+
+
+
+
+UM DOS USE-CASES É QUE 
+
+VC 
+
+TALVEZ QUEIRA 
+
+
+
+
+___ EXECUTAR __ 1 MESMO BLOCK OF CODE,
+
+MAS PARA 
+
+
+MÚLTIPLOS STATUS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TEMOS 1 EXEMPLO COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+<?php
+
+$paymentStatus = 'paid';
+
+
+
+switch ($paymentStatus) {
+    case 'paid':
+        echo 'Paid';
+        break;
+    case 'declined':
+        echo 'Payment Declined';
+        break;
+    case 'rejected':
+        echo 'Payment Declined';
+        break;
+    case 'pending':
+        echo 'Payment Pending';
+        break;
+    default:
+        echo 'Unknown Payment Status';
+        break;
+}
+
+
+
+
+
+
+
+ESSE CÓDIGO FUNCIONARIA, SIM,
+
+MAS TERÍAMOS DUPLICATION...
+
+
+
+
+
+
+
+E NAO QUEREMOS DUPLICAR CODE...
+
+
+
+
+
+
+
+--> a solucao, aqui,
+
+
+seria 
+
+__ REMOVER __ O CODE BLOCK DE PAYMENT DECLINED 
+
+INICIAL,
+
+E AÍ 
+
+SIMPLESMENTE FAZER COM QUE O CASE DE 
+
+'declined'
+
+faca FALLTHROUGH 
+
+no case de rejected,
+
+
+pq os 2 vao justamente RESULTAR NA MESMA COISA (no print de 'Declined)
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+<?php
+
+$paymentStatus = 'paid';
+
+
+
+switch ($paymentStatus) {
+    case 'paid':
+        echo 'Paid';
+        break;
+    case 'declined': //eis o código em questao
+    case 'rejected':
+        echo 'Payment Declined';
+        break;
+    case 'pending':
+        echo 'Payment Pending';
+        break;
+    default:
+        echo 'Unknown Payment Status';
+        break;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO QUER DIZER QUE SE O PAYMENT FOR DECLINED OU REJECTED,
+
+DEVE SER EXECUTADO AQUELE BLOCK OF CODE..
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+
+
+$paymentStatus = 'paid';
+
+
+
+switch ($paymentStatus) {
+    case 'paid':
+        echo 'Paid';
+        break;
+    case 'declined': //* eis o código em questao
+    case 'rejected':
+        echo 'Payment Declined';
+        break;
+    case 'pending':
+        echo 'Payment Pending';
+        break;
+    default:
+        echo 'Unknown Payment Status';
+        break;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+UMA COISA QUE VC DEVE TER EM MENTE É QUE O SWITCH-CASE STATEMNET 
+
+
+
+
+SEMPRE FAZ UMA 
+
+___LOOSE __ COMPARISON...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+por exemplo,
+
+DIGAMOS 
+
+
+
+QUE NAO TEMOS 1 REPRESENTATION DE ""string""
+
+
+
+
+de 
+
+
+''rejected'',
+
+
+e sim uma representation de INTEGER,
+
+COM TYPE CASTING 
+
+DO PHP,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+$paymentStatus = (int) 'rejected';"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+$paymentStatus = (int) 'rejected';  /// isso ainda funcionará, ainda entrará no case de ''rejected'', mesmo sendo um """"número""""
+
+
+
+
+
+switch ($paymentStatus) {
+    case 'paid':
+        echo 'Paid';
+        break;
+    case 'declined': //* eis o código em questao
+    case 'rejected':
+        echo 'Payment Declined';
+        break;
+    case 'pending':
+        echo 'Payment Pending';
+        break;
+    default:
+        echo 'Unknown Payment Status';
+        break;
+}
+
+
+
+
+
+
+
+
+----------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+ok... AGORA OUTRO EXEMPLO...
+
+
+
+
+
+
+
+
+
+DIGAMOS QUE TEMOS CASES DE 
+
+1,2,3 e 0....
+
+
+
+
+
+
+
+
+--> AGORA DIGAMOS 
+
+
+
+
+
+QUE O VALUE DE paymentStatus ESTÁ COMO '1' (uma string, claramente):
+
+
+
+
+
+
+
+
+
+
+$paymentStatus = '1';  /// isso ainda funcionará, ainda entrará no case de ''rejected'', mesmo sendo um """"número""""
+
+
+
+
+
+switch ($paymentStatus) {
+    case 1:
+        echo 'Paid';
+        break;
+    case 2: //* eis o código em questao
+    case 3:
+        echo 'Payment Declined';
+        break;
+    case 0:
+        echo 'Payment Pending';
+        break;
+    default:
+        echo 'Unknown Payment Status';
+        break;
+}
+
+
+
+
+--------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+OK... QUER DIZER QUE O SWITCH-CASE FAZ LOOSE COMPARISON,
+
+E NAO CHECA DATA TYPES...
+
+
+
+
+
+
+
+
+
+
+-> se trocamos O VALUE PARA true,
+
+
+
+ISSO AINDA SERÁ LIDO COMO 1....
+
+
+
+
+
+
+
+
+
+
+
+
+OUTRA COISA QUE TEMOS QUE SABER É QUE,
+
+QUANDO USAMOS 
+
+SWITCH STATEMNETS 
+
+
+DENTRO 
+
+
+
+__ DE 1 LOOP,
+
+
+O BREAK STATEMENT __ APENAS _ VAI FAZER BREAK DO SWITCH STATEMENT,
+
+E NAO DO LOOP INTEIRO...
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR ESCREVE 1 EXEMPLO:
+
+
+
+
+
+
+$paymentStatus = [1, 3, 0];   //agora temos 3 PAYMENT STATUS...
+
+
+
+
+foreach($paymentStatuses as $paymentStatus) {
+
+switch ($paymentStatus) {
+    case 1:
+        echo 'Paid';
+        break;
+    case 2: //* eis o código em questao
+    case 3:
+        echo 'Payment Declined';
+        break;
+    case 0:
+        echo 'Payment Pending';
+        break;
+    default:
+        echo 'Unknown Payment Status';
+        break;
+}
+
+
+
+echo  '<br />';
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE VC QUER FAZER _ BREAK DO LOOP INTEIRO,
+
+E NAO APENAS DO SWITCH STATEMENT,
+
+NOVAMENTE VC 
+
+PODE 
+
+
+
+ESCREVER 
+
+
+"break <numero de niveis que vc quer pular>"
+
+
+
+
+
+PARA SAIR DESSE NESTING,
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+
+
+
+$paymentStatus = [1, 3, 0];   //agora temos 3 PAYMENT STATUS...
+
+
+
+
+foreach($paymentStatuses as $paymentStatus) {
+
+switch ($paymentStatus) {
+    case 1:
+        echo 'Paid';
+        break 2;  //* eis o código em questao
+    case 2:
+    case 3:
+        echo 'Payment Declined';
+        break;
+    case 0:
+        echo 'Payment Pending';
+        break;
+    default:
+        echo 'Unknown Payment Status';
+        break;
+}
+
+
+
+echo  '<br />';
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, ESPECIFICAMOS 2,
+
+
+E AÍ 
+
+
+VAMOS SAIR TANTO DO SWITCH COMO DO LOOP...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS USAR O CONTINUE STATEMENT NO LUGAR DO BREAK STATEMENT,
+
+E ELE FUNCIONA DE FORMA SIMILAR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS O CONTINUE NOS DÁ UM WARNING...
+
+
+
+
+
+
+
+
+
+--> OK, MAS QUAL É A DIFERENCA ENTRE 1 SERIE 
+
+DE IF STATEMENTS E 1 
+
+SWITCH CASE...
+
+
+
+
+
+
+A DIFERENCA ENTRE OS 2 É QUE 
+A _ EXPRESSION 
+
+DENTRO DO SWITCH STATEMENT 
+
+
+
+É _ EXECUTADA __ APENAS _ 1 ÚNICA VEZ...
+
+
+
+
+
+
+
+
+
+
+JÁ AS EXPRESSIONS NOS IF STATEMENTS 
+
+
+SAO EXECUTADAS __ PARA  CADA STATEMENT..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR NOS DÁ UM EXEMPLO...
+
+
+
+
+
+
+
+
+DIGAMOS QUE TEMOS 1 HEAVY FUNCTION,
+
+
+QUE REALIZA ALGUMAS HEAVY OPERATIONS,
+
+QUE DEMORAM 3 OU 4 SEGUNDOS...
+
+
+
+
+
+
+
+
+
+ESSA FUNCTION PODE TER ESTE FORMATO:
+
+
+
+
+
+
+
+
+
+if (x() === 1) {
+    echo 1;
+} elseif (x() === 2) {
+    echo 2;
+}elseif (x() === 3) {
+    echo 3;
+} else {
+    echo 4;
+}
+
+
+
+
+
+
+
+
+
+
+
+ESSA FUNCTION É ""x"" -- >ainda nao a definimos....
+
+
+
+
+
+
+
+
+
+--> para simular que essa function demora 1 pouco,
+
+
+escrevemos assim:
+
+
+
+
+
+function x() {
+    sleep(3);
+    echo 'Done <br/>';
+    return 1;
+}
+
+
+
+
+
+
+
+
+
+
+SLEEP PAUSA A CODE EXECUTION POR 3 SEGUNDOS, E DEPOIS ESSA FUNCTION PRINTA DONE, e depois 
+
+retorna 1...
