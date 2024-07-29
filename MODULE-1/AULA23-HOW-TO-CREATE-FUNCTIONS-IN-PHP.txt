@@ -1,0 +1,1409 @@
+
+
+
+
+
+
+
+
+
+FUNCTIONS EM PHP SÃO PARECIDAS COM FUNCTIONS EM OUTRAS PROGRAMMING LANGUAGES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É BASICAMENTE UM BLOCK OF CODE QUE:
+
+1) CAN TAKE AN INPUT 
+
+
+
+2) DO SOME MAGIC 
+
+
+3) RETURN A VALUE...
+
+
+
+
+
+
+
+
+
+
+
+
+--> HÁ 1 MONTE DE BUILT-IN FUNCTIONS NO PHP,
+    MAS VC PODE TAMBÉM CRIAR SUAS PRÓPRIAS FUNCTIONS CUSTOM...
+
+
+
+
+
+
+
+
+
+--> JÁ VIMOS O PROFESSOR CRIAR FUNCTIONS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS NOS PRÓXIMOS VIDEOS, VEREMOS EM MAIORES DETALHES:
+
+
+1) DIFERENTES TIPOS DE FUNCTIONS 
+
+2) TYPED PARAMETERS 
+
+3) RETURN TYPES 
+
+4) VARIABLE SCOPES 
+
+5) ANON FUNCTIONS 
+
+6) VARIABLE FUNCTIONS 
+
+7) ARROW FUNCTIONS 
+
+8)  ETC...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+// Functions 
+function add($a, $b)
+{
+    return $a + $b;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> podemos escrever o nome das functions com '_', ou lowercase...
+
+
+
+
+
+
+
+
+
+
+O DEFINE DE PARAMETERS É OPCIONAL..
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+function foo() {
+    echo 'Hello World';
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA USAR ESSA FUNCTION, PRECISAMOS CHAMÁ-LA, ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+function foo() {
+    echo 'Hello World';
+}
+
+
+
+foo();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> EM VEZ DE PRINTAR ALGO DIRETAMENTE DA FUNCTION,
+    PODEMOS RETORNAR ALGO DA FUNCTION, E AÍ FAZER ALGO COM ESSE VALUE...
+
+
+
+
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+function foo() {
+    return 'Hello World';
+}
+
+
+
+$x = foo();
+
+
+echo $x;
+
+
+
+
+
+
+
+
+OU, ENTÃO, PODERÍAMOS CONSEGUIR O MESMO RESULTADO ASSIM:
+
+
+
+
+function foo() {
+    return 'Hello World';
+}
+
+
+
+echo foo();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+O RETURN STATEMENT É OPCIONAL...  ISSO QUER DIZER QUE,
+ SE VC NÃO O UTILIZAR/ESPECIFICAR DENTRO DA FUNCTION,
+
+
+ O QUE SERÁ RETORNADO, PELA FUNCTION, POR DEFAULT,
+
+ SERÁ 
+
+ UM VALUE DE 'null'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+function foo() {
+    return;
+}
+
+
+var_dump(foo()); // ISSO VAI RETURN 'NULL'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE REMOVERMOS O RETURN STATEMENT:
+
+
+
+
+
+
+function foo() {
+    return;
+}
+
+
+var_dump(foo()); // ISSO ___AINDA__ VAI RETURN 'NULL'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AS FUNCTIONS NÃO PRECISAM SER DEFINIDAS ANTES DE SEREM CHAMADAS... MAS É UMA BEST PRACTICE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VC PODERIA ESCREVER ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+var_dump(foo());
+
+
+
+function foo() {
+    return 'Hello World';
+}
+
+
+
+
+
+
+
+
+--> isso acontece pq o php PARSEIA/LÊ O SCRIPT 
+    ANTES DE EXECUTAR AS FUNCTIONS CONTIDAS NELE..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ENTRETANTO, HÁ ALGUMAS EXCEPTIONS A ESSA REGRA...
+
+
+
+
+
+
+
+EXCEÇÃO 1:
+
+
+
+
+
+
+''SE VC ESTÁ DEFININDO SUA FUNCTION CONDICIONALMENTE,
+  A CONDITION PRECISA TER SIDO MET, IN THE PAST, ANTES 
+  DE VC CHAMAR ESSA FUNCTION''...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+var_dump(foo()); // VAI RETORNAR UM ERRO DE 'undefined', pq a condition não foi satisfeita...
+
+if (false) {
+    function foo() {
+        return 'Example';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+var_dump(foo()); // TAMBÉM VAI RETORNAR UM ERRO DE 'undefined', PQ MESMO QUE SEJA 'true', aquele code block do IF precisa ser EXECUTADO antes de vc chamar essa function...
+
+if (true) {
+    function foo() {
+        return 'Example';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX (com call bem sucedido da function):
+
+
+
+
+
+
+
+if (true) {
+    function foo() {
+        return 'Example';
+    }
+}
+
+
+var_dump(foo()); // vai retornar 'Example', sem nenhum error...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... É ISSO QUE DEVEMOS TER EM MENTE, QUANDO DEFINIMOS FUNCTIONS CONDICIONALMENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EXCEÇÃO 2:
+
+
+
+
+
+
+''CASO EM QUE VC DEFINE FUNCTIONS _ dENTRO _dE OUTRAS FUNCTIONS...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO PQ, NO PHP, _ VC É CAPAZ DE 
+    TER FUNCTIONS DENTRO DE FUNCTIONS.... E COMO FUNCTIONS EM PHP 
+    POSSUEM 'GLOBAL SCOPE',
+     
+     ELAS _ PODEM SER 
+     _ CHAMADAS DO LADO DE FORA DA FUNCTION ,
+
+     CONTANTO QUE A PRIMEIRA FUNCTION TENHA SIDO CHAMADA 
+
+     ANTES....
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+    COMO ASSIM?
+
+
+
+
+
+
+
+
+DIGAMOS ESTE CÓDIGO:
+
+
+
+
+
+
+foo();
+
+
+function foo() {
+
+    echo 'Foo';
+    
+    function bar() {
+        echo 'Bar';
+    }
+
+    return 'Hello World';
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TENTAMOS RODAR ESSA FUNCTION...
+
+
+
+
+SE RODAMOS ESSA FUNCTION,
+
+
+FICAMOS com 
+
+
+'Foo' como output... 
+
+
+
+
+
+
+
+A FUNCTION DE 'bar()', definida dentro de 'foo()',
+
+não é chamada, pq ela ainda não foi invocada...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> E PODEMOS CHAMAR ASSIM, TAMBÉM:
+
+
+
+
+
+
+foo();
+bar();
+
+
+function foo() {
+
+    echo 'Foo';
+    
+    function bar() {
+        echo 'Bar';
+    }
+
+    return 'Hello World';
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E ISSO VAI FUNCIONAR, PQ 
+
+
+
+'bar()', essa function, já terá sido definida,
+
+depois que chamamos 'foo()', por conta de 'foo()' 
+definir 
+
+'bar()' no seu interior... 
+
+
+
+
+
+
+
+
+
+MAS O INVERSO NÃO FUNCIONARIA:
+
+
+
+
+
+
+
+
+bar();
+foo();
+
+
+function foo() {
+
+    echo 'Foo';
+    
+    function bar() {
+        echo 'Bar';
+    }
+
+    return 'Hello World';
+
+}
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO NÃO VAI FUNCIONAR,
+    'bar()' ESTARÁ COMO UNDEFINED,
+
+    JUSTAMENTE PQ 'foo()' não foi chamada antes... o que quer dizer que 
+
+    'bar()' ainda estará como undefind...
+
+
+
+
+
+
+
+->  O PROFESSOR __ NÃO RECOMENDA___ O DEFINE DE FUNCTIONS CONDICIONALMENTE, OU 
+    O DEFINE DE FUNCTIONS DENTRO DE OUTRAS FUNCTIONS...
+
+
+    ISSO APENAS DEIXA O CÓDIGO MAIS ILEGÍVEL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OUTRO DETALHE: 
+
+
+
+
+
+
+
+
+
+
+
+
+___ VOCE NÃO __ PODE TER FUNCTIONS COM OS MESMOS NOMES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PRÓXIMO TÓPICO É 'RETURN TYPES'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+RETURN TYPES:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+''VC É CAPAZ DE TYPE HINT _ SEU RETURNED VALUE...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O QUE QUEREMOS DIZER, POR ISSO?
+
+
+
+
+
+
+
+
+
+
+
+bem, veja esta function:
+
+
+
+
+
+
+function foo() {
+    return 1;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ESSA FUNCTION, ATUALMENTE ESTAMOS RETORNANDO '1', esse integer...
+
+
+
+
+
+
+MAS NÃO ESTAMOS COMUNICANDO AO PHP 'QUAL É O RETURN TYPE' de nossa function...
+
+
+
+
+
+
+
+
+
+--> O QUE PODEMOS FAZER, AQUI, É 'TYPE HINT',
+
+
+    dar 1 dica do tipo de coisa que essa function vai retornar...
+
+
+
+
+
+
+
+
+--> PODEMOS FAZER ISSO COM ESTA SINTAXE:
+
+
+
+
+
+
+
+
+
+
+// Type Hinting:
+function add2($a, $b): int // With this, we hint that the returned value is an integer 
+{
+    return $a + $b;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+ISSO É MT BOM...
+
+
+
+
+
+
+MAS ISSO __ APENAS FUNCIONA_ SE VC ATIVAR STRICT TYPES..
+
+
+
+
+
+
+
+
+
+
+--> PRECISAMOS ENABLAR STRICT TYPES PARA TER ERRORS 
+    SE FIZERMOS RETURN DE DATA TYPES DIFERENTES DE NOSSO HINT...
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE PRECISAMOS DE 
+
+'declare(strict_types=1)'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS O QUE ESCREVEMOS, SE NÃO VAMOS RETORNAR COISA ALGUMA?
+
+
+
+
+
+
+
+--> vamos escrever 'void', como fazemos em outras linguagens de programação...
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+function messager(): void // With this, we hint that the function returns nothing
+{
+    echo "Hello World!";
+}
+
+
+
+
+
+
+
+
+
+
+
+
+OU ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+function foo(): void {
+    return;
+}
+
+
+
+var_dump(foo());
+
+
+
+
+
+
+
+
+
+-> VAMOS CONSEGUIR 'NULL', com esse var_dump()
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS o return de 'null' não é a mesma coisa que o return de 'void',
+
+    pq aí vc está actually retornando alguma coisa ( o value de 'null'):
+
+
+
+
+    function foo(): void {
+    return null; /// WILL THROW AN ERROR...
+    }
+
+
+
+var_dump(foo());
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE VC QUER FAZER O TYPE HINT DE 'int' mas com a possiblidade 
+    de NULLABLE VALUES, 
+
+
+    VC PODE USAR AQUILO QUE CHAMAMOS DE 'NULLABLE TYPES'...
+
+
+
+
+
+
+
+PARA ESCREVER 1 NULLABLE TYPE, 
+VC FAZ ASSIM:
+
+
+
+
+function foo(): ?int {
+    return null; 
+    }
+
+
+
+var_dump(foo());
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+function foo(): ?int  // With this, we hint that the function returns an integer OR NULL...
+{
+    return null;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, PERMITIMOS O VALUE DE '1' (e todos outros int) e 'NULL'
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+
+NO PHP8,
+
+VC PODE __ACTUALLY TYPE HINT MÚLTIPLOS TYPES...
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA, VC PODE DEFINIR QUE PODEM SER 
+        RETORNADOS OU 'INT' OU 'FLOAT' em 1 mesma function...
+
+
+
+    
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+function foo(): int|float|array {
+    // return 1.0;
+    // return [];
+    return 1;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS SE VC TEM MTOS DIFERENTES RETURN TYPES NA SUA FUNCTION,
+    VC PODE OPTAR PELO TYPE DE 'mixed', 
+
+
+    QUE EXISTE DESDE O PHP 8... ELE TAMBÉM ACEITA MÚLTIPLOS 
+    DATA TYPES...
+
+
+
+
+
+
+
+
+--> O PROFESSOR NÃO GOSTA DE USAR 'mixed',
+
+    PQ ELE GOSTA DE SER EXPLÍCITO SOBRE OS TIPOS DE COISAS QUE ELE VAI RETURN...
+
+
+
+
+
+
+
+
+--> MAS HÁ ALGUNS USE-CASES PARA mixed 
+
+
+
+    EX: ''YOU ARE RETURNING A DATA TYPE THAT CAN'T BE TYPE HINTED IN PHP''...
+
+
+
+
+
+
+MIXED --> TAMBÉM INCLUI O VALUE DE 'NULL', O QUE QUER DIZER QUE VC NAO PODE ESCREVER '?mixed'...
+
+
+
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+
+
+function foo3(): mixed {
+    return 1.5;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+NA PRÓXIMA AULA, VEREMOS O TYPE HINTING DE PARAMETERS.....
+
+
+
