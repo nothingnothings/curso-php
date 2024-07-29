@@ -1,0 +1,950 @@
+
+
+
+
+
+
+
+agora veremos match expressions...
+
+
+
+
+
+
+
+
+
+--> MATCH EXPRESSION --> É BASICAMENTE A MESMA COISA QUE 
+
+
+OS SWITCH STATEMENTS,
+
+
+MAS TEM ALGUMAS PEQUENAS DIFERENCAS...
+
+
+
+
+
+
+
+
+
+---> A MATCH EXPRESSION FOI INTRODUZIDA COM O PHP 8,
+
+E NAO FUNCIONA COM VERSOES ANTERIORES...
+
+
+
+
+
+
+A SINTAXE DA MATCH EXPRESSION É ASSIM:
+
+
+
+
+
+
+
+
+match()
+
+
+
+
+
+
+
+
+
+--> PROVIDENCIAMOS A EXPRESSAO DENTRO DO "()"...
+
+
+
+
+
+
+
+-> colocamos 1 variable 
+
+
+
+dentro da expression:
+
+
+
+
+
+$paymentStatus = 1;
+
+
+match($paymentStatus) {
+
+    1 => 
+
+}
+
+
+
+
+
+
+
+--> no caso, TEMOS QUASE A MESMA SINTAXE 
+
+DO SWITCH-CASE,
+
+
+MAS 
+
+
+
+SEM A _ PARTE__ DO ""CASE""...
+
+
+
+
+
+
+--> colocamos apenas o value/case que vai retornar algo...
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+
+$paymentStatus = 1;
+
+
+match($paymentStatus) {
+
+    1 =>  print 'Paid',
+    2 =>  print 'Payment Declined',
+    0 =>  print 'Pending Payment'
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COMO VOCE PODE VER, NA SUA ESSENCIA, É BEM  PARECIDO 
+
+COM SWITCH-CASE-STATEMENTS...
+
+
+
+
+
+
+$paymentStatus = 1;
+
+
+match($paymentStatus) {
+
+    1 => print 'Paid',
+    2 =>  print 'Payment Declined',
+    0 =>  print 'Pending Payment'
+
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS HÁ ALGUMAS 
+DIFERENCAS EM RELACAO 
+
+AO SWITCH-CASE...
+
+
+
+
+
+-->  a primeira 
+
+
+diferenca 
+
+
+é que 
+
+
+a match expression 
+
+
+é ACTUALLY uma expression,
+
+
+e por ser uma expression,
+
+é evaluated como 1 value...
+
+
+
+
+
+
+ISSO QUER DIZER QUE 
+
+
+AS MATCH EXPRESSIONS PODEM 
+
+
+SER ACTUALLY 
+
+
+ATRIBUÍDAS A VARIABLES...
+
+
+
+
+
+
+
+
+
+
+
+
+QUER DIZER QUE PODEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+
+
+$paymentStatus = 1;
+
+
+$paymentStatusDisplay = match($paymentStatus) {
+
+    1 => print 'Paid',
+    2 =>  print 'Payment Declined',
+    0 =>  print 'Pending Payment'
+
+};
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+$paymentStatus = 1;
+
+
+$paymentStatusDisplay = match($paymentStatus) { //* EIS O CÓDIGO EM QUESTAO
+
+    1 => print 'Paid',
+    2 =>  print 'Payment Declined',
+    0 =>  print 'Pending Payment'
+
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS ACTUALLY REMOVER OS PRINT DENTRO DAS EXPRESSIONS,
+
+
+
+e aí 
+
+
+podemos só retornar os values (strings),
+
+para entao os printar embaixo, tipo assim:
+
+
+
+
+
+
+
+
+
+$paymentStatus = 1;
+
+
+$paymentStatusDisplay = match($paymentStatus) { //* EIS O CÓDIGO EM QUESTAO
+
+    1 => 'Paid',
+    2 =>  'Payment Declined',
+    0 =>  'Pending Payment'
+
+};
+
+
+
+
+echo $paymentStatusDisplay;
+
+
+
+
+
+
+
+
+
+
+
+DENTRO DESSA MATCH EXPRESSION, PODEMOS 
+
+TER QUAISQUER COISAS DENTRO DO VALUE DOS "CASES"...
+
+
+
+
+
+PODEMOS __ TER FUNCTIONS QUE RETORNAM 1 VALUE, E ETC ETC...
+
+
+
+
+
+
+
+
+
+
+
+-->  OUTRA DIFERENCA É QUE COM OS SWITCH STATEMENTS,
+
+PRECISAMOS USAR BREAK STATEMENTS PARA EVITAR
+
+RESULTADOS INESPERADOS... COM A MATCH EXPRESSION,
+
+ISSO NAO ACONTECE... A EXPRESSION VAI RETORNAR 
+O VALUE SE O CASE FOR MATCHEADO, E NAO VAI "FALLTHROUGH"
+
+NOS OUTROS CASES....
+
+
+
+
+
+
+
+
+
+
+
+
+
+ENTRETANTO, É POSSÍVEL REPLICAR 
+
+O COMPORTAMENTO DE ""FALLTHROUGH""
+
+
+DOS SWITCH-CASE STATEMENTS 
+
+
+COM 
+
+
+
+AS MATCH EXPRESSIONS, BASTA
+
+
+ESCREVER MÚLTIPLOS CASES EM CADA 1 DOS KEY-VALUE PAIRS,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+$paymentStatus = 1;
+
+
+$paymentStatusDisplay = match($paymentStatus) { //* EIS O CÓDIGO EM QUESTAO
+
+    1,2 => 'Paid',
+    3,4 =>  'Payment Declined',
+    0 =>  'Pending Payment'
+
+};
+
+
+
+
+echo $paymentStatusDisplay;
+
+
+
+
+
+
+
+
+
+
+
+
+OK... COM ISSO,
+
+
+1 E 2 RODARAM AQUELA PRIMEIRA COISA,
+
+
+
+
+
+
+E OS CASES 2 E 3 RODARAO 
+
+A SEGUNDA COISA....
+
+
+
+
+
+
+
+
+A TERCEIRA DIFERENCA ENTRE OS DOIS É QUE,
+
+
+
+NO SWITCH STATEMENT,
+
+
+O __ DEFAULT __ NAO É NECESSÁRIO...
+
+
+
+
+
+
+
+
+
+
+
+--> SE VC TIRA O DEFAULT, LÁ NO SWITCH STATEMENT,
+E ENTAO 
+
+É PASSADO 1 VALUE NAO CONTEMPLADO PELOS CASES,
+
+
+
+NAO ACONTECE COISA ALGUMA, MAS NAO HÁ UM ERROR...
+
+
+
+
+
+
+
+MAS SE ISSO ACONTECE NAS MATCH EXPRESSIONS, 
+
+
+AS MATCH EXPRESSIONS DAO O THROW _ DE UM ERROR... (SIGNIFICA QUE 
+
+O VALUE __TEM QUE _ MATCHEAR __ ALGUM DOS CASES, NA MATCH 
+EXPRESSION, SENAO 
+
+FICAMOS COM O THROW DE 1 ERROR)
+
+
+
+
+
+--> EM OUTRAS PALAVRAS:
+
+
+
+
+1) SWITCH-CASE É EXEMPLIFICATIVO -> colocamos exemplos de 
+                                    cases... se nao entramos em 1 deles, nao há erro.
+
+
+
+
+2) MATCH EXPRESSION É __EXAUSTIVO --> COLOCAMOS OS CASES QUE DEVEM SER 
+                                        SATISFEITOS.... SE NENHUM FOR ENCAIXADO, ficamos com 1 error...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E ___ PODEMOS__ USAR __A MESMA KEYWORD,
+
+
+
+"default",
+
+LÁ 
+
+NA MATCH EXPRESSION,
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+$paymentStatus = 5; // vai causar o throw de 1 error, pela match expression, por nao estar contemplado em 1 dos cases...
+
+
+
+
+$paymentStatusDisplay = match($paymentStatus) { 
+// 5 nao consta em nenhum dos cases, por isso entramos no DEFAULT
+    1,2 => 'Paid',
+    3,4 =>  'Payment Declined',
+    0 =>  'Pending Payment',
+    default => 'Unknown Payment Status' //funciona da mesma forma que no switch-case statement...
+
+};
+
+
+
+
+echo $paymentStatusDisplay;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS TEMOS MAIS DIFERENCAS...
+
+
+
+
+
+
+
+
+
+
+
+
+A QUARTA DIFERENCA 
+
+
+
+
+
+
+
+
+
+
+É QUE
+
+
+
+
+
+
+""MATCH EXPRESSIONS FAZEM 
+
+__sTRICT__ COMPARISON___,
+
+ENQUANTO QUE __ LOOSE EXPRESSIONS 
+
+FAZEM __LOOSE_ COMPARISON""....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+
+
+AS MATCH EXPRESSIONS CHECAM TAMBÉM O DATA TYPE,
+
+AO
+
+
+REALIZAR A COMPARACAO 
+DOS CASES...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+$paymentStatus = '1'; // vai RODAR O CASE DE 1 (int) LÁ NO SWITCH-CASE STATEMENT (loose comparison), MAS _ VAI ACABAR RODANDO O CASE DEFAULT NA MATCH EXPRESSION (pq o data type nao se encaixa no case de 1 int, justamente pq DATA TYPES SAO CHECADOS TAMBÉM, STRICT COMPARISON, lá em match expressions)...
+
+
+
+
+
+
+$paymentStatusDisplay = match($paymentStatus) { 
+    1,2 => 'Paid',
+    3,4 =>  'Payment Declined',
+    0 =>  'Pending Payment',
+    default => 'Unknown Payment Status' 
+
+};
+
+
+
+
+echo $paymentStatusDisplay;
+
+
+
+
+
+
+-------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE O MATCH FAZ 
+
+A COMPARISON USANDO "===",
+
+
+
+enquanto que o switch-case faz a comparison usando 
+
+"=="...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VOCE PODE TER EXPRESSIONS COMPLEXAS 
+
+
+NA MATCH EXPRESSION...
+
+
+
+
+
+
+
+
+
+
+
+--> OK....
+
+
+
+
+
+
+
+
+OUTRA COISA QUE DEVEMOS SABER...
+
+
+
+
+
+
+-> A MATCH EXPRESSION 
+
+
+NAO DEPRECA O SWITCH-CASE STATEMENT...
+
+
+
+
+
+
+
+
+--> PQ O SWITCH-CASE STATEMENT
+
+FAZ ALGUMAS COISAS QUE A MATCH EXPRESSION NAO CONSEGUE...
+
+
+
+
+-> O SWITCH-case CONSEGUE RODAR 
+
+CODE-BLOCKS,
+
+E A MATCH-EXPRESSION NAO...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+$paymentStatus = 1;
+
+
+
+
+
+switch($paymentStatus) {
+    case 1:
+        echo 'eu';
+        echo 'estou';
+        echo 'aqui';
+        break;
+    default
+        echo 'é verdade';
+}
+
+
+
+
+
+
+
+-------------------------------------
+
+
+
+
+
+
+
+
+
+A MANEIRA DE RESOLVER ISSO 
+
+
+
+NA MATCH EXPRESSION SERIA
+
+EXTRAIR A EXPRESSION COMO 1 BLOCK DE CÓDIGO,
+E AÍ RODAR ESSE BLOCK 
+
+
+COMO 1 FUNCTION....
+
+
+TIPO ASSIM:
+
+
+
+
+
