@@ -1,0 +1,1306 @@
+
+
+
+
+
+
+
+
+
+
+ATÉ AGORA, ESCREVEMOS TODO NOSSO CÓDIGO EM APENAS 1 ÚNICO ARQUIVO 
+
+PHP...
+
+
+
+
+
+
+
+
+
+
+--> VC PODERIA ESCREVER SEU SITE INTEIRO 
+    EM 1 ÚNICO ARQUIVO PHP, MAS ISSO É TERRÍVEL..
+
+
+
+
+
+
+
+
+
+
+
+--> VC DEVE OUTSOURCEAR SEU CÓDIGO, PARA QUE ELE FIQUE MAIS LEGÍVEL..
+
+
+
+
+
+
+
+
+
+
+
+--> A PRIMEIRA ETAPA PARA ORGANIZAR SEU CÓDIGO É DIVIDIR 
+SEU CÓDIGO PHP EM MÚLTIPLOS ARQUIVOS, E AÍ OS INCLUIR ONDE VC PRECISA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NO PHP, TEMOS 4 STATEMENTS QUE PODEMOS UTILIZAR,
+
+
+PARA FAZER INCLUDE DE FILES EM OUTRAS FILES...
+
+
+
+SÃO ELES:
+
+
+
+
+
+
+
+
+
+
+1) REQUIRE 
+
+
+
+
+
+
+2) REQUIRE_ONCE 
+
+
+
+
+
+
+
+3) INCLUDE 
+
+
+
+
+
+4) INCLUDE_ONCE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESSES STATEMENTS SIMPLESMENTE FAZEM 'INCLUDE' E 'EVALUATE' 
+    DA GIVEN FILE, COM BASE 
+
+    NO FILE PATH...
+
+
+
+
+
+
+
+
+A SINTAXE É ASSIM:
+
+
+
+
+
+include '';
+
+
+
+
+
+
+
+
+--> OU SEJA,
+
+
+
+ALGO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+include 'file.php'; 
+
+
+
+
+
+
+
+
+
+
+
+COM ESTE CÓDIGO, será tentada a evaluation e inclusão de essa file dentro de nosso arquivo php...
+
+
+
+
+
+
+
+
+
+
+
+
+ex
+
+
+
+
+
+
+
+<?php
+
+// require / require_once / include / include_once
+
+
+include 'file.php';
+?>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS QUAL A DIFERENÇA ENTRE 'INCLUDE' E 'REQUIRE'?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+INCLUDE --> VAI RESULTAR EM UM 'WARNING'...
+REQUIRE --> VAI RESULTAR EM 1 ERROR, E VAI __ INTERROMPER __ A EXECUÇÃO DO SEU SCRIPT...
+
+
+
+
+
+
+
+
+
+
+
+
+DIGAMOS QUE file.php não existe...
+
+
+
+
+
+
+
+
+
+
+
+QUER DIZER QUE 'require' é mais seguro...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE VC N ESPECIFICA NENHUM PATH QUANDO CHAMA include/require ('include '';)
+
+
+
+
+
+O PHP TENTA PROCURAR FILES PHP A SEREM IMPORTADAS,
+
+
+
+USANDO A CONFIG DO SEU ARQUIVO 'php.ini' config,
+
+
+
+
+na parte de 
+
+
+'include_path'...  (tenta encontrar as files nessa pasta definida aí)
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR FALARÁ MAIS SOBRE
+    O php.ini e a php config 
+
+
+    em 1 vídeo separado,
+
+    por isso não precisamos nos importar com isso, por enquanto...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> E SE A SUA FILE NÃO EXISTE, OU SE ELA NÃO ESTÁ SETTADA, NAQUELE FOLDER DEFINIDO EM 'include_path',
+    o php finalmente tenta ENCONTRAR __ 
+    A FILE DENTRO DO CURRENT DIRECTORY, DO NOSSO PRÓPRIO SCRIPT...
+
+
+
+
+
+
+
+--> NO NOSSO CASO, AQUI, 
+        O PHP ESTÁ TENTANDO ENCONTRAR 'file.php' 
+        
+
+        no mesmo folder em que temos nosso arquivo index.php,
+
+        E COMO ELE NÃO ESTÁ ENCONTRANDO COISA ALGUMA,
+
+        ELE ESTÁ NOS DANDO 1 ERROR...
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS E QUANTO A 'include_once' e 'require_once'?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A DIFERENÇA É QUE 
+
+
+
+ESSES 2 TIPOS DE IMPORTS 
+
+
+__ APENAS __ IMPORTARÃO OS ARQUIVOS 
+
+
+
+SE __ ESSES ARQUIVOS AINDA NÃO TIVEREM SIDO INCLUDED/REQUIRED NO SEU ARQUIVO...
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+require 'file.php';
+require 'file.php';
+
+
+
+
+
+
+
+
+
+
+
+-> SE TEMOS UM CÓDIGO DE """ echo 'Exemplo'; """ dentro 
+                                                    de esse file.php,
+
+
+
+                                                    esse Exemplo será 
+
+                                                    printado/ecoado 
+
+                                                    DUAS VEZES,
+
+
+                                                    PQ ELE REALMENTE SERÁ IMPORTADO 2x...
+
+
+
+
+
+
+
+MAS SE RODAMOS ASSIM:
+
+
+
+
+
+
+require_once 'file.php';
+require_once 'file.php';
+
+
+
+
+
+
+
+,
+
+
+
+
+
+NOSSA FILE SERÁ INCLUSA APENAS 1 ÚNICA VEZ, MESMO 
+
+SE ESSE STATEMENT FOR CHAMADO 2x...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O MESMO ACONTECE COM O 'include_once'...
+
+
+
+
+
+
+
+
+
+
+
+RESUMO:
+
+
+
+
+
+
+''QUANDO VC FAZ INCLUDE DE FILES QUE POSSUEM 
+    ALGUMAS FUNCTIONS IMPORTANTES, OU IMPORTANT VARIABLE 
+    DECLARATIONS, VC TIPICAMENTE USARÁ 'include_once' ou 'require_once' 
+    para EVITAR ERRORS DE REDECLARATION, OU VARIABLES OVERWRITTANDO VALUES...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR ACHA MT RUIM VC DEFINIR 1 VARIABLE EM 1 ARQUIVO E ENTÃO MODIFICAR 
+O VALUE DE ESSE ARQUIVO EM OUTRA FILE.... (fica super confuso)....
+
+
+
+
+
+
+
+----> É POR ISSO QUE 'include' e 'require' são tipicamente EVITADOS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> OS USE-CASES MAIS IDEAIS PARA 'include' e 'require' 
+                                    SÃO PARA CODE REUSABILITY E STRUCTURE...
+                                    E TAMBÉM PARA CASES EM QUE VC ESTÁ FAZENDO 
+
+                                    __RETURN__ DE ALGUMA COISA, DA FILE QUE FOI INCLUDED...
+
+
+
+
+
+EX: vc poderia definir umas HELPER FUNCTIONS EM 1 FILE, 
+    e aí FAZER REQUIRE DE ESSA FILE EM __ TODAS AS OUTRAS FILES QUE 
+    NECESSITAM DE ESSA FUNCTION... (aí faz sentido)...
+
+
+
+
+
+
+--> O PROFESSOR FALARÁ MAIS SOBRE FUNCTIONS NO PRÓXIMO VIDEO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> QUICK NOTE: O INCLUDE VAI RETORNAR 'FALSE' EM FAILURE, E VAI RETORNAR '1' em success... ISSO SE VC N ADICIONAR 
+                                                                                        O STATEMENT DE 'return' 
+                                                                                        na file que foi included...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+$y = include 'file.php'; 
+
+
+
+var_dump($y); // VAI RETORNAR int(1), se a file existe...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE TENTAMOS ASSIM:
+
+
+
+
+
+
+
+
+$y = include 'inexistentFile.php'; 
+
+
+
+var_dump($y); // VAI RETORNAR bool(false), E UM WARNING, PQ O ARQUIVO N EXISTE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- NO VÍDEO ANTERIOR, O PROFESSOR FALOU SOBRE O RETURN STATEMENT...
+
+
+
+
+
+
+
+
+
+
+--> O QUE PODEMOS FAZER, NO ARQUIVO IMPORTADO, É DEFINIR ALGO COMO O RETURN DE UM ARRAY, TIPO ASSIM:
+
+
+
+
+
+
+<?php 
+
+
+return [
+    1,
+    2,
+    3
+];
+
+
+
+
+
+
+
+
+
+
+
+AÍ, LÁ NA FILE ROOT, PODEMOS IMPORTAR ESSE ARRAY, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php 
+
+
+$y = include 'file.php';
+
+
+var_dump($y); // VAI PRINTAR O NOSSO ARRAY...
+
+
+
+
+
+
+
+
+
+
+
+
+
+QUER DIZER QUE ISSO É REALMENTE POSSÍVEL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> E ISSO VAI SE TORNAR ÚTIL MAIS TARDE,
+    QUANDO COMEÇARMOS A TRABALHAR COM CONFIG FILES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR ENTÃO NOS MOSTRA OUTRO USE-CASE PARA ESSES STATEMENTS...
+
+
+
+
+
+--> UM USE-CASE DENTRO DO HTML...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ELE VOLTA PARA O 'home.php' que ele tinha criado...
+
+
+
+
+
+
+
+
+
+
+
+
+---> O HTML TEM ESTE FORMATO:
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page</title>
+</head>
+<body>
+    <nav>
+        <a href="home.php">Home</a>
+        <a href="about.php">About</a>
+        <a href="contact.php">Contact</a>
+    </nav>
+    <h1>Home Page</h1>
+    <p>Hello from the Home Page!</p>
+</body>
+</html> 
+
+
+
+
+
+
+
+
+
+AÍ ELE CRIOU CÓPIAS DE ESSA PAGE, 
+
+PARA TER AS OUTRAS PAGES,
+
+TIPO ASSIM:
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Page</title>
+</head>
+<body>
+    <nav>
+        <a href="home.php">Home</a>
+        <a href="about.php">About</a>
+        <a href="contact.php">Contact</a>
+    </nav>
+    <h1>Home Page</h1>
+    <p>Hello from the About Page!</p>
+</body>
+</html> 
+
+
+
+
+
+
+
+
+
+
+
+
+
+E ISSO FUNCIONA, SIM,
+
+
+
+
+MAS NÃO É NADA PRÁTICO... PQ O PROFESSOR 
+
+
+FICA FORÇADO A CONTINUAR DUPLICANDO ESSAS PAGES,
+
+E DUPLICANDO CÓDIGO...
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO É RUIM TBM PQ, SE O PROFESSOR PRECISA MUDAR ALGO,
+
+ELE TEM QUE FAZER ESSAS CHANGES MANUALMENTE, A TODAS ESSAS PAGES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA EVITAR ESSE CODE DUPLICATION,
+
+O PROFESSOR APONTA QUE PODEMOS 
+
+
+EXTRAIR O CÓDIGO REUTILIZADO EM OUTRA FILE,
+
+COMO 'PARTIALS',
+
+E AÍ OS INCLUIR 
+
+DENTRO 
+
+DE NOSSAS FILES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, CRIAMOS 1 NOVA FILE, CHAMADA DE 'nav.php',
+
+
+e aí 
+
+OUTSOURCEAMOS O CÓDIGO DA NAVBAR, TIPO ASSIM:
+
+
+
+
+
+
+(partials/navbar.php)
+
+
+<nav> 
+    <a href="home.php">Home</a>
+    <a href="about.php">About</a>
+    <a href="contact.php">Contact</a>
+</nav>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E, PARA IMPORTAR, FARÍAMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Page</title>
+</head>
+
+<body>
+    <?php
+    include_once 'partials/navbar.php';
+
+    ?>
+    <h1>Home Page</h1>
+    <p>Hello from the Contact Page!</p>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA ISSO É MT ÚTIL,
+        PQ SE ALTERARMOS ESSA NAVBAR,
+
+
+
+        SUAS ALTERAÇÕES SERÃO APLICADAS EM TODOS AS OUTRAS PARTES/ARQUIVOS 
+
+
+        EM QUE 
+
+
+        INCLUÍMOS ESSE PARTIAL/NAVBAR...
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS AGORA DEVEMOS FALAR SOBRE OUTROS USE-CASES...
+
+
+
+
+
+
+
+
+
+
+''ÀS VEZES VC VAI QUERER FAZER INCLUDE DO CONTEÚDO DE UMA 
+    OUTRA FILE EM 1 STRING...''
+
+
+
+
+
+
+
+
+
+
+
+EX: ''QUEREMOS FAZER INCLUDE DE NOSSO PARTIAL EM UMA STRING...''
+
+
+
+
+
+
+
+
+
+
+PODEMOS FAZER ISSO POR MEIO DA UTILIZAÇÃO DE 'OUTPUT CONTROL FUNCTIONS'...
+
+
+
+
+
+
+
+
+
+
+
+SE QUEREMOS PRINTAR/OUTPUTTAR O CONTEÚDO DO NAV COMO HTML,
+
+
+
+ESCREVEMOS SIMPLESMENTE ASSIM:
+
+
+
+
+
+
+
+<?php  
+
+
+include './partials/navbar.php';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS TALVEZ QUEIRAMOS ASSIGNAR ISSO A UMA STRING/COMO UMA STRING, TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php  
+
+
+$nav = include './partials/navbar.php';
+
+
+
+var_dump($nav);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE FAZEMOS ISSO, NOSSO HTML DO PARTIAL AINDA SERÁ OUTPUTTADO,
+
+
+
+E O var_dump vai printar '1' (truthy) --> ISSO ACONTECEU PQ O PHP ACTUALLY FEZ 'EVALUATE' 
+                                                            DAQUELE ARQUIVO 'navbar.php' 
+                                                            que foi importado...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS SE QUISERMOS PEGAR APENAS O_ CONTEÚDO DAQUELA FILE,
+
+    PODEMOS USAR OS METHODS DE 'ob_start()' e  'ob_get_clean()',
+
+
+
+    tipo assim:
+
+
+
+
+
+
+
+EX:
+
+
+ob_start();
+include './partials/navbar.php';
+$nav = ob_get_clean();
+
+
+
+var_dump($nav);
+
+
+
+
+
+
+
+
+
+--> COM ISSO, O var_dump vai outputtar 
+
+'string(155)'...
+
+
+
+
+
+
+
+
+--> SE REMOVERMOS ESSE 'var_dump()',
+                    nada do conteúdo 
+
+
+                    de 'partials/navbar.php'
+
+                    vai ser outputtado...
+
+
+
+                    isso significa QUE 
+
+                    __ O HTML NÃO VAI MAIS SER RENDERIZADO POR DEFAULT,
+
+
+                    E SIGNIFICA QUE 
+
+                    __APENAS__ FIZEMOS A VARIABLE '$nav' SEGURAR 
+
+                    O VALUE DAQUELE HTML, COMO STRING...
+
+
+
+
+
+
+
+--> COM ISSO, TAMBÉM PODEMOS FAZER ALGUMAS COISAS LEGAIS, COMO 
+                ''REPLACE PARTS OF THE HTML (strings)'' 
+                POR OUTROS CONTEÚDOS/strings,
+
+
+                TIPO ASSIM:
+
+
+
+
+
+ob_start();
+include './partials/navbar.php';
+$nav = ob_get_clean();
+
+
+$nav = str_replace('About', 'THE REPLACEMENT STRING', $nav);
+
+
+echo $nav;
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, FICAREMOS COM 
+
+O PRINT DO MESMO HTML DE ANTES, MAS 
+AGORA 
+
+
+COM 'THE REPLACEMENT STRING' NO LUGAR DE 'About', naquele navbar...
+
+
+
+
+
+
+
+
+NO PRÓXIMO VIDEO, FALAREMOS SOBRE __ FUNCTIONS__...
