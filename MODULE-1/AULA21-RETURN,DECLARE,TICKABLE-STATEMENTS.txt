@@ -1,0 +1,890 @@
+RETORNANDO COM O CURSO...
+
+NESTA AULA, VEMOS O 'RETURN' 'DECLARE' E 'GOTO' statements...
+
+RETURN --> ''É USADO PARA  __RETORNAR _ O CONTROLE_ DA EXECUÇÃO DO PROGRAMA DE VOLTA AO
+                ENVIRONMENT DE ONDE ELE FOI CHAMADO...''
+
+RETURN --> SE O RETURN É USADO DENTRO DE 1 FUNCTION, ELE   VAI INTERROMPER A EXECUÇÃO
+            DAQUELA FUNCTION E VAI RETORNAR AQUELE GIVEN ARGUMENT...
+
+
+
+
+
+
+
+
+EX:
+
+function sum(int $x, int $y) {
+    return $x + $y;
+}
+
+
+
+
+
+
+
+
+
+
+
+--> O RETURN, AQUI, SIMPLESMENTE TERMINA A EXECUTION DA FUNCTION E RETORNA O VALUE 
+    DA EXPRESSION A QUE RECEBEU...
+
+
+
+
+
+
+
+--> VOCE PODERIA RETORNAR EXPRESSIONS COMPLEXAS, AQUI, OU ENTAO 
+    SIMPLESMENTE RETORNAR 1 VARIABLE...
+
+
+
+
+
+
+
+
+
+--> O RETURN AQUI NÃO VAI INTERROMPER A EXECUÇÃO DO SCRIPT... 
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+function sum(int $x, int $y) {
+    return $x + $y;
+}
+
+
+
+
+
+$x = sum(5, 10);
+
+echo $x;
+
+
+
+echo '<br />';
+
+
+echo 'Hello World';
+
+
+
+
+
+
+
+
+
+
+
+CERTO, ISSO É BEM ÓBVIO, É EXATAMENTE COMO NO JAVASCRIPT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS SE VC USAR O RETURN NO GLOBAL CONTEXT,
+    O RETURN VAI INTERROMPER TUDO, O RUN DO SCRIPT INTEIRO:
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+function sum(int $x, int $y) {
+    return $x + $y;
+}
+
+
+
+
+
+$x = sum(5, 10);
+
+echo $x;
+
+
+return; // Interrompe a execução de todo o script
+
+
+echo '<br />'; // Não é executado
+
+
+echo 'Hello World';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE VC NAO ESPECIFICA COISA ALGUMA, O VALUE RETORNADO POR 'return' é 'null'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS E QUANTO AO DECLARE STATEMENT?
+
+
+
+
+
+
+
+
+
+
+
+--> VIMOS A UTILIZAÇÃO DO DECLARE STATEMENT EM 1 DOS VÍDEOS ANTERIORES...
+
+
+
+
+
+
+
+
+
+
+
+
+--> ERA UM VÍDEO EM QUE O PROFESSOR TINHA ATIVADO O 'STRICT MODE' DO PHP,
+    COM este código:
+
+    declare(strict_types=1);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// declare - ticks 
+
+// declare - encoding 
+
+// declare - strict_types
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O DECLARE É USADO PARA ATIVAR O STRICT MODE ('declare(strict_types=1)'), SIM, MAS 
+TAMBÉM É USADO PARA OUTRAS COISAS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> QUANDO USAMOS 'declare', há 3 directives possíveis:
+
+
+1) TICKS 
+
+
+2) ENCODING 
+
+
+3) STRICT_TYPES (já vista anteriormente)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// declare - ticks:
+
+
+
+'''THE TICK DIRECTIVE IS JUST AN EVENT THAT HAPPENS FOR TICKABLE
+    LOW-LEVEL STATEMENTS IN PHP, THAT ARE EXECUTED BY THE PARSER...''
+
+
+
+
+
+EXPLICAÇÃO:
+
+        -- ''QUANDO O SCRIPT PHP É EXECUTADO, ELE EXECUTA 
+            UM MONTE DE STATEMENTS... E A MAIOR PARTE DE ESSES STATEMENTS 
+            CAUSAM AQUILO QUE CHAMAM DE 'TICK', QUE É __ TIPO UM EVENT...
+
+            MAS O QUE INTERESSA É QUE __ NEM TODOS STATEMENTS SÃO 'TICKABLE''...
+
+        
+
+        -- POR EXEMPLO, SE TEMOS ISTO:
+
+
+
+        $x = 3;
+        $y = 5;
+        $z = $x * $y;
+
+
+
+
+
+        --> CADA UM DE ESSES 3 STATEMENTS AÍ __ CAUSA 
+            UM _ _TICK__...
+
+
+        
+        --> VOCÊ PODERIA RODAR 1 CUSTOM FUNCTION,
+            UMA FUNCTION PARA SER EXECUTADA A CADA TICK...
+
+        
+
+
+        EX:
+
+
+    
+
+        function onTick() {
+            echo 'Tick<br />';
+        }
+
+
+
+
+
+
+
+
+        COM ISSO PODERÍAMOS REGISTRAR ESSA FUNCTION,
+        COM a function de 'register_tick_function',
+        passando ela como argumento:
+
+
+
+
+
+        register_tick_function('onTick');
+
+
+
+
+
+--> COM ISSO, REGISTRAMOS A FUNCTION DE 'onTick' como 
+    TICK FUNCTION DE NOSSO SCRIPT...
+
+
+
+
+--> ISSO FEITO, FINALMENTE FICAMOS PRONTOS PARA USAR O DECLARE STATEMENT com 'ticks',
+    QUE 
+
+    É USADO COM 
+
+
+
+    'declare(ticks=xxxxx)'
+
+
+
+
+    NO LUGAR DE 'xxxx', colocamos um NUMBER...
+
+
+
+
+    tipo assim:
+
+
+
+
+    declare(ticks=1);
+
+
+
+
+
+
+
+
+--> ESSE NÚMERO DIZ AO PHP ''HOW MANY TICKABLE STATEMENTS SHOULD PASS 
+                            BEFORE IT SHOULD TRIGGER THAT TICK/EVENT,
+                            AND BEFORE THE REGISTERED FUNCTION RUNS...''
+
+
+
+
+
+
+
+
+--> NESSE CASO, QUEREMOS FAZER ESSA FUNCTION SER EXECUTADA/TICK
+     _ a CADA _ TICKABLE STATEMENT..
+
+
+
+
+
+
+
+
+
+
+CÓDIGO DE NOVO:
+
+
+
+
+
+
+function onTick() {
+            echo 'Tick<br />';
+        }
+
+
+register_tick_function('onTick');
+
+
+declare(ticks=1);
+
+
+
+$i = 0;
+$length = 10;
+
+
+
+while($i < $length) {
+    echo $i++ . '<br />';
+}
+
+
+
+
+
+
+
+O OUTPUT, NO CONSOLE, FICOU ASSIM:
+
+
+
+
+
+
+
+
+Tick 
+Tick 
+Tick 
+0 
+Tick
+1
+Tick
+2
+Tick
+3
+Tick
+4
+Tick
+5
+Tick
+6
+Tick
+...
+
+
+
+
+
+
+
+MAS PQ FICOU COM ESSE FORMATO?
+
+
+
+É POR CONTA DISSO:
+
+
+
+
+
+
+Tick // --> Tick Inicial
+Tick   /// --> execução de '$i = 0';
+Tick  // --> execução de '$length = 10;'
+0  
+Tick  // Primeiro Echo, dentro do while...
+1
+Tick // Segundo Echo, dentro do while...
+2
+Tick // etc...
+3
+Tick
+4
+Tick
+5
+Tick
+6
+Tick
+...
+
+
+
+
+
+
+
+
+
+
+
+
+---> SE DEFINIMOS O VALUE DE 'ticks' como sendo 3,
+    O TICK FICARÁ MAIS ESPAÇADO, TIPO ASSIM:
+
+
+
+
+    
+
+
+Tick  // --> execução de '$length = 10;' (3 statements executados)
+0
+1
+2
+Tick // (3 statements executados, dentro do loop)
+3
+4
+5
+Tick 
+6
+7
+8
+Tick 
+9
+...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO É ÚTIL PARA EXECUTAR FUNCTIONS COM PATTERNS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, TEMOS O USO DE 'declare' com 'ENCODING':
+
+
+
+
+
+
+
+
+
+
+
+
+//declare - encoding:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> o 'encoding' pode ser usado para ESPECIFICAR O 
+
+            'ENCODING PRESCRIPT'...
+
+
+
+
+
+
+
+---> O ENCODING É RARAMENTE USADO, MT RARAMENTE... A 
+    DIRECTIVE DE 'ticks' também é super rara...
+
+
+
+
+
+
+
+
+
+--> O ENCODING PODE SER USADO PARA FAZER ESPÉCIES DE BENCHMARKING,
+    PARA VER QUÃO BEM SEU CÓDIGO ESTÁ RODANDO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O ÚLTIMO TYPE É O TYPE REALMENTE IMPORTANTE,
+
+
+'strict_types'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// declare - strict_types 
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É USADO PARA DEFINIR O STRICT TYPE CASTING, 
+    QUE É MELHOR PARA SEU CÓDIGO, EM GERAL...
+
+
+
+
+
+
+
+
+
+-> RODAMOS TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+declare(strict_types=1);
+
+
+
+function sum(int $x, int $y) {
+    return $x + $y;
+}
+
+
+echo sum('5', 10); // ISSO VAI RETORNAR 1 ERRO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS 1 DETALHE SOBRE O STATEMENT DE 'declare' é que 
+
+
+ELE VAI SER APLICADO __ A QUAISQUER COISAS ESCRITAS LOGO ABAIXO 
+
+DELE...
+
+
+
+
+
+
+
+--> isso significa que se VC IMPORTAR ESSE ARQUIVO PHP EM 
+    OUTRO ARQUIVO PHP,
+
+    ESSE declare NÃO VAI SER APLICADO AO OUTRO ARQUIVO,
+
+    VC PRECISARIA RODAR 'declare(strict_types=1)' 
+
+    NO OUTRO ARQUIVO, TAMBÉM, SEPARADAMENTE...
+
+
+
+
+
+
+
+
+
+
+
+----> É POR ISSO QUE 
+        VC PRECISA TER CUIDADO...
+
+
+
+        SE VC QUER TER ESSE STRICT TYPING 
+        APLICADO A 1 PROJETO INTEIRO,
+
+        VC PRECISA CHAMAR ISSO EM CADA ARQUIVO.... (ou encontrar outra maneira)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR VAI RAPIDAMENTE MOSTRAR COMO PODEMOS 
+FAZER INCLUDE  DE 1 FILE EM OUTRA FILE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+BASICAMENTE, A SINTAXE É ASSIM:
+
+
+
+
+
+
+
+(FILE A SER IMPORTADA, 'index.php'):
+
+
+
+
+<?php
+
+
+function sum(int $x, int $y) {
+    return $x + $y;
+}
+
+
+
+
+
+(FILE QUE IMPORTA, 'foo.php'):
+
+
+
+
+<?php
+
+include("index.php");
+
+
+echo sum(5,10);
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+ENTÃO, AO RODAR ISSO AÍ, 'foo.php',
+
+
+
+
+o código de 'index.php' também é executado, pq importamos ele...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR ACHA goto statements uma bad practice, por isso não 
+os ensina...

@@ -815,6 +815,13 @@ RODAR php index.php...
 
 
 
+<?php
+
+echo "Hello World!";
+
+?>
+
+
 
 
 

@@ -860,7 +860,7 @@ $xxxx2 = 10;
 $yyyy2 = 2;
 
 
-var_dump($xxxx2 % $yyyy2); //vai retornar int(1) --> JUSTAMENTE PQ EXISTIRÁ RESTO NA DIVISAO ENTRE 10 E 2 (que será 1)...
+var_dump($xxxx2 % $yyyy2); //vai retornar int(0) --> JUSTAMENTE PQ NÃO EXISTIRÁ RESTO NA DIVISAO ENTRE 10 E 2 (que será 0)...
 
 
 

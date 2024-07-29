@@ -417,7 +417,7 @@ ESSE NEGÓCIO VAI SILENCIAR OS ERROS (vai suprimí-los)...
 -> O PROFESSOR ACHA QUE É MELHOR ESCREVERMOS 
 
 
-UM CÓDIGO DE ERROR HANDLING MELHORAR...
+UM CÓDIGO DE ERROR HANDLING MELHOR
 
 
 
@@ -436,8 +436,6 @@ UM CÓDIGO DE ERROR HANDLING MELHORAR...
 
 
 temos 
-
-
 
 
 OS INCREMENT E DECREMENT OPERATORS...
@@ -3858,7 +3856,7 @@ $x = ['a' => 1, 'b' => 2, 'c' => 3];
 $y = ['a' => 1, 'b' => 2, 'c' => 3];
 
 
-$z = $x == $y;
+$z = $x === $y;
 
 
 
