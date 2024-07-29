@@ -1,0 +1,576 @@
+
+
+
+
+
+
+
+
+
+
+
+
+NO VIDEO ANTERIOR, APRENDEMOS:
+
+
+
+1) OS BASICS SOBRE FUNCTIONS 
+
+
+
+2) COMO CRIAR FUNCTIONS 
+
+3) COMO RETURN VALUES 
+
+
+4) OS RETURN TYPES... 
+
+
+
+
+
+
+
+
+
+--> NESSE VIDEO, FALAREMOS SOBRE O ACCEPT DE ARGUMENTS...
+
+
+
+
+
+1) DEFINE DE ARGUMENTS 
+
+
+2) DEFAULT VALUES 
+
+
+3) UNION TYPES
+
+
+4) ARGUMENT UNPACKING
+
+
+5) ETC...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS DEFINIR PARAMETERS ASSIM:
+
+
+
+
+
+
+
+
+
+function foo($x, $y) {
+    return $x * $y;
+}
+
+
+
+
+
+echo foo(5, 10);
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARAMETERS --> SÃO O X E Y DEFINIDOS DENTRO DA FUNCTION DEFINITION..
+
+
+
+
+
+
+
+
+
+--> ARGUMENTS --> SÃO OS ACTUAL VALUES PASSADOS A FUNCTION...
+
+
+
+
+
+
+
+foo(5,10); ---> SÃO ARGUMENTS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ASSIM COMO VC É CAPAZ DE TYPE HINT RETURN VALUES,
+    VC PODE TYPE HINT ARGUMENT VALUES...
+
+
+
+
+
+--> É CLARO QUE ESSE TYPE HINTING SÓ TERÁ EFEITOS SE VC 
+    REALMENTE TIVER DEFINIDO 
+
+
+    'declare(strict_types=1)' ANTERIORMENTE,
+
+    PARA ATIVAR O STRICT MODE DO PHP...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+function foo(int $x, int $y) {
+    return $x * $y;
+}
+
+
+
+
+
+echo foo(5.0, '10'); //// THIS WILL THROW AN ERROR, IF 'declare(strict_types=1)' has been set before... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE VC QUER ACEITAR MÚLTIPLOS TYPES PARA 1 MESMO ARGUMENT,
+    VC PODE USAR 
+
+
+    OS 'UNION TYPES' do php,
+
+
+    QUE FORAM INTRODUZIDOS COM O PHP8...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VIMOS ISSO ANTERIORMENTE, COM OS RETURN TYPES...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+function foo(int|float $x, int|float $y) {
+    return $x * $y;
+}
+
+
+
+echo foo(5.0, 10);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR RECOMENDA USAR STRICT TYPES, ESPECIALMENTE 
+QUANDO USAMOS UNION TYPES... ISSO É PQ 
+
+TYPE COHERCION PODE SER __ TRICKY,
+
+
+E PODE RESULTAR EM VALUES INESPERADOS...
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR COLOCA 1 LINK DOS DOCS DO PHP8...
+
+
+
+
+
+
+
+
+
+ 
+
+
+--> PARA CADA PARAMETER, VC  _PRECISA__ PASSAR 1 ARGUMENT,
+    CASO CONTRÁRIO VC FICA COM 1 ERROR:
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+function foo(int|float $x, int|float $y) {
+    return $x * $y;
+}
+
+
+
+echo foo(5.0); // ERROR, ONLY ONE PARAMETER WAS PASSED... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+QUANTO AOS DEFAULT PARAMETERS, É A MESMA COISA DE SEMPRE, TIPO ASSIM:
+
+
+
+
+
+
+
+function foo(int|float $x, int|float $y = 10) {
+    return $x * $y;
+}
+
+
+
+echo foo(5.0); // WILL PRINT 50, because '10' will be used as the second parameter, the default..  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VC PDOE ASSIGNAR:
+
+
+
+
+
+SCALAR 
+
+ARRAY 
+
+NULL 
+
+
+
+VALUES COMO  DEFAULT VALUE...
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS VC N PODE DEFINIR OBJECTS, FUNCTION CALLS E ETC COMO DEFAULT VALUE DE SEUS PARAMETERS... SEU 
+    VALUE PRECISA SER 1 CONSTANT EXPRESSION...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---> OUTRA COISA QUE VC PRECISA SABER É QUE 
+
+    OPTIONAL PARAMETERS DEVEM SER ESPECIFICADOS DEPOIS DOS 
+
+    PARAMETERS OBRIGATÓRIOS...
+
+
+
+
+
+
+
+
+--> TIPO ASSIM:
+
+
+
+
+
+function foo(int|float $x, int|float $y = 10) {
+    return $x * $y;
+}
+
+
+
+echo foo(5.0); // WILL PRINT 50, because '10' will be used as the second parameter, the default..  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ARGUMENTS, POR DEFAULT, SÃO PASSADOS POR VALUE, E NÃO POR REFERENCE...
+
+
+
+
+
+
+-> MAS VC PODE MUDAR ISSO, FAZER COM QUE SEJAM PASSADOS POR REFERENCE, EM VEZ DISSO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VEJA ESTE EXEMPLO:
+
+
+
+
+
+
+
+
+
+
+
+
+
+declare(strict_types=1);
+
+
+
+
+
+function foo(int|float $x, int|float $y = 10): int|float {
+    if ($x % 2 === 0) {
+        $x /= 2;
+    }
+
+    return $x * $y;
+}
+
+
+
+
+$a = 6.0;
+$b = 7;
+
+
+echo foo($a, $b) . '<br />';
+
+
+var_dump($a, $b); // WILL PRINT float(6) and int(7)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS SE COLOCAMOS '&' no parameter  de 'x',
+
+
+fica assim:
+
+
+
+
+
+
+
+
+
+declare(strict_types=1);
+
+
+
+
+
+function foo(int|float &$x, int|float $y = 10): int|float {
+    if ($x % 2 === 0) {
+        $x /= 2;
+    }
+
+    return $x * $y;
+}
+
+
+
+
+$a = 6.0;
+$b = 7;
+
+
+echo foo($a, $b) . '<br />';
+
+
+var_dump($a, $b); // WILL PRINT float(3) and int(7) 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SIGNIFICA QUE O VALUE ORIGINAL SERÁ AFETADO... QUER DIZER QUE MODIFICAMOS A VARIABLE DE '$x', mesmo de dentro de essa function...
+
+
+
+
+
+
+
