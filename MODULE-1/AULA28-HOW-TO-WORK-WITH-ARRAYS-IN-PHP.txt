@@ -1,0 +1,3134 @@
+
+
+
+
+
+
+
+
+O PHP TEM UM MONTE DE BUILT-IN ARRAY FUNCTIONS PARA TRABALHAR COM ARRAYS...
+
+
+
+
+
+
+
+
+
+
+
+-- JÁ VIMOS O PROFESSOR USAR ALGUMAS DESSAS FUNCTIONS NAS ÚLTIMAS AULAS...
+
+
+
+
+
+
+
+
+
+POR EXEMPLO, JÁ VIMOS:
+
+
+
+
+
+
+
+1) array_map 
+
+
+
+
+
+
+2) array_sum 
+
+
+
+
+
+
+
+
+
+
+MAS AGORA VEREMOS ALGUMAS DAS OUTRAS FUNCTIONS IMPORTANTES,
+
+
+    QUE PODEM SE TORNAR ÚTEIS MAIS TARDE...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+https://www.php.net/manual/en/ref.array.php
+
+
+
+
+
+
+
+
+
+
+HÁ MUITAS ARRAY FUNCTIONS...
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+1) ARRAY_CHUNK
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> EXISTIRÃO CASOS EM QUE VC VAI QUERER SPLITTAR 1 MESMO 
+    ARRAY EM MÚLTIPLOS CHUNKS... 
+
+
+
+
+
+
+--> SPLITTAR 1 ARRAY EM CHUNKS DE LENGTH ESPECÍFICA...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+$items = [
+    'a' => 1,
+    'b' => 2,
+    'c' => 3,
+    'd' => 4,
+    'e' => 5
+];
+
+
+
+
+
+prettyPrintArray(array_chunk($items, 2));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PRIMEIRO ARGUMENTO ACEITO POR 'array_chunk' É 
+
+O ARRAY, E O SEGUNDO É O _ NÚMERO DE ITEMS QUE CADA CHUNK TERÁ...
+
+
+
+
+
+
+
+
+
+
+
+
+TEMOS TAMBÉM UM TERCEIRO PARAMETER, QUE TE DEIXA ESPECIFICAR SE VC 
+
+
+QUER 'PRESERVE KEYS', as keys do array, ou NÃO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+o QUE É PRINTADO, COM ISSO, É ISTO:
+
+
+
+
+
+SEM PRESERVE KEYS TRUE:
+
+
+Array
+(
+    [0] => Array    
+        ( 
+            [0] => 1
+            [1] => 2
+        )
+
+    [1] => Array    
+        (
+            [0] => 3
+            [1] => 4
+        )
+
+    [2] => Array    
+        (
+            [0] => 5
+        )
+
+)
+
+
+
+
+COM PRESERVE KEYS TRUE:
+
+
+
+Array
+(
+    [0] => Array
+        (
+            [a] => 1
+            [b] => 2
+        )
+
+    [1] => Array
+        (
+            [c] => 3
+            [d] => 4
+        )
+
+    [2] => Array
+        (
+            [e] => 5
+        )
+
+)
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, TEMOS 'ARRAY_COMBINE'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+2) ARRAY_COMBINE():
+
+
+
+
+
+// array_combine(array $keys, array $values): array
+
+
+
+
+$array1 = ['a', 'b', 'c'];
+$array2 = [5, 10, 15];
+
+
+
+prettyPrintArray(array_combine($array1, $array2)); // 
+
+
+
+
+
+
+
+--> ESSA FUNCTION CRIA 1 ARRAY, FROM THE GIVEN KEYS AND VALUES...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+// * 2) ARRAY_COMBINE() function:
+
+
+$array1 = ['a1', 'b1', 'c1'];
+$array2 = [5, 10, 15];
+
+print_r(array_combine($array1, $array2));
+
+
+// this function combines two arrays into one array, with the first array as keys, and the second array as values
+
+
+
+
+
+
+
+
+
+
+
+
+O RESULTADO, COM print_r, ficou assim:
+
+
+
+
+
+
+Array
+(
+    [a1] => 5
+    [b1] => 10
+    [c1] => 15
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE O NÚMERO DE ELEMENTOS NOS 2 ARRAYS NÃO É O MESMO (como 3, aqui),
+
+
+FICAMOS COM 1 ERROR...
+
+
+
+
+
+
+
+MAS NAS VERSÕES ANTERIORES DO PHP, 
+ ISSO APENAS 
+ FARIA THROW DE 1 WARNING,
+
+
+
+
+E AÍ RETORNARIA 'FALSE', EM VEZ DISSO...
+
+
+
+
+
+
+ENTRETANTO, NO PHP8, A MAIOR PARTE 
+DAS BUILT-IN FUNCTIONS __ RETORNA 1 ERRO 
+
+EM VEZ DE 1 WARNING, QUANDO OCORRE ESSE TIPO DE FAILURES COM PARAMETER VALIDATIONS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, TEMOS 'array_filter'...
+
+
+
+
+
+
+
+
+
+
+
+3) ARRAY_FILTER:
+
+
+
+
+
+// array_filter(array $array, callable|null $callback = null, int $mode = 0): array 
+
+
+
+
+$array = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+
+
+
+ 
+// array_filter ITERATES OVER EACH ARRAY VALUE, AND THEN PASSES THE VALUE TO THE GIVEN CALLBACK function...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ELE ITERATES OVER EACH ARRAY VALUE, AND THEN PASSES THE VALUE TO THE GIVEN CALLBACK function......
+
+
+
+SE O RETURN STATEMENT DAQUELE CALLBACK RETORNA 'TRUE', AÍ O ELEMENT 
+USADO NAQUELE RETURN STATEMENT É RETORNADO AO RESULTING ARRAY... CASO CONTRÁRIO,
+O ELEMENTO É DESCARTADO...
+
+
+
+
+
+
+
+
+
+POR EXEMPLO, PODEMOS FILTRAR OS NÚMEROS DE NOSSO ARRAY, PEGAR APENAS OS NÚMEROS QUE 
+SÃO EVEN... TIRAR TODOS ODD NUMBERS...
+
+
+
+
+
+
+
+ESCREVERÍAMOS TIPO ASSIM:
+
+
+
+
+
+
+$arrayNew = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+$evenNumbers = array_filter(
+    $arrayNew,
+    fn($number) => $number % 2 === 0
+);
+
+print_r($evenNumbers);
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> BASICAMENTE, USAMOS 1 ARROW FUNCTION DO PHP PARA 
+    RODAR AQUELE MÓDULO ALI, PARA PEGAR 
+    APENAS OS EVEN NUMBERS...
+
+
+
+
+
+--> SE NÃO PASSAMOS NADA COMO SEGUNDO PARAMETER (o parameter que é a callback function),
+    o PHP VAI TENTAR FILTRAR TODOS ELEMENTOS QUE SÃO 'FALSY' de dentro do array (0, 0.0,  false, [], '', etc.)
+
+
+EX:
+
+$array = [1, 2, 3, 4, 5, false, [], 0, 9, 0.0, ]
+
+
+
+
+
+-> POR DEFAULT, 
+    CADA ELEMENT É PASSADO COMO PARAMETER DA CALLBACK FUNCTION...
+
+    MAS PODEMOS MUDAR ISSO,
+    
+    BASTA USARMOS O TERCEIRO PARAMETER...
+
+
+
+
+
+
+
+--> SE QUEREMOS APENAS A ___ KEY__ como value passado 
+    dentro da callback function,
+
+    podemos deixar o terceiro parameter como 'ARRAY_FILTER_USE_KEY',
+
+    tipo assim:
+
+
+
+
+
+
+
+
+$arrayNew = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+$evenNumbers = array_filter(
+    $arrayNew,
+    fn($key) => $key % 2 === 0,
+    ARRAY_FILTER_USE_KEY
+);
+
+print_r($evenNumbers);
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALTERNATIVAMENTE, SE VC QUER TER ACESSO A TANTO __ A KEY__ QUANTO 
+AO __ VALUE ITSELF,
+
+VC PODE 
+
+USAR 
+
+
+'ARRAY_FILTER_USE_BOTH'... COM ISSO, O PRIMEIRO ARGUMENTO SERÁ O VALUE, E O SEGUNDO ARGUMENTO SERÁ A KEY...
+
+
+
+tipo assim:
+
+
+
+
+
+
+$arrayNew = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+$evenNumbers = array_filter(
+    $arrayNew,
+    fn($value, $key) => $value % 2 === 0, // value, nesse caso, é o '$number' visto anteriormente...
+    ARRAY_FILTER_USE_BOTH
+);
+
+print_r($evenNumbers);
+
+
+
+
+
+
+
+
+
+
+NO PRINT FINAL,
+
+FICAMOS COM 
+
+
+
+1 RESULTADO ASSIM:
+
+
+
+
+
+Array
+(
+    [1] => 2
+    [3] => 4
+    [5] => 6
+    [7] => 8
+    [9] => 10
+)
+
+
+
+
+
+
+
+
+
+
+
+-> SE VC OBSERVAR OS INDEXES, VC VERÁ 
+
+QUE FICAMOS COM '1, 3, 5, 7, 9'...
+
+
+
+
+
+
+
+
+
+ISSO QUER DIZER QUE ARRAY KEYS NÃO SÃO PRESERVADAS... O QUE QUER DIZER QUE 
+
+VC PODE ACABAR COM GAPS COMO ESSES, SE O ARRAY É ORGANIZADO NUMERICAMENTE (array tradicional)...
+
+
+
+
+ 
+
+
+
+--> SE VC QUER QUE _ O ARRAY PRODUZIDO A PARTIR DE 'array_filter' 
+    SEJA INDEXADO ADEQUADAMENTE, como 0123456, 
+    OU SEJA, REINDEXAR O ARRAY,
+
+    VC PRECISA USAR UMA FUNCTION CHAMADA 
+    DE 
+
+    'array_values()'...  
+
+
+
+
+
+
+
+--> array_values() SIMPLESMENTE RETORNA 
+    __TODOS OS VALUES DE 1 ARRAY, MAS INDEXADOS NUMERICAMENTE...
+
+
+
+
+
+
+
+4) ARRAY_VALUES() 
+
+
+
+
+
+
+
+
+$arrayNew = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+$evenNumbers = array_filter(
+    $arrayNew,
+    fn($value, $key) => $value % 2 === 0, // value, nesse caso, é o '$number' visto anteriormente...
+    ARRAY_FILTER_USE_BOTH
+);
+
+$evenNumbers = array_values($evenNumbers); // Will adequately re-index (0123456) all elements/values inside of our array, numerically.
+
+
+print_r($evenNumbers);
+
+
+
+
+// array_values() reindexes all the elements/values inside of a given array, numerically (01234567)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, NOSSO PRINT_R NOVAMENTE RETORNA ALGO ASSIM:
+
+
+
+
+
+
+
+
+(
+    [0] => 2
+    [1] => 4
+    [2] => 6
+    [3] => 8
+    [4] => 10
+)
+
+
+
+
+
+
+
+
+
+que é o resultado que desejávamos...
+
+
+
+
+
+
+
+
+
+
+
+SIMILARMENTE AO METHOD de 'array_values()',
+
+que retorna OS VALUES DO ARRAY em 1 formato ordered,
+
+
+
+NÓS __ PODERÍAMOS USAR 'array_keys' PARA CONSEGUIR AS KEYS DE 1 ARRAY...
+
+
+
+
+
+
+
+
+
+
+
+
+
+5) ARRAY_KEYS():
+
+
+
+
+
+array_keys() returns all the keys inside of a given array, as an array itself.
+
+
+
+
+
+
+
+
+
+
+VOCÊ TAMBÉM PODE PROCURAR POR VALUES ESPECÍFICOS,
+
+E APENAS RETORNAR KEYS PARA OS VALUES QUE MATCHEIAM...
+
+
+
+
+
+
+
+O EXEMPLO É ESTE:
+
+
+
+
+
+
+$array = ['a' => 5,
+           'b' => 10, 
+           'c' => 15,
+           'd' => 5,
+           'e' => 10
+         ];
+
+
+$keys = array_keys($array); // Will print out '([0] => a, [1] => b, [2] => c, [3] => d, [4] => e)'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS SE VC ESPECIFICA 1 SEGUNDO PARAMETER,
+
+
+VC PEDE UM 'SEARCH VALUE', 
+
+
+
+UM VALUE PELO QUAL VC FAZ 'SEARCH BY'... -> COM ISSO,
+
+
+DIZEMOS QUE QUEREMOS RETORNAR APENAS AS KEYS QUE TENHAM ESSE VALUE ESPECÍFICO...
+
+
+
+
+
+
+EX:
+
+
+
+$array = ['a' => 5,
+           'b' => 10, 
+           'c' => 15,
+           'd' => 5,
+           'e' => 10
+         ];
+
+
+$keys = array_keys($array); // Will print out '([0] => a, [1] => b, [2] => c, [3] => d, [4] => e)'
+
+$specificKeys = array_keys($array, 10); // Will print out '([b] => 10, [1] => e)', which are the elements/keys with the value of '10', in the original array.
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+$array = [
+    'a' => 5,
+    'b' => 10,
+    'c' => 15,
+    'd' => 5,
+    'e' => 10
+];
+
+
+$keys = array_keys($array); // Will print out '([0] => a, [1] => b, [2] => c, [3] => d, [4] => e)'
+$specificKeys = array_keys($array, 10); // Will print out '([b] => 10, [1] => e)', which are the elements/keys with the value of '10', in the original array.
+
+print_r($keys);
+print_r($specificKeys);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+MAS O QUE ELE FAZ, AQUI, PARA MATCHEAR,
+
+
+É UMA 'LOOSE COMPARISON'...
+
+
+
+
+SE VC QUER TER UMA __ STRICT_ COMPARISON,
+
+
+BASTA PASSAR 'true' como terceiro parameter:
+
+
+
+
+
+
+
+$array = [
+    'a' => 5,
+    'b' => 10,
+    'c' => 15,
+    'd' => 5,
+    'e' => 10
+];
+
+
+$keys = array_keys($array); // Will print out '([0] => a, [1] => b, [2] => c, [3] => d, [4] => e)'
+$specificKeys = array_keys($array, 10, true); // With 'true' as the third parameter, we request a strict comparison to find the matching elements in the array.
+
+print_r($keys);
+print_r($specificKeys);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO ESSA SERÁ UMA __ STRICT__ COMPARISON,
+
+se escrevemos algo como isto:
+
+
+
+$specificKeys2 = array_keys($array, '10', true); // With 'true' as the third parameter, we request a STRICT comparison to find the matching elements in the array.
+
+
+
+
+não encontramos nada no array que matcheie, nesse nosso caso...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+AGORA VEREMOS 'array_map'...
+
+
+
+
+
+
+
+
+
+
+array_map é uma das functions MAIS UTILIZADAS...
+
+
+
+--> no exemplo, digamos que queremos ter 1 array com 
+    números múltiplos de 3 do array original...
+
+
+
+
+
+6) ARRAY_MAPS():
+
+
+
+$arrayOriginal = [1, 2, 3, 4, 5, 6];
+
+
+$arrayMapped = array_map(
+
+    fn($number) => $number * 3,
+    $arrayOriginal
+);
+
+
+print_r($arrayMapped);
+
+
+
+// It simply applies/runs the callback function you provide, for each element of the array...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E ISSO REALMENTE FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+MAS AGORA O PROFESSOR QUER NOS MOSTRAR 1 EXEMPLO COM MÚLTIPLOS ARRAYS...
+
+
+
+
+
+
+
+--> PQ, AO CONTRÁRIO DO JAVASCRIPT,
+    O PHP SUPORTA 'MAP' COM MÚLTIPLOS ARRAYS...
+
+
+
+
+
+
+ASSIM:
+
+
+
+
+
+
+
+
+$arrayOriginal1 = ['a' => 1, 'b' => 2, 'c' => 3];
+$arrayOriginal2 = ['d' => 4, 'e' => 5, 'f' => 6];
+
+
+
+
+$arrayMapped3 = array_map(
+    fn($number1, $number2) => $number1 * $number2,
+    $arrayOriginal1, $arrayOriginal2
+);
+
+print_r($arrayMapped3);
+
+
+
+
+
+
+
+
+
+
+
+
+
+E ISSO REALMENTE FUNCIONA:
+
+
+
+
+
+
+
+
+
+
+// Example with multiple arrays:
+$arrayOriginal1 = ['a' => 1, 'b' => 2, 'c' => 3];
+$arrayOriginal2 = ['d' => 4, 'e' => 5, 'f' => 6];
+
+
+
+
+$arrayMapped3 = array_map(
+    fn($number1, $number2) => $number1 * $number2,
+    $arrayOriginal1,
+    $arrayOriginal2
+);
+
+print_r($arrayMapped3);
+
+
+
+
+
+
+
+
+O PRINT FICA TIPO ASSIM:
+
+
+
+
+Array
+(
+    [0] => 4
+    [1] => 10
+    [2] => 18
+)
+
+
+
+
+
+
+MAS AQUI, NO CASO,
+
+ 
+
+PERCEBEMOS QUE O ARRAY RESULTANTE FOI 'RE-INDEXED', numericamente,
+
+e que 
+
+não tem mais 
+
+as keys originárias (que eram 'a', 'b', 'c' e 'd', 'e', e 'f')...
+
+
+
+
+
+
+
+
+-> ISSO ACONTECEU PQ ESTAMOS PASSANDO MAIS DE 1 ÚNICO ARRAY...
+    
+
+
+    --> SE VC PASSA 1 ÚNICO ARRAY À FUNCTION DE 'array_map()',
+        O PHP VAI __PRESERVAR_ AS KEYS, NO RESULTING ARRAY...
+
+    
+
+
+
+
+
+MAS SE VC ESTÁ PASSANDO MAIS DE 1 ÚNICO ARRAY,
+    O PHP VAI REALMENTE RE-INDEXAR O ARRAY, NUMERICAMENTE...
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR APONTA OUTRA COISA:
+
+
+
+
+''QUANDO VC FAZ ARRAY_MAP COM MÚLTIPLOS ARRAYS, 
+    É MELHOR TER ARRAYS DE MESMA LENGTH,
+
+    PQ AÍ O CALLBACK VAI SER APLICADO/EXECUTADO EM PARALELO...''
+
+
+
+
+
+''se vc tiver UNEVEN LENGTH, AÍ O SHORTER ARRAY VAI SER 
+    ESTENDIDO COM __ ELEMENTOS VAZIOS...''
+
+
+
+
+
+OU SEJA,
+
+COM NOSSO EXEMPLO, FICARÍAMOS COM ALGO ASSIM:
+
+
+
+
+
+
+
+// Example with multiple arrays:
+$arrayOriginal1 = ['a' => 1, 'b' => 2];
+$arrayOriginal2 = ['d' => 4, 'e' => 5, 'f' => 6];
+
+
+
+
+$arrayMapped3 = array_map(
+    fn($number1, $number2) => $number1 * $number2,
+    $arrayOriginal1,
+    $arrayOriginal2
+);
+
+print_r($arrayMapped3);
+
+
+
+
+
+
+O RESULTADO FICARIA TIPO 
+
+
+Array 
+(
+    
+    [0] => 4
+    [1] => 10
+    [2] => 0
+)
+
+
+
+
+
+
+
+
+
+
+SE A OPERATION FOSSE DE ADIÇÃO,
+
+FICARÍAMOS COM 
+
+
+ISTO:
+
+
+
+
+
+// Example with multiple arrays:
+$arrayOriginal1 = ['a' => 1, 'b' => 2];
+$arrayOriginal2 = ['d' => 4, 'e' => 5, 'f' => 6];
+
+
+
+
+$arrayMapped3 = array_map(
+    fn($number1, $number2) => $number1 + $number2,
+    $arrayOriginal1,
+    $arrayOriginal2
+);
+
+print_r($arrayMapped3);
+
+
+
+
+
+
+Array 
+(
+    
+    [0] => 4
+    [1] => 10
+    [2] => 6
+)
+
+
+
+
+
+
+----------------------------
+
+
+
+
+
+
+
+
+
+
+
+VOCÊ TAMBÉM PODERIA PASSAR 'null' 
+
+
+
+COMO CALLBACK DE 'array_map()',
+
+
+tipo assim:
+
+
+
+
+
+// Example with multiple arrays:
+$arrayOriginal1 = ['a' => 1, 'b' => 2, 'c' => 3];
+$arrayOriginal2 = ['d' => 4, 'e' => 5, 'f' => 6];
+
+
+
+
+
+$array = array_map(null, $arrayOriginal1, $arrayOriginal2);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+como resultado disso, vc simplesmente ficaria 
+
+com 1 array 'combinado' dos 2 arrays, tipo assim:
+
+
+
+
+
+
+
+
+Array
+(
+    [0] => Array
+        (
+            [0] => 1
+            [1] => 4
+        )
+
+    [1] => Array
+        (
+            [0] => 2
+            [1] => 5
+        )
+
+    [2] => Array
+        (
+            [0] => 3
+            [1] => 6
+        )
+
+)
+
+
+
+
+
+
+
+ou seja, 
+
+
+algo como 
+
+( [1, 4], [2, 5], [3, 6] )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, TEMOS 'array_merge',
+
+
+
+que é um method que simplesmente te deixa MERGE múltiplos arrays...
+
+
+
+
+
+
+
+
+
+
+
+
+
+7) ARRAY_MERGE():
+
+
+
+
+
+
+
+
+
+''IF ARRAYS HAVE THE SAME NUMERIC KEYS, IT WILL __NOT__ 
+  OVERWRITE_ THE VALUES... INSTEAD, THE VALUES WILL BE __ APPENDED...''
+
+
+
+ ''ALSO, NUMERIC KEYS WILL BE RE-INDEXED, STARTING FROM 0...''
+
+
+
+
+
+
+
+O EXEMPLO É ESTE:
+
+
+
+
+
+
+
+// array_merge(array ...$arrays): array 
+
+
+
+
+$array10 = [1, 2, 3];
+$array20 = [4, 5, 6];
+$array30 = [7, 8, 9];
+
+
+$merged = array_merge($array10, $array20, $array30);
+
+
+print_r($merged);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O RESULTADO DESSE CALL SERÁ ASSIM:
+
+
+
+
+
+
+
+
+
+Array
+(
+    [0] => 1
+    [1] => 2
+    [2] => 3
+    [3] => 4
+    [4] => 5
+    [5] => 6
+    [6] => 7
+    [7] => 8
+    [8] => 9
+)
+
+
+
+
+
+
+ou seja, 
+
+
+os values dos arrays vão sendo appended,
+
+
+em ordem...
+
+
+
+
+
+
+O ARRAY FINAL APLICA REORDERING, PORTANTO...
+
+
+
+
+
+
+
+
+
+MESMO SE 
+SE COLOCARMOS KEYS NUMÉRICAS PARA NOSSOS NUMBERS,
+
+TIPO ASSIM:
+
+
+
+
+
+
+// array_merge(array ...$arrays): array 
+
+
+
+
+$array10 = [1, 2, 3];
+$array20 = [6 => 4, 7 => 5, 8 => 6];
+$array30 = [7, 8, 9];
+
+
+$merged = array_merge($array10, $array20, $array30);
+
+
+print_r($merged);
+
+
+
+
+
+
+
+
+
+
+O RESULTADO FINAL AINDA SERÁ O MESMO DE ANTES:
+
+
+
+
+
+
+Array
+(
+    [0] => 1
+    [1] => 2
+    [2] => 3
+    [3] => 4
+    [4] => 5
+    [5] => 6
+    [6] => 7
+    [7] => 8
+    [8] => 9
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS SE COLOCARMOS VALUES STRING, em vez de numéricos,
+
+o resultado seria diferente:
+
+
+
+
+
+
+// array_merge(array ...$arrays): array 
+
+
+
+
+$array10 = [1, 2, 3];
+$array20 = ['a' => 4, 'b' => 5, 'c' => 6];
+$array30 = [7, 8, 9];
+
+
+$merged = array_merge($array10, $array20, $array30);
+
+
+print_r($merged);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, O RESULTADO FICA TIPO 
+
+
+
+
+Array
+(
+    [0] => 1
+    [1] => 2
+    [2] => 3
+    [a] => 4
+    [b] => 5
+    [c] => 6
+    [6] => 7
+    [7] => 8
+    [8] => 9
+)
+
+
+
+
+
+
+
+
+
+
+OUTRA HIPÓTESE (duas keys de 'b', 1 em cada array)
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+$array10 = [1, 2, 3];
+$array20 = ['a' => 4, 'b' => 5, 'c' => 6];
+$array30 = [7, 8, 9, 'b' => 10];
+
+
+$merged = array_merge($array10, $array20, $array30);
+
+
+print_r($merged);
+
+
+
+
+
+
+
+
+
+
+
+
+O RESULTADO FINAL FICA ASSIM:
+
+
+
+
+
+Array
+(
+    [0] => 1
+    [1] => 2
+    [2] => 3
+    [a] => 4
+    [b] => 10
+    [c] => 6
+    [6] => 7
+    [7] => 8
+    [8] => 9
+)
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+
+
+
+O ITEM POSTERIOR DEU OVERWRITE NO ITEM ANTERIOR, com a mesma key...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OUTRA FUNCTION MT ÚTIL É 'ARRAY_REDUCE()'...
+
+
+
+
+
+
+
+
+
+8) ARRAY_REDUCE():
+
+
+
+
+
+
+
+
+
+
+
+-- array_reduce() is a method which will reduce the array to a single value, using the 
+    callback function that you pass...
+
+
+
+
+-- DIGAMOS QUE TEMOS 1 ARRAY DE ITEMS...
+    
+    QUEREMOS RODAR CÁLCULOS, EM QUE 
+    MULTIPLICAMOS O PRICE PELA QUANTITY,
+    E AÍ 
+    FAZEMOS 'SUM' DE TUDO,
+
+    PARA CONSEGUIR TODO O 'INVOICE PRICE'...
+
+
+
+
+
+
+
+NOSSO EXEMPLO É ESTE:
+
+
+
+
+
+// array_reduce(array $array, callable $callback, mixed $initialValue = null): mixed 
+
+
+$invoiceItems = [
+    ['price' => 9.99, 'qty' => 3, 'desc' => 'Item 1'],
+    ['price' => 29.99, 'qty' => 1, 'desc' => 'Item 2'],
+    ['price' => 149, 'qty' => 1, 'desc' => 'Item 3'],
+    ['price' => 14.99, 'qty' => 2, 'desc' => 'Item 4'],
+    ['price' => 4.99, 'qty' => 4, 'desc' => 'Item 5'],
+]
+
+
+
+
+
+
+
+É CLARO QUE PODERÍAMOS FAZER ISSO DE VÁRIAS FORMAS,
+MAS UMA FORMA 
+
+É COM 'array_reduce()'...
+
+
+
+
+
+
+
+
+
+O CÓDIGO FICA TIPO ASSIM:
+
+
+
+
+
+
+
+
+$invoiceItems = [
+    ['price' => 9.99, 'qty' => 3, 'desc' => 'Item 1'],
+    ['price' => 29.99, 'qty' => 1, 'desc' => 'Item 2'],
+    ['price' => 149, 'qty' => 1, 'desc' => 'Item 3'],
+    ['price' => 14.99, 'qty' => 2, 'desc' => 'Item 4'],
+    ['price' => 4.99, 'qty' => 4, 'desc' => 'Item 5'],
+];
+
+
+
+$totalPrice = array_reduce(
+    $invoiceItems,
+    fn($sum, $item) => $sum + $item['price'] * $item['qty'],
+    0
+);
+
+echo $totalPrice;  // 258.9
+
+
+
+
+
+
+
+
+E O RESULTADO FICA TIPO '258.9', no console...
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PRIMEIRO PARAMETRO É O 'SUM' até aquele momento/iteration....
+
+
+já o segundo parametro é o item da iteration em si, que é acrescido da sum até aquele momento...
+
+
+
+
+
+
+
+
+
+
+O TERCEIRO PARAMETER 
+
+
+
+É O 'INITIAL VALUE'... 
+
+
+
+-_> coloco 0,
+
+pq quero que o value inicial seja realmente 0...
+
+
+
+
+
+
+
+
+
+
+
+9) ARRAY_SEARCH()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- Can be used to search Items inside of an array, and will return the key of the first matching value...
+
+
+
+
+
+
+
+
+
+
+-- O PRIMEIRO ARGUMENTO É A 'NEEDLE',
+    E O SEGUNDO ARGUMENTO É O 'HAYSTACK'...
+
+
+
+-- DIGAMOS QUE TEMOS 1 ARRAY,
+    E QUE QUEREMOS ENCONTRAR O PRIMEIRO 
+    ELEMENTO QUE TENHA A LETRA 'b':
+
+
+
+
+
+
+
+
+
+VEJA O EXEMPLO:
+
+
+
+
+
+
+
+$searchableArray = ['a', 'b', 'c', 'D', 'ab', 'bc', 'cd', 'b', 'd'];
+
+
+$foundKey = array_search('b', $searchableArray); // First argument is the 'needle' (thing to be found), the second argument is the HAYSTACK (the array)...
+
+
+
+var_dump($key);
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+$searchableArray = ['a', 'b', 'c', 'D', 'ab', 'bc', 'cd', 'b', 'd'];
+
+
+$foundKey = array_search('b', $searchableArray); // First argument is the 'needle' (thing to be found), the second argument is the HAYSTACK (the array)...
+
+
+
+var_dump($foundKey); // Will print out 'int(1)'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, FICAMOS COM 1 PRINT DE 
+
+
+
+
+'int(1)'...
+
+
+
+
+
+
+
+
+
+
+--> ficamos com'int(1)' pq ESSE É O INDEX DO ELEMENTO 'b', dentro de esse array...
+
+
+
+
+
+-> SE NÃO ENCONTRAMOS NADA DENTRO DO ARRAY, FICAMOS COM 'bool(false)'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OUTRO DETALHE IMPORTANTE É QUE 'search'
+
+VAI SEMPRE _ _RETORNAR __ APENAS _ O PRIMEIRO 
+
+
+
+_ VALUE QUE ELE ENCONTRAR, DENTRO DO ARRAY...
+
+
+
+
+--> DENTRO DE ESSE ARRAY, TÍNHAMOS 
+    2 VALUES de 'b',
+
+    mas o array_search retornou apenas o primeiro...
+
+
+
+
+
+
+
+
+--> OUTRO DETALHE IMPORTANTE É QUE 
+
+    O 'array_search' 
+
+    É CASE SENSITIVE... E É POR ISSO QUE 
+
+     SE RODAMOS 
+
+     'array_search('D', ficamos com int(3), e não int(9), o index do d que é lower-case)...
+
+
+
+
+
+
+
+
+
+
+
+
+O ARRAY_SEARCH VAI RETORNAR 'bool(false)'
+
+
+SE NÃO ENCONTRA A KEY QUE VC ESPECIFICOU DENTRO DO ARRAY...
+
+
+
+
+
+
+
+MAS ELE VAI RETORNAR '0' se encontrar 1 elemento 
+
+
+na primeira position do array... o que é PERIGOSO,
+
+
+PQ __ '0' é considerado FALSE, no php... 
+
+
+É POR ISSO QUE VC TEM QUE TER CUIDADO QUANDO RODA COMPARISONS 
+
+envolvendo 
+
+'array_search()'... VC SEMPRE DEVE USAR O '===' operator para 
+comparisons (para ter strict comparisons, em que '0' não é tratado como falsy)
+
+
+
+
+
+
+
+
+EXEMPLO DE PROBLEMA QUE PODERIA SURGIR:
+
+
+
+
+$array = ['a', 'b', 'c', 'D', 'ab', 'bc', 'cd', 'b', 'd'];
+
+
+$key = array_search('a', $array);
+
+
+if ($key == false) {
+    echo 'Letter not found';
+}
+
+
+
+
+
+
+---> NESSE CASO, O 'a' existe dentro do array, mas mesmo 
+    assim, entraríamos no block de '$key == false',
+
+
+
+    pq 
+    '0' 
+
+    é considerado como falsy...
+
+
+
+
+
+PARA CONSERTAR ISSO, USAMOS 
+
+O strict comparison operator (===):
+
+
+
+
+
+
+
+$array = ['a', 'b', 'c', 'D', 'ab', 'bc', 'cd', 'b', 'd'];
+
+
+$key = array_search('a', $array);
+
+
+if ($key === false) {
+    echo 'Letter not found';
+}
+
+
+
+
+
+
+
+
+
+
+
+VC TAMBÉM PODE USAR 
+
+
+A FUNCTION 
+
+
+'in_array()',
+
+
+
+
+
+
+
+
+PARA CHECAR SE 1 VALUE EXISTE EM ALGUM ARRAY...
+
+
+
+
+
+
+'in_array()',
+
+em vez de 
+
+te retornar a key,
+
+
+
+TE RETORNA 'true' ou 'false'...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+// * 10) IN_ARRAY() function:
+
+
+
+
+$haystack = ['a', 'b', 'c', 'd'];
+
+$isInArray = in_array('d', $haystack); // Returns true
+
+$isInArray2 = in_array('e', $haystack);  // Returns false
+
+
+var_dump($isInArray);
+var_dump($isInArray2);
+
+
+// Similar to array_search(), but will return a boolean value (true or false), instead of the key.
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+MAS EXISTEM CASOS EM QUE VC 
+
+QUER DESCOBRIR AS 
+
+DIFFERENCES ENTRE ARRAYS...
+
+
+
+
+
+
+
+
+EXISTEM UM PUNHADO DE FUNCTIONS QUE PODEM TE AJUDAR A DESCOBRIR ESSAS DIFFERENCES...
+
+
+
+
+
+
+
+
+
+A PRIMEIRA DELAS É 'array_diff()'...
+
+
+
+
+
+
+
+
+
+
+// * 11)  ARRAY_DIFF()
+
+
+
+
+
+
+
+
+
+
+
+-- ''Array_diff()'' will COMPARE THE FIRST ARRAY AGAINST THE REST OF THE GIVEN 
+--    ARRAYS, AND WILL RETURN __ THE _ VALUES_ FROM THE FIRST ARRAY THAT _ ARE 
+--    NOT PRESENT IN ANY OF THE OTHER ARRAYS...''
+
+
+
+
+
+
+EX:
+
+
+
+
+$arrayA = ['a' => 1, 'b' => 2, 'c' => 3, 'd' => 4, 'e' => 5];
+$arrayB = ['f' => 4, 'g' => 5, 'i' => 6, 'j' => 7, 'k' => 8];
+$arrayC = ['l' => 3, 'm' => 9, 'n' => 10];
+
+
+
+$diffResult = array_diff($arrayA, $arrayB, $arrayC);
+
+
+print_r($diffResult);
+
+
+
+
+
+
+
+
+
+
+AQUI, NO CASO,
+
+O QUE SERÁ 
+
+PRINTADO É ISTO:
+
+
+
+
+
+
+
+
+
+(
+    [a] => 1
+    [b] => 2
+)
+
+
+
+
+
+
+
+
+
+isso pq '1' e '2'
+
+
+SÃO OS ÚNICOS VALUES QUE NÃO APARECEM NOS OUTROS ARRAYS (ARRAYB e ARRAYC)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS VC DEVE TER EM MENTE QUE 
+'array_diff()'
+
+
+CHECA APENAS OS _ VALUES_, E NÃO AS KEYS EM SI...
+
+
+
+
+
+
+--> SE VC QUER CHECAR TAMBÉM PELAS KEYS,
+    CHECAR SE NÃO EXISTEM ESSAS KEYS NOS OUTROS ARRAYS,
+
+
+    VC TERÁ DE 
+
+    USAR OUTRO METHOD ,
+
+
+    o 'array_diff_assoc()',
+
+
+
+
+
+
+COMO VEMOS AGORA:
+
+
+
+
+
+
+
+
+
+
+// * 12) ARRAY_DIFF_ASSOC()
+
+
+ 
+
+
+$arrayD = ['a' => 1, 'b' => 2, 'c' => 3, 'd' => 4, 'e' => 5];
+$arrayE = ['f' => 4, 'g' => 5, 'i' => 6, 'j' => 7, 'k' => 8];
+$arrayF = ['l' => 3, 'm' => 9, 'n' => 10];
+
+
+
+$diffResult = array_diff_assoc($arrayD, $arrayE, $arrayF);
+
+
+print_r($diffResult); // Will print ([a] => 1 [b] => 2, [c] => 3, [d] => 4, [5] => 5), BECAUSE ___ ALL THE KEYS IN THE FIRST ARRAY DON'T APPEAR IN THE OTHER 2 ARRAYS...
+
+
+
+
+
+// same thing as array_diff(), BUT ONLY CHECKS FOR THE SAME __KEYS__ of the first array IN THE 
+// OTHER ARRAYS, instead of only the values...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TAMBÉM EXISTEM VÁRIAS FUNCTIONS QUE TE AJUDAM A FAZER 'SORT' DE ARRAYS...
+
+
+
+
+
+
+
+A PRIMEIRA DELAS É 'asort'...
+
+
+
+
+VEJA O EXEMPLO:
+
+
+
+
+
+
+// * 13) ASORT() 
+
+
+
+
+
+$unsortedInitialArray = ['d' => 3, 'b' => 1, 'c' => 4, 'a' => 2];
+
+
+print_r($unsortedInitialArray);
+
+asort($unsortedInitialArray); // Will sort the array by values, from the lowest to the highest.
+
+
+print_r($unsortedInitialArray);
+
+
+
+
+
+// -- asort() sorts your array BY __ VALUES_... you can pass a different sorting flag, if needed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... QUER DIZER QUE O 'asort'
+
+
+vai FAZER SORT, POR DEFAULT,
+
+POR __ VALUES... OS VALUES MENORES PRIMEIRO, E OS MAIORES POR ÚLTIMO...
+
+
+
+
+
+
+
+
+
+-> SE VC QUER FAZER SORT ___ POR _ KEYS,
+
+    VOCE DEVE USAR O METHOD DE 'ksort()',
+
+    que vai fazer sort pelas keys, em vez de pelos values...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+// * 14) KSORT()
+
+
+$unsortedInitialArray2 = ['d' => 3, 'b' => 1, 'c' => 4, 'a' => 2];
+ksort($unsortedInitialArray2); // Will sort the array by keys, from the lowest to the highest (letters or numbers).
+print_r($unsortedInitialArray2);
+
+
+
+// -- ksort() sorts your array BY __ KEYS_... you can pass a different sorting flag, if needed.
+// -- ksort() will sort the array by keys, from the lowest to the highest, by default.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+
+
+
+
+
+OUTRA COISA QUE VC DEVE TER EM MENTE, AQUI,
+
+É QUE 
+
+MTAS DESSAS FUNCTIONS __ NÃO RETORNAM UM NOVO ARRAY (contrariamente a 'array_map()', portanto)...
+
+
+
+
+
+
+
+
+
+
+
+EM VEZ DE RETORNAR 1 NOVO ARRAY, MTAS DESSAS FUNCTIONS 
+RETORNAM UM __ BOOLEAN__... ALÉM DE 
+
+RETORNAR 1 BOOLEAN, ESSAS functions 
+
+AFETAM A REFERENCE ORIGINAL,
+
+
+O VALUE ORIGINAL DE SEU ARRAY...
+
+
+
+
+
+
+
+
+
+
+
+
+
+A OUTRA FUNCTION ÚTIL DE ARRAYS 
+
+
+É 
+
+
+'USORT'...
+
+
+
+
+USORT 
+
+
+''LETS YOU PASS CUSTOM CALLBACK FUNCTIONS,
+    AND SORT WHATEVER WAY YOU WANT...''
+
+
+
+
+
+
+
+
+// * 15) USORT()
+
+
+$unsortedInitialArray3 = ['d' => 3, 'b' => 1, 'c' => 4, 'a' => 2];
+
+print_r($unsortedInitialArray3);
+
+
+usort($unsortedInitialArray3, fn($a, $b) => $a <=> $b); // WE WANT TO RETURN 0 if a === b, and -1 if a < b, and 1 if a > b.
+
+
+
+
+// USORT LETS YOU PASS ___CUSTOM CALLBACK FUNCTIONS__ , AND SORT ELEMENTS BY WHATEVER CRITERIA YOU WANT...
+// usort is tipically used with the spaceship operator (<=>), which returns -1 if the first argument is smaller than the second, and 1 if it's bigger, and 0 if they're equal.
+
+
+
+
+
+
+
+
+
+
+com isso, com o spaceship,
+
+NOSSOS VALUES SÃO SORTADOS NUMERICAMENTE... (menor para o maior)
+
+
+
+
+
+
+
+
+// Usort also removes custom keys, and re-orders the array numerically.
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE O RESULTADO FINAL FICOU TIPO ASSIM:
+
+
+
+
+([0] => 1, [1] => 2, [2] => 3, [3] => 4)
+
+
+
+
+
+
+
+
+
+----------------------
+
+
+
+
+
+
+
+
+
+FINALMENTE, TEMOS O TÓPICO DE 'ARRAY DESTRUCTURING'...
+
+
+
+
+
+
+
+
+
+
+
+
+-- ''YOU CAN PULL VARIABLES OUT OF ARRAYS,
+    OR DESTRUCTURE ARRAYS INTO SEPARATE VARIABLES...''
+
+
+
+
+
+
+
+
+
+PARA ISSO, TEMOS ESTE EXEMPLO:
+
+
+
+
+
+
+
+
+$arrayExample = [1, 2, 3, 4];
+
+
+list($a, $b, $c, $d) = $arrayExample;
+
+
+
+
+
+
+
+
+
+
+-> ESSE USO DE 'list()', 
+
+portanto, vai criar variables, 1 para cada element do array, com esses nomes ali (a,b,c,d)...
+
+
+
+
+
+
+
+
+
+
+
+--> E HÁ, AINDA, UMA VERSÃO SHORTHAND DE ESSA EXPRESSÃO,
+    QUE É QUASE _ _EXATAMENTE IGUAL à VERSÃO JAVASCRIPT,
+
+    QUE É ASSIM:
+
+
+
+
+
+
+
+
+
+$arrayExample = [1, 2, 3, 4];
+
+
+[$a, $b, $c, $d] = $arrayExample;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+// * 16) ARRAY DESTRUCTURING (not a function, but a language construct, but it's still useful):
+
+
+$arrayExample = [1, 2, 3, 4];
+
+
+[$a, $b, $c, $d] = $arrayExample;
+
+
+
+var_dump($a);
+var_dump($b);
+var_dump($c);
+var_dump($d);
+
+
+
+
+
+
+
+
+
+
+
+também podemos PEGAR APENAS ALGUNS ELEMENTS DO ARRAY ORIGINÁRIO,
+
+BASTA USAR vírgulas __ COM VALUES VAZIOS PARA 'skip' 
+
+os values,
+tipo assim:
+
+
+
+
+
+$arrayExample = [1, 2, 3, 4];
+
+
+[$a, , $c, $d] = $arrayExample;
+
+
+
+var_dump($a);
+var_dump($c);
+var_dump($d);
+
+
+
+
+
+
+
+
+
+
+
+TAMBÉM FUNCIONA ASSIM:
+
+
+
+
+
+
+
+
+$arrayExample = [1, 2, 3, 4];
+
+
+[$a, , $c, ] = $arrayExample;
+
+
+
+var_dump($a);
+var_dump($c);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VOCÊ TAMBÉM PODE FAZER DECONSTRUCT  
+    DE NESTED ARRAYS...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+$arrayExample = [1, 2, [3, 4]];
+
+
+[$a, $b, [$c, $d]] = $arrayExample;
+
+
+
+var_dump($a);
+var_dump($b);
+var_dump($c);
+var_dump($d);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TAMBÉM É POSSÍVEL ESCREVER ASSIM:
+
+
+
+
+$arrayExample = [1, 2, 3];
+
+
+[1 => $a, 0 => $b, 2 => $c ] = $arrayExample;
+
+
+
+var_dump($a); //2 
+var_dump($b); // 1
+var_dump($c); // 3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+APRENDEMOS BASTANTE SOBRE ARRAY FUNCTIONS...
