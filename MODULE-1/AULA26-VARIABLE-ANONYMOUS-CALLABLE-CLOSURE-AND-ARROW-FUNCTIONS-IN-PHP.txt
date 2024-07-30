@@ -1,0 +1,1615 @@
+
+
+
+
+
+
+
+
+
+
+
+OK... NAS ÚLTIMAS AULAS,
+
+APRENDEMOS SOBRE FUNCTIONS:
+
+
+
+
+
+
+1) O QUE SÃO 
+
+
+2) COMO CRIAR 
+
+
+3) FUNCTION PARAMETERS 
+
+
+4) NAMED ARGUMENTS 
+
+
+
+5) VARIABLE SCOPES 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> NESSA AULA, APRENDEREMOS MAIS SOBRE FUNCTIONS...
+
+
+
+
+
+
+
+
+--> APRENDEREMOS VARIABLE FUNCTIONS, ANON FUNCTIONS, ARROW FUNCTIONS, ETC...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- PHP SUPORTA 1 CONCEITO CHAMADO DE 'VARIABLE FUNCTIONS'...
+
+
+
+
+
+
+
+
+
+
+
+
+-- VARIABLE FUNCTIONS:
+
+
+
+
+-- SIMPLESMENTE SIGNIFICA QUE VC PODE ''CALL FUNCTIONS __ FROM VARIABLES''...
+
+
+
+
+-- VC FAZ ISSO POR MEIO DO SIMPLES APPEND DE '()' ao lado 
+    da variable...
+
+
+
+
+
+
+
+
+
+
+
+O EXEMPLO É ESTE:
+
+
+
+
+
+
+function sum(int|float ...$numbers): int|float {
+    return array_sum($numbers); 
+}
+
+
+
+$x = 'sum';
+
+
+
+echo $x(1, 2, 3, 4);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok... é uma maluquice...
+
+
+
+
+
+
+--> o que acontece, aqui, é:
+
+
+
+''WHEN PHP DETECTS () next to a variable, it will LOOK FOR A FUNCTION 
+    WITH THE SAME NAME AS WHATEVER THE VARIABLE EVALUATES TO...''
+
+
+
+
+    NO NOSSO CASO, A VARIABLE DE '$x' faz evaluate ao value 
+    de 'sum', 
+
+
+    o que quer dizer que o resultado da evaluation é 
+
+    'sum()', o que acaba chamando a nossa function, com os params de 
+
+    '1,2,3,4'...
+
+
+
+
+
+-> SE 'sum' NÃO EXISTISSE, 
+
+
+A ESCRITA DE 
+
+
+'$x(1, 2, 3, 4)' FARIA O THROW DE UM ERROR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA EVITAR ERRORS COMO 'undefined function sum()'   (causado por 'sum()' nao existir, e aí tentarmos chamar 'echo $x(1, 2, 3, 4)', )
+
+    PODEMOS USAR 
+
+
+    1 FUNCTION CHAMADA 'is_callable()',
+
+    PARA TESTAR 
+
+
+    SE __ AQUELA VARIABLE (a variable '$x') PODE SER 
+
+    CHAMADA COMO FUNCTION....
+
+
+
+
+
+    CASO CONTRÁRIO, 
+
+
+    FAZEMOS echo de 'Not Callable'...
+
+
+
+
+
+
+
+    TIPO ASSIM:
+
+
+
+
+function sum(int|float ...$numbers): int|float {
+    return array_sum($numbers); 
+}
+
+
+
+$x = 'sum';
+
+
+if (is_callable($x)) {
+echo $x(1, 2, 3, 4);
+} else {
+    echo 'Not Callable';
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...  ISSO SÓ VAI CHAMAR ESSA FUNCTION SE ELA REALMENTE EXISTIR...
+
+
+
+
+
+
+
+
+
+
+
+
+QUICK NOTE:
+
+
+
+
+
+
+
+ESSE METHOD NÃO FUNCIONA COM LANGUAGE CONSTRUCTS 
+
+
+COMO 'is_set_empty',
+
+
+
+'is_set_print'
+
+
+'include'
+
+
+
+'require'...
+
+
+
+
+
+--> vc precisaria CRIAR 1 WRAPPER FUNCTION AO REDOR DE ESSES METHODS,
+    e aí os chamar, em vez disso...
+
+
+
+
+
+
+-> VC TAMBÉM PODERIA CHAMAR OBJECT METHODS USANDO A SINTAXE DE VARIABLE FUNCTIONS,
+    MAS ISSO É ALGO QUE VEREMOS MAIS TARDE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AGORA VEREMOS ANON FUNCTIONS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- ANON FUNCTIONS:
+
+
+
+
+
+
+
+
+
+-- anon functions, ou lambda functions, SÃO FUNCTIONS QUE NÃO POSSUEM NOME ALGUM...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+
+function (int|float ...$numbers): int|float {
+    return array_sum($numbers); 
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO, AGORA, É UMA ANON FUNCTION...
+
+
+
+
+
+
+
+
+
+--> ALÉM DE NÃO TEREM 1 NOME,
+    ANON FUNCTIONS OBRIGATORIAMENTE PRECISAM DE ';' AO FINAL...
+
+
+
+
+
+
+
+
+
+--> OK... MAS ESSA FUNCTION AÍ NÃO É CALLED... NÃO É CALLED 
+    PQ NÃO CONSEGUIMOS FAZER INVOKE DELA...
+
+
+
+
+
+
+->  POR ISSO SER UMA EXPRESSION (mesmo não tendo nome),
+    podemos fazer assign dela a uma VARIABLE,
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+$sum = function (int|float ...$numbers): int|float {
+    return array_sum($numbers); 
+};
+
+
+
+
+
+
+
+
+
+SE FAZEMOS ISSO, PODEMOS, REALMENTE, CHAMAR 
+ESSA FUNCTION, COM A SINTAXE DE VARIABLE, MAS COM 
+
+'()' ao final, tipo assim:
+
+
+
+
+
+
+
+
+
+
+
+$sum = function (int|float ...$numbers): int|float {
+    return array_sum($numbers); 
+};
+
+
+
+
+echo $sum(1, 2, 3, 4);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VOCE TAMBÉM PODE PASSAR ANON FUNCTIONS COMO ARGUMENTS 
+
+A OUTRAS FUNCTIONS, COMO CALLBACK FUNCTIONS...
+
+
+
+
+
+
+
+
+E VC TAMBÉM PODE FAZER _ RETURN__ DE FUNCTIONS, DE DENTRO
+DE OUTRAS FUNCTIONS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- CERTO, MAS O PROFESSOR RELEMBRA:
+
+
+
+''FUNCTIONS HAVE LOCAL SCOPES... THIS MEANS THAT 
+    IF YOU TRY TO ACCESS A VARIABLE FROM __OUT _OF ITS LOCAL 
+    SCOPE, YOU WILL GET AN ERROR''...
+
+
+
+
+
+
+
+
+EXEMPLO:
+
+
+
+
+
+$x = 1;
+
+
+$sum = function (int|float ...$numbers): int|float {
+    echo $x; /////THIS WILL GIVE AN ERROR ($x is not defined in this scope) 
+};
+
+
+
+
+
+
+
+
+
+
+
+
+ENTRETANTO, EM ANON FUNCTIONS,
+
+VC É ACTUALLY CAPAZ DE ACESSAR VARIABLES NO 'PARENT SCOPE',
+
+
+
+POR MEIO DA UTILIZAÇÃO DA KEYWORD DE 'use' junto 
+
+
+COM AS VARIABLES QUE VC QUER USAR...
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+$x = 1;
+
+
+$sum = function (int|float ...$numbers) use($x): int|float { /////THIS WILL ALLOW US TO ACCESS A VARIABLE NOT DEFINED IN THIS SCOPE 
+    echo $x; 
+};
+
+
+
+
+
+
+
+
+
+
+ESSE TIPO DE ANON FUNCTION,
+
+EM QUE VC É 
+
+
+
+
+'''CAPABLE OF ACCESSING VARIABLES OUTSIDE OF ITS LOCAL SCOPE''',
+
+
+
+
+
+TAMBÉM É CHAMADA DE 'CLOSURE'...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+$x = 1;
+
+
+// This type of anon function is called a closure. It is a function that has access to variables outside of its local scope (global scope, for example), with the 'use()' keyword.
+$sum5 = function (int|float ...$numbers) use ($x): void { // THIS WILL ALLOW US TO ACCESS A VARIABLE NOT DEFINED IN THIS SCOPE 
+    echo $x;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS, AQUI, TEMOS 1 DETALHE:
+
+
+
+
+
+
+'''A VARIABLE DE '$x' que fica disponibilizada 
+    DENTRO DA ANON FUNCTION CLOSURE _ É APENAS __ UMA CÓPIA__... 
+
+    QUER DIZER QUE QUAISQUER CHANGES A '$x', a essa variable, feitas
+    
+    no interior da closure _ NÃO TERÃO IMPACTOS NA VARIABLE '$x' definida 
+    GLOBALMENTE...'''
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE VC QUER QUE AS ALTERAÇÕES A '$x' feitas de dentro 
+
+
+dessa anon function tenham efeitos 
+
+
+na VARIABLE '$x' definida globalmente,
+
+
+VC DEVE USAR O '&' operator 
+
+no use,
+
+
+tipo assim:
+
+
+
+
+
+
+$x = 1;
+
+$sum5 = function (int|float ...$numbers) use (&$x): void { // '&' will make the changes to '$x', inside of the closure, be applied to the global '$x', outside of the function...
+    
+    $x = 15;
+    echo $x;
+};
+
+
+echo $sum5(1, 2, 3, 4);
+
+
+echo $x; // This will print out '15', because of the '&' operator, which altered the global '$x'...
+
+
+
+
+
+
+
+----------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ISSO FEITO, FALAREMOS SOBRE O 'CALLABLE' type, 
+
+e sobre CALLBACK FUNCTIONS...
+
+
+
+
+
+
+
+
+
+
+
+
+-- 'QUANDO UMA FUNCTION É PASSADA 
+    A OUTRA FUNCTION COMO ARGUMENT
+
+    E ENTÃO É CHAMADA DE DENTRO DAQUELA FUNCTION,
+
+    ISSO É CHAMADO DE 'CALLBACK FUNCTION'... '''
+
+
+
+
+
+
+--> O PHP TEM 1 MONTE DE BUILT-IN FUNCTIONS QUE 
+    EXPECT CALLBACK FUNCTIONS...
+
+
+
+
+    ALGUMAS DELAS SÃO:
+
+
+
+    1) ARRAY_MAP 
+
+
+    2) ARRAY_FILTER
+
+
+
+    3) U_SORT
+
+
+
+    4) ETC...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS COMEÇAR COM 'array_map',
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+// Callback Functions
+
+
+array_map()
+
+
+
+
+
+
+
+
+
+
+
+-> ESSA FUNCTION EXIGE 1 PARAMETER DE TIPO 'CALLBACK: CALLABLE'...
+
+
+
+
+
+
+
+
+
+
+
+-> 'CALLABLE' --> é um outro data type... significa basicamente 'uma callable function, passada como argument'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> E VC PODE PASSAR CALLABLE FUNCTIONS A 'array_map'
+    DE DIVERSAS FORMAS...
+
+
+
+
+
+
+
+
+PRIMEIRA FORMA:
+
+
+
+
+$array = [1, 2, 3, 4];
+
+
+
+
+// Callback Functions
+$array2 = array_map(
+    function($element) {
+        return $element * 2;
+    }, $array);
+
+
+
+print_r($array);
+
+
+
+
+print_r($array2); 
+
+
+
+
+
+
+O QUE ESSES 2 print_r vao printar é isto:
+
+
+
+
+
+Array 
+(
+    [0] => 1
+    [1] => 2
+    [2] => 3
+    [3] => 4
+)
+
+
+E 
+
+
+ISTO:
+
+
+
+
+
+
+Array 
+(
+    [0] => 2
+    [1] => 4
+    [2] => 6
+    [3] => 8
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA, É PRATICAMENTE IGUAL AO '.map()' do javascript,
+
+mas com 
+
+
+uma sintaxe mais esquisita e feia...
+
+
+
+
+
+
+
+
+
+RECAPITULANDO:
+
+
+
+
+$array2 = array_map(
+    function($element) {
+        return $element * 2;
+    }, $array);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS QUAL É A SEGUNDA FORMA DE ESCREVER ISSO?
+
+
+
+
+
+
+
+
+
+COM O ASSIGN DE ESSA CALLBACK FUNCTION A UMA VARIABLE, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+// callback functions:
+
+
+$array = [1, 2, 3, 4];
+
+
+$x = function($element) {
+    return $element * 2;
+};
+
+
+$array2 = array_map($x, $array);  ////// BEM MAIS LEGÍVEL DO QUE ESCREVER INLINE... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+A TERCEIRA MANEIRA É DEFINIR 1 FUNCTION COM 1 NAME, E AÍ 
+PASSAR ESSE NAME, COMO UMA STRING...
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+TERCEIRA MANEIRA:
+
+
+
+
+$array = [1, 2, 3, 4];
+
+function foo($element) {
+    return $element * 2;
+}
+
+$array2 = array_map('foo', $array);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR ENTÃO NOS MOSTRA 
+
+
+
+
+COMO PODEMOS PASSAR ESSA FUNCTION COMO ARGUMENT 
+
+
+DA  FUNCTION DE '$sum',
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+$array = [1, 2, 3, 4];
+
+function foo($element) {
+    return $element * 2;
+}
+
+$array2 = array_map('foo', $array);
+
+
+
+$sum = function (callable $callback, int|float ...$numbers): int|float {
+    return $callback(array_sum($numbers))
+}
+
+
+
+echo $sum('foo', 1, 2, 3, 4);
+
+
+
+
+
+
+
+
+
+ISSO TAMBÉM FUNCIONA, PORTANTO...
+
+
+
+
+
+
+
+
+E ISTO AQUI (passar a anon function diretamente como parameter) TAMBÉM FUNCIONA:
+
+
+
+
+
+
+$array = [1, 2, 3, 4];
+
+
+
+$array2 = array_map('foo', $array);
+
+
+
+$sum = function (callable $callback, int|float ...$numbers): int|float {
+    return $callback(array_sum($numbers))
+}
+
+
+
+echo $sum(function ($element) { /// ISTO TAMBÉM FUNCIONA...
+    return $element * 2;
+}, 1, 2, 3, 4);
+
+ 
+
+
+
+
+
+
+
+ --------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+ CERTO... O QUE O PHP FAZ, QUANDO PASSAMOS FUNCTIONS ASSIM,
+
+ É TRANSFORMAR ESSAS FUNCTIONS EM 'INSTANCES DE CLOSURES'...
+
+
+
+''CLOSURE INSTANCES''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FALAREMOS MAIS SOBRE INSTANCES, OBJECTS E CLASSES EM OUTRA SECTION 
+DESSE CURSO... MAS O QUE VC TEM QUE SABER 
+
+
+É QUE 
+
+
+__ BASICAMENTE 'ANON FUNCTIONS' SÃO __ ''INSTANCES'' DE CLOSURES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VC TAMBÉM PODERIA ESCREVER 'closure' em vez de 'callable', 
+
+lá na definição do type daquele parameter, tipo assim:
+
+
+
+$sum = function (closure $callback, int|float ...$numbers): int|float {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A DIFERENÇA 
+
+DO TYPE 
+
+'CLOSURE' PARA O TYPE 'CALLBACK'
+
+é que 
+
+
+
+'closure' TE OBRIGA A PASSAR UMA ANON FUNCTION,
+
+
+
+ENQUANTO QUE 
+
+'callable' TER PERMITE PASSAR NAMED FUNCTIONS (functions normais) TAMBÉM...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... DITO ISSO, AGORA DEVEMOS ESTUDAR AS __ ARROW FUNCTIONS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+------------
+
+
+
+ARROW FUNCTIONS:
+
+
+
+
+
+
+
+
+-- FORAM INTRODUZIDAS COM O PHP 7.4...
+
+
+
+
+
+
+
+
+
+-- É  UMA SINTAXE MAIS 'CLEAN' DE ANON FUNCTIONS,
+    COM ALGUMAS POUCAS DIFERENÇAS...
+
+
+
+
+
+
+
+
+
+-- A SINTAXE DE ARROW FUNCTIONS É ESPECIALMENTE ÚTIL __COMO 
+    UMA ESPÉCIE DE 'INLINE CALLBACK FUNCTION'...
+
+
+
+
+
+
+
+--> OU SEJA, SÃO ESPECIALMENTE ÚTEIS QUANDO PASSADAS 
+    COMO ARGUMENTS PARA OUTRAS FUNCTIONS/built-in functions do php...
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+// Arrow functions:
+
+$array = [1, 2, 3, 4];
+
+
+array_map(
+    
+
+    fn($number) => $number * $number,
+    $array
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA, A SINTAXE É UM POUCO DIFERENTE DA SINTAXE DO JAVASCRIPT...
+
+
+
+
+
+
+
+É ASSIM:
+
+
+
+
+
+
+fn($number) => $number * $number;
+
+
+
+
+
+
+
+
+
+fn() 
+
+
+
+
+
+AÍ, DENTRO DOS (), a definição dos parameters...
+
+
+
+
+AÍ, DEPOIS DISSO, '=>', 
+
+
+e aí 
+
+
+A EXPRESSION... A EXPRESSION A SER RETORNADA... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É UM POUCO PARECIDO COM AS ARROW DO JAVASCRIPT,
+
+MAS 1 POUCO DIFERENTE TAMBÉM...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA VEREMOS AS DIFERENÇAS 
+DAS ARROW FUNCTIONS EM RELAÇÃO A FUNCTIONS NORMAIS:
+
+
+
+
+1) VOCÊ SEMPRE PODE ACESSAR AS VARIABLES DO PARENT SCOPE, NAS ARROW FUNCTIONS,
+    SEM __ PRECISAR UTILIZAR A KEYWORD DE 'use()'...
+
+
+
+
+
+
+EX:
+
+
+
+
+// Arrow functions:
+
+$array = [1, 2, 3, 4];
+
+$y = 5;
+
+
+array_map(
+    
+
+    fn($number) => $number * $number * $y, // we can access '$y', from the global scope, as normal.
+    $array
+)
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... MAS, AQUI, VC DEVE TER 
+
+
+UM QUIRK EM MENTE:
+
+
+''ARROW FUNCTIONS USE THE VARIABLES FROM THE PARENT SCOPE 
+    WITH A 'BY-VALUE' VARIABLE BINDING... ISSO QUER DIZER QUE 
+
+    __VC NÃO É CAPAZ _ DE MODIFICAR _ O VALUE __ DA GLOBAL VARIABLE/PARENT SCOPE 
+     DE DENTRO DA ARROW FUNCTION...''
+
+
+
+
+
+OU SEJA, SE ESCREVEMOS ALGO COMO '++$y' no meio da expression da arrow function,
+    SIM, esse value será incrementado, MAS APENAS NO SCOPE DA ARROW FUNCTION...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+// Arrow functions:
+
+$array = [1, 2, 3, 4];
+
+$y = 5;
+
+
+array_map(
+    
+
+    fn($number) => $number * $number * ++$y, // the value will only be altered on this scope, and not globally...
+    $array
+)
+
+
+
+
+
+
+
+
+
+
+
+
+2) A SEGUNDA DIFERENÇA É QUE 
+    ARROW FUNCTIONS POSSUEM 1 SINGLE EXPRESSION,
+
+    E AÍ VC RETORNA O VALUE DAQUELA EXPRESSION...
+
+
+
+
+
+    --> É 1 SINGLE EXPRESSION, VC NÃO PODE TER MÚLTIPLAS LINES...
+
+
+
+
+
+
+    --> O MÁXIMO QUE VC PODE FAZER É ESCREVER 1 ARRAY, 
+        E AÍ USAR MULTI-LINE... MAS VOCE NÃO PODE FAZER 
+
+        COISAS COMO 
+
+
+        expression1;
+        expression2;
+        expression3;
+
+
+
+
+    --> NO FUTURO, SERIA LEGAL 
+        SE ESSA RESTRICTION FOSSE REMOVIDA, MAS, POR ENQUANTO, 
+
+        PODEMOS APENAS RETORNAR 1 SINGLE EXPRESSION...
+
+
+
+
+
+
+
+
+
+    --NA PRÓXIMA AULA, VEREMOS COMO PODEMOS TRABALHAR COM DATES, NO PHP...
