@@ -1,0 +1,1089 @@
+ 
+
+
+
+
+
+
+
+
+
+
+ VARIABLE SCOPES:
+
+
+
+
+
+
+
+
+ ---> ISSO SIMPLESMENTE SIGNIFICA A 'BOUNDARY' DE ONDE A VARIABLE PODE SER ACESSADA...
+
+
+
+
+
+
+
+
+
+ TEMOS A GLOBAL E A LOCAL SCOPE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+ --> NA SUA GRANDE MAIORIA, AS VARIABLES DO PHP POSSUEM 1 SINGLE SCOPE,
+    E ESSA SCOPE 'SPANS' AS FILES INCLUDED E REQUIRED TAMBÉM...
+
+
+
+
+
+
+
+
+
+--> FALAREMOS MAIS SOBRE O SCOPE QUANDO FALARMOS SOBRE OOP PHP...
+
+
+
+
+
+
+
+
+
+--> MAS QUANDO VC DEFINE 1 VARIABLE ASSIM:
+
+
+
+
+
+
+
+
+
+$x = 5;
+
+
+
+
+
+
+
+
+
+
+essa variable fica available no global scope... quer dizer que ela fica 
+DISPONÍVEL AO LONGO DO SCRIP INTEIRO...  
+
+
+
+
+
+E ISSO TAMBÉM QUER DIZER QUE ELA FICA DISPONÍVEL AOS SCRIPTS QUE SÃO INCLUÍDOS POSTERIORMENTE,
+COM OS STATEMENTS DE 'INCLUDE' E 'REQUIRE'..
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+$x = 5;
+
+
+
+include('script1.php'); // a variable '$x' fica disponível nessa file também, e podemos a utilizar lá...
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+(file 1):
+
+
+$x = 5;
+
+
+
+include('script1.php');
+
+
+
+
+
+
+
+
+
+
+
+
+(file 2, script1.php):
+
+
+
+$x = 10; /// REASSIGNAMOS O VALUE DA VARIABLE, PARA 10, em vez de 5....
+
+
+
+
+
+
+
+(file 1, novamente):
+
+
+
+
+
+
+
+$x = 5;
+
+
+
+include('script1.php');
+
+
+
+echo $x;  //// QUANDO FIZERMOS ECHO DE ESSA VARIABLE, FICAREMOS COM '10' (pq ela terá sido afetada pela file de script1.php que foi importada...)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... ISSO FAZ SENTIDO...
+
+
+
+
+
+
+
+
+É DIFERENTE DO JAVASCRIPT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--- POR OUTRO LADO, QUANDO VC DEFINE 1 FUNCTION, AS VARIABLES 
+    DEFINIDAS DENTRO DA SUA FUNCTION TERÃO _ LOCAL_ SCOPE, E FICARÃO 
+    ADSTRITAS AO 'LOCAL FUNCTION SCOPE'... AS FUNCTIONS NÃO PODEM USAR VARIABLES 
+    DO CONTEXTO GLOBAL DIRETAMENTE... é diferente do javascript, nesse aspecto...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+$x = 5;
+
+
+
+function foo() {
+
+    echo $x;  //// ISSO NÃO É POSSÍVEL, POIS '$x' existe no contexto global, mas não foi passado como parameter de essa function...
+}
+
+
+
+foo(); ///// ISSO VAI DAR ERRO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O IDE JÁ NOS MOSTRA QUE ISSO É IMPOSSÍVEL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO ACONTECE PQ 
+
+
+
+
+''''EVERY VARIABLE WITHIN A FUNCTION 
+    HAS LOCAL SCOPE'''...
+
+
+
+
+
+
+
+
+
+
+--> PARA QUE A VARIABLE '$x' consiga EXISTIR DENTRO DA FUNCTION DE FOO,
+    dentro do function local scope,
+
+    TEMOS 3 OPTIONS:
+
+
+
+
+
+
+
+1) DEFINIR UMA VARIABLE INTERNA NA FUNCTION, TIPO ASSIM:
+
+
+
+$x = 5;
+
+function foo() {
+    $x = 1;
+    echo $x;    // this will work
+} 
+
+
+
+
+
+
+2) DEFINIR A VARIABLE COMO __ ARGUMENT __ DE ESSA FUNCTION, E AÍ 
+    PASSAR O GLOBAL VALUE COMO ARGUMENT...
+
+
+TIPO ASSIM:
+
+
+
+
+$x = 5;
+
+function foo($x) {
+    $x = 1;
+    echo $x;    
+} 
+
+
+foo($x); // this will work
+
+
+
+
+
+
+
+
+
+
+E, POR FIM, A ÚLTIMA OPTION:
+
+
+
+
+
+
+3) USAR A KEYWORD 'global', para acessar as variables 
+    no global scope...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+$x = 5;
+
+
+
+function foo() {
+    global $x; /// EIS O CÓDIGO EM QUESTÃO.
+
+
+    echo $x;
+}
+
+
+
+foo();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> QUANDO ACESSAMOS VARIABLES GLOBALMENTE ASSIM, 
+
+    TAMBÉM SOMOS CAPAZES DE ALTERAR O VALUE DAS VARIABLES GLOBAIS,
+
+    TIPO ASSIM:
+
+
+
+
+    
+$x = 5;
+
+
+
+function foo() {
+    global $x; /// global reference
+
+    $x = 10;
+
+    echo $x; /// will print 10.
+}
+
+
+
+foo();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... MAS ISSO É MEIO RUIM, PQ 
+    QUANDO 
+
+
+    VC CHAMA 'global $x;',
+
+
+    vc CRIA 1 REFERENCE À ORIGINAL GLOBAL VARIABLE...
+
+
+
+
+
+
+    O QUE QUER DIZER QUE QUAISQUER ALTERAÇÕES A ESSA VARIABLE,
+    DE DENTRO DA FUNCTION,
+
+    VÃO ALTERAR 
+
+    A GLOBAL VARIABLE ORIGINAL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- OUTRO DETALHE:
+
+
+
+
+
+
+
+''O PHP GUARDA TODAS AS GLOBAL VARIABLES EM 1 ___""ASSOCIATIVE ARRAY""
+    CHAMADO DE '$GLOBALS', em que a KEY é a VARIABLE NAME, 
+    E O VALUE É O VALUE DA VARIABLE''...
+
+
+
+
+
+
+
+
+--> E PODEMOS, ALÉM DISSO, ACESSAR AS GLOBAL VARIABLES 
+    POR MEIO DE 
+
+
+    $GLOBALS, 
+
+
+    em vez de 
+
+
+    'global $variable_name'...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+    
+$x = 5;
+
+
+
+function foo() {
+    
+    echo $GLOBALS['x']; //// WE ACCESS THE GLOBAL VARIABLE, USING THE 'GLOBALS' built-in associative array
+}
+
+
+
+foo(); // we also get '5' printed out..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TAMBÉM PODEMOS MUDAR O VALUE DAS GLOBAL VARIABLES COM '$GLOBALS',
+    basta escrever assim:
+
+
+
+
+
+
+
+
+$x = 5;
+
+
+
+function foo() {
+    
+    $GLOBALS['x'] = 10; //// WE ALTER THE ORIGINAL VALUE...
+
+    echo $GLOBALS['x']; // we get '10' printed out..
+}
+
+
+
+foo(); 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESSE GLOBAL DE '$GLOBALS' 
+
+é chamado, no php, 
+
+de SUPERGLOBAL... É UM DOS SUPERGLOBALS DISPONÍVEIS A NÓS, NO PHP...  
+
+
+
+
+
+
+
+
+
+
+
+
+
+---> O '$GLOBALS' (superglobal) 
+
+    e as GLOBAL VARIABLES, em geral, 
+
+    SÃO ALGO QUE 
+
+    VC 
+
+    DEVE EVITAR 
+
+    A TODO CUSTO...
+
+
+
+
+
+
+--> GLOBALS DEIXAM O CÓDIGO MAIS DIFÍCIL DE LER,
+    MAIS DIFÍCIL DE MAINTAIN E TRAZEM MAIS BUGS...
+
+
+
+
+
+
+
+
+
+
+
+--> EM VEZ DE FAZER AS COISAS ASSIM,    
+
+    VC DEVE:
+
+
+
+
+    1) USAR AS FUNCTION PARAMETERS
+
+
+    2) USAR OS RETURNS DAS FUNCTIONS 
+
+
+
+
+    usar tudo isso para conseguir colocar data para dentro 
+    e para fora de nossas functions...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> FALAREMOS MAIS SOBRE OS OUTROS GLOBALS,
+    COMO 
+
+    'SESSIONS'
+
+ 
+    'COOKIES'
+
+
+
+    'REQUEST'
+
+
+
+    mais tarde...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA FALAREMOS SOBRE OUTRO TÓPICO, QUE É 'STATIC VARIABLES'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+STATIC VARIABLES:
+
+
+
+
+
+
+
+
+
+-- É APENAS UMA VARIABLE NORMAL, MAS COM LOCAL SCOPE...
+
+
+
+
+
+-- A DIFERENÇA ENTRE VARIABLES NORMAIS E STATIC VARIABLES É QUE 
+
+
+    'VARIABLES NORMAIS' ACABAM _ dESTRUÍDAS __ EM LUGARES 
+    EXTERIORES AO 'SCOPE BOUNDARY',
+
+    ENQUANTO QUE AS STATIC VARIABLES __ NÃO ACABAM DESTRUÍDAS, e retêm seus values...
+
+
+
+
+--> QUER DIZER QUE AS STATIC VARIABLES __ MANTÊM SEU VALUE,
+    MESMO fora de suas boundaries...
+
+
+
+
+
+
+
+
+
+
+
+
+
+PARA EXEMPLIFICAR, O PROFESSOR ESCREVE ISTO:
+
+
+
+
+
+EX:
+
+
+
+
+
+
+function getValue() {
+    $value = someVeryExpensiveFunction();
+
+
+    // some more processing with $value
+
+
+    return $value;
+}
+
+
+
+function someVeryExpensiveFunction() {
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+DIGAMOS QUE VC AINDA FARÁ UM POUCO DE PROCESSAMENTO COM OS DADOS 
+RETORNADOS DE 'someVeryExpensiveFunction()'...
+
+
+
+
+
+-> PODEMOS SIMULAR 
+    A EXPENSIVE FUNCTION COM 'sleep(2)',
+
+    TIPO ASSIM:
+
+
+
+
+
+
+function getValue() {
+    $value = someVeryExpensiveFunction();
+
+
+    // some more processing with $value
+
+
+    return $value;
+}
+
+
+
+function someVeryExpensiveFunction() {
+    sleep(2);
+
+    return 10;
+}
+
+
+
+
+
+
+echo getValue() . '<br />';
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... COM ISSO, AQUELE 'echo getValue()' 
+
+
+VAI FAZER 
+
+PRINT DO VALUE APENAS 
+
+
+DEPOIS DE 2 SEGUNDOS...
+
+
+
+
+
+E ISSO É RUIM... PQ IMAGINE QUE VC PRECISE 
+CHAMAR ESSA FUNCTION MÚLTIPLAS VEZES, ESSA FUNCTION DE 'getValue()':
+
+
+
+
+
+
+
+
+function getValue() {
+    $value = someVeryExpensiveFunction();
+
+
+    // some more processing with $value
+
+
+    return $value;
+}
+
+
+
+function someVeryExpensiveFunction() {
+    sleep(2);
+
+    return 10;
+}
+
+
+
+
+
+
+echo getValue() . '<br />';
+echo getValue() . '<br />';
+echo getValue() . '<br />';
+
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ, A CADA CALL, ISSO DEMORARIA 2 SEGUNDOS...
+
+
+
+
+
+
+
+
+--> A QUESTÃO, AQUI,
+    É QUE 
+
+    O VALUE RETORNADO 
+
+
+
+    POR 'someVeryExpensiveFunction()'
+
+
+    NUNCA MUDA,
+
+    É SEMPRE O MESMO... PQ NÃO ESTAMOS PASSANDO 
+    ARGUMENTS, E NÃO ESTAMOS RODANDO NADA QUE POSSA TER VARIANCIA...
+
+
+
+
+
+
+
+--> RETORNA SEMPRE 10...
+
+
+
+
+
+
+
+
+
+--> O QUE PODEMOS FAZER, AQUI, É USAR 
+    STATIC VARIABLES, com 'someVeryExpensiveFunction',
+
+    PARA CACHEAR__ O RESULTADO (de 10)....
+
+
+
+
+
+
+
+
+
+--> MAS COMO FARÍAMOS ISSO?
+
+
+
+
+
+
+
+
+
+
+1) PRECISAMOS USAR A KEYWORD DE 'static' na frente da nossa variable ('$static value')
+
+
+
+
+2) INICIALMENTE, DEFINIMOS O VALUE DE '$static value' como sendo NULL...
+
+
+
+
+3) DEPOIS, CHECAMOS, COM IF, se o '$value' está null...
+    se ele estiver como null, definimos o value de essa variable 
+    como sendo o resultado de 'someVeryExpensiveFunction()'...
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+function getValue() {
+    static $value = null; //// 1
+
+
+    if ($value === null) {  ///// 2
+        $value = someVeryExpensiveFunction(); ///// 3
+    }
+
+    return $value;
+}
+
+
+
+function someVeryExpensiveFunction() {
+    sleep(2);
+
+    return 10;
+}
+
+
+
+
+
+
+echo getValue() . '<br />';
+echo getValue() . '<br />';
+echo getValue() . '<br />';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, AO RECARREGARMOS A PAGE,
+    TEREMOS O SLEEP ACONTECENDO APENAS 1 ÚNICA VEZ...
+
+    E AÍ O '10' SERÁ PRINTADO 3x...
+
+
+
+
+
+
+
+
+--> SIGNIFICA QUE 'someVeryExpensiveFunction()' foi executado
+    APENAS 1 ÚNICA VEZ...
+
+
+
+
+    QUER DIZER QUE STATIC VARIABLES PODEM SER ÚTEIS PARA CASOS COMO ESTE,
+    EM QUE VC PRECISA __ CACHEAR__ CÁLCULOS/RESULTADOS DE OPERATIONS...
+
+
+
+
+
+
+-> HÁ MAIS USE-CASES E COISAS A SABER SOBRE A KEYWORD DE STATIC... VEREMOS 
+    MAIS SOBRE ISSO QUANDO ESTUDARMOS OBJECT-ORIENTED PROGRAMMING...

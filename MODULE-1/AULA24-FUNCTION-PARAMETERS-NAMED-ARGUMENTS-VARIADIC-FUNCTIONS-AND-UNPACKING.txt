@@ -574,3 +574,1036 @@ SIGNIFICA QUE O VALUE ORIGINAL SERÁ AFETADO... QUER DIZER QUE MODIFICAMOS A VAR
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+O PRÓXIMO TÓPICO É 
+
+
+
+
+
+'SPREAD OPERATOR' E 'VARIADIC FUNCTIONS'...
+
+
+
+
+
+
+
+
+
+'VARIADIC FUNCTIONS'  --> SÃO FUNCTIONS QUE 
+                            ACEITAM _ MÚLTIPLAS 
+                            QUANTIDADES 
+
+                            DE PARAMETERS...
+
+
+
+
+
+
+
+
+
+
+
+PARA COMEÇAR, O PROFESSOR REESCREVE A FUNCTION DE FOO, ASSIM:
+
+
+
+
+
+
+function sum(int|float &$x, int|float $y): int|float {
+
+
+    return $x + $y;
+}
+
+
+
+$a = 6.0;
+$b = 7;
+
+
+
+
+echo sum($a, $b);
+
+
+
+
+
+
+
+
+
+
+
+
+AO FAZER ISSO, FICAMOS COM 1 VALUE DE 13...
+
+
+
+
+
+CERTO... MAS AO FAZERMOS ISSO, 
+        FICAMOS COM 1 FUNCTION QUE FICA LIMITADA A APENAS 2 ARGUMENTS...
+
+
+
+
+MESMO SE VC COLOCAR 1 TERCEIRO PARAMETER, COMO '50',
+
+ELE NÃO SERÁ INCLUSO NA OPERAÇÃO:
+
+
+
+
+function sum(int|float &$x, int|float $y): int|float {
+
+
+    return $x + $y;
+}
+
+
+
+$a = 6.0;
+$b = 7;
+
+
+
+
+echo sum($a, $b, 50); // 50 won't have any effect on the result, will still be 13...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE PODERÍAMOS COLOCAR MAIS 1 SLOT, MAIS 1 PARAMETER,
+
+MAS AÍ TERÍAMOS QUE FAZER ISSO PARA CADA VALUE QUE GOSTARÍAMOS DE 
+
+ADICIONAR A MAIS...
+
+
+
+
+
+
+
+
+
+
+--> SE QUEREMOS QUE A FUNCTION ACEITE UM NÚMERO ___ INFINITO__ DE PARAMETERS,
+
+    BASTA USAR O _ SPREAD OPERATOR NA DEFINIÇÃO DA FUNCTION,
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+function sum(...$numbers): int|float {
+
+
+    return $x + $y;
+}
+
+
+
+$a = 6.0;
+$b = 7;
+
+
+
+
+echo sum($a, $b, 50, 40, 30, 500, 1000, 2000, 251); // All these arguments will be passed as '$numbers'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> E ESSES PARAMETERS SERÃO representados por '$numbers', na function... e 
+        esse '$numbers' será um ARRAY....
+
+
+
+
+
+
+
+
+
+
+-> PARA ADICIONAR TODOS OS NUMBERS DE "$numbers" a si mesmos,
+    vc pode usar 
+
+
+    'foreach',
+
+
+    TIPO ASSIM:
+
+
+
+
+
+    
+function sum(...$numbers): int|float {
+
+
+    $sum = 0;
+
+    foreach($numbers as $number) {
+        $sum += $number; // will add all the numbers together...
+    }
+
+    return $sum;
+}
+
+
+
+$a = 6.0;
+$b = 7;
+
+
+
+
+echo sum($a, $b, 50, 40, 30, 500, 1000, 2000, 251); // the function will return the sum of the numbers
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+E ISSO É REALMENTE FUNCIONA,
+
+VAMOS CONSEGUIR O VALUE CORRETO, SOMA DE TUDO ISSO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODERÍAMOS CONSEGUIR ESSE MESMO RESULTADO 
+
+COM O USO DE 1 BUILT-IN FUNCTION, A FUNCTION DE 'array_sum()',
+
+
+
+
+BASTARIA CHAMAR ASSIM:
+
+
+
+
+
+
+    
+function sum(...$numbers): int|float {
+
+
+    return array_sum($numbers); // the same as the last syntax, with 'foreach', but much shorter
+}
+
+
+
+$a = 6.0;
+$b = 7;
+
+
+
+
+echo sum($a, $b, 50, 40, 30, 500, 1000, 2000, 251); // the function will return the sum of the numbers
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ESSA ESCRITA É BEM MENOR, BEM MAIS EFICIENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> DETALHE:
+
+
+O SPREAD OPERATOR PODE SER ESCRITO DEPOIS DE UM FIXED AMOUNT OF PARAMETERS...
+
+
+
+BASTA ESCREVER OS PARAMETERS 'FIXOS' ANTES DO PARAMETER QUE USA O SPREAD OPERATOR... É EXATAMENTE COMO NO JAVASCRIPT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS EM UTILIZAÇÕES NO MUNDO REAL, VC PROVAVELMENTE 
+    NUNCA USARÁ 
+
+
+    ALGO COMO 
+
+
+
+
+'function sum(int|float &$x, int|float $y, ...$numbers): int|float {  ''
+
+
+
+
+
+
+
+
+
+
+
+
+
+EM 1 REAL-LIFE APPLICATION,
+
+
+VC PROVAVELMENTE FARIA 1 TIPO DE PROCESSING COM OS ARGUMENTS 
+QUE 
+
+SÃO PASSADOS (talvez iterate por dentro deles, fazer algum tipo de processing, e só então faria 
+                            suas calculations... mas isso aí tudo é apenas para mostrar como isso funciona)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VC TAMBÉM PODE USAR VALUE TYPING COM 
+
+
+
+
+O SPREAD OPERATOR, TIPO ASSIM:
+
+
+
+
+
+
+'function sum(int|float &$x, int|float $y, int|float ...$numbers): int|float {  ''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OUTRO USO PARA O SPREAD OPERATOR:
+
+
+
+
+
+
+''YOU CAN USE THE SPREAD OPERATOR TO 'UNPACK' AN ARRAY INTO 
+    AN __ ARGUMENT LIST...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+    
+function sum(int|float ...$numbers): int|float {
+
+
+    return array_sum($numbers); 
+}
+
+
+
+
+$a = 6.0;
+$b = 7;
+$numbers = [50, 100, 25.90, 8, 9];
+
+
+
+echo sum($a, $b, $numbers); // THIS WOULD RETURN AN ERROR, BECAUSE WE ARE TRYING TO PASS AN ARRAY ($numbers) in a slot that only accepts int/float...
+
+
+
+
+
+
+
+
+
+
+
+
+AQUI FICARÍAMOS COM 1 ERROR, PQ 
+
+
+ESTAMOS TENTANDO FAZER PASS DE 1 VALUE QUE É UM ARRAY A 1 SLOT QUE SÓ ACEITA 
+INT/FLOAT...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA CONSEGUIR PASSAR AQUELE ARRAY COMO ARGUMENTO,
+    BASTA USAR O SPREAD OPERATOR, TIPO ASSIM:
+
+
+
+
+    
+    
+function sum(int|float ...$numbers): int|float {
+
+
+    return array_sum($numbers); 
+}
+
+
+
+
+$a = 6.0;
+$b = 7;
+$numbers = [50, 100, 25.90, 8, 9];
+
+
+
+echo sum($a, $b, ...$numbers); // ISSO FUNCIONARIA, PQ ESTAMOS UNPACKING TODOS OS NUMBERS DENTRO DAQUELE ARRAY..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OBS: O NOME DESSE OPERATOR NÃO É 'SPREAD OPERATOR', NÃO TEM 1 NOME OFICIAL... TAMBÉM É CHAMADO DE ELIPSIS OPERATOR OU UNPACKING OPERATOR...
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+OUTRO DETALHE: 
+
+                DESDE O PHP 7.4, VC PODE 
+                USAR ESSE OPERATOR PARA UNPACK ARRAYS EM OUTROS ARRAYS (chamado de 'spread operation')..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... AGORA VEREMOS OUTRA FEATURE, INTRODUZIDA NO PHP 8...
+
+
+
+
+
+
+
+
+
+
+--> A FEATURE É CHAMADA DE 'NAMED ARGUMENTS'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NAMED ARGUMENTS: 
+
+
+
+
+
+
+
+
+-- NAMED ARGUMENTS TE DEIXAM PASSAR ARGUMENTS À FUNCTION 
+    __ COM BASE__ NA 'PARAMETER VARIABLE NAME',
+
+
+    O QUE SIGNIFICA QUE 
+
+
+    __ OS PARAMETERS NÃO PRECISAM SER PASSADOS EM ORDEM,
+
+    PODEM SER PASSADOS DE FORMA DESORDENADA...
+
+
+
+
+
+
+
+
+
+
+
+
+-> OU SEJA, É TOTALMENTE DIFERENTE DO JAVASCRIPT... PQ, NO JAVASCRIPT, A ORDEM SEMPRE DEVE SER RESPEITADA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS COMO PODEMOS USAR ESSA SINTAXE AÍ, ALTERNATIVA?
+
+
+
+
+
+
+
+
+''SINCE PHP 8, PHP ALLOWS YOU TO __ NAME__ YOUR ARGUMENTS...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+-->  SE VC QUER COLOCAR __NAMES__ NOS ARGUMENTS QUE VC ESTÁ PASSANDO, VC ESCREVE ASSIM:
+
+
+
+
+function foo(int|float &$x, int|float $y): int|float {
+    if ($x % 2 === 0) {
+        return $x / $y; //// este código será executado.
+    }
+
+    return $x;
+}
+
+
+
+
+$x = 6;
+$y = 3;
+
+
+
+echo foo(y: $y, x: $x); //// VAMOS RECEBER 2...
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... QUER DIZER QUE A ORDEM NÃO IMPORTA MAIS, COM ISSO...
+
+
+
+
+
+
+
+
+E HÁ MÚLTIPLOS USE-CASES 
+
+
+PARA ESSE TIPO DE SINTAXE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+USE-CASE 1 --> ''SE VC QUISESSE REALMENTE TROCAR A ORDER DOS ARGUMENTS 
+                NA FUNCTION, VC TERIA DE ENTRAR NA FUNCTION E 
+                UPDATAR A ORDEM EM TODOS OS LOCAIS EM QUE SUA FUNCTION É CHAMADA...'
+
+
+
+                (E SE VC USA NAMED ARGUMENTS, VOCE N TEM MAIS QUE SE PREOCUPAR COM O UPDATE 
+                DAS CALLS DE SUAS FUNCTIONS, PQ A ORDEM NÃO VAI MAIS IMPORTAR....)
+
+
+
+
+
+                MESMO ASSIM, SE VC ALGUMA HORA MUDAR O NOME DE ALGUM DE SEUS PARAMETERS, 
+                VC AINDA TERÁ DE IR EM TODOS OS LOCAIS DE SEU CÓDIGO EM QU VC CHAMA ESSA FUNCTION 
+                AÍ, PARA COLOCAR O NOME/KEY CORRETA para esse parameter que vc alterou, nos calls 
+                dessa function...
+
+
+
+
+
+
+
+USE-CASE 2 ------> QUANDO VC TEM 1 MONTE DE PARAMETERS QUE POSSUEM 
+                   DEFAULT VALUES...
+
+
+                    --> POR EXEMPLO, O PHP tem uma function chamada de 'setcookie()'...
+
+                        --> SE VISUALIZAMOS OS PARAMETERS DE ESSA FUNCTION, PERCEBEMOS QUE 
+                            UM MONTE DELES POSSUEM VALUE DEFAULT DE 'false'...
+
+
+                        --> ISSO QUER DIZER QUE PODEMOS SIMPLESMENTE PASSAR O PRIMEIRO PARAMETER,
+                            o value para 'name', que essa function já vai funcionar legal...
+
+                        
+
+                        --> OK... MAS DIGAMOS QUE VC APENAS QUER PASSAR 'name' (o primeiro parameter),
+                                value (o segundo parameter) e APENAS O ÚLTIMO PARAMETER, ignorando
+                                 todos os outros values/parameters...
+
+
+
+                            se não usarmos/usássemos named arguments, seríamos 
+                            FORÇADOS A ESCREVER TODOS OS DEFAULT VALUES ENTRE ESSE 1o e 2o parameters 
+                            e o último parameter __ MANUALMENTE,
+
+                            TIPO ASSIM:
+
+
+
+                            setcookie('foo', 'bar', 0, "", "", false, true); // Ou seja, um monte de código até chegar ao 'true', que é o value do último parameter (chamado de 'httponly', esse parameter)..
+
+
+                            
+
+                            SE VC USA OS NAMED ARGUMENTS, FICA TIPO ASSIM:
+
+
+
+
+                            setcookie(name: 'foo', value: 'bar', httponly: true);
+
+
+
+
+
+
+
+                            --> OU SEJA, COMO VC PODE VER, 
+                                ISSO TEM 1 APARENCIA BEM MAIS CLEAN,
+                                E VC NAO PRECISA SE IMPORTAR 
+
+                                COM O PASS DE ESSES DEFAULT VALUES MANUALMENTE...
+
+                                (E, SE NO FUTURO, ESSES DEFAULT  VALUES FOREM ALTERADOS,
+                                VC NÃO PRECISA ALTERAR ESSES VALUES NO SEU CÓDIGO...)
+
+
+
+
+
+
+
+
+
+DETALHE:
+
+
+-- VOCE NÃO PODE PASSAR 2 NAMED ARGUMENTS COM O MESMO NOME:
+
+
+
+
+
+
+
+echo foo(x: $y, x: $x); /// WILL THROW AN ERROR, BECAUSE 2 NAMED ARGUMENTS HAVE THE SAME NAME...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VC TAMBÉM PODE __ COMBINAR__ NAMED ARGUMENTS COM 'POSITION ARGUMENTS' (os arguments comuns),
+
+        CONTANTO QUE __ OS NAMED ARGUMENTS _ SEJAM PASSADOS_ _ DEPOIS __ DOS POSITION ARGUMENTS COMUNS...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+echo foo($x, y: $y);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OUTRO DETALHE:
+
+
+
+
+
+
+
+
+''QUANDO VC ESTÁ USANDO ARGUMENT UNPACKING,
+    SE SEU ARRAY POSSUI ''ASSOCIATIVE ARRAY KEYS'',
+                        ESSAS KEYS SERÃO TRATADAS 
+                        COMO 
+
+                        OS ARGUMENT NAMES...
+
+
+
+
+
+
+
+
+O QUE ISSO SIGNIFICA?
+
+
+
+
+
+
+
+
+VEJA ESTE EXEMPLO:
+
+
+
+
+
+
+
+
+
+
+
+function foo(int|float &$x, int|float $y): int|float {
+
+    var_dump($x, $y); // int(1) e int(2) são printados no console.
+    if ($x % 2 === 0) {
+        return $x / $y; 
+    }
+
+    return $x;
+}
+
+
+
+$arr = ['x' => 1, 'y' => 2];
+
+
+
+echo foo(...$arr); // FICAMOS COM 'int(1)' como return value... QUER DIZER QUE 'x' e 'y', de dentro do array, são tratados como ARGUMENT NAMES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO TAMBÉM FUNCIONA, DA MESMA FORMA:
+
+
+
+
+
+
+function foo(int|float &$x, int|float $y): int|float {
+
+    var_dump($x, $y); // int(1) e int(2) são printados no console.
+    if ($x % 2 === 0) {
+        return $x / $y; 
+    }
+
+    return $x;
+}
+
+
+
+$arr = [ 'y' => 2, 'x' => 1]; // funciona exatamente como antes, trocar de ordem não importa, pq é um associative array...
+
+
+
+echo foo(...$arr); 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NAMED ARGUMENTS PODEM SER MT ÚTEIS, PORTANTO....
+
+
+
+
+
+
+
+
+
+
+
+-> NA PRÓXIMA AULA FALAREMOS SOBRE VARIABLE SCOPES...
