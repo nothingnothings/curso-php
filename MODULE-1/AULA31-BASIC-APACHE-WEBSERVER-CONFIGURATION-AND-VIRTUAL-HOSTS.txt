@@ -1,0 +1,4386 @@
+
+
+
+
+
+
+
+O APACHE VEM INSTALADO E CONFIGURADO 
+
+COM SEU XAMPP...
+
+
+
+
+
+
+
+
+
+MAS VC TALVEZ PRECISE INSTALAR E CONFIGURAR O APACHE POR CONTA PRÓPRIA,
+
+EM ALGUM MOMENTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE É IMPORTANTE ENTENDER E SABER 
+COMO 
+
+
+__ A CONFIG FILE__ SE PARECE,
+
+
+E COMO 
+
+ALTERÁ-LA, SE NECESSÁRIO...
+
+
+
+
+
+
+
+
+NESSE VÍDEO, VEREMOS:
+
+
+
+
+
+
+
+1) BASICS DO APACHE CONFIG 
+
+2) COMO RE-WRITE URLS USANDO '.htaccess'
+
+3) ETC...
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESSA PARTE DO CURSO NÃO TEM RELAÇÃO DIRETA COM PHP,
+    E SIM COM O APACHE,
+
+
+    MAS AINDA ASSIM É UM TÓPICO IMPORTANTE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PRIMEIRAMENTE, O PROFESSOR FALA SOBRE A FILE DE CONFIG DO APACHE...
+
+
+
+
+
+
+
+
+
+
+
+
+--> A LOCALIZAÇÃO DO ARQUIVO CONFIG APACHE DEPENDE DE ALGUNS FATORES,
+
+    MAS A LOCALIZAÇÃO DEFAULT 
+
+
+    É 
+
+
+
+
+    usr/local/apache2/conf
+
+
+
+
+
+
+
+
+--> PARA O XAMPP, NO ENTANTO,
+    ESSA CONFIGURATION FILE 
+    FICA DENTRO
+     
+
+     DO DIRECTORY 
+
+
+
+     'xampp/apache/conf'...
+
+
+
+
+
+
+
+
+
+
+
+--> O ARQUIVO QUE INTERESSA É 
+
+
+'httpd.conf'...
+
+
+
+
+
+
+
+
+
+
+
+-> NO XAMPP, PODEMOS ACESSAR ESSA FILE COM 
+
+'config -> Apache'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VC TAMBÉM TEM O BUTTON DE 'BROWSE APACHE FILES'....
+
+
+
+
+
+
+
+
+-> ISSO TE DEIXA VER AS FILES DO APACHE,
+
+    VER COISAS COMO OS LOGS DO APACHE... (no folder 'logs')...
+
+
+
+
+
+
+
+
+
+--> OS LOGS TAMBÉM PODEM SER ACESSADOS COM O BUTTON DE 'logs'...
+
+
+        Apache log 
+        e 
+
+        Apache Error log ...
+
+
+
+
+
+
+
+
+
+
+--> A LOCATION DE ESSES log FILES também DEPENDE
+    DE ALGUNS FATORES,
+
+    E SOMOS CAPAZES 
+
+    DE CONFIGURAR 
+
+    ESSA LOCATION 
+
+
+    DE DENTRO 
+
+
+    DA CONFIG FILE 
+
+    DO APACHE,
+
+    COMO LOGO ESTUDAREMOS...
+
+
+
+
+
+
+
+
+
+--> A LOCATION DEFAULT DOS LOGS É ALGO COMO 
+
+
+/var/log/httpd 
+
+
+
+
+
+
+
+
+
+
+--> MAS, PARA O XAMPP,  
+    A LOCATION É 
+
+    DENTRO 
+
+
+    DE 
+
+    'xampp/apache/logs'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... AGORA ESTUDAMOS A CONFIGURATION FILE DO APACHE...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+
+#
+# This is the main Apache HTTP server configuration file.  It contains the
+# configuration directives that give the server its instructions.
+# See <URL:http://httpd.apache.org/docs/2.4/> for detailed information.
+# In particular, see 
+# <URL:http://httpd.apache.org/docs/2.4/mod/directives.html>
+# for a discussion of each configuration directive.
+#
+# Do NOT simply read the instructions in here without understanding
+# what they do.  They're here only as hints or reminders.  If you are unsure
+# consult the online docs. You have been warned.  
+#
+# Configuration and logfile names: If the filenames you specify for many
+# of the server's control files begin with "/" (or "drive:/" for Win32), the
+# server will use that explicit path.  If the filenames do *not* begin
+# with "/", the value of ServerRoot is prepended -- so "logs/access_log"
+# with ServerRoot set to "/usr/local/apache2" will be interpreted by the
+# server as "/usr/local/apache2/logs/access_log", whereas "/logs/access_log" 
+# will be interpreted as '/logs/access_log'.
+#
+# NOTE: Where filenames are specified, you must use forward slashes
+# instead of backslashes (e.g., "c:/apache" instead of "c:\apache").
+# If a drive letter is omitted, the drive on which httpd.exe is located
+# will be used by default.  It is recommended that you always supply
+# an explicit drive letter in absolute paths to avoid confusion.
+
+#
+# ServerRoot: The top of the directory tree under which the server's
+# configuration, error, and log files are kept.
+#
+# Do not add a slash at the end of the directory path.  If you point
+# ServerRoot at a non-local disk, be sure to specify a local disk on the
+# Mutex directive, if file-based mutexes are used.  If you wish to share the
+# same ServerRoot for multiple httpd daemons, you will need to change at
+# least PidFile.
+#
+Define SRVROOT "C:/xampp/apache"
+
+ServerRoot "C:/xampp/apache"
+
+#
+# Mutex: Allows you to set the mutex mechanism and mutex file directory
+# for individual mutexes, or change the global defaults
+#
+# Uncomment and change the directory if mutexes are file-based and the default
+# mutex file directory is not on a local disk or is not appropriate for some
+# other reason.
+#
+# Mutex default:logs
+
+#
+# Listen: Allows you to bind Apache to specific IP addresses and/or
+# ports, instead of the default. See also the <VirtualHost>
+# directive.
+#
+# Change this to Listen on specific IP addresses as shown below to 
+# prevent Apache from glomming onto all bound IP addresses.
+#
+#Listen 12.34.56.78:80
+Listen 80
+
+#
+# Dynamic Shared Object (DSO) Support
+#
+# To be able to use the functionality of a module which was built as a DSO you
+# have to place corresponding `LoadModule' lines at this location so the
+# directives contained in it are actually available _before_ they are used.
+# Statically compiled modules (those listed by `httpd -l') do not need
+# to be loaded here.
+#
+# Example:
+# LoadModule foo_module modules/mod_foo.so
+#
+LoadModule access_compat_module modules/mod_access_compat.so
+LoadModule actions_module modules/mod_actions.so
+LoadModule alias_module modules/mod_alias.so
+LoadModule allowmethods_module modules/mod_allowmethods.so
+LoadModule asis_module modules/mod_asis.so
+LoadModule auth_basic_module modules/mod_auth_basic.so
+#LoadModule auth_digest_module modules/mod_auth_digest.so
+#LoadModule auth_form_module modules/mod_auth_form.so
+#LoadModule authn_anon_module modules/mod_authn_anon.so
+LoadModule authn_core_module modules/mod_authn_core.so
+#LoadModule authn_dbd_module modules/mod_authn_dbd.so
+#LoadModule authn_dbm_module modules/mod_authn_dbm.so
+LoadModule authn_file_module modules/mod_authn_file.so
+#LoadModule authn_socache_module modules/mod_authn_socache.so
+#LoadModule authnz_fcgi_module modules/mod_authnz_fcgi.so
+#LoadModule authnz_ldap_module modules/mod_authnz_ldap.so
+LoadModule authz_core_module modules/mod_authz_core.so
+#LoadModule authz_dbd_module modules/mod_authz_dbd.so
+#LoadModule authz_dbm_module modules/mod_authz_dbm.so
+LoadModule authz_groupfile_module modules/mod_authz_groupfile.so
+LoadModule authz_host_module modules/mod_authz_host.so
+#LoadModule authz_owner_module modules/mod_authz_owner.so
+LoadModule authz_user_module modules/mod_authz_user.so
+LoadModule autoindex_module modules/mod_autoindex.so
+#LoadModule brotli_module modules/mod_brotli.so
+#LoadModule buffer_module modules/mod_buffer.so
+#LoadModule cache_module modules/mod_cache.so
+#LoadModule cache_disk_module modules/mod_cache_disk.so
+#LoadModule cache_socache_module modules/mod_cache_socache.so
+#LoadModule cern_meta_module modules/mod_cern_meta.so
+LoadModule cgi_module modules/mod_cgi.so
+#LoadModule charset_lite_module modules/mod_charset_lite.so
+#LoadModule data_module modules/mod_data.so
+#LoadModule dav_module modules/mod_dav.so
+#LoadModule dav_fs_module modules/mod_dav_fs.so
+LoadModule dav_lock_module modules/mod_dav_lock.so
+#LoadModule dbd_module modules/mod_dbd.so
+#LoadModule deflate_module modules/mod_deflate.so
+LoadModule dir_module modules/mod_dir.so
+#LoadModule dumpio_module modules/mod_dumpio.so
+LoadModule env_module modules/mod_env.so
+#LoadModule expires_module modules/mod_expires.so
+#LoadModule ext_filter_module modules/mod_ext_filter.so
+#LoadModule file_cache_module modules/mod_file_cache.so
+#LoadModule filter_module modules/mod_filter.so
+#LoadModule http2_module modules/mod_http2.so
+LoadModule headers_module modules/mod_headers.so
+#LoadModule heartbeat_module modules/mod_heartbeat.so
+#LoadModule heartmonitor_module modules/mod_heartmonitor.so
+#LoadModule ident_module modules/mod_ident.so
+#LoadModule imagemap_module modules/mod_imagemap.so
+LoadModule include_module modules/mod_include.so
+LoadModule info_module modules/mod_info.so
+LoadModule isapi_module modules/mod_isapi.so
+#LoadModule lbmethod_bybusyness_module modules/mod_lbmethod_bybusyness.so
+#LoadModule lbmethod_byrequests_module modules/mod_lbmethod_byrequests.so
+#LoadModule lbmethod_bytraffic_module modules/mod_lbmethod_bytraffic.so
+#LoadModule lbmethod_heartbeat_module modules/mod_lbmethod_heartbeat.so
+#LoadModule ldap_module modules/mod_ldap.so
+#LoadModule logio_module modules/mod_logio.so
+LoadModule log_config_module modules/mod_log_config.so
+#LoadModule log_debug_module modules/mod_log_debug.so
+#LoadModule log_forensic_module modules/mod_log_forensic.so
+#LoadModule lua_module modules/mod_lua.so
+LoadModule cache_disk_module modules/mod_cache_disk.so
+#LoadModule macro_module modules/mod_macro.so
+#LoadModule md_module modules/mod_md.so
+LoadModule mime_module modules/mod_mime.so
+#LoadModule mime_magic_module modules/mod_mime_magic.so
+LoadModule negotiation_module modules/mod_negotiation.so
+LoadModule proxy_module modules/mod_proxy.so
+LoadModule proxy_ajp_module modules/mod_proxy_ajp.so
+#LoadModule proxy_balancer_module modules/mod_proxy_balancer.so
+#LoadModule proxy_connect_module modules/mod_proxy_connect.so
+#LoadModule proxy_express_module modules/mod_proxy_express.so
+#LoadModule proxy_fcgi_module modules/mod_proxy_fcgi.so
+#LoadModule proxy_ftp_module modules/mod_proxy_ftp.so
+#LoadModule proxy_hcheck_module modules/mod_proxy_hcheck.so
+#LoadModule proxy_html_module modules/mod_proxy_html.so
+#LoadModule proxy_http_module modules/mod_proxy_http.so
+#LoadModule proxy_http2_module modules/mod_proxy_http2.so
+#LoadModule proxy_scgi_module modules/mod_proxy_scgi.so
+#LoadModule proxy_uwsgi_module modules/mod_proxy_uwsgi.so
+#LoadModule proxy_wstunnel_module modules/mod_proxy_wstunnel.so
+#LoadModule ratelimit_module modules/mod_ratelimit.so
+#LoadModule reflector_module modules/mod_reflector.so
+#LoadModule remoteip_module modules/mod_remoteip.so
+#LoadModule request_module modules/mod_request.so
+#LoadModule reqtimeout_module modules/mod_reqtimeout.so
+LoadModule rewrite_module modules/mod_rewrite.so
+#LoadModule sed_module modules/mod_sed.so
+#LoadModule session_module modules/mod_session.so
+#LoadModule session_cookie_module modules/mod_session_cookie.so
+#LoadModule session_crypto_module modules/mod_session_crypto.so
+#LoadModule session_dbd_module modules/mod_session_dbd.so
+LoadModule setenvif_module modules/mod_setenvif.so
+#LoadModule slotmem_plain_module modules/mod_slotmem_plain.so
+#LoadModule slotmem_shm_module modules/mod_slotmem_shm.so
+#LoadModule socache_dbm_module modules/mod_socache_dbm.so
+#LoadModule socache_memcache_module modules/mod_socache_memcache.so
+#LoadModule socache_redis_module modules/mod_socache_redis.so
+LoadModule socache_shmcb_module modules/mod_socache_shmcb.so
+#LoadModule speling_module modules/mod_speling.so
+LoadModule ssl_module modules/mod_ssl.so
+LoadModule status_module modules/mod_status.so
+#LoadModule substitute_module modules/mod_substitute.so
+#LoadModule unique_id_module modules/mod_unique_id.so
+#LoadModule userdir_module modules/mod_userdir.so
+#LoadModule usertrack_module modules/mod_usertrack.so
+LoadModule version_module modules/mod_version.so
+#LoadModule vhost_alias_module modules/mod_vhost_alias.so
+#LoadModule watchdog_module modules/mod_watchdog.so
+#LoadModule xml2enc_module modules/mod_xml2enc.so
+
+<IfModule unixd_module>
+#
+# If you wish httpd to run as a different user or group, you must run
+# httpd as root initially and it will switch.  
+#
+# User/Group: The name (or #number) of the user/group to run httpd as.
+# It is usually good practice to create a dedicated user and group for
+# running httpd, as with most system services.
+#
+User daemon
+Group daemon
+
+</IfModule>
+
+# 'Main' server configuration
+#
+# The directives in this section set up the values used by the 'main'
+# server, which responds to any requests that aren't handled by a
+# <VirtualHost> definition.  These values also provide defaults for
+# any <VirtualHost> containers you may define later in the file.
+#
+# All of these directives may appear inside <VirtualHost> containers,
+# in which case these default settings will be overridden for the
+# virtual host being defined.
+#
+
+#
+# ServerAdmin: Your address, where problems with the server should be
+# e-mailed.  This address appears on some server-generated pages, such
+# as error documents.  e.g. admin@your-domain.com
+#
+ServerAdmin postmaster@localhost
+
+#
+# ServerName gives the name and port that the server uses to identify itself.
+# This can often be determined automatically, but we recommend you specify
+# it explicitly to prevent problems during startup.
+#
+# If your host doesn't have a registered DNS name, enter its IP address here.
+#
+ServerName localhost:80
+
+#
+# Deny access to the entirety of your server's filesystem. You must
+# explicitly permit access to web content directories in other 
+# <Directory> blocks below.
+#
+<Directory />
+    AllowOverride none
+    Require all denied
+</Directory>
+
+#
+# Note that from this point forward you must specifically allow
+# particular features to be enabled - so if something's not working as
+# you might expect, make sure that you have specifically enabled it
+# below.
+#
+
+#
+# DocumentRoot: The directory out of which you will serve your
+# documents. By default, all requests are taken from this directory, but
+# symbolic links and aliases may be used to point to other locations.
+#
+DocumentRoot "C:/xampp/htdocs"
+<Directory "C:/xampp/htdocs">
+    #
+    # Possible values for the Options directive are "None", "All",
+    # or any combination of:
+    #   Indexes Includes FollowSymLinks SymLinksifOwnerMatch ExecCGI MultiViews
+    #
+    # Note that "MultiViews" must be named *explicitly* --- "Options All"
+    # doesn't give it to you.
+    #
+    # The Options directive is both complicated and important.  Please see
+    # http://httpd.apache.org/docs/2.4/mod/core.html#options
+    # for more information.
+    #
+    Options Indexes FollowSymLinks Includes ExecCGI
+
+    #
+    # AllowOverride controls what directives may be placed in .htaccess files.
+    # It can be "All", "None", or any combination of the keywords:
+    #   AllowOverride FileInfo AuthConfig Limit
+    #
+    AllowOverride All
+
+    #
+    # Controls who can get stuff from this server.
+    #
+    Require all granted
+</Directory>
+
+#
+# DirectoryIndex: sets the file that Apache will serve if a directory
+# is requested.
+#
+<IfModule dir_module>
+    DirectoryIndex index.php index.pl index.cgi index.asp index.shtml index.html index.htm \
+                   default.php default.pl default.cgi default.asp default.shtml default.html default.htm \
+                   home.php home.pl home.cgi home.asp home.shtml home.html home.htm
+</IfModule>
+
+#
+# The following lines prevent .htaccess and .htpasswd files from being 
+# viewed by Web clients. 
+#
+<Files ".ht*">
+    Require all denied
+</Files>
+
+#
+# ErrorLog: The location of the error log file.
+# If you do not specify an ErrorLog directive within a <VirtualHost>
+# container, error messages relating to that virtual host will be
+# logged here.  If you *do* define an error logfile for a <VirtualHost>
+# container, that host's errors will be logged there and not here.
+#
+ErrorLog "logs/error.log"
+
+#
+# LogLevel: Control the number of messages logged to the error_log.
+# Possible values include: debug, info, notice, warn, error, crit,
+# alert, emerg.
+#
+LogLevel warn
+
+<IfModule log_config_module>
+    #
+    # The following directives define some format nicknames for use with
+    # a CustomLog directive (see below).
+    #
+    LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
+    LogFormat "%h %l %u %t \"%r\" %>s %b" common
+
+    <IfModule logio_module>
+      # You need to enable mod_logio.c to use %I and %O
+      LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" %I %O" combinedio
+    </IfModule>
+
+    #
+    # The location and format of the access logfile (Common Logfile Format).
+    # If you do not define any access logfiles within a <VirtualHost>
+    # container, they will be logged here.  Contrariwise, if you *do*
+    # define per-<VirtualHost> access logfiles, transactions will be
+    # logged therein and *not* in this file.
+    #
+    #CustomLog "logs/access.log" common
+
+    #
+    # If you prefer a logfile with access, agent, and referer information
+    # (Combined Logfile Format) you can use the following directive.
+    #
+    CustomLog "logs/access.log" combined
+</IfModule>
+
+<IfModule alias_module>
+    #
+    # Redirect: Allows you to tell clients about documents that used to 
+    # exist in your server's namespace, but do not anymore. The client 
+    # will make a new request for the document at its new location.
+    # Example:
+    # Redirect permanent /foo http://www.example.com/bar
+
+    #
+    # Alias: Maps web paths into filesystem paths and is used to
+    # access content that does not live under the DocumentRoot.
+    # Example:
+    # Alias /webpath /full/filesystem/path
+    #
+    # If you include a trailing / on /webpath then the server will
+    # require it to be present in the URL.  You will also likely
+    # need to provide a <Directory> section to allow access to
+    # the filesystem path.
+
+    #
+    # ScriptAlias: This controls which directories contain server scripts. 
+    # ScriptAliases are essentially the same as Aliases, except that
+    # documents in the target directory are treated as applications and
+    # run by the server when requested rather than as documents sent to the
+    # client.  The same rules about trailing "/" apply to ScriptAlias
+    # directives as to Alias.
+    #
+    ScriptAlias /cgi-bin/ "C:/xampp/cgi-bin/"
+
+</IfModule>
+
+<IfModule cgid_module>
+    #
+    # ScriptSock: On threaded servers, designate the path to the UNIX
+    # socket used to communicate with the CGI daemon of mod_cgid.
+    #
+    #Scriptsock cgisock
+</IfModule>
+
+#
+# "C:/xampp/cgi-bin" should be changed to whatever your ScriptAliased
+# CGI directory exists, if you have that configured.
+#
+<Directory "C:/xampp/cgi-bin">
+    AllowOverride All
+    Options None
+    Require all granted
+</Directory>
+
+<IfModule headers_module>
+    #
+    # Avoid passing HTTP_PROXY environment to CGI's on this or any proxied
+    # backend servers which have lingering "httpoxy" defects.
+    # 'Proxy' request header is undefined by the IETF, not listed by IANA
+    #
+    RequestHeader unset Proxy early
+</IfModule>
+
+<IfModule mime_module>
+    #
+    # TypesConfig points to the file containing the list of mappings from
+    # filename extension to MIME-type.
+    #
+    TypesConfig conf/mime.types
+
+    #
+    # AddType allows you to add to or override the MIME configuration
+    # file specified in TypesConfig for specific file types.
+    #
+    #AddType application/x-gzip .tgz
+    #
+    # AddEncoding allows you to have certain browsers uncompress
+    # information on the fly. Note: Not all browsers support this.
+    #
+    #AddEncoding x-compress .Z
+    #AddEncoding x-gzip .gz .tgz
+    #
+    # If the AddEncoding directives above are commented-out, then you
+    # probably should define those extensions to indicate media types:
+    #
+    AddType application/x-compress .Z
+    AddType application/x-gzip .gz .tgz
+
+    #
+    # AddHandler allows you to map certain file extensions to "handlers":
+    # actions unrelated to filetype. These can be either built into the server
+    # or added with the Action directive (see below)
+    #
+    # To use CGI scripts outside of ScriptAliased directories:
+    # (You will also need to add "ExecCGI" to the "Options" directive.)
+    #
+    AddHandler cgi-script .cgi .pl .asp
+
+    # For type maps (negotiated resources):
+    #AddHandler type-map var
+
+    #
+    # Filters allow you to process content before it is sent to the client.
+    #
+    # To parse .shtml files for server-side includes (SSI):
+    # (You will also need to add "Includes" to the "Options" directive.)
+    #
+    AddType text/html .shtml
+    AddOutputFilter INCLUDES .shtml
+</IfModule>
+
+#
+# The mod_mime_magic module allows the server to use various hints from the
+# contents of the file itself to determine its type.  The MIMEMagicFile
+# directive tells the module where the hint definitions are located.
+#
+<IfModule mime_magic_module>
+    #
+    # The mod_mime_magic module allows the server to use various hints from the
+    # contents of the file itself to determine its type.  The MIMEMagicFile
+    # directive tells the module where the hint definitions are located.
+    #
+    MIMEMagicFile "conf/magic"
+</IfModule>
+
+
+#
+# Customizable error responses come in three flavors:
+# 1) plain text 2) local redirects 3) external redirects
+#
+# Some examples:
+#ErrorDocument 500 "The server made a boo boo."
+#ErrorDocument 404 /missing.html
+#ErrorDocument 404 "/cgi-bin/missing_handler.pl"
+#ErrorDocument 402 http://www.example.com/subscription_info.html
+#
+
+#
+# MaxRanges: Maximum number of Ranges in a request before
+# returning the entire resource, or one of the special
+# values 'default', 'none' or 'unlimited'.
+# Default setting is to accept 200 Ranges.
+#MaxRanges unlimited
+
+#
+# EnableMMAP and EnableSendfile: On systems that support it, 
+# memory-mapping or the sendfile syscall may be used to deliver
+# files.  This usually improves server performance, but must
+# be turned off when serving from networked-mounted 
+# filesystems or if support for these functions is otherwise
+# broken on your system.
+# Defaults: EnableMMAP On, EnableSendfile Off
+#
+#EnableMMAP off
+#EnableSendfile off
+
+# Supplemental configuration
+#
+# The configuration files in the conf/extra/ directory can be 
+# included to add extra features or to modify the default configuration of 
+# the server, or you may simply copy their contents here and change as 
+# necessary.
+
+# Server-pool management (MPM specific)
+Include conf/extra/httpd-mpm.conf
+
+# Multi-language error messages
+#Include conf/extra/httpd-multilang-errordoc.conf
+
+# Fancy directory listings
+Include conf/extra/httpd-autoindex.conf
+
+# Language settings
+Include conf/extra/httpd-languages.conf
+
+# User home directories
+Include conf/extra/httpd-userdir.conf
+
+# Real-time info on requests and configuration
+Include conf/extra/httpd-info.conf
+
+# Virtual hosts
+Include conf/extra/httpd-vhosts.conf
+
+# Local access to the Apache HTTP Server Manual
+#Include conf/extra/httpd-manual.conf
+
+# Distributed authoring and versioning (WebDAV)
+#Attention! WEB_DAV is a security risk without a new userspecific configuration for a secure authentifcation 
+#Include conf/extra/httpd-dav.conf
+
+# Various default settings
+#Include conf/extra/httpd-default.conf
+# Implements a proxy/gateway for Apache.
+Include "conf/extra/httpd-proxy.conf"
+# Various default settings
+Include "conf/extra/httpd-default.conf"
+# XAMPP settings
+Include "conf/extra/httpd-xampp.conf"
+
+# Configure mod_proxy_html to understand HTML4/XHTML1
+<IfModule proxy_html_module>
+Include conf/extra/proxy-html.conf
+</IfModule>
+
+# Secure (SSL/TLS) connections
+Include conf/extra/httpd-ssl.conf
+#
+# Note: The following must must be present to support
+#       starting without SSL on platforms with no /dev/random equivalent
+#       but a statically compiled-in mod_ssl.
+#
+<IfModule ssl_module>
+SSLRandomSeed startup builtin
+SSLRandomSeed connect builtin
+</IfModule>
+
+# XAMPP: We disable operating system specific optimizations for a listening
+# socket by the http protocol here. IE 64 bit make problems without this.
+
+AcceptFilter http none
+AcceptFilter https none
+# AJP13 Proxy
+<IfModule mod_proxy.c>
+<IfModule mod_proxy_ajp.c>
+Include "conf/extra/httpd-ajp.conf"
+</IfModule>
+</IfModule>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A CONFIGURATION FILE CONTÉM 1 DIRECTIVE POR LINE...
+
+
+
+
+
+
+
+'#' significa comment, que será ignorado...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> A FILE É BEM DOCUMENTADA...
+
+
+
+
+
+
+
+
+
+
+
+-> UMA PARTE IMPORTANTE É ESTA:
+
+
+
+
+
+
+
+
+
+
+Define SRVROOT "C:/xampp/apache"
+
+ServerRoot "C:/xampp/apache"
+
+
+
+
+
+
+
+
+
+
+
+--> É NESSE LOCAL QUE VC CONFIGURA O ROOT DE SEU SERVER...
+
+
+
+
+
+
+
+
+
+--> VOCÊ NÃO DEVE CONFUNDIR ESSA LOCATION COM 
+    O  'DOCUMENT ROOT'... (que é o root directory do seu website)...
+
+
+    PQ SÃO COISAS DIFERENTES...
+
+
+
+
+
+
+
+
+--> SE VAMOS PARA BAIXO, ENCONTRAMOS O DEFAULT PORT,
+
+    que é 80:
+
+
+
+
+
+    Listen 80
+
+
+
+
+
+
+
+
+
+
+-> se vamos mais para baixo,
+    temos 1 monte de modules sendo carregados:
+
+
+
+
+
+
+
+
+
+LoadModule access_compat_module modules/mod_access_compat.so
+LoadModule actions_module modules/mod_actions.so
+LoadModule alias_module modules/mod_alias.so
+LoadModule allowmethods_module modules/mod_allowmethods.so
+LoadModule asis_module modules/mod_asis.so
+LoadModule auth_basic_module modules/mod_auth_basic.so
+#LoadModule auth_digest_module modules/mod_auth_digest.so
+#LoadModule auth_form_module modules/mod_auth_form.so
+#LoadModule authn_anon_module modules/mod_authn_anon.so
+LoadModule authn_core_module modules/mod_authn_core.so
+#LoadModule authn_dbd_module modules/mod_authn_dbd.so
+#LoadModule authn_dbm_module modules/mod_authn_dbm.so
+LoadModule authn_file_module modules/mod_authn_file.so
+#LoadModule authn_socache_module modules/mod_authn_socache.so
+#LoadModule authnz_fcgi_module modules/mod_authnz_fcgi.so
+#LoadModule authnz_ldap_module modules/mod_authnz_ldap.so
+LoadModule authz_core_module modules/mod_authz_core.so
+#LoadModule authz_dbd_module modules/mod_authz_dbd.so
+#LoadModule authz_dbm_module modules/mod_authz_dbm.so
+LoadModule authz_groupfile_module modules/mod_authz_groupfile.so
+LoadModule authz_host_module modules/mod_authz_host.so
+#LoadModule authz_owner_module modules/mod_authz_owner.so
+LoadModule authz_user_module modules/mod_authz_user.so
+LoadModule autoindex_module modules/mod_autoindex.so
+#LoadModule brotli_module modules/mod_brotli.so
+#LoadModule buffer_module modules/mod_buffer.so
+#LoadModule cache_module modules/mod_cache.so
+#LoadModule cache_disk_module modules/mod_cache_disk.so
+#LoadModule cache_socache_module modules/mod_cache_socache.so
+#LoadModule cern_meta_module modules/mod_cern_meta.so
+LoadModule cgi_module modules/mod_cgi.so
+#LoadModule charset_lite_module modules/mod_charset_lite.so
+#LoadModule data_module modules/mod_data.so
+#LoadModule dav_module modules/mod_dav.so
+#LoadModule dav_fs_module modules/mod_dav_fs.so
+LoadModule dav_lock_module modules/mod_dav_lock.so
+#LoadModule dbd_module modules/mod_dbd.so
+#LoadModule deflate_module modules/mod_deflate.so
+LoadModule dir_module modules/mod_dir.so
+#LoadModule dumpio_module modules/mod_dumpio.so
+LoadModule env_module modules/mod_env.so
+#LoadModule expires_module modules/mod_expires.so
+#LoadModule ext_filter_module modules/mod_ext_filter.so
+#LoadModule file_cache_module modules/mod_file_cache.so
+#LoadModule filter_module modules/mod_filter.so
+#LoadModule http2_module modules/mod_http2.so
+LoadModule headers_module modules/mod_headers.so
+#LoadModule heartbeat_module modules/mod_heartbeat.so
+#LoadModule heartmonitor_module modules/mod_heartmonitor.so
+#LoadModule ident_module modules/mod_ident.so
+#LoadModule imagemap_module modules/mod_imagemap.so
+LoadModule include_module modules/mod_include.so
+LoadModule info_module modules/mod_info.so
+LoadModule isapi_module modules/mod_isapi.so
+#LoadModule lbmethod_bybusyness_module modules/mod_lbmethod_bybusyness.so
+#LoadModule lbmethod_byrequests_module modules/mod_lbmethod_byrequests.so
+#LoadModule lbmethod_bytraffic_module modules/mod_lbmethod_bytraffic.so
+#LoadModule lbmethod_heartbeat_module modules/mod_lbmethod_heartbeat.so
+#LoadModule ldap_module modules/mod_ldap.so
+#LoadModule logio_module modules/mod_logio.so
+LoadModule log_config_module modules/mod_log_config.so
+#LoadModule log_debug_module modules/mod_log_debug.so
+#LoadModule log_forensic_module modules/mod_log_forensic.so
+#LoadModule lua_module modules/mod_lua.so
+LoadModule cache_disk_module modules/mod_cache_disk.so
+#LoadModule macro_module modules/mod_macro.so
+#LoadModule md_module modules/mod_md.so
+LoadModule mime_module modules/mod_mime.so
+#LoadModule mime_magic_module modules/mod_mime_magic.so
+LoadModule negotiation_module modules/mod_negotiation.so
+LoadModule proxy_module modules/mod_proxy.so
+LoadModule proxy_ajp_module modules/mod_proxy_ajp.so
+#LoadModule proxy_balancer_module modules/mod_proxy_balancer.so
+#LoadModule proxy_connect_module modules/mod_proxy_connect.so
+#LoadModule proxy_express_module modules/mod_proxy_express.so
+#LoadModule proxy_fcgi_module modules/mod_proxy_fcgi.so
+#LoadModule proxy_ftp_module modules/mod_proxy_ftp.so
+#LoadModule proxy_hcheck_module modules/mod_proxy_hcheck.so
+#LoadModule proxy_html_module modules/mod_proxy_html.so
+#LoadModule proxy_http_module modules/mod_proxy_http.so
+#LoadModule proxy_http2_module modules/mod_proxy_http2.so
+#LoadModule proxy_scgi_module modules/mod_proxy_scgi.so
+#LoadModule proxy_uwsgi_module modules/mod_proxy_uwsgi.so
+#LoadModule proxy_wstunnel_module modules/mod_proxy_wstunnel.so
+#LoadModule ratelimit_module modules/mod_ratelimit.so
+#LoadModule reflector_module modules/mod_reflector.so
+#LoadModule remoteip_module modules/mod_remoteip.so
+#LoadModule request_module modules/mod_request.so
+#LoadModule reqtimeout_module modules/mod_reqtimeout.so
+LoadModule rewrite_module modules/mod_rewrite.so
+#LoadModule sed_module modules/mod_sed.so
+#LoadModule session_module modules/mod_session.so
+#LoadModule session_cookie_module modules/mod_session_cookie.so
+#LoadModule session_crypto_module modules/mod_session_crypto.so
+#LoadModule session_dbd_module modules/mod_session_dbd.so
+LoadModule setenvif_module modules/mod_setenvif.so
+#LoadModule slotmem_plain_module modules/mod_slotmem_plain.so
+#LoadModule slotmem_shm_module modules/mod_slotmem_shm.so
+#LoadModule socache_dbm_module modules/mod_socache_dbm.so
+#LoadModule socache_memcache_module modules/mod_socache_memcache.so
+#LoadModule socache_redis_module modules/mod_socache_redis.so
+LoadModule socache_shmcb_module modules/mod_socache_shmcb.so
+#LoadModule speling_module modules/mod_speling.so
+LoadModule ssl_module modules/mod_ssl.so
+LoadModule status_module modules/mod_status.so
+#LoadModule substitute_module modules/mod_substitute.so
+#LoadModule unique_id_module modules/mod_unique_id.so
+#LoadModule userdir_module modules/mod_userdir.so
+#LoadModule usertrack_module modules/mod_usertrack.so
+LoadModule version_module modules/mod_version.so
+#LoadModule vhost_alias_module modules/mod_vhost_alias.so
+#LoadModule watchdog_module modules/mod_watchdog.so
+#LoadModule xml2enc_module modules/mod_xml2enc.so
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> UM MONTE DE MODULES... MODULES SÃO BASICAMENTE 
+    AS 'EXTENSIONS' do apache...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CONTINUAMOS SCROLLANDO, E, AO FINAL, ENCONTRAMOS ESTA SECTION:
+
+
+
+
+
+
+
+<IfModule unixd_module>
+
+
+
+
+
+
+
+
+
+
+
+--> VC PODE ___ INCLUIR__ CERTAS DIRECTIVES CONDICIONALMENTE 
+    __ APENAS_ SE 1 MODULE ESPECÍFICO ESTÁ PRESENTE...
+
+    E ESSE MODULE É O 'unixd_module', que 
+
+    é verificado 
+
+    POR MEIO 
+
+    DESSA LINHA AÍ...
+
+
+
+
+
+
+
+    essa linha diz 
+
+    ''se o module unixd_module está presente,
+
+      faça o INCLUDE das following directives...''
+
+
+
+
+
+
+
+
+
+-> TEMOS DIRECTIVES, ENTÃO,
+
+    COMO:
+
+
+
+    #
+# ServerAdmin: Your address, where problems with the server should be
+# e-mailed.  This address appears on some server-generated pages, such
+# as error documents.  e.g. admin@your-domain.com
+#
+ServerAdmin postmaster@localhost
+
+
+
+
+
+
+
+
+
+ServerName:
+
+
+
+
+
+#
+# ServerName gives the name and port that the server uses to identify itself.
+# This can often be determined automatically, but we recommend you specify
+# it explicitly to prevent problems during startup.
+#
+# If your host doesn't have a registered DNS name, enter its IP address here.
+#
+
+ServerName localhost:80
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+esse é o localhost, que acessamos no browser...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+essa config, do 'ServerName', que é basicamente 
+
+o address do nosso server,
+
+
+pode 
+
+ser trocado aqui, nesse arquivo .conf,
+
+OU 
+
+
+DE DENTRO DO 'virtual host', como veremos mais tarde...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, TEMOS 
+
+
+A 'SCOPED DIRECTIVE SECTION'...
+
+
+
+
+
+-> ISSO, POR EXEMPLO, É UMA SCOPED DIRECTIVE:
+
+
+
+
+
+
+
+
+<Directory "C:/xampp/htdocs">
+    #
+    # Possible values for the Options directive are "None", "All",
+    # or any combination of:
+    #   Indexes Includes FollowSymLinks SymLinksifOwnerMatch ExecCGI MultiViews
+    #
+    # Note that "MultiViews" must be named *explicitly* --- "Options All"
+    # doesn't give it to you.
+    #
+    # The Options directive is both complicated and important.  Please see
+    # http://httpd.apache.org/docs/2.4/mod/core.html#options
+    # for more information.
+    #
+    Options Indexes FollowSymLinks Includes ExecCGI
+
+    #
+    # AllowOverride controls what directives may be placed in .htaccess files.
+    # It can be "All", "None", or any combination of the keywords:
+    #   AllowOverride FileInfo AuthConfig Limit
+    #
+    AllowOverride All
+
+    #
+    # Controls who can get stuff from this server.
+    #
+    Require all granted
+</Directory>
+
+
+
+
+
+
+
+
+
+
+
+
+qual é a diferença disso?
+
+
+
+
+
+
+Bem, quando directives 
+são 
+
+escritas diretamente NA ROOT DA CONFIG FILE,
+
+
+FORA DAS SECTIONS/SCOPES, ELAS SÃO __ APLICADAS__ AO SERVER 
+
+INTEIRO___...
+
+
+
+
+
+
+
+
+
+--> ENTRETANTO, É POSSÍVEL FAZER 'SCOPE' DAS DIRECTIVES,
+    FAZER O __ ENCLOSE __ DAS DIRECTIVES EM SECTIONS,
+
+    PARA QUE 
+
+
+    ELAS SEJAM APLICADAS _ SOMENTE _ a CERTAS __ PARTES_ 
+    DO SERVER...
+
+
+
+
+
+
+    -> por exemplo, vc pode aplicar essas directives a 
+        SPECIFIC FILES, DIRECTORIES OU URLS...
+
+
+    
+
+
+    --> VC PODE ATÉ MESMO SCOPAR MÚLTIPLAS SCOPED SECTIONS,
+        NESTEAR SCOPED SECTIONS, SE NECESSÁRIO...
+
+
+
+
+
+
+
+
+
+
+    E ESTA ESCRITA AQUI:
+
+
+
+
+<Directory />
+    AllowOverride none
+    Require all denied
+</Directory>
+
+
+
+
+
+
+
+
+
+
+
+--> NESSE TRECHO,
+    O SCOPE NÃO ESTÁ DECLARADO COMO 
+    1 FOLDER/DIRETORIO ESPECÍFICO,  
+
+    E SIM COMO __ TODOS _ OS DIRECTORIES DO SERVER...
+
+
+
+
+
+
+
+
+
+
+
+-> o comentário dessa section diz assim:
+
+
+
+
+
+
+#
+# Deny access to the entirety of your server's filesystem. You must
+# explicitly permit access to web content directories in other 
+# <Directory> blocks below.
+#
+
+
+
+
+
+
+
+
+--> é o básico, nega acesso a todas as files do filesystem,
+    por segurança....
+
+
+
+
+    --> 'You must explicitly permit access to web content directories in other 
+        <Directory> blocks below.'
+
+
+
+
+
+
+
+    
+
+
+
+
+    --> NO CASO, É EXATAMENTE ISSO QUE ESTÁ ACONTECENDO, MAIS ABAIXO...
+        ESTAMOS EXPLICITAMENTE CONFERINDO ACESSO AOS HTML DE 
+        NOSSO SERVER,
+
+        COM ESTA DIRECTIVE:
+
+
+
+
+
+    
+
+
+
+
+
+DocumentRoot "C:/xampp/htdocs"
+<Directory "C:/xampp/htdocs">
+
+    Options Indexes FollowSymLinks Includes ExecCGI
+
+    AllowOverride All
+
+    Require all granted
+
+</Directory>
+
+
+
+
+
+
+
+
+
+
+
+é o folder de 'htdocs' que contém nossos html e arquivos php a serem servidos...
+
+
+
+
+
+
+
+
+
+
+
+
+--> o professor logo explicará a setting de 'AllowOverride'...
+
+
+
+
+
+
+
+
+
+--> É UMA SETTING QUE __bASICAMENTE__ CONTROLA__ 
+    QUAIS DIRECTIVES PODEM SER USADAS DE 
+
+    __DENTRO __ do arquivo '.htaccess'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E AQUELA LINHA REALMENTE DEFINE O LOCAL ONDE 
+O DOCUMENT ROOT É SETTADO:
+
+
+DocumentRoot "C:/xampp/htdocs"
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR FAZ 1 APONTAMENTO:
+
+
+
+    ---> ESSA CONFIG FILE VAI SER TOTALMENTE DIFERENTE PARA 
+        PRODUCTION, A DEPENDER DO QUE VC USA...
+
+
+
+
+
+    ---> ESTA É APENAS UMA CONFIG FILE QUE VEM JUNTO COM O XAMPP...
+
+
+
+
+
+    --> MAS O CONHECIMENTO DE COMO ESSA CONFIG FILE VAI TE AJUDAR 
+        A ESCREVER SUA PRÓPRIA CONFIG FILE,
+
+        E ENTENDER COMO SERVER FILES FUNCIONAM...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAIS PARA BAIXO, OUTRA SCOPED SECTION:
+
+
+
+
+
+<Files ".ht*">
+    Require all denied
+</Files>
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESSA SECTION BASICAMENTE INDICA QUE 
+
+        ''TODAS AS FILES QUE COMEÇAM COM '.ht'
+        NÃO DEVEM SER ACESSADAS'' 
+
+        (como arquivos '.htaccess' e '.htpasswd')
+         
+
+
+
+
+
+
+
+
+--> OUTRA NOTE:
+
+
+
+
+    ''AINDA QUE SEJA POSSÍVEL COLOCAR A MAIOR PARTE DE 
+    ESSAS DIRECTIVES DENTRO DE ESSAS SCOPED SECTIONS,
+
+    NÃO FAZ SENTIDO/EFEITO COLOCAR ALGUNS TIPOS DE DIRECTIVES
+    EM CERTAS SCOPED SECTIONS, NÃO FAZ DIFERENÇA...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAIS PARA BAIXO, TEMOS OS ERROR LOGS:
+
+
+#
+# ErrorLog: The location of the error log file.
+# If you do not specify an ErrorLog directive within a <VirtualHost>
+# container, error messages relating to that virtual host will be
+# logged here.  If you *do* define an error logfile for a <VirtualHost>
+# container, that host's errors will be logged there and not here.
+#
+ErrorLog "logs/error.log"
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO DEFINE A DEFAULT LOCATION DO ARQUIVO log de errors...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> BEM MAIS PARA BAIXO, ENCONTRAMOS UM MONTE DE INCLUDES:
+
+
+
+
+# Fancy directory listings
+Include conf/extra/httpd-autoindex.conf
+
+# Language settings
+Include conf/extra/httpd-languages.conf
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SOMOS CAPAZES DE FAZER INCLUDE DE OUTRAS CONFIG FILES 
+    DO APACHE,
+
+
+    POR MEIO 
+
+    DA DIRECTIVE DE 'Include xxxx',
+
+
+    que 
+    te deixa 
+
+
+    SPLITTAR E ORGANIZAR SUA CONFIG EM MÚLTIPLAS FILES, para organização...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+POR EXEMPLO, TEMOS O INCLUDE DA CONFIG DE 'httpd-vhosts.conf' (
+    
+# Virtual hosts
+Include conf/extra/httpd-vhosts.conf
+
+),
+
+
+que é a configuração 
+
+DOS VIRTUAL HOSTS, QUE VEREMOS AGORA:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ENCONTRAR ESSE ARQUIVOO,
+
+VÁ ATÉ A PASTA DE 'CONF',
+
+DEPOIS 
+
+'EXTRA',
+
+
+
+E AÍ,
+
+ALI DENTRO,
+
+
+
+'httpd-vhosts.conf'...
+
+
+
+
+
+
+
+
+
+
+FICAMOS COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+# Virtual Hosts
+#
+# Required modules: mod_log_config
+
+# If you want to maintain multiple domains/hostnames on your
+# machine you can setup VirtualHost containers for them. Most configurations
+# use only name-based virtual hosts so the server doesn't need to worry about
+# IP addresses. This is indicated by the asterisks in the directives below.
+#
+# Please see the documentation at 
+# <URL:http://httpd.apache.org/docs/2.4/vhosts/>
+# for further details before you try to setup virtual hosts.
+#
+# You may use the command line option '-S' to verify your virtual host
+# configuration.
+
+#
+# Use name-based virtual hosting.
+#
+##NameVirtualHost *:80
+#
+# VirtualHost example:
+# Almost any Apache directive may go into a VirtualHost container.
+# The first VirtualHost section is used for all requests that do not
+# match a ##ServerName or ##ServerAlias in any <VirtualHost> block.
+#
+##<VirtualHost *:80>
+    ##ServerAdmin webmaster@dummy-host.example.com
+    ##DocumentRoot "C:/xampp/htdocs/dummy-host.example.com"
+    ##ServerName dummy-host.example.com
+    ##ServerAlias www.dummy-host.example.com
+    ##ErrorLog "logs/dummy-host.example.com-error.log"
+    ##CustomLog "logs/dummy-host.example.com-access.log" common
+##</VirtualHost>
+
+##<VirtualHost *:80>
+    ##ServerAdmin webmaster@dummy-host2.example.com
+    ##DocumentRoot "C:/xampp/htdocs/dummy-host2.example.com"
+    ##ServerName dummy-host2.example.com
+    ##ErrorLog "logs/dummy-host2.example.com-error.log"
+    ##CustomLog "logs/dummy-host2.example.com-access.log" common
+##</VirtualHost>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO PQ __ VC PODE RODAR MÚLTIPLOS SITES, EM UM MESMO SERVER,
+    AO MESMO TEMPO...
+
+    ISSO É CHAMADO DE 'VIRTUAL HOSTING'...
+
+
+
+
+
+    --> VIRTUAL HOSTING --> SIGNIFICA QUE   VC PODE __ RODAR 
+                            MAIS DE 1 MESMO WEBSITE,
+
+                            EM 1 MESMA MÁQUINA...
+
+
+
+    --> VOCÊ PODE TER OU:
+
+
+    1) IP-BASED WEBSITES...
+
+
+    2) NAME-BASED WEBSITES...
+
+
+
+
+
+
+--> QUER DIZER QUE PODEMOS TER DIFERENTES IPS OU NAMES 
+    PARA CADA WEBSITE, PARA O MESMO IP......
+
+
+
+
+
+
+
+
+
+
+--> VOCÊ É CAPAZ DE APLICAR  'CONFIGURATION DIRECTIVES' 
+    A SITES/HOSTS ESPECÍFICOS 
+
+
+    POR MEIO
+
+
+
+
+    DO USO 
+
+
+
+    DAS 'VIRTUAL HOST SCOPED DIRECTIVE'....
+
+
+
+
+
+
+
+
+
+
+
+-> ESSAS VIRTUAL HOST SCOPED DIRECTIVES PODEM SER ESCRITAS ASSIM:   
+
+
+
+    ##<VirtualHost *:80>
+    ##ServerAdmin webmaster@dummy-host.example.com
+    ##DocumentRoot "C:/xampp/htdocs/dummy-host.example.com"
+    ##ServerName dummy-host.example.com
+    ##ServerAlias www.dummy-host.example.com
+    ##ErrorLog "logs/dummy-host.example.com-error.log"
+    ##CustomLog "logs/dummy-host.example.com-access.log" common
+    ##</VirtualHost>
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, AS DIRECTIVES ESCRITAS ALI DENTRO 
+
+SERÃO APLICADAS SOMENTE A ESSE VHOST/WEBSITE ESPECÍFICO...
+
+
+
+
+
+
+
+
+
+
+
+
+--> POR ENQUANTO, TUDO ESTÁ COMMENTED-OUT....
+
+
+
+
+
+
+
+
+
+--> MAS, NO BROWSER,
+
+
+PODEMOS ENTRAR 
+
+EM 
+
+
+
+''http://localhost/dashboard/''....
+
+
+pq podemos fazer isso?
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> acho que é por conta do filesystem...
+
+
+
+
+
+
+
+
+--> MAS, POR MEIO DO ARQUIVO DE 'httpd-vhosts.conf',
+
+
+VC PODE DEFINIR 
+
+OUTROS VIRTUAL HOSTS 
+
+
+A SEREM UTILIZADOS...
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE O PROFESSOR DESCOMENTA O PRIMEIRO 
+    BLOCO DE SCOPE, COM AS DIRECTIVES DENTRO... MAS ELE VAI DESCOMENTAR APENAS 
+
+    O 'DocumentRoot':
+
+
+
+
+    <VirtualHost *:80>
+    ##ServerAdmin webmaster@dummy-host.example.com
+    DocumentRoot "C:/xampp/htdocs/dummy-host.example.com"
+    ServerName dummy-host.example.com
+    ##ServerAlias www.dummy-host.example.com
+    ##ErrorLog "logs/dummy-host.example.com-error.log"
+    ##CustomLog "logs/dummy-host.example.com-access.log" common
+</VirtualHost>
+
+
+
+
+
+
+
+
+
+
+--> AÍ ELE TROCA O 'DocumentRoot',
+
+para 
+
+
+'xampp/htdocs/programwithgio'...
+
+
+
+
+
+
+
+ok... mas isso não está funcionando...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR EXPLICA QUE 
+
+''SE TEMOS 2 OU MAIS SITES SENDO SERVED DE 1 SERVER SÓ,
+    PRECISAMOS ADICIONAR O 'ServerName',
+
+    para que ele DIFERENCIE ENTRE O SITE SERVIDO NO LOCALHOST/ROOT (que é o dashboard, no meu caso)
+
+    E O SITE QUE É SERVIDO POR ESSE NOSSO VIRTUAL HOST ADICIONAL...''
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE DESCOMENTAMOS O SERVER NAME,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<VirtualHost *:80>
+    ##ServerAdmin webmaster@dummy-host.example.com
+    ##DocumentRoot "C:/xampp/htdocs/dummy-host.example.com"
+    DocumentRoot "C:/xampp/htdocs/programwithgio"
+    ServerName programwithgio.local
+    ##ServerAlias www.dummy-host.example.com
+    ##ErrorLog "logs/dummy-host.example.com-error.log"
+    ##CustomLog "logs/dummy-host.example.com-access.log" common
+</VirtualHost>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> E COLOCAMOS UM SERVER NAME DE 'programwithgio.local'...
+
+
+
+
+
+
+
+MAS PARA QUE ISSO FUNCIONE,
+
+
+PRECISAMOS 
+
+
+
+APONTAR A ESSE DOMAIN,
+
+
+LÁ NO ARQUIVO 'hosts' do windows,
+lá 
+
+
+
+
+na pasta do windows mesmo...
+
+
+
+
+TIPO ASSIM:
+
+
+
+C:\Windows\System32\drivers\etc
+
+
+
+
+
+
+
+
+
+
+
+--> DENTRO DISSO, TEMOS O ARQUIVO 'hosts'....
+
+
+O CONTEÚDO DO ARQUIVO 'hosts':
+
+
+
+
+
+
+
+# Copyright (c) 1993-2009 Microsoft Corp.
+#
+# This is a sample HOSTS file used by Microsoft TCP/IP for Windows.
+#
+# This file contains the mappings of IP addresses to host names. Each
+# entry should be kept on an individual line. The IP address should
+# be placed in the first column followed by the corresponding host name.
+# The IP address and the host name should be separated by at least one
+# space.
+#
+# Additionally, comments (such as these) may be inserted on individual
+# lines or following the machine name denoted by a '#' symbol.
+#
+# For example:
+#
+#      102.54.94.97     rhino.acme.com          # source server
+#       38.25.63.10     x.acme.com              # x client host
+
+# localhost name resolution is handled within DNS itself.
+#	127.0.0.1       localhost
+#	::1             localhost
+
+
+179.219.59.154 erupe.custom
+179.219.59.154 mhfg.capcom.com.tw
+179.219.59.154 mhf-n.capcom.com.tw
+179.219.59.154 cog-members.mhf-z.jp
+179.219.59.154 www.capcom-onlinegames.jp
+179.219.59.154 srv-mhf.capcom-networks.jp
+
+
+
+
+
+
+
+DENTRO DELE, COLOCAMOS ESSE ENDEREÇO, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+# localhost name resolution is handled within DNS itself.
+#	127.0.0.1       localhost
+#	::1             localhost
+
+
+127.0.0.1 programwithgio.local
+179.219.59.154 erupe.custom
+179.219.59.154 mhfg.capcom.com.tw
+179.219.59.154 mhf-n.capcom.com.tw
+179.219.59.154 cog-members.mhf-z.jp
+179.219.59.154 www.capcom-onlinegames.jp
+179.219.59.154 srv-mhf.capcom-networks.jp
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA FUNCIONOU... EU ESTAVA EDITANDO O ARQUIVO ERRADO...
+
+
+
+
+
+
+
+REALMENTE, COM ISSO, PODEMOS FAZER SERVE DE MÚLTIPLOS SITES,
+
+usando 1 mesmo server...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AGORA SABEMOS O BÁSICO DE ARQUIVOS DE CONFIG DO APACHE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... AGORA VEREMOS O TÓPICO DOS ARQUIVOS 
+
+
+'.htaccess'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+'.htaccess'  SÃO FILES DE CONFIG SIMPLES,
+
+
+
+E SÃO TAMBÉM CHAMADAS DE 
+
+
+''DISTRIBUTION CONFIGURATION FILES''...  ELAS TE DEIXAM 
+                                        
+                                            APLICAR 
+
+                                            CONFIGURATION CHANGES 
+
+                                            CONSIDERANDO UMA 
+
+                                            'PER-DIRECTORY BASIS'...
+
+
+
+
+
+
+
+EM OUTRAS PALAVRAS:
+
+
+
+''SE DEIXAMOS UMA .htaccess file no DIRECTORY 
+    EM QUE TEMOS O PROJECT DE 'programwithgio' (nome da pasta),
+    ESSA FILE _ VAI APLICAR_ AS CONFIG CHANGES A ESTE DIRECTORY 
+
+    E A TODOS OS DIRECTORIES NO INTERIOR DELE... (sub-folders)''
+
+
+
+
+
+
+
+
+
+
+
+
+--> E '.htaccess' files são 
+    'READ' A CADA__ REQUEST,
+
+    E __ CHANGES A _ ESSA FILE 
+
+    _ SÃO APLICADAS__ IMEDIATAMENTE 
+
+    NO SEU SERVER, SEM PRECISAR DO RESET DO SEU SERVER APACHE...
+
+
+
+
+
+
+
+
+
+--> MAS 1 DETALHE IMPORTANTE É QUE 
+
+        ''NEM TODAS AS DIRECTIVES PODEM SER ESCRITAS 
+            DENTRO DE ARQUIVOS .htaccess...''
+
+
+
+
+--> VOCÊ SEMPRE DEVE CHECAR O CONTEXTO DA DIRECTIVE, LÁ NOS DOCS do apache...
+
+
+
+
+
+--> ALÉM DISSO, A 'MAIN CONFIG FILE' CONTROLA 
+
+
+        ''QUAIS DIRECTIVES PODEM SER COLOCADAS DENTRO
+            DE .htaccess files''...
+
+
+
+
+
+--> BASTA VC LEMBRAR DA 
+
+    DIRECTIVE 
+    DE 
+
+
+    'Allow Override', 
+
+
+    que encontramos 
+
+    na main configuration file....
+
+
+
+
+
+
+
+
+NA MAIN CONFIG FILE, de 'httpd.conf', 
+
+    TÍNHAMOS 
+
+    ESTA DIRECTIVE AQUI:
+
+
+
+<Directory />
+    AllowOverride none
+    Require all denied
+</Directory>
+
+
+
+
+
+
+
+COMO VC PODE VER,
+
+
+AQUI 
+
+
+
+JÁ HAVIA SIDO DEFINIDO O 'AllowOverride' como NONE,
+
+
+
+o que quer dizer que 
+
+
+
+NÃO É PERMITIDO O OVERRIDE PARA COISA ALGUMA, DENTRO DO NOSSO PROJECT...
+
+
+
+
+
+ENTRETANTO, NO MESMO ARQUIVO,
+
+HÁ UMA PERMISSÃO PARA OVERRIDING,
+
+
+ESPECIFICAMENTE PARA A PASTA DE 'htdocs',
+
+
+COM 
+
+ESTE TRECHO AQUI:
+
+
+
+
+
+
+
+
+
+
+
+DocumentRoot "C:/xampp/htdocs"
+<Directory "C:/xampp/htdocs">
+
+    Options Indexes FollowSymLinks Includes ExecCGI
+
+
+    AllowOverride All
+
+  
+    Require all granted
+</Directory>
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA, AÍ ENCONTRAMOS 
+
+ESSE 
+
+
+'AllowOverride All'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> EM GERAL, É ALTAMENTE RECOMENDADO 
+
+    VC __ EVITAR__ O USO DE '.htaccess' files,
+
+    A NÃO SER QUE VC 
+
+
+    __ REALMENTE NECESSITE DISSO...
+
+
+
+
+
+
+
+
+
+--> A RAZÃO PARA ISSO,
+    NO CASO, 
+
+
+    É AQUILO QUE JÁ TÍNHAMOS MENCIONADO:
+
+
+    '''.htaccess files SÃO READ__ A CADA REQUEST...''
+
+
+
+
+
+    como elas são LIDAS A CADA REQUEST, ISSO PODE IMPACTAR A PERFORMANCE 
+    SERIAMENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> outra razão para vc evitar arquivos .htaccess é que 
+
+        QUAISQUER CHANGES QUE PODEM SER COLOCADAS 
+
+        EM ARQUIVOS '.htaccess' 
+
+
+        PODEM SER COLOCADAS TAMBÉM NA 'MAIN CONFIG FILE' (httpd.conf),
+
+        e então 
+
+        SCOPADAS A DIRECTORIES ESPECÍFICOS...
+
+
+
+
+
+
+
+
+
+
+--> CERTO... MAS, ENTÃO, PQ O PROFESSOR 
+    ESTÁ COBRINDO 
+
+    OS ARQUIVOS '.htaccess',
+
+
+
+    e qual o sentido de eles ainda existirem?
+
+
+  
+
+
+
+
+
+
+
+
+--> É PQ VOCE __ NEM __ SEMPRE TEM ACESSO 'ROOT' 
+
+    AO SEU SERVER,
+
+
+    E VC NEM _ SEMPRE __ TEM ACESSO 
+
+
+    AO 'MAIN CONFIGURATION FILE' (httpd.conf)
+
+
+
+
+
+
+--> SHARED HOSTING PROVIDERS (hostgator), por exemplo,
+    NÃO VÃO TE DAR 
+
+    FULL ACCESS AO 'main config file'... ao invés disso,
+
+    eles vão te deixar 
+
+
+    'OVERRIDE SOME OF THE CONFIGURATIONS',
+
+    por meio 
+
+    justamente de essas '.htaccess' files...
+
+
+
+
+
+
+
+
+
+--> PORTANTO, ESSE É UM USE-CASE EM QUE VC 
+    PODERIA USAR .htaccess files...
+
+
+
+
+
+
+
+--> MAS SE VC JÁ TEM ACESSO AO MAIN CONFIG FILE, httpd.conf, 
+
+    O PROFESSOR RECOMENDA FORTEMENTE 
+
+
+    QUE 
+
+    VC 
+
+    __ DESABILITE O .htaccess OVERALL,
+
+
+
+
+
+    POR MEIO 
+
+
+
+
+    DO DEFINE DE 
+
+    'AllowOverride None', em vez de 'All'...
+
+
+
+
+
+
+    -> SE VC FIZER ISSO, O APACHE 
+        NÃO VAI NEM MESMO PROCURAR POR ARQUIVOS '.htaccess'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O USE-CASE MAIS COMUM DE .htaccess files 
+
+    é o REWRITE DE URLS... 
+
+
+
+    E APESAR DE ISSO SER PERFECTLY FINE,
+
+    SE VC TEM ACESSO AO 'MAIN CONFIG FILE' (httpd.conf),
+
+    VC PODE 
+    SIMPLESMENTE 
+
+    ESCREVER 
+
+
+    ESSAS REWRITE RULES 
+
+
+    PARA DENTRO DO MAIN CONFIG FILE,
+
+
+
+
+    QUE AS COISAS FUNCIONARIAM FINE... VC PODE 
+
+    ATÉ 
+
+    ESCREVER ISSO EM 1 ARQUIVO conf separado, e aí fazer 
+
+    INCLUDE DENTRO 
+
+    DA MAIN CONFIGURATION FILE (exatamente como a file de 'vhosts' é incluída, na main config file)..
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+--> OU, ALTERNATIVAMENTE, VC PODERIA ESCREVER ESSAS DIRECTIVES DE REWRITE 
+    DIRETAMENTE NA SUA SECTION DO VIRTUAL HOSTS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR NOS MOSTRARÁ 
+    UM EXEMPLO SIMPLES DE COMO FAZER RE-WRITE 
+
+    DE URLS 
+
+
+    USANDO '.htaccess',
+
+
+
+    e COMO VC PODE FAZER A MESMA COISA,
+
+
+    MAS SEM USAR 
+
+    
+    ESSES ARQUIVOS '.htaccess'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, PRECISAMOS USAR ALGO CHAMADO 
+
+DE 
+
+
+
+'mod_rewrite'...
+
+
+
+
+
+
+
+
+
+
+-> ISSO AÍ _ TE DEIXA __ FAZER REWRITE __ E MANIPULATE 
+    DE REQUEST URLS... 
+
+
+
+
+
+
+
+--> VC PODE EFETUAR REDIRECTS,
+    PATTERN-MATCHING USANDO REGEX,
+
+    ETC...
+
+
+
+
+
+
+
+
+
+
+--> PARA COMEÇAR, CRIAMOS UMA NOVA PAGE,
+
+
+
+tipo 
+
+
+'about.php':
+
+
+
+
+
+
+
+
+<?php 
+
+
+echo 'Hello from About.php';
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, FICAMOS COM:
+
+
+    index.php
+    about.php
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+COM ISSO, FICAMOS COM 2 'PATHS' possíveis,
+
+para a url de 
+
+'programwithgio.local'...
+
+
+
+
+
+
+
+
+UMA DELAS PODE SER ACESSADA COM O ROOT,
+
+
+
+'programwithgio.local',
+
+
+
+e, a outra,
+
+com 
+
+
+
+'programwithgio.local/about.php'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO... E ISSO FUNCIONA, CLARO,
+
+
+MAS É __ ÓBVIO __ QUE ESSA NÃO __ É 
+
+UMA BOA USER __ _EXPERIENCE__...
+
+
+
+
+
+
+
+
+
+
+--> sua url não pode acabar com '.php',
+
+fica mt feio e ruim...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> DIGAMOS QUE VC QUER TER 'SEO-FRIENDLY' 
+    OU URLS MAIS BONITAS... 
+
+
+
+    OU, ENTÃO,
+
+    CASOS EM QUE VC QUER TER 1 'SINGLE ENTRYPOINT' 
+    A SEU APP,
+
+    DO QUAL VC FAZ BOOTSTRAP DE SEU APP INTEIRO,
+    
+    CONTROLANDO COMO SÃO FEITOS OS REQUESTS E RESPONSES? (tipo react, em que temos apenas 1 link)...
+
+
+
+
+
+
+
+-> FALAREMOS MAIS SOBRE ROUTING E ETC MAIS TARDE...
+
+
+
+
+
+
+
+
+
+
+
+
+--> O QUE O PROFESSOR FARÁ, POR ENQUANTO, É O CREATE 
+    DE UMA PASTA CHAMADA DE 'public',
+
+    em que 
+
+    vai colocar 
+
+    O ARQUIVO 'index.php'...
+
+
+
+
+
+
+
+
+-> DEPOIS DISSO, ELE VAI __ CRIAr_  1 ARQUIVO 
+
+'.htaccess' para 
+
+
+
+
+__DIRECIONAR __ TRÁFEGO NA DIREÇÃO DAQUELES ARQUIVOS .php, em public...
+
+
+
+
+
+
+
+
+-> aí, nesses arquivos .php, podemos decidir QUAIS PAGES VAMOS CARREGAR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O ARQUIVO 'index.php',  dentro de 'public',
+
+será BASICAMENTE 
+
+O NOSSO ENTRY POINT EM SI...
+
+
+
+
+
+
+
+
+
+--> ESSE INDEX.PHP VAI SER O ENTRYPOINT AO APP...
+
+
+
+
+
+
+
+
+
+
+
+--> MAS AINDA NÃO ACABAMOS... PRECISAMOS 
+    _ UPDATAR O NOSSO ARQUIVO 'httpd-vhosts.conf',
+
+
+    PARA QUE 
+
+
+    __ O DOCUMENTROOT 
+
+
+    não 
+
+    seja 
+
+
+
+    ''   DocumentRoot "C:/xampp/htdocs/programwithgio"'',
+
+
+
+
+    e sim 
+
+    seja 
+
+
+
+
+''     DocumentRoot "C:/xampp/htdocs/programwithgio/public"'',
+
+
+
+
+
+PARA QUE SEJA CARREGADO 
+
+
+ESSE FOLDER DE 'public',
+
+com 
+
+
+esse arquivo 'index.php',
+
+nosso entrypoint,
+
+em vez 
+
+
+
+
+do resto dos arquivos...
+
+
+
+
+
+
+
+
+
+
+
+
+-> com isso, com essas alterações, tudo funciona como antes,
+
+
+    e nem precisamos colocar a word de 'public' na url (o nome da pasta, 
+    portanto, nem precisou ser incluso)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA VAMOS ADICIONAR 
+
+
+''PRETTY URL SUPPORT''
+
+
+
+
+
+ou seja,
+
+
+urls que não fiquem abominavelmente feias,
+
+urls 
+
+sem 
+
+'.php' ao final...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ou seja,
+
+
+
+
+queremos coisas como isto:
+
+
+
+
+
+
+
+programwithgio.local/blog/your-post-title
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... PARA ISSO,
+
+
+PRECISAMOS COMUNICAR, AO 
+
+
+__ NOSSO SERVER,
+
+
+QUE 
+ELE 
+
+DEVE 
+
+PROCESSAR 
+
+
+TODOS OS REQUESTS 
+
+POR MEIO 
+
+
+
+
+DE UM 'PROXY'....
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROXY, NO CASO, SERÁ O PRÓPRIO 'index.php'...
+
+
+
+
+
+
+
+
+
+
+
+--> O INDEX.PHP SERÁ REALMENTE O NOSSO ENTRYPOINT AO NOSSO APP...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, PRECISAMOS CRIAR 1 ARQUIVO '.htaccess' 
+
+    DENTRO DA PASTA DE PUBLIC,
+
+
+    e AÍ, ANTES DE MAIS NADA,
+
+
+
+    CHECAR 
+
+    
+
+
+    ''IF mod_rewrite is ENABLED''...
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, PODEMOS USAR A DIRECTIVE DE 'if module',
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+<IfModule mod_rewrite.c>
+
+
+</IfModule>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... DEPOIS DISSO, O QUE PRECISAMOS FAZER É 
+
+    _ LIGAR A ENGINE DE REWRITE, O QUE PODE SER FEITO ASSIM:
+
+
+
+
+
+(.htaccess):
+    
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+</IfModule>
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ CERTO...
+
+
+
+
+
+
+
+
+ A PRÓXIMA COISA QUE DEVEMOS FAZER É 
+
+
+ __ ESCREVER NOSSAS CONDITIONS E RULES PARA 
+
+ OS REWRITES DAS URLS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+ -> PARA AS CONDITIONS,
+
+
+
+ PRECISAMOS:
+
+
+
+
+ 1) ASSEGURAR QUE O REQUESTED FILENAME  _ NÃO É UM DIRECTORY 
+ OU 1 FILE...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f 
+
+
+
+
+
+
+
+
+
+--> A RAZÃO PARA ISSO É QUE _ 
+    NÃO QUEREMOS QUE 'PHYSICAL DIRECTORIES/FILES' 
+    SEJAM  PROCESSADOS POR NOSSO 
+
+    index.php...
+
+
+
+
+
+--> POR EXEMPLO, SE O SEU USER FOR FAZER O REQUEST 
+    DE 1 ASSET, COMO 1 IMAGE, CSS OU JAVASCRIPT FILE, 
+    DENTRO DO FOLDER 'public',  __ NÓS VAMOS QUERER 
+
+    QUE ISSO SEJA PROCESSADO POR DENTRO DE 'index.php',
+
+
+    E SIM QUE ESSE TIPO DE ARQUIVO, ACESSÍVEL AOS USERS, 
+
+    SEJA SERVED 'AS-IS'...  E É PRATICAMENTE APENAS 
+    POR ISSO QUE 
+    TEMOS ESSAS 2 CONDITIONS, AQUI...
+
+
+
+
+
+
+
+
+
+VAI FICANDO TIPO ASSIM:
+
+
+
+(.htaccess):
+
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+
+
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+
+
+</IfModule>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... DEPOIS DISSO, 
+
+
+ESCREVEMOS UMA 
+
+'RewriteRule',
+
+
+
+
+
+uma que VAI FAZER O REDIRECT DE __ TODOS__ REQUESTS 
+
+__ AO 'index.php'...
+
+
+
+
+
+A escrita é 
+
+
+''    RewriteRule ^ index.php [L]   ''
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+(.htaccess):
+
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+
+
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+
+
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+
+
+
+
+
+SE FAZEMOS ISSO,
+
+
+
+
+
+O COMPORTAMENTO DE NOSSAS URL MUDA...
+
+
+
+
+
+
+
+
+
+MAS ESTOU COM 1 ERROR... NÃO ESTOU CONSEGUINDO 
+
+ENTRAR NA URL 
+
+DE 
+
+
+
+''
+
+http://programwithgio.local/about
+
+''
+
+
+
+
+
+
+
+
+--> ESTOU FICANDO COM 1 ERROR,
+
+
+
+
+POR CONTA DO SERVE ERRADO DE 'about' (o php está tentando fazer serve do about no folder de 'public', em vez de no root de nosso project...)
+
+
+
+
+
+
+
+
+
+
+
+
+HMMM... ENTENDI IMEDIATAMENTE... ERA POR CONTA DE EU 
+
+TER SETTADO 
+
+
+
+ESTA SETTING, LÁ NO MAIN CONFIG (httpd.conf):
+
+
+
+<Directory "C:/xampp/htdocs">
+
+    AllowOverride None 
+
+
+
+
+
+
+
+
+
+
+
+
+--> REVERTI ESSA OPTION PARA O DEFAULT, QUE É 'All',
+
+
+e aí 
+
+
+
+AS URLS DE FORMA 'PRETTY' passaram a funcionar...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+no caso,
+
+a url
+
+
+
+conseguiu ficar 'programwithgio.local/about'
+
+
+
+
+SEM ERRORS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ENTRETANTO, AQUI FIQUEI COM 1 PROBLEMA...
+
+
+
+
+
+
+
+--> O PROFESSOR JÁ SABE DISSO...
+
+
+
+
+
+
+
+
+--> O PROBLEMA É QUE _ TODAS AS PAGES/URLS 
+
+ESTÃO 
+
+SENDO REDIRECIONADAS 
+
+
+
+PARA 
+
+
+'index.php',
+
+
+nosso entrypoint, que,
+
+por si só,
+
+
+não está fazendo o 
+
+redirect de 
+
+nossa request 
+
+url 
+
+
+
+às 'pages' (php) 
+
+
+que temos no nosso project...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE TODOS NOSSOS REQUESTS ESTÃO INDO POR DENTRO 
+    DO INDEX.PHP, MAS NÃO ESTÃO SENDO PROCESSADOS...
+
+
+
+
+
+
+
+
+
+
+--> MAS COMO PODEMOS FAZER O ACTUAL LOAD DA PAGE DE 'about.php',
+
+
+a partir 
+
+da page de 'index.php'?
+
+
+
+
+
+
+
+
+
+--> BEM, ISSO PODE SER FEITO ATRAVÉS DE:
+
+
+
+
+1) O PARSE INICIAL DA URL 
+
+
+
+
+2) O REQUIRE DA FILE NECESSÁRIA... (.php)
+
+
+
+
+
+
+OU, ALTERNATIVAMENTE,
+
+
+PELO USO DE 
+
+ALGO CHAMADO DE 'ROUTING',
+
+
+QUE VEREMOS MAIS TARDE NO CURSO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O QUE PODEMOS FAZER, POR ENQUANTO,
+
+
+É UM VAR_DUMP
+
+
+da variable 
+
+
+
+
+'$SERVER['REQUEST_URI']'
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+<?php
+echo '<h4>HELLO WORLD 22222!</h4>';
+
+var_dump($SERVER['REQUEST_URI']); // Shows us the request URI (which can then be used to redirect to a different page)
+
+
+
+
+
+
+
+
+
+O RESULTADO DISSO 
+
+
+
+É ESTE PRINT:
+
+
+
+
+"/about"
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE COLOCAMOS OUTRAS URLS,
+
+
+
+COMO 'programwithgio.local/blog/post1',
+
+
+
+
+
+
+FICAMOS 
+
+COM ALGO PARECIDO,
+
+
+
+COM 
+
+
+
+'/blog/post1'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---> E O PROFESSOR NÃO VAI COBRIR ISSO NESSE VIDEO,
+    VAI COBRIR ISSO MAIS TARDE NO CURSO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS AGORA O PROFESSOR QUER NOS MOSTRAR A MESMA COISA,
+    MAS SEM USAR 
+
+    O ARQUIVO 
+
+    '.htaccess'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO,
+
+
+
+
+
+
+
+
+
+O PROFESSOR 
+
+COPIA TODO O CÓDIGO 
+
+
+QUE TÍNHAMOS EM '.htaccess',
+
+
+e coloca 
+
+
+DENTRO 
+
+
+
+
+
+
+
+DO ARQUIVO 
+
+
+'httpd-vhosts.conf'...
+
+
+
+
+
+
+ESTE CÓDIGO AQUI>:
+
+
+
+
+
+
+
+
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+
+
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+
+
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... 
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR APONTA:
+
+
+
+''COMO QUEREMOS APLICAR ISSO AÍ AO NOSSO 
+    SERVER INTEIRO,
+    VC 
+    PODERIA COLOCAR ISSO NA MAIN CONFIG FILE DO APACHE (httpd.conf)
+    se quiser,
+
+    MAS AQUI EU VOU COLOCAR APENAS NO VIRTUAL HOST, SCOPADO...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> NESSE CASO, O PROFESSOR QUER 
+    APLICAR ESSE TIPO DE REDIRECT 
+
+
+
+    __ SOMENTE __ NESSE WEBSITE AÍ,
+
+    SCOPADO...
+
+
+
+
+
+
+
+
+
+A ÚNICA MUDANÇA É NA LINHA DA 'RewriteRule',
+
+
+
+
+em que o professor adiciona um '/' ao início de 'index.php',
+
+pq 
+
+
+QUEREMOS CARREGAR 
+
+O 'index.php'
+
+da document root... e nosso documentRoot está settado como public,
+
+
+
+POR ISSO 
+PRECISAMOS SETTAR ASSIM...
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+
+
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+
+
+    RewriteRule ^ /index.php [L]
+</IfModule>
+
+
+
+
+
+
+
+
+
+
+
+
+
+FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<VirtualHost *:80>
+    ##ServerAdmin webmaster@dummy-host.example.com
+    ##DocumentRoot "C:/xampp/htdocs/dummy-host.example.com"
+    DocumentRoot "C:/xampp/htdocs/programwithgio/public"
+    ServerName programwithgio.local
+    ##ServerAlias www.dummy-host.example.com
+    ##ErrorLog "logs/dummy-host.example.com-error.log"
+    ##CustomLog "logs/dummy-host.example.com-access.log" common
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+
+
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+
+
+    RewriteRule ^ /index.php [L]
+</IfModule>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ DELETAMOS O ARQUIVO '.htaccess'...
+
+
+
+--> DEPOIS, RESETTAMOS O SERVER APACHE... E AÍ 
+
+    AS PRETTY URL  FUNCIONAM EXATAMENTE COMO ANTES,
+
+    MAS AGORA 
+
+
+
+    SEM O USO DAQUELES ARQUIVOS '.htaccess'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... FUNCIONOU EXATAMENTE COMO ANTES...
+
+
+
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE AS FILES '.htaccess' realmente não são necessárias,
+na grande maioria dos casos...
+
+
+
+ 
+
+
+ --> VIMOS OS BASICS DE APACHE CONFIGURATION,
+    E OS BASICS DE URL REWRITING...
