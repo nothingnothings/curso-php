@@ -1,0 +1,1848 @@
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+
+
+VOCÊ PRECISARÁ TRABALHAR COM 
+
+
+AS FILES E FILESYSTEM 
+
+
+
+
+COM O PHP, EM 1 CERTO MOMENTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+VEREMOS OS BASICS AGORA...
+
+
+
+
+
+
+--> A PRIMEIRA FUNCTION É A 'scandir()',
+
+
+
+QUE __ FAZ O SIMPLES LIST DE TODAS AS FILES E DIRECTORIES 
+EM 1 GIVEN PATH...
+
+
+
+
+
+
+
+
+
+// Working with Filesystem
+
+
+
+
+
+$dir = scandir(__DIR__);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> com isso, o professor especifica 
+
+
+'__DIR__',
+
+
+que é uma 
+
+MAGIC CONSTANT QUE 
+
+REPRESENTA O 'CURRENT DIRECTORY'...
+
+
+
+
+
+
+
+
+
+AÍ DUMPAMOS ESSE VALUE:
+
+
+
+
+
+
+$dir = scandir(__DIR__);
+
+
+var_dump($dir);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O RESULTADO É UM ARRAY COM:
+
+
+
+
+1) .   (o dot se refere ao CURRENT DIRECTORY)
+
+
+
+
+2) .. (2 dot se refere ao PARENT DIRECTORY)
+
+
+
+3) index.php (a nossa única file dentro de nosso folder, nesse caso)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ PODEMOS RODAR 1 LOOP POR DENTRO DESSAS FILES,
+    DENTRO DESSE ARRAY,
+
+    E AÍ 
+
+    _dETERMINAR __ O QUE VC QUER FAZER 
+
+    COM ELAS...
+
+
+
+
+
+
+
+
+
+--> VC PODE USAR 
+
+
+
+'is_file()'
+
+
+ou 
+ 
+'is_dir()'
+
+
+
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+
+// 2) is_dir() is used to check if a file or directory exists:
+
+$dir = __DIR__ . '/images';
+var_dump(is_dir($dir));
+
+$file = __DIR__ . '/images/logo.png';
+var_dump(is_dir($file));
+
+
+
+// 3) is_file() is used to check if a file exists:
+
+$file = __DIR__ . '/images/logo.png';
+var_dump(is_file($file));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VC TAMBÉM PODE CRIAR NOVOS DIRECTORIES,
+
+
+COM 'mkdir',
+
+
+
+
+e 
+
+
+DELETAR 1 DIRECTORY, USANDO 'rmdir'...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+// 4) mkdir() is used to create a directory:
+mkdir(__DIR__ . '/images');
+var_dump(is_dir(__DIR__ . '/images'));
+rmdir(__DIR__ . '/images');
+var_dump(is_dir(__DIR__ . '/images'));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+já ''rmdir()'' é usado para REMOVER DIRECTORIES:
+
+
+
+
+
+
+
+// 4) mkdir() is used to create a directory:
+mkdir(__DIR__ . '/images');
+var_dump(is_dir(__DIR__ . '/images'));
+
+
+// 5) rmdir() is used to remove a directory:
+rmdir(__DIR__ . '/images');
+var_dump(is_dir(__DIR__ . '/images'));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DETALHE:
+
+
+
+DIRECTORIES SÓ PODEM SER REMOVIDOS SE ELES ESTIVEREM _ VAZIOS__...
+
+
+
+
+--> quer dizer que o remove não é recursivo por default...
+
+
+
+
+
+
+--> CASO CONTRÁRIO, FICAMOS COM 1 WARNING...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VOCÊ TAMBÉM PODE CRIAR FOLDERS RECURSIVAMENTE,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+mkdir('foo/bar', recursive: true);
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+// 4) mkdir() is used to create a directory. You can use 'recursive: true' to create a directory recursively:
+mkdir(__DIR__ . '/images');
+var_dump(is_dir(__DIR__ . '/images'));
+
+
+mkdir('foo/bar', recursive: true); // Create foo folder, and then bar folder inside foo
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VOCÊ TAMBÉM PODE CHECAR SE 1 FILE OU DIRECTORY EXISTE,
+
+COM 
+
+
+
+O CALL DE 'file_exists()'...
+
+
+
+
+ISSO OUTPUTTA UM BOOLEAN...
+
+
+
+
+
+
+
+
+
+
+
+
+'filesize()' é uma function que 
+
+te dá o tamanho de 1 given file:
+
+
+
+
+
+
+
+
+
+
+// 6) file_exists() is used to check if a file exists:
+
+if (file_exists('foo.txt')) {
+    echo 'File exists';
+}
+
+
+echo PHP_EOL;
+
+//  7) filesize() is used to get the size of a file:
+$file = __DIR__ . '/foo.txt';
+echo filesize($file);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+UMA COISA QUE VC PRECISA TER EM MENTE, AQUI,
+
+É QUE O 
+
+PHP VAI ACTUALLY 
+
+
+'CACHE' 
+
+
+
+OS RETURN VALUES DE ALGUMAS DAS FILE-RELATED FUNCTIONS,
+
+
+PARA TER 1 PERFORMANCE MELHOR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+O QUE IMPORTA, AQUI, É QUE 
+
+
+'filesize()'
+
+
+é uma dessas functions... o resultado dela 
+
+geralmente vai ser CACHEADO, PARA MELHORAR A PERFORMANCE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA TESTAR ESSE COMPORTAMENTO, PODEMOS USAR 
+
+    1 FUNCTION,
+
+
+    CHAMADA DE 
+
+
+
+    
+
+
+'file_put_contents()',
+
+
+para 
+
+PREENCHER A FILE COM CONTEÚDO...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//  7) filesize() is used to get the size of a file:
+$file = __DIR__ . '/foo.txt';
+echo filesize($file); // filesize is a function that typically caches its return value, for better performance reasons.
+
+
+
+
+
+// 8) file_put_contents() is used to write a string to a file:
+file_put_contents(__DIR__ . '/foo.txt', 'Hello World 2!');
+
+
+// 9) file_get_contents() is used to read the contents of a file:
+echo file_get_contents(__DIR__ . '/foo.txt'); // file_get_contents() is a function that reads the entire file into a string.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS, USAMOS 
+
+
+'file_get_contents',
+
+
+para conseguir os contents dessa file...
+
+
+
+
+
+
+
+
+
+
+-> PARA LIMPARMOS O CACHE DA FUNCTION DE 'filesize()',
+
+PARA NÃO TER O CACHE PRINTADO NA PRÓXIMA VEZ QUE A CHAMAMOS,
+
+
+
+PODEMOS USAR 
+
+
+
+UMA FUNCTION CHAMADA DE 'clear_statcache()',
+
+QUE VAI FAZER EXATAMENTE ISSO...
+
+
+
+
+
+
+
+
+
+
+
+
+--> NO CASO, UTILIZAMOS ELA ASSIM:
+
+
+
+
+
+
+
+
+clearstatcache(); // Used to clear the stat cache (makes sure that the 'filesize()' function returns the correct value, and not the previous, cached value)
+
+//  7) filesize() is used to get the size of a file:
+$file = __DIR__ . '/foo.txt';
+echo filesize($file); // filesize is a function that typically caches its return value, for better performance reasons.
+
+
+
+
+
+
+
+
+
+
+-> LIMPAMOS O CACHE ANTERIOR,
+
+    ANTES DE EXECUTAR O 'filesize' mais uma vez (pq o conteúdo 
+    da file mudou, o que mudou o tamanho do arquivo,
+    
+    e isso deve ser refletido em 'filesize',
+    
+    que não deve usar o cache, para não dar 1 informação erronea...)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... AGORA VEREMOS O PROCESSO DETALHADO DE 'OPEN AND READ THE FILE',
+linha-por-linha...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> QUEREMOS ABRIR 'foo.txt'...
+
+
+
+
+
+POR ISSO ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+// 10) fopen() is used to open a file:
+$fileContents = fopen('foo.txt', 'r'); // WE DEFINE THAT WE WANT TO OPEN THE FILE FOR READING.
+
+echo $fileContents;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NO CASO, USAMOS A FUNCTION DE 
+
+
+'fopen()'...
+
+
+
+
+
+
+
+
+
+
+--> QUANDO USAMOS ESSA FUNCTION, PRECISAMOS ESPECIFICAR:
+
+
+
+
+
+
+1) a file que vai ser aberta 
+
+
+
+
+2) O __ MODE __ que usaremos com essa file (read, write, read and write, etc)..
+
+
+
+
+
+
+
+
+
+
+--> QUEREMOS ABRIR ESSA FILE APENAS PARA READING,
+
+    POR ISSO COLOCAMOS 'r'...
+
+
+
+
+
+
+--> O RESULTADO DE 'fopen()', de seu call,
+
+
+    É __ O QUE CHAMAMOS DE um 'RESOURCE'...
+
+
+
+
+
+
+
+
+
+
+--> 'RESOURCE' -->   RESOURCES SÃO 1 DATA TYPE QUE AINDA NÃO ESTUDAMOS...
+
+
+
+
+
+
+--> 'RESOURCE' -> É SIMPLESMENTE UMA VARIABLE QUE __ SE REFERE 
+                    A UM __ rESOURCE EXTERNO... 
+
+
+
+
+--> 'RESOURCE EXTERNO' ---> PODE SER UMA STREAM, UMA FILE, ETC...
+
+
+
+
+
+
+
+
+
+-> HÁ FUNCTIONS NO PHP QUE FAZEM CREATE, RETURN E TRABALHAM COM _ RESOURCES...
+
+
+    E 'fopen()' é uma delas...
+
+
+
+
+
+
+
+
+
+--> além de abrir LOCAL FILES,
+    VC TAMBÉM PODE FAZER OPEN DE __ REMOTE FILES... BASTA 
+
+
+    ESPECIFICAR UMA URL...
+
+
+
+
+
+-> MAS O OPEN DE FILES REMOTO PODE NEM SEMPRE FUNCIONAR,
+    PQ O OPEN DE FILES REMOTAMENTE PODE 
+
+    ESTAR _ DESABILITADO PELO SERVER EM SI...
+
+
+
+
+
+
+
+
+
+
+---> 'fopen()' vai também _ RETORNAR 'FALSE' 
+
+    e emitir um WARNING, SE ALGUMA FILE NÃO FOR ENCONTRADA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ÀS VEZES, DEVELOPERS 
+    USAM o operator de '@'(control),
+
+
+    PARA SUPRIMIR ESSES WARNINGS,
+
+    IMPEDIR QUE ACONTEÇAM...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+$fileContentsNoWarning = @fopen('foo.txt', 'r'); // We use @ to suppress the warning, if the file is not found.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E ISSO REALMENTE FUNCIONA, EVITA O RETURN DE 1 WARNING, SE A FILE NÃO EXISTE...
+
+
+
+
+ 
+
+
+
+
+
+
+ o que os developers fazem, usando '@',
+
+
+ é:
+
+
+
+
+
+ 1) O SUPRESS DO WARNING ORIGINAL (com '@')
+
+
+
+ 2) ELES CHECAM (com if-else) se O RETURN _ DESSE CALL FOI TRUE OU NÃO...
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS ESSA  PRACTICE, EXPLICA O PROFESSOR, 
+    NÃO É NADA BOA,
+
+    E VC DEVE EVITAR 
+
+
+    __ O SUPRESS__ DE QUAISQUER ERRORS...
+
+
+
+
+
+
+
+--> EM VEZ DISSO, 
+    VC DEVE CONSIDERAR O BUILD DE UM ERROR HANDLING MELHOR...
+
+
+
+
+
+
+
+
+--> EM VEZ DE FAZER SUPRESS DO ERROR,
+    O QUE VC PODE FAZER __ É USAR _ AS OUTRAS FUNCTIONS DE FILE,
+
+    PARA CHECAR SE A FILE JÁ EXISTE...
+
+
+
+    (como 'file_exists()', por exemplo)..
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+if (!file_exists('foobar.txt')) {
+    echo 'File Not Found';
+
+    return; 
+} else {
+    $file = fopen('foobar.txt', 'r');
+}
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+// Instead of using @ to suppress, the warning, it's better to use the file_exists() function:
+if (file_exists('foo.txt')) {
+    $fileContents = fopen('foo.txt', 'r');
+    echo $fileContents;
+} else {
+    echo 'File not found';
+} 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS ESCREVER ASSIM, TAMBÉM:
+
+
+
+
+
+
+$file = fopen('foo.txt', 'r');
+
+while (($line = fgets($file)) === false) {
+    echo $line . '<br />';
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS O QUE ACONTECE, NESSE TRECHO?
+
+
+
+
+
+
+
+
+$file = fopen('foo.txt', 'r');
+
+while (($line = fgets($file)) !== false) {
+    echo $line . '<br />';
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> BEM... NÓS 
+
+
+
+ESTAMOS DEFININDO A VARIABLE DE 
+
+'$line'
+
+
+como o RESULTADO DA FUNCTION DE 'fgets()'...
+
+
+
+
+
+
+
+
+
+--> AÍ LOOPAMOS POR DENTRO DE CADA LINE,
+    ATÉ QUE O RETURN VALUE de 'fgets' SE TORNA 'FALSE'...
+
+
+
+
+
+
+
+assim que ele se torna false,
+    a execution de esse while loop TERMINA...
+
+
+
+
+
+
+
+
+
+
+
+
+-> USAMOS A STRICT COMPARISON, AQUI,
+
+    PQ O VALUE DE '$line' pode ser uma string com value de 'false',
+    dentro do arquivo 
+
+    de texto,
+
+    o que poderia levar a bugs inesperados... E O STRICT COMPARISON EVITA ISSO...
+
+
+
+
+
+
+--> POR FIM, 
+    DEPOIS QUE TERMINAMOS DE TRABALHAR COM O RESOURCE/FILE,
+
+    PODEMOS __ __ FECHAR__ AQUELA FILE,
+
+    COM O CALL 
+
+    DE 
+
+    'fclose()'...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+fclose($file);
+
+
+
+
+
+
+
+
+-------------------------
+
+
+
+
+
+
+
+
+
+
+-- VOCÊ TAMBÉM PODE FAZER O ''WRITE'' EM 1 FILE,
+
+COM A FUNCTION DE 
+
+'fwrite()'...
+
+
+
+
+
+
+-- VOCÊ TAMBÉM PODE FAZER 'READ' DE 1 ARQUIVO .CSV,
+    POR MEIO DA FUNCTION DE 
+
+
+    'fcsv()'....
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+// 12) fwrite() is used to write a string to a file:
+fwrite($file2, 'Hello World 3!');
+fclose($file2);
+var_dump(filesize(__DIR__ . '/foo2.txt'));
+
+
+// 13) fcsv() is used to read a CSV file:
+$file = fopen(__DIR__ . '/foo.csv', 'r');
+while (($line = fgetcsv($file)) !== false) {
+    echo '<pre>';
+    var_dump($line);
+    echo '</pre>';
+}
+fclose($file);
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> EX:
+
+
+
+
+
+
+
+
+// 13) fgetcsv() is used to read a CSV file:
+$file = fopen(__DIR__ . '/foo.csv', 'r');
+while (($line = fgetcsv($file)) !== false) {
+    echo '<pre>';
+    var_dump($line);
+    echo '</pre>';
+}
+fclose($file);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+fgetscsv() é parecido com 'fgets()',
+
+
+
+MAS É UM POUCO DIFERENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+--> fgetscsv -> ao CONTRÁRIO 
+                    DE 'fgets',
+
+
+                    ELE __ FAZ O _PARSE_
+                    DA LINE __ QUANDO LÊ A LINE 
+
+                    EM SI... ASSIM QUE ELE TERMINA O PARSE,
+
+                    ELE __ RETORNA __ 1 ARRAY __ 
+
+                    CONTENDO OS FIELDS__ QUE 
+
+                    ELE LEU... 
+
+
+
+
+
+
+--> O DELIMITER DEFAULT PARA OS FIELDS É ','
+
+    MAS PODEMOS ESPECIFICAR OUTROS TRIPOS DE DELIMITERS, 
+
+
+    SE VC COLOCAR
+    OUTROS PARAMETERS..
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+$file = fopen(__DIR__ . '/foo.csv', 'r');
+while (($line = fgetcsv($file)) !== false) {
+    print_r($line);
+}
+
+fclose($file);
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, COM O PRINT,
+
+FICAMOS COM 
+
+
+1 ARRAY...
+
+
+
+
+
+
+
+OUTRA MANEIRA DE FAZER O READ DE FILE CONTENT 
+
+
+É POR MEIO 
+
+
+
+DA FUNCTION DE 
+
+'file_get_contents()'...
+
+
+
+
+
+
+
+
+
+
+
+--> ESSA FUNCTION VAI ARMAZENAR O CONTEÚDO DA FILE EM 1 VARIABLE...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+// 9) file_get_contents() is used to read the contents of a file, which you can store in a variable:
+$content = file_get_contents(__DIR__ . '/foo.txt'); // file_get_contents() is a function that reads the entire file into a string.
+
+
+
+
+
+
+
+
+echo $content;
+
+
+
+
+
+
+
+
+
+
+
+VOCÊ TAMBÉM PODE ESPECIFICAR __ PARAMETERS DE 
+
+OFFSET E LENGTH,
+
+PARA CONSEGUIR 
+
+CONTEÚDO DA FILE EM LOCATIONS ESPECÍFICAS...
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+// 9) file_get_contents() is used to read the contents of a file, which you can store in a variable:
+// ? offset and length are optional parameters:
+echo file_get_contents(__DIR__ . '/foo.txt', offset: 3, length: 2); // file_get_contents() is a function that reads the entire file into a string.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VOCê TAMBÉM PODE USAR 'file_get_contents()' PARA
+
+OBTER O CONTENT DE UMA REMOTE FILE,
+
+POR MEIO DO SPECIFY DE UMA URL...
+
+
+
+
+MAS ISSO PODE NEM SEMPRE FUNCIONAR,
+
+A DEPENDER DA CONFIGURATION DE SEU SERVER...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> E O PROFESSOR NÃO RECOMENDA USAR 'file_get_contents()'
+    PARA CONSEGUIR O CONTEÚDO DE UMA REMOTE FILE... PQ 
+
+    EXISTEM MANEIRAS MELHORES PARA OBTER ESSE TIPO DE CONTEÚDO...
+
+
+
+
+    PARA CONSEGUIR CONTEÚDO DE UMA FILE DE UM SERVER REMOTO,
+    É MELHOR USAR UMA LIBRARY CHAMADA DE 'cUrl', A QUAL SERÁ 
+    ESTUDADA EM 1 VÍDEO SEPARADO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VOCÊ PODE FAZER WRITE DE CONTENT EM 1 FILE,
+    POR MEIO 
+
+    DA FUNCTION DE 
+
+    'file_put_contents()'...
+
+
+
+
+
+
+
+
+ex:
+
+
+// 8) file_put_contents() is used to write a string to a file:
+// file_put_contents(__DIR__ . '/foo.txt', 'Hello World 2!');
+
+
+
+
+
+
+
+file_put_contents('bar.txt', 'hello');
+
+
+
+
+
+
+-- FILE_PUT_CONTENTS() -->  FAZ BASICAMENTE A MESMA COISA QUE   
+
+                            'fopen()'
+                            'fwrite()'
+                            e 
+
+                            'fclose()',
+
+
+                            COMBINADAS...
+
+
+
+
+
+--> SE A FILE NÃO EXISTE, ELE VAI CREATE A FILE... CASO CONTRÁRIO,
+    ELE VAI __ OVERWRITE __ A FILE...
+
+
+
+
+
+
+
+
+--> VC TAMBÉM PODE FAZER 
+    __ APPEND_ DE CONTEÚDO AO FINAL,
+
+    SE VC ESPECIFICAR O TERCEIRO PARAMETER, 
+    
+
+    A FLAG DE 'FILE_APPEND'...
+
+
+
+
+
+
+
+
+
+
+
+--> VEJA O EXEMPLO:
+
+
+
+
+
+
+file_put_contents('bar.txt', 'hello', FILE_APPEND);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA DELETAR 1 FILE, NO PHP,
+
+PODEMOS USAR 
+
+
+'unlink()'...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+// 15) unlink() is used to delete a file:
+unlink(__DIR__ . '/foo.txt');
+unlink(__DIR__ . '/foo2.txt');
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+TEMOS TAMBÉM 'copy()',
+que é usado 
+
+PARA COPIAR _ 1 FILE __ EM OUTRA FILE...
+
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+// 16) copy() is used to copy a file:
+copy(__DIR__ . '/foo.txt', __DIR__ . '/foo2.txt'); // Copy the file foo.txt to foo2.txt
+
+
+
+
+
+
+
+
+
+
+
+
+SE A FILE JÁ EXISTIA NO DESTINO,
+
+
+VAI ACONTECER 1 OVERWRITE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> JÁ SE VC QUER __ MOVER__ UMA FILE,
+
+    EM VEZ DE COPIÁ-LA,
+
+    VC PODE USAR 1 FUNCTION CHAMADA DE 'rename()':
+
+
+
+
+
+
+
+
+
+
+
+// 17) rename() is used to MOVE a file (besides renaming):
+rename(__DIR__ . '/foo2.txt', __DIR__ . '/foo3.txt'); // Rename foo2.txt to foo3.txt
+
+// using rename() to move a file between directories:
+rename(__DIR__ . '/foo.txt', __DIR__ . '/images/foo.txt'); // Rename (move) foo.txt to images/foo.txt
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FINALMENTE,
+
+
+PARA CONSEGUIR INFO __SOBRE UMA GIVEN FILE_,
+
+
+
+
+
+PODEMOS USAR UMA FUNCTION CHAMADA DE 'path_info()',
+
+que 
+
+
+
+VAI RETORNAR 1 ARRAY COM COISAS COMO:
+
+
+
+1)  FILENAME 
+
+
+2) EXTENSION  
+
+
+3) BASENAME...
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+// 18) pathinfo() is used to get more information about a file or directory path:
+$path = __DIR__ . '/images/foo.txt';
+var_dump(pathinfo($path));
+var_dump(pathinfo($path, PATHINFO_EXTENSION)); // Get the extension of the file
+var_dump(pathinfo($path, PATHINFO_FILENAME)); // Get the filename of the file
+var_dump(pathinfo($path, PATHINFO_DIRNAME)); // Get the directory of the file
+var_dump(pathinfo($path, PATHINFO_BASENAME)); // Get the basename of the file   
