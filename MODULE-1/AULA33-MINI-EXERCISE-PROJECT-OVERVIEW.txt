@@ -1,0 +1,306 @@
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+
+
+AGORA, FINALMENTE,
+
+CHEGAMOS AO FINAL DA PRIMEIRA SECTION DESSE CURSO,...
+
+
+
+
+
+
+
+VAMOS PRATICAR ALGUMAS DAS SKILLS QUE APRENDEMOS, DURANTE O CURSO....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PRIMEIRAMENTE, VAMOS TER 1 QUICK OVERVIEW DAS COISAS QUE COBRIMOS NESSE CURSO:
+
+
+
+
+
+
+
+
+
+1) PHP INSTALLATION E SETUP 
+
+
+
+2) WEB SERVERS E HOW THEY WORK  (HOW TO WORK WITH PHP.INI, IMPORTANT DIRECTIVES )
+
+
+
+3) PHP IN HTML 
+
+
+
+4) TYPECASTING AND DATA TYPES 
+
+
+5) SYNTAX, VARIABLES AND REFERENCES...
+
+
+6) OPERATORS AND OPERATOR PRECEDENCE...
+
+
+
+7) CONTROL STRUCTURES 
+
+
+8) WORKING WITH ARRAYS, DATES AND FILES 
+
+
+8) PHP.INI, httpd.conf and VIRTUAL HOSTS 
+
+
+9) ERROR HANDLING  
+
+
+
+10) FUNCTIONS 
+
+
+11) PHP 8...
+
+
+
+
+12) MORE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AGORA A MELHOR COISA QUE PODEMOS FAZER É PRATICAR E CONSTRUIR ALGUMA 
+    COISA COM ISSO...
+
+
+
+
+
+
+
+
+
+
+--> MAS O PROBLEMA É QUE AINDA NÃO APRENDEMOS TUDO QUE É NECESSÁRIO 
+    PARA CONSTRUIR 1 APP...
+
+
+
+
+
+    PRECISAMOS DE COISAS COMO:
+
+    1) VALIDATION 
+
+
+    2) SESSIONS 
+
+
+    3) COOKIES 
+
+
+    4) VALIDATION 
+
+
+    5) SECURITY 
+
+
+    6) DEPLOYMENT...
+
+
+
+
+
+
+--> ESSE PROJECT SERÁ PEQUENO E SIMPLES, MAS 
+    PODEREMOS APLICAR NOSSOS CONHECIMENTOS...
+
+
+
+
+
+
+--> O PRACTICE É QUE IMPORTA...
+
+
+
+
+
+
+LEARN --> APPLY E PRACTICE --> REFLECT AND ASSESS..
+
+
+
+
+
+
+
+
+--> O APP QUE VAMOS CONSTRUIR É UM SIMPLES 
+
+
+APP 
+
+
+
+
+DE 
+
+
+'SIMPLE BUGETING AND EXPENSE TRACKING'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> É UM APP EM QUE PODEMOS TRACKAR NOSSO INCOME E EXPENSES,
+
+    E ENTÃO OS CATEGORIZAR..
+
+
+
+
+
+
+
+
+
+
+--> AINDA NÃO APRENDEMOS A PARTE DE OOP DO PHP... POR ISSO
+                                                VAMOS CONSTRUIR 
+
+                                                1 PARTE SMALL 
+
+                                                DO APP, COM PROCEDURAL PHP...
+
+
+
+
+
+
+
+
+
+
+----> SERÁ 1 SIMPLES FILE PARSER...
+
+
+
+
+
+
+
+
+-> TEREMOS 1 OU MAIS ARQUIVOS CSV... O GOAL É OS PARSEAR E IMPORTAR NO NOSSO APP.... AÍ 
+                                                        EXTRAIR TRANSACTIONS 
+                                                        DE ESSES ARQUIVOS...
+
+
+
+
+
+
+                                            --> MAIS TARDE, VAMOS ARMAZENAR 
+                                            ESSA DATA EM 1 DATABASE..
+
+
+
+
+
+                                        --> POR ENQUANTO, UMA SIMPLES HTML TABLE 
+                                        BASTA...
+
+
+
+
+
+
+
+
+
+
+--> DEVEMOS TENTAR CONSTRUIR ISSO...
+
+
+
+
+
+
+
+--> A PRIMEIRA SECTION DO COURSE ESTÁ COMPLETA...
+
+
+
+
+
+-> NO PRÓXIMO VIDEO, VEREMOS A SOLUTION DO PROFESSOR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEVEMOS SEGUIR ESTAS INSTRUCTIONS:
+
+
+
+
+
+https://github.com/ggelashvili/learnphptherightway-project/tree/1.31

@@ -103,7 +103,7 @@ echo $fileContents;
 // }
 
 
-// 11) fgts is used to read a file line by line:
+// 11) fgets is used to read a file line by line:
 
 
 $file = fopen('foo.txt', 'r');
