@@ -1,0 +1,2772 @@
+
+
+
+
+
+
+OK... AGORA VEREMOS A SOLUTION DO PROFESSOR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR USARÁ PHP PROCEDURAL PARA CRIAR ESSA PARTE DO APP...
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAIS TARDE, VAMOS REFATORAR TUDO ISSO, NO FORMATO OOP DO PHP...
+
+
+
+
+
+
+
+
+
+
+
+
+-> PRECISAMOS LER TODAS AS FILES DENTRO DO DIRECTORY DE 'transactions',
+    armazenar em 1 array na memory, e aí 
+
+
+    outputtar 
+
+    os cálculos,
+
+
+    e também os values (green e red)...
+
+
+
+
+
+
+
+
+
+
+-> TEMOS ESTE CÓDIGO DE INDEX.PHP:
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+$root = dirname(__DIR__) . DIRECTORY_SEPARATOR;
+
+define('APP_PATH', $root . 'app' . DIRECTORY_SEPARATOR);
+define('FILES_PATH', $root . 'transaction_files' . DIRECTORY_SEPARATOR);
+define('VIEWS_PATH', $root . 'views' . DIRECTORY_SEPARATOR);
+
+
+include APP_PATH . 'App.php';
+
+
+include VIEWS_PATH . 'transactions.php';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É EM 'App.php' QUE COLOCAREMOS NOSSAS MAIN FUNCTIONS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> COLOCAMOS 1 FUNCTION PARA 
+
+    FAZER 'READ' DAS FILES 
+
+    DO DIRECTORY...
+
+
+
+
+
+
+
+
+
+--> ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+App.php:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+declare(strict_types=1);
+
+
+
+// Your Code:
+function getTransactionFiles(): array
+{
+    $files = [];
+
+    foreach (scandir(FILES_PATH) as $file) {
+        var_dump($file);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E, EM INDEX.PHP,  importamos essa file:
+
+
+
+
+
+
+(index.php):
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+$root = dirname(__DIR__) . DIRECTORY_SEPARATOR;
+
+define('APP_PATH', $root . 'app' . DIRECTORY_SEPARATOR);
+define('FILES_PATH', $root . 'transaction_files' . DIRECTORY_SEPARATOR);
+define('VIEWS_PATH', $root . 'views' . DIRECTORY_SEPARATOR);
+
+// Your Code:
+require APP_PATH . 'App.php';
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, CHAMAMOS O METHOD DE 'getTransactionFiles()'..
+
+
+
+EX:
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+$root = dirname(__DIR__) . DIRECTORY_SEPARATOR;
+
+define('APP_PATH', $root . 'app' . DIRECTORY_SEPARATOR);
+define('FILES_PATH', $root . 'transaction_files' . DIRECTORY_SEPARATOR);
+define('VIEWS_PATH', $root . 'views' . DIRECTORY_SEPARATOR);
+
+// Your Code:
+require APP_PATH . 'App.php';
+
+
+
+
+getTransactionFiles();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> COM ISSO, FICAMOS COM 1 ERROR....
+
+
+
+
+
+
+
+
+--> FICAMOS COM 1 ERROR, EXPLICA  O PROFESSOR,
+    PQ ELE DEFINIU UM RETURN TYPE DE 'string', na function,
+    mas não 
+
+    retornou nada...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA EVITAR ESSE ERROR, ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+// Your Code:
+function getTransactionFiles(): array
+{
+    $files = [];
+
+    foreach (scandir(FILES_PATH) as $file) {
+        var_dump($file);
+    }
+
+    return [];
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+com isso, o output final, no console, foi este:
+
+
+
+
+string(1) "."
+string(2) ".."
+string(12) "sample_1.csv"
+
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA,
+
+
+ESTAMOS COM 3 ITEMS,
+
+
+'.' (current directory)
+
+
+
+'..' (parent directory) 
+
+
+e o item em si, 'sample_1.csv'...
+
+
+
+
+
+
+
+
+
+
+-> QUEREMOS EVITAR ESSAS 'FILES' que são '.' e '..',
+
+por isso,
+
+
+no meu código original,
+
+eu tinha 
+
+
+este if block:
+
+
+
+
+
+
+
+    if (is_file($file_path)) {
+        $fileContent = fopen($file_path, "r");
+
+        while (($line = fgetcsv($fileContent)) !== false) {
+            array_push($transaction_data, $line);
+        }
+
+    }
+
+
+
+
+
+
+
+
+--> MAS O PROFESSOR ESCREVEU DE FORMA DIFERENTE...
+
+
+
+
+ESCRVEU ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+// Your Code:
+function getTransactionFiles(): array
+{
+    $files = [];
+
+    foreach (scandir(FILES_PATH) as $file) {
+
+        if (is_dir($file)) {
+            continue;
+        }
+
+        $files[] = $file;
+        var_dump($file);
+    }
+
+    return $files;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ele usou 'is_dir()' para 
+
+
+EVITAR os folders de '.' e '..'...
+
+
+
+
+
+
+
+
+
+
+
+-> OK... COM ISSO, FICAMOS COM 1 FILE NAME,
+    DENTRO DE 1 ARRAY...
+
+
+
+
+
+
+
+
+
+--> O PROBLEMA, COM ISSO, É QUE 
+
+ISSO AÍ É APENAS O FILENAME, SEM O FILE PATH... 
+
+
+
+
+
+
+
+
+
+
+
+--------> PARA CONSEGUIR O FILE PATH, PRECISAMOS 
+    DO PATH ANTES DE 'sample_1.csv'...
+
+
+
+
+
+
+
+-> A MANEIRA QUE O PROFESSOR ESCOLHE, AQUI,
+    É O PASS DO 'FILES_PATH', como parameter,
+
+    à function de 'getTransactionFiles()',
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+$root = dirname(__DIR__) . DIRECTORY_SEPARATOR;
+
+define('APP_PATH', $root . 'app' . DIRECTORY_SEPARATOR);
+define('FILES_PATH', $root . 'transaction_files' . DIRECTORY_SEPARATOR);
+define('VIEWS_PATH', $root . 'views' . DIRECTORY_SEPARATOR);
+
+// Your Code:
+require APP_PATH . 'App.php';
+
+
+
+
+getTransactionFiles(FILES_PATH);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR GOSTA 
+
+
+DE TER FUNCTIONS BEM MÍNIMAS, E QUE DEPENDAM 
+
+
+DE BEM POUCAS COISAS TAMBÉM..
+
+
+
+
+
+
+
+--> É POR ISSO QUE 
+
+
+
+ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+declare(strict_types=1);
+
+
+
+// Your Code:
+function getTransactionFiles(string $dirPath): array
+{
+    $files = [];
+
+    foreach (scandir($dirPath) as $file) {
+
+        if (is_dir($file)) {
+            continue;
+        }
+
+        $files[] = $dirPath . $file;
+        var_dump($file);
+    }
+
+    return $files;
+}
+
+
+
+
+
+
+
+COM ISSO, RECARREGAMOS TUDO, E ISSO FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---> CERTO... O PRÓXIMO PASSO É FAZER O ACTUAL READ 
+    DE ESSAS FILES, E AÍ OBTER AS TRANSACTIONS DE ESSAS FILES..
+
+
+
+
+
+
+
+
+--> PARA ISSO, CRIAMOS UMA NOVA FUNCTION, 
+
+DE NOME 'getTransactions()'...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+function getTransactions(string $fileName): array
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESSA FUNCTION VAI ACEITAR 1 STRING (o filepath em si)
+
+E AÍ VAI RETORNAR 1 ARRAY...
+
+
+
+
+
+
+--> para início de conversa, precisamos checar se 
+    essa file ACTUALLY existe ou não...
+    
+
+    PQ SE ELA NÃO EXISTIR E TENTARMOS FAZER ALGUMAS ACTIONS 
+    COM ELA, FICAREMOS COM 1 ERROR...
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE o professor usa 'file_exists()'...
+
+
+
+
+
+
+
+-> ELE TAMBÉM USA 'trigger_error()',
+    para que consigamos triggar 1 error, caso 
+    essa file não existir, manualmente:
+
+
+
+
+
+
+function getTransactions(string $fileName): array
+{
+    if (!file_exists($fileName)) {
+        trigger_error('File "' . $fileName . '" does not exist', E_USER_ERROR);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+--> se conseguirmos passar por esse if block,
+    vamos querer rodar um 'fopen()',
+
+
+    PARA ABRIR O CONTEÚDO DE ESSE ARQUIVO,
+     
+
+    E COLOCAR EM UMA VARIABLE '$file'...
+
+
+
+
+
+    ELA FICARÁ ARMAZENADA COMO UM 'RESOURCE'...
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, CRIAMOS UM ARRAY DE TRANSACTIONS,
+
+
+
+E AÍ VAMOS LER A FILE, LINHA POR LINHA,
+
+E AÍ 
+
+EXTRAIR CADA LINE E COLOCAR CADA 
+
+LINE NO TRANSACTIONS ARRAY...
+
+
+
+
+
+
+
+
+-> faremos isso com 'fgetcsv'...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+    // Read csv, line by line, and store each line in an array.
+    while (($line = fgetcsv($file)) !== false) {
+        $transactions[] = $line;
+    }
+
+
+
+
+
+
+
+
+
+
+-> POR FIM, RETORNAMOS O VALUE DE '$transactions',
+
+com essa function:
+
+
+
+
+
+function getTransactions(string $fileName): array
+{
+    $transactions = [];
+
+    if (!file_exists($fileName)) {
+        trigger_error('File "' . $fileName . '" does not exist', E_USER_ERROR);
+    }
+
+    $file = fopen($fileName, 'r'); // Will be stored in 'resource' format.
+
+    // Read csv, line by line, and store each line in an array.
+    while (($line = fgetcsv($file)) !== false) {
+        $transactions[] = $line;
+    }
+
+    return $transactions;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE PODEMOS 
+
+
+
+
+
+OBTER TODAS NOSSAS TRANSACTIONS,
+
+COM O CALL DE 'getTransactions()'...
+
+
+
+
+
+
+
+
+
+
+
+
+LÁ EM 'index.php', podemos usar essa function
+
+
+com a function de 'getTransactionFiles',
+
+
+
+para conseguirmos armazenar o conteúdo do csv em 1 array...
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+$root = dirname(__DIR__) . DIRECTORY_SEPARATOR;
+
+define('APP_PATH', $root . 'app' . DIRECTORY_SEPARATOR);
+define('FILES_PATH', $root . 'transaction_files' . DIRECTORY_SEPARATOR);
+define('VIEWS_PATH', $root . 'views' . DIRECTORY_SEPARATOR);
+
+// Your Code:
+require APP_PATH . 'App.php';
+
+
+// EIS O CÓDIGO EM QUESTÃO:
+$files = getTransactionFiles(FILES_PATH);
+
+foreach ($files as $file) {
+    $transactions = getTransactions($file);
+    var_dump($transactions);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+MAS O PROFESSOR ESCREVE 1 POUCO DIFERENTE... ESCREVE ASSIM:
+
+
+
+
+
+
+
+$files = getTransactionFiles(FILES_PATH);
+
+$transactions = [];
+
+foreach ($files as $file) {
+    $transactions = array_merge($transactions, getTransactions($file));
+}
+
+
+var_dump($transactions);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ELE ESTÁ BASICAMENTE INDO POR DENTRO 
+DE CADA FILE .CSV, 
+
+
+
+AÍ LOOPOANDO POR DENTRO DE CADA FILE,
+
+
+
+E AÍ PEGANDO AS TRANSACTIONS DE CADA FILE,
+
+E AÍ 
+
+MERGEANDO ESSAS TRANSACTIONS NAQUELA VARIABLE DE 
+
+'$transactions' geral...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... ESTÁ FUNCIONANDO, MAS ESTAMOS COM 1 PROBLEMA...
+
+
+
+
+
+
+
+
+
+
+
+--> A PRIMEIRA LINHA DE NOSSO CSV CONTÉM APENAS O 'HEADER' 
+    do csv... temos que extraí-lo...
+
+
+
+
+
+ 
+
+--> PODEMOS FAZER ISSO COM 
+
+'array_shift()', por exemplo...
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS O PROFESSOR ESCOLHE UMA MANEIRA DIFERENTE..
+
+
+
+
+
+
+
+
+
+ELE USA 'fgetcsv($file)' para 
+
+
+FAZER 'READ' da primeira line de nossa file,
+
+
+o que 
+
+vai fazer com que 
+
+
+ESSA LINE SEJA DESCARTADA ('solta') no meio da script 
+
+execution..
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+function getTransactions(string $fileName): array
+{
+    $transactions = [];
+
+    if (!file_exists($fileName)) {
+        trigger_error('File "' . $fileName . '" does not exist', E_USER_ERROR);
+    }
+
+    $file = fopen($fileName, 'r'); // Will be stored in 'resource' format.
+
+    fgetcsv($file); // Skip the first line (read it, discarding it).
+
+    // Read csv, line by line, and store each line in an array.
+    while (($line = fgetcsv($file)) !== false) {
+        $transactions[] = $line;
+    }
+
+    return $transactions;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok...
+
+
+
+
+
+
+
+O PRÓXIMO PASSO É FAZER O ACTUAL DISPLAY DE ESSAS TRANSACTIONS 
+EM UMA TABLE HTML...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, DEVEMOS FAZER O ACTUAL REQUIRE DA 'VIEW FILE',
+
+
+a file de 'transactions.php', em que temos o HTML:
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+$root = dirname(__DIR__) . DIRECTORY_SEPARATOR;
+
+define('APP_PATH', $root . 'app' . DIRECTORY_SEPARATOR);
+define('FILES_PATH', $root . 'transaction_files' . DIRECTORY_SEPARATOR);
+define('VIEWS_PATH', $root . 'views' . DIRECTORY_SEPARATOR);
+
+// Your Code:
+require APP_PATH . 'App.php';
+
+
+
+
+$files = getTransactionFiles(FILES_PATH);
+
+$transactions = [];
+
+foreach ($files as $file) {
+    $transactions = array_merge($transactions, getTransactions($file));
+}
+
+
+// var_dump($transactions);
+
+
+require VIEWS_PATH . 'transactions.php';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AO REALIZARMOS ESSE REQUIRE,
+
+A VARIABLE DE '$transactions' já vai ficar 
+
+disponível 
+
+dentro de esse arquivo 'transactions.php'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> EM VEZ DE ESCREVER COMO EU FIZ,
+
+
+COM 
+
+
+
+uns '<?php ?>' simples,
+
+
+
+
+
+
+
+O PROFESSOR USA 
+
+
+AS ESCRITAS ESPECIAIS 
+
+DE 
+
+
+
+
+'<?php if ?> 
+
+<?php foreach() ?>
+<?php endforeach ?>
+
+<?php endif ?>'
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+        <tbody>
+            <?php if (!empty($transactions)): ?>
+                <?php foreach ($transactions as $transaction): ?>
+                    <tr>
+                        <td></td>
+                    </tr>
+                <?php endforeach ?>
+            <?php endif ?>
+
+        </tbody>
+
+
+
+
+
+
+
+
+
+
+
+COMEÇAMOS ASSIM, PORTANTO...
+
+
+
+
+
+
+
+
+--> AÍ VAMOS COLOCANDO OS FIELDS...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+            <?php if (!empty($transactions)): ?>
+                <?php foreach ($transactions as $transaction): ?>
+                    <tr>
+                        <td><?= $transaction[0] ?></td>
+                        <td><?= $transaction[1] ?></td>
+                        <td><?= $transaction[2] ?></td>
+                        <td><?= $transaction[3] ?></td>
+                    </tr>
+                <?php endforeach ?>
+            <?php endif ?>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E ISSO FUNCIONA, TUDO ACABA DISPLAYED COMO ESPERADO..
+
+
+
+
+
+
+
+
+
+
+
+--> MAS ESSE NÃO É O FORMATO QUE QUEREMOS USAR PARA DISPLAYAR 
+    ESSA INFO TODA...
+
+
+
+
+
+
+
+
+
+
+
+-> PRECISAMOS FORMATAR TUDO ISSO...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PRECISAMOS DE UMA FUNCTION 
+
+
+
+
+DE NOME 'extractTransaction',
+
+
+
+
+
+
+que vai aceitar 1 row de transaction, e aí vai retornar 1 array...
+
+
+
+
+
+--> com isso, vamos formatar cada row 
+de transaction,
+
+
+para que fique no formato desejado...
+
+
+
+
+
+
+-> TIPO ASSIM:
+
+
+
+
+
+function extractTransaction(array $transactionRow): array
+{
+    [$date, $checkNumber, $description, $amount] = $transactionRow;
+
+
+}
+
+
+
+
+
+
+
+
+
+COMEÇAMOS COM ISSO AÍ...
+
+
+
+
+
+
+
+--> MAS É CLARO QUE PRECISAMOS FORMATAR CADA VALUE...
+
+
+
+
+
+
+-> O 'amount' não está em formato numérico..
+
+
+
+
+
+
+
+--> PRECISAMOS O FORMATAR...
+
+
+
+
+--> PARA ISSO, PRECISAMOS IGNORAR OS '$' E ',' 
+
+    E AÍ 
+
+    EXTRAIR APENAS O NUMBER...
+
+
+
+
+
+
+COMO O PROFESSOR ESCREVEU ISSO?
+
+
+
+
+
+
+
+
+
+
+
+ASSIM:
+
+
+ 
+
+
+
+
+
+
+
+
+ function extractTransaction(array $transactionRow): array
+{
+    [$date, $checkNumber, $description, $amount] = $transactionRow;
+
+    $amount = str_replace(['$', ','], '', $amount); //remove dollars and commas from value.
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+QUANTO à DATE,
+
+
+NÃO VAMOS FORMATÁ-LA DIRETAMENTE AQUI...
+
+
+
+
+
+
+
+
+--> O IDEAL É DEIXAR 
+    A DATA ORIGINAL INTACTA...
+
+
+
+
+
+    VAMOS ALTERAR O FORMATO DESSA DATE APENAS NA VIEW EM SI...
+
+
+
+
+
+
+
+
+-> ESTA PARTE É A BUSINESS LOGIC, POR ISSO NÃO VAMOS ALTERAR A DATE...
+
+
+
+
+
+--> O PROFESSOR ENTÃO ALTERA DE NOVO O 'amount',
+    para que ele retorne 'float',
+
+    e não 'string'...
+
+
+    EX:
+
+
+
+
+
+
+
+
+
+
+function extractTransaction(array $transactionRow): array
+{
+    [$date, $checkNumber, $description, $amount] = $transactionRow;
+
+    $amount = (float) str_replace(['$', ','], '', $amount); //remove dollars and commas from value.
+
+
+    return [
+        'date' => $date,
+        'checkNumber' => $checkNumber,
+        'description' => $description,
+        'amount' => $amount,
+
+    ];
+}
+;
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+AÍ PODERÍAMOS 
+
+
+
+USAR ESSA FUNCTION LÁ EM 'getTransactions', tipo assim:
+
+
+
+
+
+
+
+
+function getTransactions(string $fileName): array
+{
+    $transactions = [];
+
+    if (!file_exists($fileName)) {
+        trigger_error('File "' . $fileName . '" does not exist', E_USER_ERROR);
+    }
+
+    $file = fopen($fileName, 'r'); // Will be stored in 'resource' format.
+
+    fgetcsv($file); // Skip the first line (read it, discarding it).
+
+    // Read csv, line by line, and store each line in an array.
+    while (($line = fgetcsv($file)) !== false) {
+        $transactions[] = extractTransaction($line);
+    }
+
+    return $transactions;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+POR FIM, LÁ NA VIEW,
+
+
+BASTA TROCAR OS INDEXADORES (0,1,2,3)
+
+
+
+pelos nomes das keys, tipo assim:
+
+
+
+
+
+
+
+
+
+       <tbody>
+            <?php if (!empty($transactions)): ?>
+                <?php foreach ($transactions as $transaction): ?>
+                    <tr>
+                        <td><?= $transaction['date'] ?></td>
+                        <td><?= $transaction['checkNumber'] ?></td>
+                        <td><?= $transaction['description'] ?></td>
+                        <td><?= $transaction['amount'] ?></td>
+                    </tr>
+                <?php endforeach ?>
+            <?php endif ?>
+
+        </tbody>
+
+
+
+
+
+
+
+
+se recarregamos a página, tudo continua funcionando...
+
+
+
+
+
+
+
+
+
+
+--> MAS AS VÍRGULAS E DOLLAR SIGNS NÃO ESTÃO APARECENDO...
+
+
+
+
+
+
+
+--> ISSO ESTÁ FUNCIONANDO, SIM.. E PODE SER FINE,
+    NA MAIOR PARTE DOS APPS...
+
+
+
+
+
+
+
+--> MAS PODE NÃO FUNCIONAR EM ALGUNS CASES...
+
+
+
+
+
+
+
+
+
+--> EX:
+
+
+
+
+''AINDA QUE AS FILES ESTEJAM EM 1 MESMO FORMAT,
+    E SE VC TIVESSE DIFERENTES TIPOS DE FILE, 
+
+    EM FORMATOS DIFERENTES, MAIS PARA FRENTE, NA VIDA DO SEU APP?''
+
+
+
+
+
+
+
+
+OUTRO PROBLEMA:
+
+
+
+
+
+
+
+''AQUI, ASSUMIMOS QUE 'date', 'checkNumber', 'description' e 'amount'
+vão sempre estar nos .csv nessa ordem específica... ''
+
+
+
+
+
+OK, MAS E SE ESSAS COLUMNS ESTIVESSEM EM 1 ORDEM DIFERENTE?
+
+AÍ FICARÍAMOS COM ERRORS...
+
+
+
+
+
+
+
+
+
+
+-->  O PROFESSOR QUER NOS MOSTRAR 
+
+    COMO PODERÍAMOS RESOLVER 
+
+
+    1 CASE 
+
+
+
+    EM QUE 
+
+
+    'FILES ARE NOT IN THE SAME DIRECTORY,
+        AND ARE NOT IN THE 
+        SAME FORMAT''...
+
+
+
+
+
+
+
+
+
+--> PQ, EM APPS DE VERDADE, 
+    STATEMENTS DE BANCOS PODEM TER 
+    DIFERENTES FORMATOS...
+
+
+
+
+
+
+
+
+
+EX: 'BANCO A' E 'BANCO B' --> extractTransaction 
+                                poderia funcionar com 1 banco,
+                                mas n com outro....
+
+
+                                vc teria de adaptar essa function...
+
+
+
+
+
+
+
+
+
+
+
+
+--> VOCÊ PODERIA DEFINIR OUTRA FUNCTION,
+
+
+'extractTransactionFromBankB',
+
+
+E AÍ 
+
+
+DEFINIR 
+
+
+
+OUTRAS REGRAS, PARA ESSE CASE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OU, ENTÃO, VC PODE DEFINIR 
+
+    1 PARAMETER EXTRA EM 'getTransactions',
+
+    de nome 'transactionHandler',
+
+    que será uma CALLBACK FUNCTION, OPCIONAL...
+
+
+
+
+
+
+
+
+--> COM ESSA FUNCTION, VC PODE/PODERIA RODAR 
+    OPERATIONS PARA FORMATAR MELHOR SUA TRANSACTION...
+
+
+
+
+
+
+
+    ex:
+
+
+
+
+
+
+
+
+
+
+function getTransactions(string $fileName, ?callable $transactionHandler = null): array {
+
+...
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, DENTRO DAQUELE WHILE LOOP,
+
+PODEMOS CHECAR SE o 'transactionHandler' 
+
+FOI PASSADO OU NÃO...
+
+
+
+SE ELE FOI PASSADO,
+
+
+PODEMOS 
+
+
+DEFINIR O VALUE DE '$transaction' como sendo a call de '$transactionHandler',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+function getTransactions(string $fileName, ?callable $transactionHandler = null): array {
+{
+    $transactions = [];
+
+    if (!file_exists($fileName)) {
+        trigger_error('File "' . $fileName . '" does not exist', E_USER_ERROR);
+    }
+
+    $file = fopen($fileName, 'r'); // Will be stored in 'resource' format.
+
+    fgetcsv($file); // Skip the first line (read it, discarding it).
+
+    // Read csv, line by line, and store each line in an array.
+    while (($line = fgetcsv($file)) !== false) {
+        if ($transactionHandler !== null) {
+            $transaction = $transactionHandler($line);
+        }
+
+
+        $transactions[] = $transaction;
+    }
+
+    return $transactions;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, ESTAMOS DEIXANDO NOSSA FUNCTION DE 'getTransactions' 
+
+MAIS FLEXÍVEL, PQ NÃO ESTAMOS MAIS DEPENDENDO 
+
+DE UMA INDIVIDUAL FUNCTION QUE EXTRAI A TRANSACTION...
+
+
+
+
+EM VEZ DISSO, ESTAMOS PASSANDO UM 'transactionHandler',
+
+
+
+
+que será uma function extra, que 
+
+vai parsear 
+
+nossas transactions da maneira que quisermos... (depenedendo do banco que queremos)...
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, PODEMOS REUTILIZAR ESSA FUNCTION 
+    COM OUTROS BANKS/TIPOS DE FILE, 
+
+    em que a formatting 
+
+
+    pode ser diferente...
+
+
+
+
+
+
+
+
+
+
+--->  PRECISAMOS ATUALIZAR O CALL DE 'getTransactions()',
+        lá em 'index.php',
+
+        tipo assim:
+
+
+    
+
+
+
+
+
+
+
+
+foreach ($files as $file) {
+    $transactions = array_merge($transactions, getTransactions($file, 'extractTransaction'));
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, TUDO FUNCIONA COMO ANTES, MAS AGORA TEMOS ESSA FLEXIBILIDADE...
+
+
+
+
+
+
+
+-> PODEMOS TER DIFERENTES EXTRACTS, LÁ EM 'extractTransaction'...
+
+
+
+
+
+
+
+
+
+
+
+SE TIVÉSSEMOS OUTRO FILE PATH, POR EXEMPLO, COM OUTRO TIPO DE FILES,
+
+PODERÍAMOS SIMPLESMENTE DUPLICAR O CÓDIGO, E ESCREVER ALGO ASSIM:
+
+
+
+
+
+
+$files = getTransactionFiles(FILES_OTHER_PATH);
+
+$transactions = [];
+
+foreach ($files as $file) {
+    $transactions = array_merge($transactions, getTransactions($file, 'extractTransactionFromBankB'));
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+MAS AGORA ESTAMOS PRÓXIMOS DO FIM...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PRECISAMOS CALCULAR OS 'TOTALS'...
+
+
+
+
+
+
+
+
+
+
+
+
+ESCREVEMOS TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+function calculateTotals(array $transactions): array
+{
+    $totals = [
+        'netTotal' => 0,
+        'totalIncome' => 0,
+        'totalExpense' => 0,
+    ];
+
+
+    foreach ($transactions as $transaction) {
+        $totals['netTotal'] += $transaction['amount'];
+
+        if ($transaction['amount'] >= 0) {
+            $totals['totalIncome'] += $transaction['amount'];
+        } else {
+            $totals['totalExpense'] += $transaction['amount'];
+        }
+    }
+
+    return $totals;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EU HAVIA USADO FUNCTIONS COMO 'array_sum',
+
+
+'array_reduce()',
+
+
+
+e etc.. ------> MAS ISSO É MENOS PERFORMANT, PQ PRECISARÍAMOS   
+                    CHAMAR ESSAS FUNCTIONS 
+
+                    MÚLTIPLAS VEZES,
+                    
+                    PARA CALCULAR O RESULT...
+
+
+
+--> COM ESSA VERSÃO DO CÓDIGO DO PROFESSOR,
+    FAZEMOS O LOOP APENAS 1 ÚNICA VEZ...
+
+
+
+
+
+
+
+
+
+
+---> PARA ARMAZENAR ISSO EM UMA VARIABLE, VAMOS ATÉ O 'index.php',
+
+e aí escrevemos assim:
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+$root = dirname(__DIR__) . DIRECTORY_SEPARATOR;
+
+define('APP_PATH', $root . 'app' . DIRECTORY_SEPARATOR);
+define('FILES_PATH', $root . 'transaction_files' . DIRECTORY_SEPARATOR);
+define('VIEWS_PATH', $root . 'views' . DIRECTORY_SEPARATOR);
+
+// Your Code:
+require APP_PATH . 'App.php';
+
+
+
+
+$files = getTransactionFiles(FILES_PATH);
+
+$transactions = [];
+
+foreach ($files as $file) {
+    $transactions = array_merge($transactions, getTransactions($file, 'extractTransaction'));
+}
+
+
+$totals = calculateTotals($transactions);
+
+require VIEWS_PATH . 'transactions.php';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> POR FIM,
+
+
+
+LÁ NO 'transactions.php',
+
+
+
+
+
+
+PODEMOS DISPLAYAR ISSO, LÁ NAQUELES 'td',
+
+
+assim:
+
+
+
+
+
+
+
+
+
+        <tfoot>
+            <tr>
+                <th colspan="3">Total Income:</th>
+                <td><?= $totals['totalIncome'] ?? 0 ?></td>
+            </tr>
+            <tr>
+                <th colspan="3">Total Expense:</th>
+                <td><?= $totals['totalExpense'] ?? 0 ?></td>
+            </tr>
+            <tr>
+                <th colspan="3">Net Total:</th>
+                <td><?= $totals['netTotal'] ?? 0 ?></td>
+            </tr>
+        </tfoot>
+
+
+
+
+
+
+
+
+
+
+    
+OK... 
+
+E ISSO VAI REALMENTE FUNCIONAR...
+
+
+
+
+
+
+
+
+
+
+MAS AINDA PRECISAMOS TRABALHAR NO FORMATTING...
+
+
+
+
+
+
+
+
+
+
+
+
+--> O QUE VAMOS FAZER, AQUI,
+
+É CRIAR 1 FUNCTION QUE VAI HANDLAR O FORMATTING... 
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR ACHA QUE ESSA FUNCTION NÃO DEVE FICAR EM 'App.php'
+
+PQ NÃO É UMA FUNCTION DE BUSINESS LOGIC... ELA NÃO FAZ NADA ESPECIAL,
+
+
+APENAS PEGA O FLOAT AMOUNT, FAZ O FORMAT DELA E A ENTREGA COMO STRING..
+
+
+
+
+
+
+
+-> É POR ISSO QUE ELE CRIA UM ARQUIVO DE 'helpers.php',
+
+
+e escreve assim:
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+function formatDollarAmount(float $amount): string
+{
+    $isNegative = $amount < 0;
+
+    return ($isNegative ? '-' : '') . '$' . number_format(abs($amount), 2, '.', '');
+}
+
+
+
+
+
+
+
+
+
+
+BASTA FAZER REQUIRE DE ESSE ARQUIVO,
+
+
+
+E AÍ USAR ESSA FUNCTION...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+(index.php):
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+$root = dirname(__DIR__) . DIRECTORY_SEPARATOR;
+
+define('APP_PATH', $root . 'app' . DIRECTORY_SEPARATOR);
+define('FILES_PATH', $root . 'transaction_files' . DIRECTORY_SEPARATOR);
+define('VIEWS_PATH', $root . 'views' . DIRECTORY_SEPARATOR);
+
+// Your Code:
+require APP_PATH . 'App.php';
+require APP_PATH . 'helpers.php';
+
+
+
+
+$files = getTransactionFiles(FILES_PATH);
+
+$transactions = [];
+
+foreach ($files as $file) {
+    $transactions = array_merge($transactions, getTransactions($file, 'extractTransaction'));
+}
+
+
+$totals = calculateTotals($transactions);
+
+require VIEWS_PATH . 'transactions.php';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NA VIEW DE 'transactions.php', podemos escrever assim:
+
+
+
+
+
+
+
+
+
+
+
+
+        <tbody>
+            <?php if (!empty($transactions)): ?>
+                <?php foreach ($transactions as $transaction): ?>
+                    <tr>
+                        <td><?= $transaction['date'] ?></td>
+                        <td><?= $transaction['checkNumber'] ?></td>
+                        <td><?= $transaction['description'] ?></td>
+                        <td><?= formatDollarAmount($transaction['amount']) ?></td>
+                    </tr>
+                <?php endforeach ?>
+            <?php endif ?>
+
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="3">Total Income:</th>
+                <td><?= formatDollarAmount($totals['totalIncome']) ?? 0 ?></td>
+            </tr>
+            <tr>
+                <th colspan="3">Total Expense:</th>
+                <td><?= formatDollarAmount($totals['totalExpense']) ?? 0 ?></td>
+            </tr>
+            <tr>
+                <th colspan="3">Net Total:</th>
+                <td><?= formatDollarAmount($totals['netTotal']) ?? 0 ?></td>
+            </tr>
+        </tfoot>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA SÓ FALTAM MAIS 2 COISAS:
+
+
+
+
+
+
+
+1) O FORMAT DE DATE 
+
+
+
+
+
+
+
+
+
+
+2) AS COLORS DE RED/GREEN....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS CRIAR OUTRA HELPER FUNCTION...
+
+
+
+tipo assim:
+
+
+
+        <tbody>
+            <?php if (!empty($transactions)): ?>
+                <?php foreach ($transactions as $transaction): ?>
+                    <tr>
+                        <td><?= formatDate($transaction['date']) ?></td>
+                        <td><?= $transaction['checkNumber'] ?></td>
+                        <td><?= $transaction['description'] ?></td>
+                        <td><?= formatDollarAmount($transaction['amount']) ?></td>
+                    </tr>
+                <?php endforeach ?>
+            <?php endif ?>
+
+        </tbody>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    CERTO... E ISSO REALMENTE FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+
+O QUE FALTOU, AQUI, É O CHANGE DAS COLORS DO AMOUNT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> HÁ VÁRIAS WAYS PARA FAZER ISSO...
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR FAZ ASSIM:
+
+
+
+
+
+
+
+                        <td>
+                            <?php if ($transaction['amount'] < 0): ?>
+                                <span style="color: red;">
+                                    <?= formatDollarAmount($transaction['amount']) ?>
+                                </span>
+                            <?php elseif ($transaction['amount'] > 0): ?>
+                                <span style="color: green;">
+                                    <?= formatDollarAmount($transaction['amount']) ?>
+                                </span>
+                            <?php else: ?>
+                                <?= formatDollarAmount($transaction['amount']) ?>
+                            <?php endif ?>
+                        </td>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+é claro que estamos repetindo um monte de código, aqui,
+
+
+mas isso é fine...
+
+
+
+é fine se o código fica mais legível...
+
+
+
+
+
+TBM PODERÍAMOS TER USADO 1 TERNARY EXPRESSION (eu usei uma ternary expression)...
+
+
+
+
+
+ACABAMOS COM ESTE PROJECT...
