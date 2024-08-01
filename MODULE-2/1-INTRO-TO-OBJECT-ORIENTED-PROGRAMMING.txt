@@ -1,0 +1,675 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA VEREMOS A SEGUNDA PARTE DO CURSO...
+
+
+
+
+
+
+
+
+
+
+
+
+--> NA PRIMEIRA SECTION, VIMOS OS CONCEITOS 
+
+PRINCIPAIS DO PHP,
+
+COMO:
+
+
+
+
+
+
+
+PHP INSTALLATION E SETUP 
+
+
+SYNTAX E OPERATORS 
+
+
+
+
+VARIABLES E DATA TYPES 
+
+
+
+
+
+CONTROL STRUCTURES E FUNCTIONS 
+
+
+
+
+
+
+
+TYPE CASTING E ERROR HANDLING 
+
+
+
+
+
+
+php.ini/web server configs...
+
+
+
+
+
+
+
+
+
+
+
+WORKING WITH ARRAYS 
+
+
+
+
+
+
+
+
+
+WORKING WITH DATES AND FILES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA É HORA DE ESTUDARMOS OOP php...
+
+
+
+
+
+
+
+
+
+-- ''COM PROCEDURAL PROGRAMMING,
+    UM APP OU PROGRAMA É DIVIDIDO EM 1 CONJUNTO 
+    DE FUNCTIONS, AS QUAIS OPERAM COM ALGUM TIPO DE 
+    DATA, QUE É ARMAZENADA EM VARIABLES...''
+
+
+
+
+
+
+
+    VC BASICAMENTE TEM 1 GLOBAL STATE E VARIABLES,
+
+    E AÍ FUNCTIONS, QUE TRABALHAM COM ESSAS VARIABLES...
+
+
+
+
+
+
+
+
+
+
+--> VOCE TAMBÉM TEM FUNCTIONS,
+
+QUE ENTAO TRABALHAM  COM OUTRAS FUNCTIONS (calls) E ASSIM POR DIANTE..
+
+
+
+
+
+-------------------------------------------------
+
+
+
+
+
+
+
+                        OBJECT ORIENTED PROGRAMMING:
+
+
+
+
+    
+
+
+
+-- COM O OOP, CONTRARIAMENTE,
+    VC 
+
+
+
+    FAZ O BUNDLE 
+
+
+
+    _ DE RELATED FUNCTIONS E VARIABLES EM ALGO QUE CHAMAMOS DE 'CLASS',
+
+
+
+    CLASSES QUE SÃO, ENTÃO, INSTANCIADAS (create de OBJECTS)...
+
+
+
+
+
+
+
+
+-> VC PODE ACESSAR VARIABLES E CHAMAR FUNCTIONS DOS OBJECTS,
+    SE OS OBJECTS ESTÃO AVAILABLE PUBLICAMENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VAMOS NOS REFERIR ÀS VARIABLES 
+    DOS OBJECTS/CLASSES COMO 'PROPERTIES',
+
+
+    E __ AS FUNCTIONS, COMO 'METHODS'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TEMOS CLASSES E OBJECTS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CLASSES --> É UMA BLUEPRINT 
+
+
+
+
+
+OBJECT ---> É 1 COISA QUE VC CONSTRÓI A PARTIR DA BLUEPRINT...
+
+
+
+
+
+
+
+
+-> VC PODE TER OBJECTS DE 1 MESMA CLASS,
+    MAS CADA 1 DESSES OBJECTS PODE SER DIFERENTE...
+
+
+
+
+
+
+
+
+
+
+
+A PLANTA DE 1 CASA É A CLASS...
+
+
+
+
+
+
+
+A CASA EM SI É O OBJECT..
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VOCE PODE TER MÚLTIPLAS 
+CASAS COM BASE NO MESMO BLUEPRINT (class),
+
+
+
+
+MAS COM PEQUENAS DIFERENÇAS....
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OBJECTS --> SÃO INSTANCES DAS CLASSES...
+
+
+                -----------------------
+
+
+
+
+
+
+QUAL É A GRANDE VANTAGEM DO OOP?
+
+
+
+
+
+
+
+
+
+-- 'BETTER CODE STRUCTURE' 
+
+
+-- ''EASIER TO MAINTAIN'' 
+
+
+-- 'MODULAR AND EXTENDABLE' 
+
+
+-- 'POLYMORPHISM FLEXIBILITY'..
+
+
+
+
+
+
+
+
+--> É MAIS FÁCIL DE TESTAR, DEBUGGAR, ETC...
+
+
+
+
+
+
+
+
+
+--> MAS ISSO N SIGNIFICA QUE PROCEDURAL PROGRAMMING É TOTALMENTE 
+    INÚTIL...
+
+
+
+
+
+
+
+
+
+
+--> HÁ ALGUNS USE CASES PARA PROCEDURAL PROGRAMMING --> É BOM PARA PEQUENOS 
+                                                        PROJECTS QUE 
+                                                        N DEMANDAM MTAS 
+                                                        FEATURES OU MAINTENANCE...
+
+
+
+
+
+
+
+--> ou, então, talvez seja 1 'small conscript'..
+
+
+
+
+
+
+
+
+
+
+
+--> MAS ASSIM QUE SEU PROJECT CRESCE,   
+
+    FICA DIFÍCIL FAZER MAINTAIN DE SEU CÓDIGO,
+
+    ESPECIALMENTE QUANDO VC TRABALHA COM TEAMS....
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OOP --> NÃO SIGNIFICA QUE SEU CÓDIGO VAI SER AUTOMATICAMENTE 
+                                            MAIS FÁCIL DE MAINTAIN...
+
+
+
+
+
+
+---> ESSENCIALMENTE, É UP TO YOU, AS A DEVELOPER,
+     GARANTIR QUE SEU CÓDIGO 
+
+
+     É ESCRITO DE UMA MANEIRA QUE É 
+
+     'EXTENDABLE', 
+     'MAINTAINABLE',
+     'READABLE' 
+
+     E 
+     'REUSABLE'..
+
+
+
+
+
+
+
+
+
+
+
+
+-->> O OOP SÓ DEIXA MAIS FÁCIL O WRITE DESSE TIPO DE CÓDIGO...
+
+
+
+
+
+
+
+
+
+O 'OOP' TAMBÉM É 'ON-DEMAND'...
+
+
+
+
+
+
+
+
+
+
+-_> ISSO QUER DIZER QUE 
+    VC NÃO VAI ENCONTRAR MTAS EMPRESAS PROCURANDO 
+
+    POR DEVS COM EXPERIENCIA 
+
+
+    APENAS COM PROCEDURAL PROGRAMMING... A MAIOR 
+    PARTE 
+
+    DELAS 
+
+    EXIGE CONHECIMENTO 
+
+
+    SOBRE 
+
+
+    OOP...
+
+
+
+
+
+
+
+
+
+
+--> OK... E 'OOP' SIGNIFICA 'MVC'?
+
+
+
+
+
+
+
+
+
+
+--> NÃOOOO...  --> E ESSA É UMA MISCONCEPTION QUE 
+                    O PROFESSOR VÊ COM MTA FREQUÊNCIA...
+
+
+
+
+
+            
+
+
+            OOP NÃO SIGNIFICA MVC 
+
+
+            OBRIGATORIAMENTE...
+
+
+
+
+
+
+
+
+
+
+
+-- ''OOP'' --> É CONSIDERADO UM 'PARADIGMA DE PROGRAMAÇÃO',
+
+
+                AO PASSO QUE 
+
+
+                O 'MVC' É UM __ PATTERN,
+
+
+                o pattern do MODEL VIEW CONTROLLER...
+
+
+
+
+
+
+
+
+-> O 'MVC' USA __ OS PRINCÍPIOS 
+                DO 'OOP' (que é um paradigm),
+
+
+                MAS NÃO É 
+
+                OBRIGATORIAMENTE 
+
+
+
+                OOP...
+
+
+
+
+
+
+
+--> BASICAMENTE, 'OOP' NÃO IMPLICA 'MVC'...
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+--> OOP TEM 4 MAIN PRINCIPLES:
+
+
+
+
+
+1) ENCAPSULATION 
+
+
+
+2) INHERITANCE 
+
+
+
+3) ABSTRACTION 
+
+
+
+4) POLYMORPHISM
+
+
+
+
+
+
+
+
+
+--> VEREMOS MAIS DETALHES SOBRE CADA 1 DESSES PRINCIPLES EM VÍDEOS 
+    SEPARADOS...
+
+
+
+
+
+
+
+
+
+    VEREMOS:
+
+
+
+
+
+    1) OBJECTS E CLASSES 
+
+
+
+    2) MAGIC METHODS (use-cases e examples)
+
+
+
+
+
+    3) CODE STYLE E PSR STANDARDS 
+
+
+
+    4)  NAMESPACES, AUTOLOADING E COMPOSER...
+
+
+
+
+    5) ENCAPSULATION 
+
+     
+      
+      6) INHERITANCE 
+
+
+
+    7) ABSTRACTION
+
+
+
+    8) POLYMORPHISM
+
+
+
+
+
+    9) TRAITS E STATICS 
+
+
+
+    10) SUPER GLOBALS ($_POST, ...)
+
+
+
+
+    11) COOKIES E SESSIONS 
+
+
+
+
+    12) DATABASES...
