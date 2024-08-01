@@ -1,0 +1,2681 @@
+
+
+
+
+
+
+
+
+ATÉ AGORA USAMOS APENAS XAMPP COM NOSSOS PROJECTS...
+
+
+
+
+
+
+
+
+
+
+--> ELE É BOM SE VC QUER RAPIDAMENTE COMEÇAR 1 PROJECT LOCALMENTE...
+
+
+
+
+
+
+--> mas o xampp não tem mtas features,
+
+    e não deve ser usado para production...
+
+
+
+
+
+
+
+
+
+
+--> ISSO PODE RESULTAR EM ISSUES EM QUE 
+
+    SEU DEV ENVIRONMENT É DIFERENTE DO ENVIRONMENT DE PRODUCTION...
+
+
+
+
+
+
+
+
+-> E O QUE FUNCIONA NO SEU LOCAL PODE NÃO FUNCIONAR EM PRODUCTION, E VICE-VERSA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---> É AÍ QUE O DOCKER PODE TE AJUDAR...
+
+
+
+    SEU LOCAL ENVIRONMENT VAI FICAR BEM PARECIDO COM O 
+
+    PRODUCTION ENVIRONMENT...
+
+
+
+
+
+
+
+
+
+
+
+O DOCKER TAMBÉM TE PERMITE TRABALHAR COM MÚLTIPLOS PROJECTS AO MESMO TEMPO,
+    MESMO 
+
+
+    SE 
+
+    AS SUAS VERSIONS 
+
+
+    DO PHP 
+
+
+
+    SÃO DIFERENTES...
+
+
+
+
+
+
+
+
+
+
+--> DEIXA ISOLAR SUAS VERSIONS DO PHP EM CONTAINERS PORTÁTEIS... ISSO É 
+
+    DIFÍCIL DE CONSEGUIR COM O XAMPP, E, ÀS VEZES, ATÉ MESMO IMPOSSÍVEL...
+
+
+
+
+
+
+    EX:
+
+
+
+
+
+
+
+
+
+
+
+
+PROJECT 1:  SOURCE CODE, PHP 8, NGINX, MYSQL 8, REDIS 6.2
+
+
+
+
+PROJECT 2: SOURCE CODE, PHP 7.4, APACHE, MYSQL 5.6 
+
+
+
+
+PROJECT 3:  SOURCE CODE, PHP 7.2, APACHE, MYSQL 5.6...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-->  BUNDLAMOS TUDO QUE É NECESSÁRIO A 1 PROJECT, EM APENAS 
+
+        1 ÚNICO CONTAINER/PROJECT...
+
+
+
+
+
+
+
+
+
+
+
+--> MAS O IDEAL É SPLITTAR TUDO ISSO EM MÚLTIPLOS CONTAINERS,
+    E AÍ 
+
+
+    TER:
+
+
+    1 CONTAINER PARA O WEB SERVER (apache/nginx)
+
+
+    1 CONTAINER PARA O PHP 
+
+
+
+    1 CONTAINER PARA A DATABASE 
+
+
+
+    1 CONTAINER PARA O REDIS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> EX:
+
+
+
+
+VOLUME 1 (SOURCE CODE) --------> PHP 
+                        ----------> WEBSERVER (apache/nginx)
+
+                                    REDIS
+
+VOLUME 2 (mysql-data) ---------> MYSQL
+
+
+
+
+
+
+
+
+
+
+
+
+-> DECOUPLAR ESSES SERVICES 
+
+    É SEMPRE BOM,
+
+
+    PQ 
+
+    AÍ VC PODE FACILMENTE 
+
+    TROCAR 1 CONTAINER POR OUTRO,
+
+    EM VEZ DE 
+
+
+    __ MESS WITH THE CONTAINER THAT CONTAINS EVERYTHING....
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR NÃO VAI EXPLICAR MT SOBRE O DOCKER, PQ ESSE CURSO É SOBRE O DOCKER...
+
+
+
+
+
+
+
+
+
+
+--> MAS ELE VAI RECAPITULAR 1 POUCO OS CONCEITOS DO DOCKER...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> 1 CONTAINER, COMO MENCIONADO, BASICAMENTE BUNDLA O APP COM TODAS 
+    AS DEPENDENCIES E NECESSARY CONFIGS..
+
+
+
+
+
+--> VC PODE TER TODAS AS DEPENDENCIES INSTALADAS EM 1 ÚNICO CONTAINER,
+        OU TER MÚLTIPLOS CONTAINERS PARA ESSAS DEPENDENCIES...
+
+
+
+
+
+
+
+
+
+
+--> O DOCKER CONTAINER COMEÇA COMO 1 SIMPLES MÁQUINA LINUX,
+    QUE NÃO TEM NADA DO APP...
+
+
+
+
+
+
+--> AÍ NÓS DIZEMOS AO CONTAINER O QUE PRECISA SER INSTALADO,
+    COMO TODAS AS DEPENDENCIES NECESSÁRIAS PARA RODAR O APP..
+
+
+
+
+
+
+
+
+--> ISSO É FEITO POR MEIO DE 1 FILE DE TEXTO CHAMADA DE DOCKERFILE...
+
+
+
+
+
+
+
+
+
+
+-> 1 DOCKERFILE É UMA TEXT FILE EM QUE VC TEM INSTRUCTIONS SOBRE COMO 
+    BUILDAR 1 DOCKER IMAGE..
+
+
+
+
+
+
+--> UMA DOCKER IMAGE É UMA READ-ONLY 
+    EXECUTABLE PACKAGE QUE INCLUI 
+
+    TODAS AS COISAS NECESSÁRIAS PARA RODAR SEU APP,
+
+    COMO SOURCE CODE, DEPENDENCIES, ENVIRONMENT VARIABLES,
+
+    CONFIGS, ETC...
+
+
+
+
+
+
+--> QUER DIZER QUE DOCKER IMAGES E CONTAINERS SÃO QUASE A MESMA COISA,
+    MAS A DIFERENÇA 
+
+    É QUE 
+
+
+    IMAGES SÃO READ-ONLY, 
+
+
+    E PODEM EXISTIR SEM CONTAINERS...
+
+
+
+
+
+    JÁ CONTAINERS, POR OUTRO LADO,
+
+
+    PRECISAM DE IMAGES PARA CONSEGUIREM RODAR...
+
+
+
+
+
+
+
+
+
+    IMAGES SÃO PRATICAMENTE TEMPLATES...
+
+
+
+
+
+
+    -> VC PODE USAR IMAGES COMO TEMPLATE PARA CONSTRUIR 
+
+    SEUS CONTAINERS... É ASSIM QUE AS UTILIZAMOS...
+
+
+
+
+
+
+
+
+
+
+
+
+DOCKERFILE --> DOCKER IMAGE --> CONTAINER 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> A IMAGE PODE SER CRIADA LOCALMENTE,
+
+    OU RETIRADA DO DOCKERHUB..
+
+
+
+
+
+
+
+
+--> CONTAINER É A RUNTIME INSTANCE DE UMA IMAGE,
+    
+    E CONTAINERS PODEM SER MODIFICADOS DURANTE O RUNTIME,
+
+    AO CONTRÁRIO DE IMAGES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ANTES DE COMEÇARMOS COM O DOCKER,
+
+
+PRECISAMOS 
+
+
+DECIDIR QUAL WEBSERVER VAMOS USAR:
+
+
+
+
+
+
+
+
+
+
+APACHE (MOD_PHP)
+
+VS 
+
+NGINX 
+
+
+
+
+
+
+-> NA PRIMEIRA PARTE DO CURSO,
+    USAMOS APACHE PQ 
+
+
+
+    __ ELE __ VEM __ JUNTO __ COM O XAMPP...
+
+
+
+
+
+
+
+
+
+
+
+--> O APACHE VEM COM O XAMPP POR DEFAULT...
+
+
+
+
+
+
+
+
+--> O PROFESSOR, AQUI, QUER NOS MOSTRAR O NGINX,
+
+    PQ VC TALVEZ QUEIRA USAR O NGINX 
+
+
+    EM VEZ DO APACHE, EM CERTOS CASOS,
+
+
+    E É BOM SABER 
+
+    
+
+    UM POUCO DOS DOIS...
+
+
+
+
+
+
+
+-> VAMOS INSTALAR O PHP TAMBÉM COM 
+
+    O 'NGINX',
+
+    
+
+    INSTALAR O 'PHP-FPM'... 
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR VAI NOS 
+
+    EXPLICAR O QUE É O 
+
+    'PHP-FPM'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-=-> NO CASO, O PROFESSOR NOS EXPLICA QUE 
+
+        O APACHE VEM COM ALGO CHAMADO 
+
+        DE 
+
+        'mod_php',
+
+        o chamado 'PHP Module'...
+
+
+
+
+
+--> ISSO BASICAMENTE QUER DIZER QUE O __ INTERPRETER__ PHP 
+    EXISTE __ EMBEDDADO NO APACHE WEBSERVER... E QUE, NO FINAL DAS CONTAS,
+    O INTERPRETER PHP EXECUTA PHP COMO __ UM _ MODULE __ DO APACHE...
+
+
+
+
+
+
+
+
+
+
+
+--> SE ABRIMOS O INFODUMP DO PHP DO NOSSO APP,
+    NO BROWSER, PERCEBEMOS QUE 
+
+
+    
+
+    A PARTE DE 
+
+
+    'Server API' 
+
+
+    diz 
+
+
+    'Apache 2.0 Handler'...
+
+
+
+
+
+
+
+
+
+
+-> PARA CONSEGUIR INFO SOBRE 
+
+
+    O TIPO DE PHP ENGINE QUE ESTAMOS USANDO,
+
+
+    BASTA RODAR 'phpinfo()'
+
+
+    com o código de nosso server,
+
+    tipo assim:
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+phpinfo(); // prints info about your php and php interpreter, in apache.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AS INFOS SÃO TIPO ESTAS:
+
+
+
+
+
+
+
+
+
+System	Windows NT DESKTOP-S1M32O5 10.0 build 19045 (Windows 10) AMD64
+Build Date	Feb 14 2023 12:10:00
+Build System	Microsoft Windows Server 2019 Datacenter [10.0.17763]
+Compiler	Visual C++ 2019
+Architecture	x64
+Configure Command	cscript /nologo /e:jscript configure.js "--enable-snapshot-build" "--enable-debug-pack" "--with-pdo-oci=..\..\..\..\instantclient\sdk,shared" "--with-oci8-19=..\..\..\..\instantclient\sdk,shared" "--enable-object-out-dir=../obj/" "--enable-com-dotnet=shared" "--without-analyzer" "--with-pgo"
+Server API	Apache 2.0 Handler
+Virtual Directory Support	enabled
+Configuration File (php.ini) Path	no value
+Loaded Configuration File	C:\xampp\php\php.ini
+Scan this dir for additional .ini files	(none)
+Additional .ini files parsed	(none)
+PHP API	20200930
+PHP Extension	20200930
+Zend Extension	420200930
+Zend Extension Build	API420200930,TS,VS16
+PHP Extension Build	API20200930,TS,VS16
+Debug Build	no
+Thread Safety	enabled
+Thread API	Windows Threads
+Zend Signal Handling	disabled
+Zend Memory Manager	enabled
+Zend Multibyte Support	provided by mbstring
+IPv6 Support	enabled
+DTrace Support	disabled
+Registered PHP Streams	php, file, glob, data, http, ftp, zip, compress.zlib, compress.bzip2, https, ftps, phar
+Registered Stream Socket Transports	tcp, udp, ssl, tls, tlsv1.0, tlsv1.1, tlsv1.2, tlsv1.3
+Registered Stream Filters	convert.iconv.*, string.rot13, string.toupper, string.tolower, convert.*, consumed, dechunk, zlib.*, bzip2.*
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'Server API' --> 'Apache 2.0 Handler'...
+
+
+
+
+
+
+
+
+--> ISSO É BASICAMENTE O INDICADOR DE QUE 
+ESTAMOS USANDO 
+
+
+'mod_php' (o Php Module do apache)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> A DESVANTAGEM DE 'mod_php'
+
+    É QUE A __ FOOTPRINT__ DE CADA 
+
+
+    PROCESSO APACHE É BEM MAIS LARGA,
+
+
+    
+    PQ ISSO REQUER BEM MAIS RESOURCES QUANDO 
+
+    O PHP INTERPRETER É 'EMBEDDED' NO APACHE...
+
+
+
+
+
+
+
+
+
+
+ISSO QUER DIZER QUE __ O PROCESS_ 
+
+___ VAI __ INCLUIR O INTERPRETADOR 
+
+DO PHP __  __ MESMO __ COM REQUESTS 
+
+
+QUE NÃO FAZEM REQUIRE DE PHP FILES,
+
+
+COMO 'STATIC FILE REQUESTS' (como images, css, javascript, etc)...
+
+
+
+-> E ISSO PREJUDICA SUA PERFORMANCE...
+
+
+
+
+
+
+
+
+
+--> É CLARO QUE ISSO PODE SER RESOLVIDO 
+    COM COISAS COMO CDNs,
+
+
+    PARA BAIXAR SEUS ASSETS... MAS ISSO É RUIM,
+
+    AINDA MAIS 
+
+
+    EM ENVIRONMENTS DE PRODUCTION...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, TEMOS O 'PHP-FPM'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PHP-FPM ----------> 'PHP FAST-PROCESS-MANAGER'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PHP-FPM --> É UMA MANEIRA/IMPLEMENTAÇÃO ALTERNATIVA, MAIS AVANÇADA
+
+
+                        DA TECNOLOGIA 'FAST-CGI'...
+
+
+
+
+
+
+
+
+
+FAST-CGI -> É UM _ GATEWAY__ QUE FICA ENTRE SEU 
+                                        WEBSERVER E O CÓDIGO PHP...
+
+
+
+
+
+
+
+
+--> QUANDO SEU ARQUIVO PHP É REQUISITADO,
+                            O 'NGINX'
+
+                            VAI SE COMUNICAR 
+
+                            COM O 'PHP-FPM'
+
+                            E __ FAZER COM QUE 
+
+                            O PHP-FPM PROCESSE 
+
+                            __ APENAS __ OS ARQUIVOS PHP,
+
+                            E DEIXE DE PROCESSAR COISAS ESTÁTICAS,
+                            COMO CSS, IMAGES E JAVASCRIPT...
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR RESSALTA QUE 
+    PODERÍAMOS USAR O 'PHP-FPM' 
+    __ TAMBÉM COM O APACHE (no lugar de 'mod_php'), EM VEZ DE COM O 'NGINX',
+
+    MAS QUE 
+
+    AQUI VAMOS 
+
+
+    FOCAR NO SETUP DO 'PHP-FPM' com o nginx,
+
+    em vez 
+
+
+    do apache....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... MAS A PERGUNTA É:
+
+
+
+
+
+
+
+
+
+
+''VC DEVERIA USAR NGINX COM O PHP-FPM, EM VEZ 
+    DE APACHE COM O PHP-FPM?''
+
+
+
+
+
+
+-> BEM, TUDO DEPENDE DO APP CONCRETO,
+     E O QUE VC QUER FAZER...
+
+
+
+
+
+
+--> POR EXEMPLO, SE VC 
+    JÁ ESTÁ TRABALHANDO COM O APACHE,
+    VC NAO PRECISA TROCAR PARA O NGINX,
+
+    A NAO SER QUE VC ESTEJA ENFRENTANDO
+    ALGUMAS ISSUES,
+
+    E QUE VC QUER TENTAR O NGINX...
+
+
+
+
+    MAS GERALMENTE nÃO VALE A PENA TROCAR DE 1 PARA O OUTRO,
+    POR CONTA 
+    DO TEMPO QUE VC 
+
+    PRECISARIA GASTAR PARA FAZER A TROCA DE 1 PARA O OUTRO...
+
+
+
+
+
+
+
+
+
+
+--> SE VC ESTÁ COMEÇANDO 1 APP TOTALMENTE NOVO,
+    É MELHOR DAR 1 CHANCE AO NGINX....
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PRECISAMOS INSTALAR O DOCKER E DOCKER-COMPOSE... 
+
+
+
+
+
+-> PODEMOS FAZER ISSO COM O DOCKER DESKTOP...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR JÁ CRIOU OS ARQUIVOS DOCKERFILE 
+ 
+ E DOCKER-COMPOSE...
+
+
+
+
+
+
+
+
+
+
+
+ --> ele nos mostra os arquivos....
+
+
+
+
+
+
+
+ -> TEMOS 
+
+
+
+
+
+
+
+ 2 PASTAS:
+
+
+
+
+
+
+
+
+ 1) 'docker'
+
+
+
+
+ 2) 'src' 
+
+
+
+
+
+
+
+
+
+
+ -> SOURCE VAI CONTER TODO O SOURCE CODE...
+
+
+
+
+
+
+
+
+ -> JÁ O FOLDER DE 'docker' 
+
+    CONTÉM TODAS AS COISAS SOBRE O DOCKER, NGINX E ETC...
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+ -> O FOLDER DE 'src' inicialmente contém 
+
+
+ apenas 1 folder de 'public'
+
+
+ com 1 'index.php'...
+
+
+
+
+
+
+
+
+
+ DENTRO DO 'index.php',
+
+
+
+ TEMOS APENAS 
+
+ O DUMP 
+
+ DA INFO 
+
+ DE NOSSO PHP,
+
+
+
+ com 'phpinfo()'....
+
+
+
+
+
+
+
+
+
+
+
+
+
+ MAIS TARDE, FAREMOS O DUMP DO SUPERGLOBAL DO SERVER,
+
+
+ PARA VER QUE VALUES TEMOS....
+
+
+
+
+
+
+
+
+ O PROFESSOR MOSTRA A DOCKERIFLE A NÓS:
+
+
+
+
+
+
+
+
+
+
+
+
+ FROM php:8.0.2-fpm 
+
+
+ RUN apt_get update && apt-get install -y \
+    git \
+    curl \
+    zip \
+    unzip 
+
+
+
+WORKDIR /var/www
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E O 'docker-compose':
+
+
+
+
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: programwithgio-app
+    restart: always
+    working_dir: /var/www/
+    volumes:
+      - ../src:/var/www
+  nginx:
+    image: nginx:1.19-alpine
+    container_name: programwithgio-nginx
+    restart: always
+    ports:
+      - 8000:80
+    volumes:
+      - ../src:/var/www
+      - ./nginx:/etc/nginx/conf.d
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+REINSTALEI O DOCKER, AGORA BASTA REINICIAR O COMPUTADOR...
+
+
+
+
+
+
+
+
+OK.. CONSEGUI ATIVAR O HYPER-V NOVAMENTE,
+
+E ENTÃO 
+
+
+ABRIR A DOCKER ENGINE...
+
+
+
+
+
+CONTINUANDO A AULA DO PROFESSOR...
+
+
+
+
+
+https://github.com/ggelashvili/learnphptherightway-project/tree/2.1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR INSTALOU ESTAS DEPENDENCIES AQUI, MAS ELAS NÃO ERAM NECESSÁRIAS,
+    ELE SÓ QUERIA MOSTRAR COMO PODEMOS INSTALAR DEPENDENCIES:
+
+
+
+
+
+
+
+
+
+RUN apt_get update && apt-get install -y \
+    git \
+    curl \
+    zip \
+    unzip 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> DENTRO DA DOCKERFILE,
+
+    COLOCAMOS OS COMANDOS NECESSÁRIOS AO NOSSO APP..
+
+
+
+
+
+
+
+
+
+
+
+--> MAS VAMOS CONTINUAR COM 1 DOCKERFILE
+
+
+SIMPLES..
+
+
+
+
+ESSA DOCKERFILE, POR SI SÓ,
+
+VAI FUNCIONAR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ENTRETANTO, COM ISSO, FICAREMOS COM APENAS 1 CONTAINER COM PHP RODANDO,
+
+E NADA MAIS DO QUE ISSO....
+
+
+
+
+
+
+
+
+
+-> PRECISAMOS DE UM CONTAINER TAMBÉM PARA O WEBSERVER... NO CASO,
+    1 CONTAINER PARA O NGINX...
+
+
+
+
+
+
+
+
+
+--> MAIS TARDE PRECISAREMOS DE 1 CONTAINER PARA A DATABASE MYSQL...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, PRECISAREMOS 
+    RODAR MÚLTIPLOS CONTAINERS AO MESMO TEMPO...
+
+
+
+
+
+
+
+
+--> A MELHOR MANEIRA DE FAZER ISSO É 
+
+ O DOCKER-COMPOSE,
+
+ QUE TE DEIXA 
+
+ 
+
+
+ RODAR MÚLTIPLOS CONTAINERS AO MESMO TEMPO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+ NELE, TEMOS 2 SERVICES APENAS:
+
+
+
+
+
+
+ 1) O APP SERVICE (php)
+
+
+
+
+
+ 2) O NGINX service (o webservice):
+
+
+
+
+
+
+
+
+
+ version: '3.8'
+
+services:
+  app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: programwithgio-app
+    restart: always
+    working_dir: /var/www/
+    volumes:
+      - ../src:/var/www
+  nginx:
+    image: nginx:1.19-alpine
+    container_name: programwithgio-nginx
+    restart: always
+    ports:
+      - 8000:80
+    volumes:
+      - ../src:/var/www
+      - ./nginx:/etc/nginx/conf.d
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> NO APP SERVICE,
+
+
+ESTAMOS DIZENDO PARA PEGAR 
+
+
+
+A DOCKERFILE QUE ESCREVEMOS ANTES... 
+
+
+
+
+--> AÍ TEMOS O CONTAINER NAME...
+
+
+
+
+
+'programwithgio-app'...
+
+
+
+
+
+
+
+MAIS ALGUNS PARAMETERS:
+
+
+
+'volumes' --> É O FILESYSTEM QUE É MOUNTED NO DOCKER CONTAINER... 
+
+
+
+
+
+
+-> O VOLUME É HOSTEADO NA NOSSA LOCAL MACHINE...
+
+
+
+ 
+
+
+ ' ../src:/var/www' 
+
+
+
+
+
+
+
+
+ --> QUER DIZER QUE 
+
+ O FOLDER DE 'src' 
+
+ está MOUNTED 
+
+ diretamente 
+
+
+
+ no folder '/var/www',
+
+ dentro do container...
+
+
+
+
+
+
+
+
+
+ QUANTO AO NGINX, TEMOS ISTO:
+
+
+
+
+
+
+
+
+
+  nginx:
+    image: nginx:1.19-alpine
+    container_name: programwithgio-nginx
+    restart: always
+    ports:
+      - 8000:80
+    volumes:
+      - ../src:/var/www
+      - ./nginx:/etc/nginx/conf.d
+
+
+
+
+
+
+
+
+
+--> PEGAMOS A IMAGE DO nginx alpine,
+
+
+    e aí  estamos publicando 
+
+
+    a port de 8000 localmente (e acessando a port 80, dentro do container do nginx)..
+
+
+
+
+
+
+
+
+
+
+
+
+
+A FEATURE DE 'ports'
+
+
+TE DEIXA 
+
+TER MÚLTIPLOS PROJECTS RODANDO AO MESMO TEMPO,
+
+EM DIFERENTES PORTS...
+
+
+
+
+
+
+
+
+
+-> E TAMBÉM ESTAMOS MOUNTING ESSES VOLUMES, NO WEBSERVER:
+
+
+
+    volumes:
+      - ../src:/var/www
+      - ./nginx:/etc/nginx/conf.d
+
+
+
+
+
+
+    CERTO...
+
+
+
+
+
+
+
+
+
+    -> QUEREMOS ISSO, DO NGINX,
+
+
+    PQ QUEREMOS TER 1 CONFIG FILE DO NGINX CUSTOM..
+
+
+
+
+
+
+
+
+
+--> AS CONFIG FILES DO NGINX SÃO BEM MAIS SIMPLES DO QUE AS CONFIG FILES DO APACHE...
+
+
+
+
+
+
+
+VEJA O CÓDIGO:
+
+
+
+
+
+
+
+server {
+    listen 80;
+    index index.php;
+    error_log  /var/log/nginx/error.log;
+    access_log /var/log/nginx/access.log;
+    error_page 404 /index.php;
+    root /var/www/public;
+    location ~ \.php$ {
+        try_files $uri =404;
+        fastcgi_pass app:9000;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    }
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+        gzip_static on;
+    }
+}
+
+
+
+
+
+
+essa file é bem simples...
+
+
+
+
+
+
+
+listen --> a port a que estamos fazendo listen to 
+
+
+
+index -->  nossa entry file é 'index.php'...
+
+
+
+paths de error e log...
+
+
+
+
+
+ERROR_PAGE --> INDICAMOS QUE DEVE SER 'LOADED THROUGH INDEX.PHP'...
+
+                    (isso quer dizer que SE TIVERMOS 
+                    1 ERRO 404, VAMOS DEIXAR NOSSO INDEX.PHP
+                    HANDLAR A PAGE DE 404 para nós...
+
+                    se não definirmos isso aí,
+
+                    ficaremos com a tela default de erro 404 do nginx... que 
+                     
+                    é bem feia, e nada user-friendly... 
+
+
+
+                    por meio da option de 'error_page' direcionada 
+
+                    a esse 'index.php', 
+
+                    conseguimos escrever uma lógica, dentro do 'index.php',
+
+                    para mostrar uma página customizada de error 404...
+                    
+                    )
+
+
+root --> /var/www/public  ----> COISA BEM DEFAULT...
+
+
+
+
+
+
+
+
+'location' --> COM LOCATION, COMUNICAMOS AO NGINX   
+                ''QUAIS FILES DEVEM SER SERVIDAS''...
+
+
+
+
+                --> NO CASO, QUEREMOS SERVIR AS PAGES 
+                    DE TIPO '.php'
+
+
+
+                
+
+                --> NO CASO, ESTAMOS COMUNICANDO AO NGINX 
+                    QUE ELE DEVE PASSAR HTTP REQUESTS AO 'php-fpm',
+
+                    que vai rodar no service de 'app' do docker... por isso está linha:
+
+
+                        location ~ \.php$ {
+                                try_files $uri =404;
+                                fastcgi_pass app:9000; // esta linha aqui...
+                        
+
+                
+                        
+
+                        após isso, temos o define do index do php-fpm 
+
+                        como 
+
+                        'index.php'
+
+                        e então 
+
+                        temos a inclusão dos parameters do 'fastcgi_params',
+
+
+                        como visto aqui:
+
+
+
+
+                        fastcgi_index index.php;
+                        include fastcgi_params;
+
+
+
+                        --> por fim, estamos definindo o 'script_filename' 
+                            usando o document_root..
+
+
+
+                        
+
+
+
+
+
+                --> POR FIM, PARA TODA E QUALQUER FILE QUE NÃO É PHP,
+
+                TEMOS ESTE TRECHO AQUI:
+
+
+                    location / {
+                        try_files $uri $uri/ /index.php?$query_string;
+                        gzip_static on;
+                        }
+
+
+
+
+
+
+                --> COM ESSE último 'location /',
+                    TENTAMOS FAZER FIND DESSA FILE 
+                    NO DOCUMENT ROOT... E, SE A FILE NÃO FOI ENCONTRADA,
+                    O NGINX NÃO CONSEGUIU ENCONTRAR A FILE,
+
+                     VAMOS DEIXAR NOSSO PRÓPRIO ARQUIVO 'index.php' 
+
+                     FIGURE OUT E HANDLE O LOAD DE ESSE FILE... (por isso o 'try_files')...
+
+
+
+                
+                --> POR FIM, LIGAMOS A 'GZIP STATIC COMPRESSION' (que é tri boa)...
+
+
+
+
+
+
+            
+
+            PODEMOS VER A CONFIG FILE DEFAULT DO NGINX NO SITE DO NGINX,
+
+            E VER QUAIS OUTRAS OPTIONS SÃO PROVIDENCIADAS POR ELE...
+
+
+
+
+
+
+
+
+
+    --> O PROFESSOR DECIDE TESTAR ESSE SERVER..
+
+
+
+
+
+
+
+
+
+    --> ELE ABRE O TERMINAL E RODA 
+
+
+    'docker-compose up',
+
+
+
+    no mesmo contexto do 'docker-compose',
+
+    PARA ENTÃO SEREM BAIXADAS TODAS AS DEPENDENCIES NECESSÁRIAS 
+
+    E PARA QUE 
+
+    SEJA LEVANTADO O CONTAINER COM O NGINX WEBSERVER 
+
+    E COM 
+
+    O PHP...
+
+
+
+
+
+
+
+
+
+    GANHEI UM ERROR, IMEDIATAMENTE:
+
+
+
+
+
+
+     => ERROR [app 2/3] RUN apt_get update && apt-get install -y     git     curl     zip    4.3s
+
+
+
+
+
+
+
+
+
+
+
+
+
+     isso provavelmente aconteceu pq 
+
+     estamos tentando rodar 'apt_get update',
+
+
+
+em vez de 'apt-get update'...
+
+
+
+
+
+
+
+
+
+FAÇO A CORREÇÃO, E RODO DNV...
+
+
+
+
+
+
+
+
+COM ISSO, NOSSO SERVER ESTÁ RODANDO, SIM,
+
+
+MAS ESTOU RECEBENDO ERROR 404, de 'not found'...
+
+
+
+
+
+
+
+
+
+
+
+TENTEI ENTRAR AQUI:
+
+
+
+http://localhost:8000/
+
+
+
+
+
+
+
+
+deveria ter rodado 'docker-compose up -d', 
+
+para que 
+
+
+
+o processo fique detached do terminal...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+entendi meu erro... o erro 404... é pq 'public' deve existir dentro de 'src',
+
+e não fora...
+
+
+
+
+
+
+
+
+
+
+OK... AGORA FUNCIONOU... FIQUEI 
+
+
+
+COM A PAGE DE DISPLAY DAS INFORMAÇÕES SOBRE O PHP,
+
+POR CONTA DESTA FUNCTION, NO INDEX.PHP:
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+phpinfo();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESTAS INFORMAÇÕES: 
+
+
+
+
+
+
+System	Linux b6e4d84aaf67 5.15.153.1-microsoft-standard-WSL2 #1 SMP Fri Mar 29 23:14:13 UTC 2024 x86_64
+Build Date	Feb 9 2021 19:19:04
+Build System	Linux 4e714a43df2b 4.9.0-8-amd64 #1 SMP Debian 4.9.110-3+deb9u4 (2018-08-21) x86_64 GNU/Linux
+Configure Command	'./configure' '--build=x86_64-linux-gnu' '--with-config-file-path=/usr/local/etc/php' '--with-config-file-scan-dir=/usr/local/etc/php/conf.d' '--enable-option-checking=fatal' '--with-mhash' '--with-pic' '--enable-ftp' '--enable-mbstring' '--enable-mysqlnd' '--with-password-argon2' '--with-sodium=shared' '--with-pdo-sqlite=/usr' '--with-sqlite3=/usr' '--with-curl' '--with-libedit' '--with-openssl' '--with-zlib' '--with-pear' '--with-libdir=lib/x86_64-linux-gnu' '--enable-fpm' '--with-fpm-user=www-data' '--with-fpm-group=www-data' '--disable-cgi' 'build_alias=x86_64-linux-gnu'
+Server API	FPM/FastCGI
+Virtual Directory Support	disabled
+Configuration File (php.ini) Path	/usr/local/etc/php
+Loaded Configuration File	(none)
+Scan this dir for additional .ini files	/usr/local/etc/php/conf.d
+Additional .ini files parsed	/usr/local/etc/php/conf.d/docker-php-ext-sodium.ini
+PHP API	20200930
+PHP Extension	20200930
+Zend Extension	420200930
+Zend Extension Build	API420200930,NTS
+PHP Extension Build	API20200930,NTS
+Debug Build	no
+Thread Safety	disabled
+Zend Signal Handling	enabled
+Zend Memory Manager	enabled
+Zend Multibyte Support	provided by mbstring
+IPv6 Support	enabled
+DTrace Support	disabled
+Registered PHP Streams	https, ftps, compress.zlib, php, file, glob, data, http, ftp, phar
+Registered Stream Socket Transports	tcp, udp, unix, udg, ssl, tls, tlsv1.0, tlsv1.1, tlsv1.2, tlsv1.3
+Registered Stream Filters	zlib.*, convert.iconv.*, string.rot13, string.toupper, string.tolower, convert.*, consumed, dechunk
+
+
+
+
+
+
+
+
+
+
+
+
+
+A DIFERENÇA, AGORA,
+
+É QUE 
+ESTAMOS 
+
+USANDO 
+
+
+'PHP-FPM',
+
+
+
+e não 
+
+
+
+'Apache 2.0 Handler', como antes...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NO CASO, ESTAMOS USANDO TAMBÉM A VERSÃO '8.0.2'
+
+do php...
+
+
+
+
+
+
+
+
+
+
+--> NÃO USAMOS NENHUM ARQUIVO 'php.ini' customizado...
+
+
+
+
+
+
+
+
+
+--> se vc quer usar algum arquivo php.ini customizado,
+
+    vc pode, fazer isso através 
+
+    do docker-compose...
+
+
+
+
+
+--> BASTA REPLICAR O QUE FIZEMOS COM O 'nginx.conf.d',
+    mas com 
+
+    o 'php.ini'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VOLTAMOS AO CÓDIGO 
+
+
+
+
+E COMENTAMOS PARA FORA O 'phpinfo()'....
+
+
+
+
+
+
+
+--> DEIXAMOS APENAS ESTE CÓDIGO AQUI:
+
+
+
+
+
+echo '<pre>';
+print_r($_SERVER);
+echo '</pre>';
+
+
+
+
+
+
+
+
+
+
+
+
+COMO RESULTADO DISSO, FICAMOS COM 1 MONTE DE CÓDIGO:
+
+
+
+
+
+
+
+Array
+(
+    [PHP_EXTRA_CONFIGURE_ARGS] => --enable-fpm --with-fpm-user=www-data --with-fpm-group=www-data --disable-cgi
+    [HOSTNAME] => b6e4d84aaf67
+    [PHP_INI_DIR] => /usr/local/etc/php
+    [HOME] => /var/www
+    [PHP_LDFLAGS] => -Wl,-O1 -pie
+    [PHP_CFLAGS] => -fstack-protector-strong -fpic -fpie -O2 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+    [PHP_VERSION] => 8.0.2
+    [GPG_KEYS] => 1729F83938DA44E27BA0F4D3DBDB397470D12172 BFDDD28642824F8118EF77909B67A5C12229118F
+    [PHP_CPPFLAGS] => -fstack-protector-strong -fpic -fpie -O2 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+    [PHP_ASC_URL] => https://www.php.net/distributions/php-8.0.2.tar.xz.asc?a=1
+    [PHP_URL] => https://www.php.net/distributions/php-8.0.2.tar.xz?a=1
+    [PATH] => /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    [PHPIZE_DEPS] => autoconf 		dpkg-dev 		file 		g++ 		gcc 		libc-dev 		make 		pkg-config 		re2c
+    [PWD] => /var/www
+    [PHP_SHA256] => 84dd6e36f48c3a71ff5dceba375c1f6b34b71d4fa9e06b720780127176468ccc
+    [USER] => www-data
+    [HTTP_ACCEPT_LANGUAGE] => pt-BR,pt;q=0.9
+    [HTTP_ACCEPT_ENCODING] => gzip, deflate, br, zstd
+    [HTTP_SEC_FETCH_DEST] => document
+    [HTTP_SEC_FETCH_USER] => ?1
+    [HTTP_SEC_FETCH_MODE] => navigate
+    [HTTP_SEC_FETCH_SITE] => none
+    [HTTP_ACCEPT] => text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+    [HTTP_USER_AGENT] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36
+    [HTTP_UPGRADE_INSECURE_REQUESTS] => 1
+    [HTTP_SEC_CH_UA_PLATFORM] => "Windows"
+    [HTTP_SEC_CH_UA_MOBILE] => ?0
+    [HTTP_SEC_CH_UA] => "Not)A;Brand";v="99", "Google Chrome";v="127", "Chromium";v="127"
+    [HTTP_CACHE_CONTROL] => max-age=0
+    [HTTP_CONNECTION] => keep-alive
+    [HTTP_HOST] => localhost:8000
+    [SCRIPT_FILENAME] => /var/www/public/index.php
+    [REDIRECT_STATUS] => 200
+    [SERVER_NAME] => 
+    [SERVER_PORT] => 80
+    [SERVER_ADDR] => 172.18.0.3
+    [REMOTE_PORT] => 51168
+    [REMOTE_ADDR] => 172.18.0.1
+    [SERVER_SOFTWARE] => nginx/1.19.10
+    [GATEWAY_INTERFACE] => CGI/1.1
+    [REQUEST_SCHEME] => http
+    [SERVER_PROTOCOL] => HTTP/1.1
+    [DOCUMENT_ROOT] => /var/www/public
+    [DOCUMENT_URI] => /index.php
+    [REQUEST_URI] => /
+    [SCRIPT_NAME] => /index.php
+    [CONTENT_LENGTH] => 
+    [CONTENT_TYPE] => 
+    [REQUEST_METHOD] => GET
+    [QUERY_STRING] => 
+    [FCGI_ROLE] => RESPONDER
+    [PHP_SELF] => /index.php
+    [REQUEST_TIME_FLOAT] => 1722548133.5296
+    [REQUEST_TIME] => 1722548133
+    [argv] => Array
+        (
+        )
+
+    [argc] => 0
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AINDA NÃO COBRIMOS OS SUPERGLOBALS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS O QUE INTERESSA É QUE ISSO CONTÉM INFO SOBRE O SERVER 
+
+E O REQUEST....
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+'server_port' 
+
+
+'server_name',
+
+
+
+
+
+'server_software',
+
+
+
+
+'gateway_interface' 
+
+
+
+'document_root' 
+
+
+
+
+'document_uri' 
+
+
+
+
+'request_uri' 
+
+
+
+
+
+
+'script_name' 
+
+
+
+e etc...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A COISA LEGAL QUE CONSEGUIMOS,
+
+
+COM TODO ESSE SETUP,
+
+
+É QUE 
+
+
+
+__ VAMOS SEMPRE CARREGAR 
+
+
+A PÁGINA DE 'index.php',
+
+
+
+
+
+MESMO QUANDO ACESSAMOS PAGES DIFERENTES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ATÉ MESMO SE ESCREVERMOS 
+
+
+
+'localhost:8000/hello.php'
+
+
+
+
+
+
+
+
+
+
+-> EM 1 CENÁRIO COMUM,
+    ISSO NOS DARIA UM ERROR 404 default do nginx,
+
+    PQ NÓS NEM MESMO CRIAMOS ESSE ARQUIVO 'hello.php'...
+
+
+
+
+
+
+
+--> ENTRETANTO, 
+    COM NOSSO SETUP,
+
+
+    AINDA VAMOS 
+
+
+    CONSEGUIR O INDEX.PHP 
+
+    carregado...
+
+
+
+
+
+
+
+--> É CLARO QUE ISSO NÃO É IDEAL PARA O ACTUAL APP,
+EM PRODUCTION,
+
+
+    __ O QUE QUER DIZER QUE 
+
+    AINDA PRECISAMOS 
+
+
+    
+
+
+    ''BUILD OUT THE NECESSARY LOGIC TO HANDLE THE 
+    URL PARSING, TO MAKE SURE WE __ HANDLE THE TRAFFIC 
+    PROPERLY''... --> E ISSO É CHAMADO DE 
+
+                        __ROUTING__...
+
+
+
+
+
+
+
+
+
+--> E NÓS VEREMOS ROUTING EM BREVE...   MAS 
+    ESTA AULA É UM BOM PASSO NA DIREÇÃO DISSO,
+
+    DO ROUTING...
+
+
+
+
+
+
+
+
+--> E É ASSIM QUE __ A MAIOR PARTE _ DOS FRAMEWORKS MVC FUNCIONAM.... com routing...
+
+
+
+
+
+
+
+
+
+
+
+-> COMO VC PODE VER, 
+    CONSEGUIMOS FAZER O PHP FICAR UP AND RUNNING BEM RÁPIDO, COM O DOCKER...
+
+
+
+
+
+
+
+
+->  MAIS TARDE VEREMOS COMO SETTAR DATABASES COMO MYSQL,
+
+    COM O DOCKER...
+
+
+
+
+
+
+--> É CLARO QUE ESSE SETUP É PARA DEVELOPMENT ONLY...
+    NÃO DEVE SER USADO PARA PRODUCTION, NÃO É PRODUCTION-READY...
+
+
+
+
+
+
+
+
+
+
+--> PARA PRODUCTION, VC TEM DE TWEAKAR ALGUMAS SETTINGS,
+    AJUSTAR ALGUMAS COISAS...
+
+
+
+
+
+
+
+
+
+--> SE VC QUER INSTALAR APACHE 
+    COM
+
+    O DOCKER, TENTE FAZER ISSO COMO 1 EXERCISE,
+
+    POR MEIO DO FOLLOW DE INSTALLATION GUIDES ONLINE...
+
+
+
+
+
+
+
+
+--> antes de terminarmos esse vídeo,
+    o professor quer falar outra alternativa 
+
+    AO __ XAMPP,
+
+    QUE É 
+
+    O 
+
+    'LARAGON'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> 'LARAGON' --> é UMA ALTERNATIVA MODERNA 
+                    AO XAMPP... TEM MAIS FEATURES 
+
+                    E TE DEIXA 
+
+
+                    'GET UP AND RUNNING' DA MESMA FORMA QUE 
+
+                    O XAMPP FAZ...
+
+
+
+
+
+
+
+
+
+--> TBM É MT MAIS FÁCIL DE TROCAR ENTRE VERSIONS,
+    E TEM MAIS FEATURES COMO 
+
+
+    'ngrok integration',
+
+    para fazer share do seu local website...
+
+
+
+
+
+
+-> MESMO ASSIM, VC NÃO É CAPAZ DE 
+    RODAR MÚLTIPLOS PROJECTS, DE DIFERENTES 
+    VERSIONS, AO MESMO TEMPO...
+
+
+
+
+
+
+
+
+--> LARAGON É GREAT, AINDA MAIS SE VC 
+
+    ESTÁ ATUALMENTE USANDO O XAMPP E AINDA 
+
+    MAIS SE VC NAO QUER USAR O DOCKER...
+
+
+
+
+
+
+-> O PROFESSOR PREFERE TER O DOCKER,
+    PQ ELE TE DÁ A FLEXIBILIDADE DE RODAR 
+
+    PROJECTS PHP COM DIFERNETES VERSÕES AO MESMO TEMPO,
+
+    E TAMBÉM PQ TE DÁ MAIS PODER SOBRE DEPENDENCIES E CONFIGURATIONS...
