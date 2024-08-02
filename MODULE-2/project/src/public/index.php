@@ -12,16 +12,47 @@ echo '</pre>';
 require_once '../Transaction.php';
 
 
-// Classes and objects:
-$transaction = new Transaction();
+// *  Classes and objects:
+$transaction = new Transaction(100, 'A Nice Transaction');
 
-// Acessing a public property, in an object:
-$transaction_description = $transaction->description;
+// *  Acessing a public property, in an object:
+// $transaction_description = $transaction->description;
 
-// Altering a public property:
-$transaction->description = 'A very cool transaction';
+// *  Altering a public property:
+// $transaction->description = 'A very cool transaction';
+
+// var_dump($transaction->amount); // will give a fatal error (if strict_types is enabled, and property is typed but not yet assigned a value).
 
 var_dump($transaction);
+
+// var_dump($transaction->amount); // this will work (if the property has a value assigned to it, and is not private)
+
+
+// * Call Method, in object:
+// $transaction->addTax(8.0);
+// $transaction->applyDiscount(10);
+
+
+// * Chain methods together (they need to have a return type of the object itself, and return the object itself, with '$this'):
+$transaction
+    ->addTax(8.0)
+    ->applyDiscount(10);
+
+
+// ! Won't work, because the property is private:
+// var_dump($transaction->amount); // we will end up with 97.2
+
+
+
+var_dump($transaction->getAmount()); // Getter usage example.
+
+
+
+
+unset($transaction); // THIS WILL DESTROY OUR OBJECT, and will make the '__destruct()' method be called...
+
+
+$transaction = null; // THIS WILL ALSO DESTROY OUR OBJECT, and will make the '__destruct()' method be called...
 
 
 // $_SERVER will print something like this:

@@ -629,3 +629,3036 @@ class Transaction
     private float $amount;  // Use private if you want to hide the property from outside the class
     public string $description;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS AGORA O PROFESSOR FAZ 1 PERGUNTA:
+
+
+
+
+
+
+
+
+
+''' O QUE VC ACHA QUE VAI ACONTECER, AGORA,
+    SE TENTARMOS FAZER VAR_DUMP DE 1 PROPERTY QUE 
+    AINDA NÃO TEVE 1 VALUE ASSIGNADO A SI, MAS 
+    QUE JÁ ESTÁ COM 1 TYPE ASSIGNADO?'''
+
+    
+
+
+
+
+
+
+EX:
+
+
+
+// This is the classic object syntax
+class Transaction
+{
+    // public $amount;
+
+    public float $amount;  // Use private if you want to hide the property from outside the class
+    public string $description;
+}
+
+
+
+
+
+var_dump($transaction->amount);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COM A TYPE DEFINITION,
+
+
+    _NÃO__ VAMOS GANHAR 1 'NULL',
+
+
+    E SIM 
+
+    VAMOS GANHAR __ UM FATAL___ ERROR...
+
+
+
+
+
+-> FATAL ERROR DIZENDO 
+
+
+
+''$amount must not be accessed before Initialization''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> a pergunta aqui é:
+
+''
+não deveríamos deixar esse type 
+
+como 
+
+
+'?float',
+
+
+para que ele seja NULLABLE (null type possível, além de float),
+
+
+para que então consigamos printar 'NULL' 
+se essa property ainda não tiver sido settada?'''
+
+
+
+
+
+
+
+
+
+
+
+MAS MESMO SE FIZERMOS ISSO, DEIXAR ESSE TYPE COMO NULLABLE,
+
+ISSO AINDA NÃO FUNCIONARÁ...
+
+
+
+
+
+
+
+AINDA VAMOS GANHAR O FATAL ERROR...
+
+
+
+
+
+
+
+
+
+
+
+MAS PQ ISSO? --------> É PQ O PHP NÃO É CAPAZ 
+                       DE DETERMINAR SE 1 GIVEN PROPERTY QUE 
+                       TEM 1 TYPE _ JÁ  TEVE 1 VALUE SETTADO 
+
+                       OU SE VC SIMPLESMENTE ESQUECEU DE SETTAR O VALUE, ALI DENTRO...
+
+
+
+
+
+
+
+
+
+
+
+-> E É EXATAMENTE POR ISSO QUE UM NOVO STATE FOI CRIADO,
+    CHAMADO DE 'UNINITIALIZED'...
+
+
+
+
+
+
+'UNINITIALIZED' --> É QUANDO, PARA UMA PROPERTY:
+
+
+                        1) TYPE IS DEFINED 
+
+
+                        2) BUT NO VALUE IS ASSIGNED TO IT...
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS VER ESSE STATE DE 'uninitialized' 
+
+
+
+
+SE _ FIZERMOS 1 VAR_DUMP DO OBJECT INTEIRO,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+// Classes and objects:
+$transaction = new Transaction();
+
+var_dump($transaction);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O QUE ISSO NOS ENTREGA, NO CASO, É ISTO:
+
+
+
+
+
+
+
+
+
+object(Transaction)#1 (0) {
+  ["amount":"Transaction":private]=>
+  uninitialized(float)
+  ["description"]=>
+  uninitialized(string)
+}
+
+
+
+
+
+
+
+
+
+
+
+---> COMO PODEMOS VER, 
+    O AMOUNT ESTÁ SETTADO COMO UNINITIALIZED FLOAT,
+
+
+    E O OUTRO UNINITIALIZED STRING...
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+--> SE TIRAMOS OS TYPES DE 'float' e 'string' 
+    de nossas properties,
+
+    ficamos com 'NULL', em vez disso, se printarmos esse object inteiro..
+
+
+
+
+
+
+
+
+
+
+---> PARA RESOLVER A ISSUE DE ''ACCESSING PROPERTIES BEFORE INITIALIZATION'',
+    VC __ TIPICAMENTE__ ASSIGNA 1 VALUE INICIALMENTE...
+
+
+
+
+    --> VC TIPICAMENTE ASSIGNA ESSE VALUE LOGO DE CARA,
+        DENTRO DA CLASS DEFINITION,
+
+        OU ENTÃO 
+
+
+        COM 1 CONSTRUCTOR/SETTER (que logo estudaremos)...
+
+
+
+
+
+
+
+
+--> CONFORME O PROFESSOR MENCIONOU,
+    VC PODE DEFINIR O VALUE DIRETAMENTE NA DEFINITION DA CLASS,
+
+
+    TIPO ASSIM:
+
+
+
+
+    class Transaction
+{
+
+    private float $amount = 15; // You can set/initialize the property in the Class itself, as a default value.
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, PODEMOS ACESSAR ESSE VALUE 
+    COM A ARROW NOTATION,
+
+    E ISSO VAI FUNCIONAR...
+
+
+
+
+
+
+    TIPO ASSIM:
+
+
+
+
+
+var_dump($transaction->amount); // this will work (the property has a value assigned to it)
+
+
+
+
+
+
+
+
+
+
+
+
+
+RESULTADO:
+
+
+float(15)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS VC DEVE PERCEBER 1 COISA:
+
+
+
+''YOU ARE ONLY ABLE TO ASSIGN CONSTANT _ VALUES AS THE 
+    DEFAULT VALUES... IT IS IMPOSSIBLE 
+    TO RUN THINGS LIKE COMPLEX EXPRESSIONS
+    TO GENERATE THE DEFAULT VALUES'' 
+
+
+
+    (ou seja, não podemos rodar functions malucas com 'Math.random()', etc etc)...
+
+
+
+
+
+
+
+
+
+
+
+
+--> E SE VC REALMENTE QUERIA/QUER TER 1 PROPERTY 'NULLABLE',
+    VC TIPICAMENTE 
+
+    COLOCARIA/COLOCA '?' na frente da type definition, e aí 
+    SETTA O VALUE INICIAL COMO NULL,
+
+    TIPO ASSIM:
+
+
+
+
+    
+    class Transaction {
+
+    private ?float $amount = null;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+--> DESSA FORMA,
+
+
+
+A PROPERTY PODE COMEÇAR COMO 'NULL',
+
+E SERÁ NULLABLE NORMALMENTE...  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS FAZER O ASSIGNMENT DE 
+
+'15'
+
+como value de 'amount'
+
+não faz 
+
+sentido algum,
+
+para essa class de 'transaction'... --> PQ  NOSSOS OBJECTS 
+                                            'Transaction'
+
+                                            NÃO VÃO SEMPRE 
+                                            TER O MESMO VALUE, 15... ELES SEMPRE 
+                                            TERÃO VALUES DE 'amount' diferentes...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE ESSA NÃO É A 'PROPER WAY' 
+    de definir o value de amount...
+
+
+
+
+
+
+
+
+--> HÁ VÁRIOS USE-CASES EM QUE VC GOSTARIA/VAI QUERER 
+    DEFINIR O DEFAULT NA PRÓPRIA DEFINITION DA CLASS,
+
+    MAS, NESSE NOSSO CASO ESPECÍFICO,
+
+    VAMOS USAR __ ALGO CHAMADO __ DE  CONSTRUCTOR 
+
+    PARA FAZER INITIALIZE DE NOSSAS PROPERTIES..
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CONSTRUCTOR ---> É UMA FUNCTION ESPECIAL,
+                        TAMBÉM CHAMADA DE 'MAGIC METHOD',
+
+                        QUE 
+
+                        SERÁ 
+
+                        CHAMADA SEMPRE QUE UMA NOVA INSTANCE 
+
+                        DA CLASS FOR CRIADA...
+
+
+
+
+
+
+
+
+--> CONSTRUCTOR --> SUA SINTAXE COMEÇA COM 
+
+                    '__'...
+
+
+
+
+
+--> TODOS OS MAGIC METHODS DO PHP 
+    COMEÇAM COM '__'...
+
+
+
+
+
+
+DEPOIS DISSO, DEPOIS DO '__',
+
+
+
+temos 
+
+'construct()'...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+public function __construct() {
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+class Transaction
+{
+
+    private float $amount1;  // Use private if you want to hide the property from outside the class
+    public float $amount = 15; // You can set/initialize the property in the Class itself, as a default value.
+    public string $description1;
+
+
+    // This is the actual constructor of our classes.
+    public function __construct()
+    {
+
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+-> OS CONSTRUCTOR SERÃO CALLED SEMPRE QUE 1 NOVO OBJECT FOR CRIADO...
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS FAZER ACCEPT DE ARGUMENTS AQUI,
+
+
+como 'float $amount' e 'string $description'...
+
+
+
+
+
+
+
+
+ex:
+
+
+
+
+    public function __construct(float $amount, string $description)
+    {
+
+    }
+
+
+
+
+
+
+
+
+
+--> DEPOIS DISSO, 
+    PODEMOS ASSIGNAR ESSES VALUES ÀS PROPERTIES...
+
+
+
+
+
+
+
+
+-> PARA ACESSAR AS PROPERTIES DO OBJECT/CLASS DENTRO 
+    DA CLASS EM SI,
+
+
+
+    __ PRECISAMOS USAR __ A CLÁSSICA KEYWORD 'this',
+
+    MAS 
+
+
+    SUA SINTAXE É '$this', no php...
+
+
+
+
+
+
+
+
+
+
+
+--> A VARIABLE '$this' SE REFERE à 'INSTANCE' 
+    DE ONDE O METHOD (no caso, o 'constructor') foi 
+
+    CHAMADO... NESSE CASO,
+
+
+
+    É O PRÓPRIO OBJECT/CLASS Transaction... e é por isso que podemos 
+    definir as values dos properties, com esta sintaxe:
+
+
+
+
+
+
+
+    public function __construct(float $amount, string $description)
+    {
+        $this->amount = $amount;
+        $this->description = $description;
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+-> OK... AO SALVARMOS O CÓDIGO, FICAREMOS COM 1 ERROR...
+    ISSO É PQ 
+
+    _ NÓS AINDA NÃO PASSAMOS ARGUMENTO ALGUM NO CONSTRUCTOR..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEVEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+
+// Classes and objects:
+$transaction = new Transaction(15, 'A Nice Transaction');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, CONSEGUIMOS INSTANCIAR ESSA CLASS,
+
+    PARA CRIAR ESSE OBJECT...
+
+
+
+
+
+
+
+
+
+
+
+--> OK... MAS AQUI HOUVE ALGO ESTRANHO..
+
+
+
+
+
+--> MESMO NÓS TENDO PASSADO '15' como value do constructor,
+    não ficamos com 1 error (mesmo o data type sendo 'float')...
+
+
+
+
+
+
+--> MAS SE TENTAMOS PASSAR 1 STRING, FICAMOS COM 1 FATAL ERROR:
+
+
+// Classes and objects:
+$transaction = new Transaction('15', 'A Nice Transaction');
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA CRIAREMOS 1 METHOD _ QUE VAI ADICIONAR O 'TAX AMOUNT' 
+    AO 'amount'...
+
+
+
+
+
+
+
+
+
+
+
+-> OK... PARA ISSO, PRIMEIRAMENTE PRECISAMOS ESCREVER O ACCESS MODIFIER 
+
+    DO METHOD...
+
+
+
+
+
+
+
+
+
+--> NÃO É OBRIGATÓRIO, MAS É SEMPRE RECOMENDADO DEFINIR     
+    OS ACCESS MODIFIERS, NOS METHODS...
+
+
+
+--> SE NÃO DEFINIMOS NENHUM ACCESS MODIFIER,
+    O PHP VAI, POR DEFAULT, DEFINIR 
+    O MODIFIER DE 'PUBLIC' nesses methods e properties...
+
+
+
+
+
+
+
+
+--> SEMPRE DEFINA ACCESS MODIFIERS NOS SEUS METHODS... POR LEGIBILIDADE 
+E CONSISTÊNCIA...
+
+
+
+
+
+
+
+
+    -> QUEREMOS QUE ELE SEJA UM PUBLIC METHOD,
+
+
+    POR ISSO ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+   public function addTax(float $rate)
+    {
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+    --> VAMOS CALCULAR O 'tax amount'
+
+
+
+    POR MEIO DA MÚLTIPLICAÇÃO DO 'amount' PELA 'RATE' (parametro dessa function)...
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+    public function addTax(float $rate)
+    {
+        $this->amount += $this->amount * $rate; 
+    }
+
+
+
+
+
+
+
+
+
+
+POR FIM,
+ 
+
+ DIVIDIMOS O VALUE POR 100,
+
+
+ TIPO ASSIM:
+
+
+
+
+
+
+
+
+    public function addTax(float $rate)
+    {
+        $this->amount += $this->amount * $rate / 100;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+TESTAMOS O METHOD ASSIM:
+
+
+
+
+// Classes and objects:
+$transaction = new Transaction(100, 'A Nice Transaction');
+
+
+
+// Call Method, in object:
+$transaction->addTax(8.0);
+
+
+// 'amount' will be 108.
+var_dump($transaction->amount);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... COM ISSO, CONSEGUIMOS CRIAR E EXECUTAR 
+ESSE METHOD DE 'addTax()'...
+
+
+
+
+
+
+
+
+
+
+
+-> DEPOIS DISSO, O PROFESSOR CRIA UM METHOD DE 'applyDiscount',
+
+
+
+
+QUE __ VAI __ REDUZIR__ O VALUE 
+
+
+DO 'amount'...
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+    public function applyDiscount(float $rate)
+    {
+        $this->amount -= $this->amount * $rate / 100;
+    }
+
+
+
+
+
+
+
+
+
+
+--> AÍ EXECUTAMOS ESSE METHOD COM:
+
+
+
+
+
+
+
+// Call Method, in object:
+$transaction->addTax(8.0);
+$transaction->applyDiscount(10);
+
+
+
+var_dump($transaction->amount); // we will end up with 97.2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE O PROFESSOR TROCAR O ACCESS MODIFIER PARA 'private',
+
+    NÃO CONSEGUIREMOS CHAMAR ESSE METHOD DO LADO DE FORA 
+
+
+    DO OBJECT, E AÍ FICAMOS COM 1 FATAL ERROR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---> DEPOIS DISSO, O PROFESSOR TROCA A VISIBILITY DE 'amount'
+    e 'description'
+
+    para 'private'...
+
+
+
+
+
+
+
+--> ISSO PQ _ NÃO FAZ SENTIDO 
+
+    TER 'amount' e 'description'
+
+
+    com propriedades visíveis... 
+
+
+
+
+    ISSO PQ DEIXAR 'PUBLIC' PODERIA CAUSAR 
+
+    BUGS DESNECESSÁRIOS, EM QUE 
+
+    O AMOUNT É ALTERADO EXPLICITAMENTE
+
+    NO LADO DE FORA DA CLASS... (e isso é bem ruim)...
+
+
+
+
+
+
+
+
+
+--> NÓS QUEREMOS QUE _ APENAS __ OS METHODS_ DE DENTRO 
+    DA CLASS DE 'Transaction' CONSIGAM ALTERAR 
+
+    O VALUE DAS SUAS PROPERTIES...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ACESSAR O VALUE DA PROPRIEDADE 'amount' e propriedade 'description',
+    O QUE PODEMOS FAZER 
+
+
+    É __ CRIAR _ _UM GETTER _ _dENTRO __ DA CLASS,
+
+
+    PARA ENTÃO FAZER RETURN DO AMOUNT...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+    // GETTER example:
+    public function getAmount(): float
+    {
+        return $this->amount;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+DEPOIS DISSO,
+
+
+PODEMOS FAZER UM DUMP DO CALL DE ESSE GETTER...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+var_dump($transaction->getAmount()); // Getter usage example.
+
+
+
+
+
+
+
+
+
+
+
+
+
+VEREMOS MAIS DETALHES SOBRE GETTERS E SETTERS EM 1 VÍDEO SEPARADO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OUTRO PONTO QUE O PROFESSOR EXPLICA:
+
+
+
+''ESTAMOS CHAMANDO 'addTax' e 'applyDiscount'
+    EM 1 MESMO OBJECT...''
+
+
+
+
+
+
+
+
+
+-------->  _ MAS __ DIGAMOS QUE 
+
+TEMOS 
+
+MAIS 6 METHODS A SEREM CHAMADOS,
+
+ANTES 
+
+
+
+DE CHAMAR 'getAmount()'...
+
+
+
+
+
+
+
+
+--> TALVEZ VC QUEIRA RODAR 
+    MAIS UNS 6 METHODS, PARA RODAR CÁLCULOS...
+
+
+
+
+
+--> EM VEZ DE DUPLICAR ESSAS LINES E CHAMAR AS FUNCTIONS DESSA FORMA,
+
+
+    VC PODE ACTUALLY _ CHAINAR_ METHODS_...
+
+
+
+
+
+
+
+
+    --> VC PODE CHAINAR METHODS POR MEIO __ DO __ RETURN__ 
+
+    DO CURRENT __ OBJECT,
+
+    EM CADA 
+
+
+
+    UM DESSES METHODS..
+
+
+
+
+
+
+
+
+
+
+
+
+
+PQ, SE VC SE RECORDAR,
+
+NOSSOS METHODS DE 'addTax()"
+
+
+
+e 'applyDiscount()'
+
+
+
+NÃO ESTÃO RETORNANDO COISA ALGUMA, NO MOMENTO (são tipo 'void'):
+
+
+
+
+
+
+
+    // This is a method example:
+    public function addTax(float $rate)
+    {
+        $this->amount += $this->amount * $rate / 100;
+    }
+
+    public function applyDiscount(float $rate)
+    {
+        $this->amount -= $this->amount * $rate / 100;
+    }
+
+
+
+
+
+
+
+
+
+
+--> O QUE PODEMOS FAZER, COM ESSES METHODS,
+    É ACTUALLY 
+
+
+    __rETORNAR__ O OBJECT INTEIRO ('$this'),
+
+
+
+    a instance da class,
+
+
+
+
+
+    AO MESMO TEMPO QUE ESPECIFICAMOS 'Transaction' como 
+
+
+    o RETURN TYPE...
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+    // This is a method example:
+    public function addTax(float $rate): Transaction // You can return the object itself, if you want to chain methods together.
+    {
+        $this->amount += $this->amount * $rate / 100;
+
+        return $this; // returns the object itself, so you can chain methods together.
+    }
+
+    public function applyDiscount(float $rate): Transaction
+    {
+        $this->amount -= $this->amount * $rate / 100;
+
+        return $this; // returns the object itself, so you can chain methods together.
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+
+AÍ, COM ISSO, PODEMOS CHAINAR METHODS TOGETHER,
+
+
+TIPO ASSIM:
+
+
+
+
+
+// * Chain methods together (they need to have a return type of the object itself, and return the object itself, with '$this'):
+$transaction->addTax(8.0)->applyDiscount(10);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> HÁ OUTRA MANEIRA DE ESPECIFICAR ESSE RETURN TYPE de 'THE OBJECT ITSELF',
+
+    que é 'self',
+
+
+    MAS VEREMOS _ ISSO MAIS TARDE NO CURSO,
+
+
+    QUANDO ESTUDARMOS 'INHERITANCE' E 'STATICs'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK...
+
+
+
+
+DEIXAMOS OS 2 METHODS, 'addTax' e 'applyDiscount',
+
+
+
+COM 
+
+
+ESSE RETURN DO OBJECT ITSELF...
+
+
+
+
+
+
+
+--> AÍ, DEPOIS DISSO, FAZEMOS CHAIN DOS METHODS...
+
+
+
+
+
+
+
+--> PARA MELHOR LEGIBILIDADE,
+
+PODEMOS ESCREVER O CHAIN DE METHODS ASSIM:
+
+
+
+
+
+$transaction
+    ->addTax(8.0)
+    ->applyDiscount(10);
+
+
+
+
+
+
+
+
+
+
+COM ISSO,
+
+FICA BEM MAIS LEGÍVEL...
+
+
+
+
+
+
+
+
+--> SE TIVÉSSEMOS 6 METHODS,
+
+    ESCREVERÍAMOS 
+
+    ELES EM LINHAS SEPARADAS...
+
+
+
+
+
+
+
+
+
+
+POR FIM, PODERÍAMOS ASSIGNAR ISSO TUDO, ESSAS CALLS DE METHOD,
+
+
+
+COM 1 CALL DE 'getAmount()'
+
+ao FINAL,
+
+
+e aí
+
+
+poderíamos dumpar esse amount...
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+$amount = $transaction
+    ->addTax(8.0)
+    ->applyDiscount(10)
+    ->getAmount();
+
+
+
+var_dump($amount);
+
+
+
+
+
+
+
+
+
+
+E ISSO REALMENTE FUNCIONARIA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O CHAIN DE METHODS 
+    __ CRIA __ ESSA MANEIRA MAIS READABLE
+
+    DE FAZER 'yield' de seus objects...
+
+
+
+
+
+
+
+
+
+--> VEREMOS MAIS SOBRE ISSO,
+    AO LONGO DO CURSO...
+
+
+
+
+
+
+
+
+
+--> MAS TENHA EM MENTE QUE 
+    O CHAINING DE METHODS NEM SEMPRE FAZ SENTIDO...
+
+
+
+
+
+
+
+
+
+
+
+
+--> O CHAIN DE METHODS NÃO FARIA SENTIDO, POR EXEMPLO,
+    SE TIVÉSSEMOS 
+
+
+    1 method que retornasse uma taxa,
+
+    em vez desse method que altera o value de 'amount'...
+
+
+
+
+
+--> por exemplo, se tivéssemos um method chamado de 'getTax()',
+
+    aí o chain de method não faria sentido,
+
+
+    pq seríamos forçados a retornar 1 value diferente 
+
+    da nossa própria instance (de '$this')...
+
+
+
+
+
+
+
+
+
+
+
+
+-> VOCÊ NÃO DEVE SE FORÇAR A CRIAR 'CHAIN METHOD STRUCTURES' 
+    em todas suas classes...
+
+
+
+
+--> ISSO SÓ FAZ SENTIDO PARA ALGUNS TIPOS DE CLASSES,
+    CLASSES EM QUE VC QUER FAZER 
+
+
+    'KIND OF __ BUILD UP THE OBJECT' 
+
+
+    __ ANTES DE _ CONSEGUIR O VALUE FINAL DELE...
+
+
+
+
+
+
+
+
+
+---------------------------------
+
+
+
+
+
+
+
+-- OUTRA MANEIRA POSSÍVEL DE CRIAR 
+    OBJECTS É POR MEIO DO USO 
+
+
+    DE  'variables' em vez de 'class names'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+$class = 'Transaction';
+
+
+
+
+
+
+
+
+
+new $class(100, 'Transaction 1');
+
+
+
+
+
+
+
+
+
+
+--> ISSO TE DEIXA CRIAR OBJECTS EM QUE 
+
+    O NOME DA CLASS 
+
+    FICA ARMAZENADO EM 1 VARIABLE...
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COMO JÁ SABEMOS,
+    É POSSÍVEL CRIAR MÚLTIPLOS OBJECTS, A PARTIR DE 1 MESMA CLASS...
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS CRIAR VÁRIAS TRANSACTIONS, TIPO ASSIM:
+
+
+
+
+
+
+$transaction1 = new Transaction(100, 'Transaction 1');
+
+
+
+$transaction2 = new Transaction(200, 'Transaction 2');
+
+
+
+
+
+var_dump($transaction1->getAmount()); // returns 100
+var_dump($transaction2->getAmount()); // returns 200
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SÃO 2 OBJECTS INDEPENDENTES, COM VALUES DIFERENTES....
+
+
+
+
+
+
+
+
+
+--> AGORA VEREMOS DESTRUCTORS...
+
+
+
+
+
+
+
+--------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+DESTRUCTORS:
+
+
+
+
+
+
+
+
+
+
+
+-- também são MAGIC METHODS,
+
+
+    POR ISSO PRECISAM 
+
+
+
+    SER 
+
+
+    ESCRITOS 
+
+
+
+    COM 
+
+
+
+    '__xxxxxx'..
+
+
+
+
+
+
+
+
+
+
+
+--> A ESCRITA É 
+
+
+
+'__destruct()'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> E O MAGIC METHOD DE '__destruct(){}' 
+
+
+É CHAMADO 
+
+
+
+
+
+__ SEMPRE __ QUE __ NÃO HÁ MAIS REFERENCES AVAILABLE AO NOSSO OBJECT,
+
+OU QUANDO 
+
+O OBJECT 
+
+
+
+É _ _DESTRUÍDO__... (não lembro disso, no javascript)...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+    // This is the destructor of our class. It is called when the object is destroyed (or when there are no more references to the object).
+    public function __destruct()
+    {
+        echo 'Destruct' . $this->description . '<br>';
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VOCÊ É CAPAZ DE DESTRUIR SEU OBJECT POR MEIO DE:
+
+
+    1) A FUNCTION DE 'UNSET 
+
+
+    2) O SET DO VALUE DE SEU OBJECT COMO SENDO 'null'...
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+$transaction = new Transaction(100, 'Transaction 1');
+
+
+unset($transaction); // THIS WILL DESTROY OUR OBJECT, and will make the '__destruct()' method be called...
+
+
+$transaction = null; // THIS WILL ALSO DESTROY OUR OBJECT, and will make the '__destruct()' method be called...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> destructors podem ser usados para 
+
+REALIZAR 
+
+
+
+ALGUMAS ESPÉCIES DE CLEANUP, E TAMBÉM 
+
+PARA 'release locks', 'CLOSE OPEN RESOURCES', FECHAR DATABASE CONNECTIONS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR NÃO USA MTO OS DESTRUCTORS...
+
+
+
+
+
+
+
+
+
+
+-> ELE APENAS OS UTILIZA QUANDO HÁ USE-CASES PARA ELES...
+
+
+
+
+
+
+
+-> SE VC TEM 1 DATABASE CONNECTION OPEN,
+    VC DEVE USÁ-LOS 
+
+    PARA 
+
+    FECHAR A CONNECTION, ASSIM QUE VC TERMINOU DE TRABALHAR COM 
+
+    A DATABASE...
+
+
+
+
+
+--> MAS SE VC TEM 1 LONG-RUNNING SCRIPT E NAO FECHA 
+
+     A CONNECTION NO MOMENTO EM QUE VC ESTÁ 'DONE' COM O TRABALHO COM 
+
+     A DATABASE,
+
+     A CONNECTION VAI CONTINUAR ABERTA ATÉ QUE O SCRIPT TERMINE DE EXECUTAR...
+
+
+
+
+
+
+
+
+
+
+---> A NAO SER QUE VC TENHA 1 USE-CASE BOM PARA DESTRUCTORS,
+
+    KEEP AWAY FROM THEM... 
+
+    ONLY USE THEM IF YOU NEED TO CLOSE DATABASE CONNECTIONS once your work is done, ETC ETC...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS HÁ MAIS ALGUNS DETALHES SOBRE OS DESTRUCTORS:
+
+
+
+
+
+-- SE VC USA O STATEMENT DE 'exit',
+
+    MESMO ASSIM O '__destruct()' será chamado...
+
+
+
+
+
+
+
+
+-- OUTRA COISA É:
+    SE VC COLOCA O 'exit' statement DENTRO 
+
+
+    DO METHOD DE '__destruct()',
+
+
+    SEMPRE __ QUE __ ESSE 
+
+
+    METHOD __ DESTRUCT ESPECÍFICO FOR EXECUTADO,
+
+
+    NENHUM OUTRO METHOD DE '__destruct()'
+
+    vai ser executado,
+
+
+    em outras classes... --> E ISSO PODERIA CAUSAR ISSUES,
+                                PRINCIPALMENTE SE VC ESTÁ 
+                                REALIZANDO ALGUMAS ACTIONS 
+
+                                E ESTÁ 
+
+                                DEPENDENDO DO RUN DE ESSES METHODS 
+                                DE destruct(), em outras classes...
+
+
+
+
+
+
+
+--> ANTES DE TERMINARMOS ESSA LESSON,
+
+    O PROFESSOR QUER FALAR SOBRE A 
+
+
+
+
+    class 'std' do php,
+
+    que 
+
+    PODE 
+
+    SER USADA __ PARA _ CRIAR ALGUNS GENERIC OBJECTS...
+
+
+
+
+
+
+
+
+    E, TAMBÉM,
+
+    PQ 
+
+
+    ALGMAS FUNCTIONS RETORNAM INSTANCES DE ESSA CLASS,
+
+    de 'std'...
+
+
+
+
+
+
+
+
+
+--------------------------
+
+
+
+
+
+
+PARA ESSA DEMONSTRAÇÃO, TEMOS 1 NOVO EXEMPLO...
+
+
+
+
+
+
+
+
+
+
+
+--> DIGAMOS QUE TEMOS 1 JSON STRING...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+<?php 
+
+
+
+$str = '{"a": 1, "b": 2, "c": 3}';
+
+
+
+
+
+
+
+
+
+
+AÍ DIGAMOS QUE QUEREMOS FAZER DECODE DE ISSO AÍ, EM 1 ARRAY...
+
+
+
+
+
+
+
+
+-> PARA ISSO, USAMOS A FUNCTION DE 'json_decode()',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+$str = '{"a": 1, "b": 2, "c": 3}';
+
+
+
+$arr = json_decode($str, true);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NO CASO, O SEGUNDO PARAMETER, 'true',
+
+
+É DEFINIDO PARA QUE __ ESSE ARRAY SEJA CRIADO COMO UM 
+
+
+'ASSOCIATIVE ARRAY'... 
+
+(
+    tipo a=> 1, b=>2, c=>3 ...
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS SE NÃO PASSAMOS 'true',
+    NÓS FICAMOS COM ALGO TOTALMENTE DIFERENTE,
+
+    ALGO QUE __ NÃO É UM ASSOCIATIVE ARRAY__...
+
+
+
+
+
+
+
+    se fazemos var_dump,
+
+    assim:
+
+
+
+
+
+
+
+$str = '{"a": 1, "b": 2, "c": 3}';
+
+
+
+$arr = json_decode($str, true);
+
+
+var_dump($arr);
+
+
+
+
+
+
+
+
+
+
+--> O DUMP FICA ASSIM:
+
+
+
+
+
+
+
+object(stdClass)#1 (3) {  
+
+    ["a"]=> int(1)
+    ["b"]=> int(2)
+    ["c"]=> int(3)
+
+}
+
+
+
+
+
+
+
+NO CASO, FICAREMOS COM 1 INSTANCE DE 
+
+
+'stdClass', um object...
+
+
+
+
+
+
+
+
+
+-> ESSE OBJECT AÍ... 
+
+
+
+    AS KEYS DO JSON/ARRAY
+
+
+    SE TORNARÃO 
+
+
+    AS PROPERTIES DA CLASS,
+
+
+    E _ OS __ VALUES __ VÃO SE TORNAR OS VALUES DESSAS PROPERTIES...
+
+
+
+
+
+
+
+
+--> COMO ISSO VAI SE TORNAR UM OBJECT,
+
+    PODEMOS 
+
+
+    FAZER DUMP DAS PROPERTIES, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+$str = '{"a": 1, "b": 2, "c": 3}';
+
+
+
+$arr = json_decode($str);
+
+
+var_dump($arr->a);
+
+
+
+
+
+
+
+
+-> ISSO VAI PRINTAR '1',
+por exemplo...
+
+
+
+
+
+
+
+
+
+
+-> VOCÊ PODE CRIAR 1 CUSTOM OBJECT, TAMBÉM,
+
+
+    COM A CLASS DE 'stdClass'...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+$obj = new stdClass();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+$someObject = new stdClass();
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ VC PODE SETTAR AS PROPERTIES DENTRO DESSE OBJECT,
+    COMO VC SETARIA EM 1 OBJECT NORMAL,
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+$someObject = new stdClass();
+
+
+$someObject->a = 1;
+$someObject->b = 2;
+$someObject->c = 3;
+$someObject->d = 4;
+$someObject->e = 5;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA DEVEMOS VER COMO O CASTING FUNCIONA, COM ESSE TIPO DE CLASS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+
+
+$arr = [1, 2, 3]
+
+
+
+
+
+
+
+
+
+
+-->  E ESSE É UM NUMERICALLY-INDEXED ARRAY, CLARO...
+
+
+
+
+
+
+
+
+
+INDEXES 0 1 E 2...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS CASTAR COISAS COMO OBJECT,
+    POR MEIO 
+
+
+    de '(object)',
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+$arrayExample = [1, 2, 3];
+
+var_dump((object) $arrayExample);
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NO CASO, CASTAMOS ESSE ARRAY COMO SENDO 1 OBJECT...
+
+
+
+
+
+
+
+
+-> COM ISSO,
+
+
+FICAMOS 
+
+
+
+COM AQUELE PRINT DE 'stdClass'
+
+MAIS UMA VEZ,
+
+
+COM ESTE FORMATO:
+
+
+
+
+object(stdClass)#1 (3) {  
+
+    ["0"]=> int(1)
+    ["1"]=> int(2)
+    ["2"]=> int(3)
+
+}
+
+
+
+
+
+
+
+OU SEJA, 
+
+AS KEYS INDEXADAS (0 1 e 2)
+
+
+VIRAM AS KEYS,
+
+
+
+
+
+E OS VALUES 
+
+
+CONTINUAM SENDO OS VALUES DO ARRAY ORIGINAL...
+
+
+
+
+
+
+
+
+
+--> MAS SE VC QUER ACESSAR OS VALUES DAS KEYS DENTRO 
+
+DE ESSE ARRAY QUE FOI CONVERTIDO EM 1 OBJECT,
+
+
+A SINTAXE É UM POUCO DIFERENTE, PQ EXIGE '{}',
+
+
+TIPO ASSIM:
+
+
+
+
+
+$arrayExample = [1, 2, 3];
+
+$objectExample = (object) $arrayExample;
+
+ 
+
+var_dump($objectExample->{1});
+
+
+
+
+
+
+
+
+
+
+
+----> COM ISSO, 
+
+
+
+ACABAMOS ACESSANDO O INDEX '1',
+
+
+
+A KEY DE VALUE '1',
+
+DENTRO DAQUELE OBJECT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... AGORA VAMOS CASTAR MAIS ALGUNS TYPES..
+
+
+
+
+
+
+
+COMO 'int'...
+
+
+
+
+
+ 
+
+
+
+
+ EX:
+
+
+
+
+
+
+
+ var_dump((object) 1);
+
+
+
+
+
+
+
+
+
+
+ --> COM ISSO, CASTAMOS uma 'int'
+
+ COMO SENDO 1 OBJECT...
+
+
+
+
+
+
+
+
+
+
+ O RESULTADO DISSO É:
+
+
+
+ object(stdClass)#1 (1) {  
+
+    ["scalar"]=>int(1)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA, FICAMOS COM 1 OBJECT COM 'SCALAR' como a property name,
+
+
+e
+ a int se torna o value...
+
+
+
+
+
+
+
+
+
+--> SE QUEREMOS ACESSAR A PROPERTY COM NOME DE 'scalar',
+
+
+PODEMOS USAR A SINTAXE COMUM DE ACESSO A PROPRIEDADES,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+$objectExample = (object) 1;
+
+
+ var_dump($objectExample -> scalar);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O MESMO SE APLICA A BOOLEANS E FLOATS...
+
+
+
+
+QUAISQUER SCALAR VALUES 
+
+VÃO SER TRANSFORMADOS EM OBJECTS DESSA FORMA AÍ...
+
+
+
+
+
+
+
+INTEGERS, FLOATS, STRINGS E BOOLEANS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O 'NULL' VALUE, POR OUTRO LADO,
+
+É 
+
+CASTADO COMO 1 OBJECT VAZIO,
+
+
+
+COMO PERCEBEMOS COM ESTE CÓDIGO:
+
+
+
+
+
+$objectExample = (object) null;
+
+
+ var_dump($objectExample);
+
+
+
+
+
+
+
+
+
+
+-> ISSO VAI PRINTAR 
+
+ISTO:
+
+
+
+
+
+ object(stdClass)#1 (0) { }
+
+
+
+
+
+
+
+
+
+
+
+
+ OU SEJA, 1 OBJECT SEM QUAISQUER PROPERTIES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+ NO PRÓXIMO VIDEO VEREMOS NOVAS FEATURES DO PHP8, COMO:
+
+
+
+
+ 1) CONSTRUCTOR PROPERTY PROMOTION 
+
+
+ 2) NULLSAFE OPERATOR...
