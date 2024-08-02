@@ -6,12 +6,22 @@ declare(strict_types=1);
 
 
 echo '<pre>';
-print_r($_SERVER); // This is a superglobal variable.
+// print_r($_SERVER); // This is a superglobal variable.
 echo '</pre>';
 
+require_once '../Transaction.php';
 
 
+// Classes and objects:
+$transaction = new Transaction();
 
+// Acessing a public property, in an object:
+$transaction_description = $transaction->description;
+
+// Altering a public property:
+$transaction->description = 'A very cool transaction';
+
+var_dump($transaction);
 
 
 // $_SERVER will print something like this:

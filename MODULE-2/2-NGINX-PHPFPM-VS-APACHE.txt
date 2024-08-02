@@ -2679,3 +2679,227 @@ EM PRODUCTION,
     PROJECTS PHP COM DIFERNETES VERSÕES AO MESMO TEMPO,
 
     E TAMBÉM PQ TE DÁ MAIS PODER SOBRE DEPENDENCIES E CONFIGURATIONS...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+<?php
+
+
+// This is the classic object syntax
+class Transaction
+{
+    public $amount;
+    public $description;
+}
+
+
+
+
+
+
+
+
+
+
+'PUBLIC' SIGNIFICA QUE ESSAS PROPERTIES FICAM DISPONÍVEIS A QUALQUER 
+    UM QUE INTERAJA COM ESSE OBJECT, ATÉ MESMO 
+
+
+    DO LADO DE FORA DESSA CLASS...
+
+
+
+
+
+
+
+
+--> NO PHP, PODEMOS ACESSAR 1 PROPERTY DE ALGUM OBJECT 
+
+
+    COM A ESCRITA DE 
+
+
+    '$transaction -> property_name',
+
+
+    em vez de 
+
+    usar 
+
+
+    a DOT NOTATION (.) do javascript...
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+// Classes and objects:
+$transaction = new Transaction();
+
+// Acessing a public property, in an object:
+
+$transaction_description = $transaction->description;
+
+
+var_dump($transaction);
+
+
+
+
+
+
+
+SE FAZEMOS O DUMP DE ESSE VALUE,
+
+VEREMOS QUE 
+
+
+ELE 
+
+
+
+FICARÁ COMO 'NULL',
+
+PQ 
+
+AINDA NÃO DEFINIMOS COISA ALGUMA
+
+
+COMO VALUE DE 'description' 
+
+
+desse object nosso...
+
+
+
+
+
+
+
+
+
+
+-> JÁ SE VC USAR A KEYWORD DE 'private' em vez de 'public',
+
+    ISSO FARÁ COM QUE ESSE VALUE, DA SUA PROPERTY,
+
+    FIQUE 
+
+    DISPONÍVEL __ SOMENTE_ DENTRO _ DA CLASS EM SI... não poderá 
+    ser acessada com a dot notation...
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+// This is the classic object syntax
+class Transaction
+{
+    // public $amount;
+
+    private $amount;  // Use private if you want to hide the property from outside the class
+    public $description;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> JÁ A KEYWORD DE 'PROTECTED' É ALGO QUE VEREMOS QUANDO 
+    ESTUDARMOS O TÓPICO DE 'INHERITANCE'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> QUANDO AS PROPERTIES SÃO AVAILABLE PUBLICALLY (como agora, por serem 'public'),
+
+
+    SOMOS CAPAZES DE AS ALTERAR DO LADO DE FORA DO CÓDIGO,
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+    $transaction->description = 'A very cool Transaction';

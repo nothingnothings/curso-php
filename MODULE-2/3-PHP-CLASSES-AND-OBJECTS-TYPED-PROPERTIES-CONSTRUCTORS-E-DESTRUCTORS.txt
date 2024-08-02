@@ -1,0 +1,631 @@
+
+
+
+
+
+
+
+
+
+
+
+-> OK.... AGORA FALAREMOS SOBRE CLASSES E OBJECTS...
+
+
+
+
+
+
+
+
+// Classes e Objects...
+
+
+
+
+
+
+--> 
+
+
+CLASS: É COMO 1 BLUEPRINT
+
+
+
+
+
+
+OBJECT --> É O QUE VC CONSTROI A PARTIR DAQUELE BLUEPRINT...
+
+
+
+
+OBJECT- -> É UMA INSTANCE DAS CLASS....
+
+
+
+
+
+
+
+
+
+-> OBJECTS AINDA NÃO FORAM ESTUDADOS, NESSE CURSO...
+
+
+
+
+
+
+
+
+
+
+NO PHP, TEMOS 4 'COMPOUND TYPES':
+
+
+
+
+
+
+1) ARRAY (já estudamos)
+
+
+
+2) CALLABLE (functions, já estudamos)
+
+
+
+3) ITERABLE (não estudamos)
+
+
+
+4) OBJECTS...
+
+
+
+
+
+
+
+
+
+
+
+--> ITERABLES SERÃO VISTOS MAIS TARDE NO CURSO....
+
+
+
+
+
+
+
+
+
+
+
+-> O PHP TEM 1 IMPLEMENTAÇÃO DE CLASS GENÉRICA 
+    CHAMADA DE 
+
+    'std_class',
+
+
+
+
+QUE VC PODE 
+
+
+
+USAR PARA _ 'CREATE GENERIC OBJECTS',
+
+                OU __ ENTÃO PARA 
+
+
+                __cASTAR__ VARIABLES QUE 
+                SÃO DE OUTROS DATA TYPES (como 'string')
+
+
+                como OBJECTS...
+
+
+
+
+
+-> falaremos mais sobre 
+
+TYPE CASTING DE OBJECTS NO FINAL DESSA LESSON...
+
+
+
+
+
+
+
+
+-> ALÉM DE NOS DAR A CAPACIDADE 
+    DE CRIAR NOSSOS PRÓPRIOS OBJECTS, COM 
+
+    A CLASS GENÉRICA DE 'std_class',
+
+
+
+    PODEMOS TAMBÉM CRIAR NOSSAS PRÓPRIAS CUSTOM CLASSES...
+
+
+
+
+
+
+
+
+
+
+-> VAMOS CRIAR 1 CLASS CHAMADA DE 'transaction',
+    pq ela terá relação com o project que construímos nas aulas anteriores...
+
+
+
+
+
+
+
+
+
+-> PARA DEFINIR 1 CLASS,
+
+
+COMECE COM A KEYWORD 'class',
+
+
+E DEPOIS 
+
+
+
+COM A CLASS NAME...
+
+
+
+
+
+
+
+
+
+
+-> A LETRA INICIAL É MAIÚSCULA...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+class Transaction {
+
+}
+
+
+
+
+
+
+
+
+
+
+
+-> VAMOS COLOCAR ESSA CLASS DENTRO DE 1 FILE CHAMADA DE 'Transaction.php'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR APONTA QUE __ NÃO SOMOS OBRIGADOS 
+
+    A NOMEAR NOSSA CLASS 
+
+
+
+    COM MESMO NOME DO FILE EM QUE A ESCREVEMOS,
+
+
+    MAS QUE ESSA É UMA BOA PRACTICE,
+
+
+    E A COISA RECOMENDADA A SE FAZER... É UMA CONVENTION...
+
+
+
+
+
+
+
+
+
+-> TAMBÉM É POSSÍVEL TER MAIS DE 1 CLASS DEFINITION EM 1 MESMA FILE,   
+    MAS ESSA NÃO É A RECOMENDAÇÃO...
+
+
+
+
+
+--> A RECOMENDAÇÃO É TER APENAS 1 ÚNICA CLASS POR FILE,
+    E MANTER ESSE PADRÃO...
+
+
+
+
+
+
+
+
+
+----> AGORA QUE TEMOS ESSA CLASS, DE 'Transaction',
+    DEVEMOS CRIAR 1 OBJECT... 
+
+
+
+
+
+
+
+
+
+
+->  O PROFESSOR EXPLICA QUE 
+    VC PODERIA CRIAR O OBJECT, A PARTIR DE 'Transaction',
+
+    NO PRÓPRIO ARQUIVO 'Transaction.php'...
+
+
+
+
+
+
+-> ENTRETANTO, ELE TAMBÉM APONTA QUE ESSA NÃO É 'THE RECOMMENDED WAY',
+
+por isso ele vai lá e instancia essa class lá em 'index.php',
+
+tipo assim:
+
+
+
+
+
+
+require '../Transaction.php';
+
+// Classes and objects:
+$transaction = new Transaction();
+
+
+var_dump($transaction);
+
+
+
+
+
+
+
+
+
+
+
+
+E ISSO REALMENTE FUNCIONOU... É PRATICAMENTE A MESMA 
+                                SINTAXE DO JAVASCRIPT...
+
+
+
+
+
+
+
+
+
+
+--> FICAMOS COM 1 PRINT DE 
+
+
+
+'' (0) {
+}
+
+'' 
+
+
+
+
+
+
+
+
+
+ISSO DEU CERTO TBM PQ 
+
+IMPORTAMOS EXPLICITAMENTE ESSE ARQUIVO DE 'Transaction.php' 
+
+em que temos essa class...
+
+
+
+
+
+
+
+
+
+
+
+-> MAIS TARDE NO CURSO,
+    VAMOS APRENDER OS CONCEITOS DE 
+
+    'NAMESPACES' E 'AUTOLOADING',
+
+
+    QUE __ SÃO COISAS _QUE TE DEIXAM _ USAR 
+
+    FUNCTIONS/ELEMENTOS EXTERNOS __ SEM 
+
+
+    _IMPORTÁ-LOS COM 'require' ou 'include'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> UMA CLASS PODE TER VARIABLES,
+    QUE SÃO CHAMADAS TAMBÉM DE 'PROPERTIES'...
+
+
+
+
+-> E UMA CLASS PODE TER FUNCTIONS,
+    QUE SÃO CHAMADAS TAMBÉM DE 'METHODS'...
+
+
+
+
+
+
+
+
+
+-> A CLASS DE TRANSACTION DEVE TER, PELO MENOS,
+
+    AS PROPERTIES DE 
+    'AMOUNT'
+
+
+    E 
+
+
+    'DESCRIPTION'..
+
+
+
+
+
+
+
+
+
+
+--> ANTES DE SETTAR NOSSAS PROPERTIES,
+    DEVEMOS __ DECIDIR 
+
+
+    QUAL SERÁ A 'VISIBILITY' DE NOSSAS PROPERTIES... ELAS SÃO:
+
+
+
+
+    1) PUBLIC 
+
+
+    2) PRIVATE 
+
+
+    3) PROTECTED....
+
+
+
+
+
+
+
+
+
+--> ELES SÃO TAMBÉM CHAMADAS DE 'ACCESS MODIFIERS', 
+     
+     E DEVEM SER ADICIONADOS A TANTO METHODS COMO PROPERTIES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> DEIXAMOS NOSSAS PROPERTIES COMO PUBLIC, TIPO ASSIM:
+
+
+
+
+
+// Classes and objects:
+$transaction = new Transaction();
+
+// Acessing a public property, in an object:
+$transaction_description = $transaction->description;
+
+// Altering a public property:
+$transaction->description = 'A very cool transaction';
+
+var_dump($transaction);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... OUTRO DETALHE É QUE O PHP 
+
+7.4 INTRODUZIU 
+
+O CONCEITO 
+
+DE 
+
+'TYPED PROPERTIES' -> ESSA FEATURE TE DEIXA DEFINIR O TYPE DA PROPERTY,
+                                                        JÁ NA DEFINITION 
+
+                                                        DA PROPERTY....
+
+
+
+
+
+
+
+
+--> TYPE HINTING, NO PHP, É RECOMMENDED, MAS NÃO É OBRIGATÓRIO...
+
+
+
+
+
+
+
+PODEMOS FAZER O TYPE HINTING ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+// This is the classic object syntax
+class Transaction
+{
+    // public $amount;
+
+    private float $amount;  // Use private if you want to hide the property from outside the class
+    public string $description;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR PREFERE FAZER TYPE HINT DE TUDO, E USAR STRICT TYPES SEMPRE...
+
+
+
+
+
+
+
+
+
+
+POR ISSO ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+
+// This is the classic object syntax
+class Transaction
+{
+    // public $amount;
+
+    private float $amount;  // Use private if you want to hide the property from outside the class
+    public string $description;
+}
