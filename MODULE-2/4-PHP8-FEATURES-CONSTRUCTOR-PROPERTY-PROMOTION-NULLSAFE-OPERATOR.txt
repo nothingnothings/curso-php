@@ -1,0 +1,1908 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+''CONSTRUCTOR PROPERTY PROMOTION''  É UMA 
+
+FEATURE 
+
+QUE FOI INTRODUZIDA COM O PHP 8.0....
+
+
+
+
+
+
+
+
+--> ELA TE DEIXA __ SE LIVRAR __ DO 'BOILERPLATE CODE'
+    DE DEFINIÇÃO E ASSIGNMENT DE PROPERTIES
+
+    NO CONSTRUCTOR...
+
+
+
+
+
+
+
+
+---> ISSO EXISTE TAMBÉM, DE OUTRA FORMA,
+    NO JAVASCRIPT/TYPESCRIPT...
+
+
+
+
+
+
+
+
+
+
+--> ISSO TE DEIXA 
+
+
+    'COMBINE CLASS PROPERTIES, CONSTRUCTOR AND ASSIGNMENT' 
+
+
+    EM UMA ÚNICA SINTAXE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMEÇAMOS COM O EXEMPLO DE DEFINIÇÃO DA CLASS 'Transaction' DA ÚLTIMA AULA:
+
+
+
+
+
+
+
+
+
+declare(strict_types=1);
+
+
+
+
+class Transaction {
+        private float $amount;
+        private string $description;
+
+        public function __construct(
+            float $amount,
+            string $description
+        ) {
+
+            $this->amount = $amount;
+            $this->description = $description;
+        }
+};
+
+
+
+
+
+
+
+
+
+
+---> COMO VC PODE OBSERVAR,
+    É MT CÓDIGO PARA APENAS 
+
+
+    CRIAR 1 CLASS COM 2 PROPERTIES,
+
+    'amount' e 'description'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TUDO ISSO É CÓDIGO BOILERPLATE...
+
+
+
+
+
+
+
+
+
+
+-> ISSO É PERFECTLY FINE,
+
+    MAS EXISTE UMA VERSÃO _ SHORTHAND DISSO, NO PHP8...
+
+
+
+
+
+
+
+
+
+-> COM A VERSAO SHORTHAND,
+    VC É CAPAZ DE ADICIONAR OS 'VISIBLITY/ACCESS' modifiers 
+
+
+    DIRETAMENTE 
+
+
+    NO SEU _ CONSTRUCTOR...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+// With the Constructor Property Promotion Shorthand in the constructor:
+class TransactionShortHand
+{
+    public function __construct(
+        private float $amount,
+        private string $description
+    ) {
+
+    }
+}
+;
+
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, QUANDO 
+
+
+    O _ PHP _ DETECTA 
+
+    QUE 
+
+    DEFINIMOS 
+
+
+    OS 'ACCESS MODIFIERS'
+
+
+    DIRETAMENTE 
+
+
+    NO CONSTRUCTOR,
+
+
+
+
+
+__ ELE  VAI _ INTERPRETAR__ 
+
+
+cada coisa (como 'private float $amount')
+
+
+COMO 
+
+
+''BOTH THE PROPERTY AND _ CONSTRUCTOR_ ARGUMENT...''
+
+
+
+
+
+AÍ, NO FINAL DAS CONTAS, 
+
+
+O PHP VAI ASSIGNAR O VALUE PASSADO AO CONSTRUCTOR 
+
+AUTOMATICAMENTE COMO VALUES Dessas properties aí,
+
+
+behind the scenes...
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+ OU SEJA, É __ eXATAMENTE COMO O SHORTHAND DO JAVASCRIPT/TYPESCRIPT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+ E ISSO VAI FUNCIONAR, NO PHP8...
+ 
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO OFERECE UMA SINTAXE BEM MAIS LIMPA,
+
+
+E BEM MENOS CÓDIGO BOILERPLATE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> É CLARO QUE, BEHIND THE SCENES,
+
+O PHP AINDA FAZ 
+
+
+O PROPERTY DEFINITION E ASSIGNMENT PARA NÓS...
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS HÁ ALGUMAS COISAS QUE DEVEMOS TER EM MENTE, QUANTO A ISSO...
+
+
+
+
+
+
+
+
+COISAS A SE TER EM MENTE:
+
+
+
+
+
+
+
+
+
+
+1a COISA) VOCÊ PODE FAZER TYPE HINT DE
+            _ QUALQUER__ TYPE,
+
+            EXCETO 'CALLABLE'...
+
+
+
+
+
+
+--> ISSO ACONTECE PQ __ NÃO É POSSÍVEL 
+    DEFINIR O VALUE DE PROPERTIES COMO 'CALLABLE'...
+
+
+
+
+
+
+
+
+
+
+2a COISA) você pode misturar 'non-promoted properties'
+                e properties comuns em 1 mesma class...
+
+                quer dizer que 
+                NEM TODAS AS PROPERTIES DE SUA CLASS 
+
+                PRECISAM USAR ESSA SHORTHAND...
+
+
+
+
+
+
+
+
+
+
+3a COISA) VOCÊ NÃO PODE TER 'DUPLICATES'  em 1 mesma class...
+            ISSO QUER DIZER QUE VC NÃO PODE TER 
+
+            UMA PROPERTY NORMAL E UMA PROMOTED PROPERTY 
+
+            COM MESMOS NOMES, AO MESMO TEMPO...
+
+
+
+
+    QUER DIZER QUE ISSO AQUI NÃO FUNCIONARÁ:
+
+
+
+
+
+
+    
+// With the Constructor Property Promotion Shorthand in the constructor:
+class TransactionShortHand
+{
+    private $amount
+
+
+    public function __construct(
+        private $amount,
+
+    ) {
+
+    }
+}
+;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+4a COISA) VOCÊ NÃO É OBRIGADO A ESPECIFICAR O TYPE (type hinting)
+            de suas promoted properties...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+5a COISA) VOCÊ PODE ASSIGNAR DEFAULT VALUES A PROMOTED PROPERTIES,
+            MAS VC É OBRIGADO A SEGUIR AS MESMAS REGRAS 
+
+            DOS DEFAULT VALUES EM PROPERTIES NORMAIS...
+            (ou seja, vc só pode definir values simples,
+            simple expressions, como default values... vc não pode 
+            usar function calls ou complex expressions )
+
+
+
+
+
+
+    QUER DIZER QUE PODEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+// With the Constructor Property Promotion Shorthand in the constructor:
+class TransactionShortHand
+{
+    public function __construct(
+        private float $amount,
+        private string $description = 'hello'
+    ) {
+
+    }
+}
+;
+
+
+
+
+
+
+
+
+
+
+
+
+
+E ISSO REALMENTE VAI FUNCIONAR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+6a COISA) SE VOCÊ FOR DEFINIR O VALUE DEFAULT 
+            DE 1 PROPERTY COMO 'null',
+
+            VC __ É OBRIGADO 
+            A DEFINIR 
+
+
+            O TYPE de essa property como 'nullable  type'  ( ou seja, um type de '?string', por exemplo, para que seja possível values de null também...)
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+// With the Constructor Property Promotion Shorthand in the constructor:
+class TransactionShortHand
+{
+    public function __construct(
+        private float $amount,
+        private ?string $description = null
+    ) {
+
+    }
+}
+;
+
+
+
+
+--------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ISSO FEITO, AGORA FALAREMOS SOBRE ''HOW WE CAN ACCESS PROMOTED PROPERTIES''...
+
+
+
+
+
+
+
+
+
+
+-> DIGAMOS QUE TEMOS ESTA CLASS AQUI:
+
+
+
+
+
+
+
+// With the Constructor Property Promotion Shorthand in the constructor:
+class TransactionShortHand
+{
+    public function __construct(
+        private float $amount,
+        private string $description
+    ) {
+
+    }
+}
+;
+
+ 
+
+
+
+
+
+
+
+
+
+ AS MANEIRAS QUE TEMOS PARA ACESSAR ESSAS PROPERTIES É:
+
+
+
+
+
+
+
+
+ 1) POR MEIO DO USO DA VARIABLE DE '$this',
+
+ TIPO ASSIM:
+
+
+
+ echo $this->amount;
+
+
+
+
+
+
+
+
+ EX:
+
+
+
+ 
+// With the Constructor Property Promotion Shorthand in the constructor:
+class TransactionShortHand
+{
+    public function __construct(
+        private float $amount,
+        private string $description
+    ) {
+        
+        echo $this->amount;
+    }
+}
+;
+
+
+
+
+
+
+MAS TEMOS OUTRA MANEIRA:
+
+
+
+
+
+
+
+
+
+2) SEM USAR A KEYWORD DE '$this',
+
+SIMPLESMENTE 
+
+
+
+CHAMANDO A PROPERTY DIRETAMENTE, TIPO ASSIM:
+
+
+
+
+
+
+
+// With the Constructor Property Promotion Shorthand in the constructor:
+class TransactionShortHand
+{
+    public function __construct(
+        private float $amount,
+        private string $description
+    ) {
+        
+        echo $amount;
+    }
+}
+;
+
+
+
+
+
+
+
+
+
+isso também funcionará...
+
+
+
+
+
+
+
+
+
+
+
+
+
+AGORA O PROFESSOR FALARÁ SOBRE O 'NULLSAFE OPERATOR'...
+
+
+
+
+
+
+
+
+-------------------------------------------------------
+
+
+
+
+
+
+
+
+
+NULLSAFE OPERATOR:
+
+
+
+
+
+
+
+
+-- O NULLSAFE OPERATOR TE DEIXA 'CHAIN PROPERTIES'
+    E 'CHAIN METHOD CALLS',
+
+    __ MESMO _ SE ALGUM DOS CALLS RETORNAR 'NULL'...
+
+
+
+
+
+
+
+
+
+--> POR EXEMPLO, DIGAMOS QUE 
+
+    QUEREMOS 
+
+
+    '''ACESSAR O PAYMENT PROFILE ID,
+        QUE __ FICA NESTEADO 2-3 LEVELS 
+
+        PARA DENTRO DO OBJECT DE 'Transaction'... '''
+
+
+    
+
+
+
+--> QUER DIZER QUE, SE QUISERMOS ACESSAR ESSE VALUE,
+TEMOS DE ESCREVER ALGO COMO 
+
+
+
+
+
+
+
+
+
+$transaction = new Transaction(5, 'Test');
+
+
+echo $transaction->customer->paymentProfile->id;
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+
+
+-> PARA FAZER TUDO ISSO,
+
+    O  PROFESSOR JÁ CRIOU 
+
+    AS CLASSES DE 
+
+
+    'customer' e 'payment_id',
+
+
+
+    QUE 
+
+POSSUEM ESTES FORMATOS:
+
+
+
+
+
+
+
+
+class Customer {
+    public ?PaymentProfile $paymentProfile = null;
+}
+
+
+(OU SEJA, ESSA CLASS TEM UM 'NULLABLE PAYMENTPROFILE TYPE'...)
+
+
+
+
+
+
+
+E ESTE:
+
+
+
+
+
+
+
+class PaymentProfile {
+    
+    public int $id;
+
+    public function __construct() {
+        $this->id = rand();
+    }
+}
+
+
+
+
+(É UMA CLASS QUE ASSIGNA UM 'RANDOM NUMBER' à property 'id' do object)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... AÍ, LÁ EM 'index.php',
+
+IMPORTAMOS TODAS ESSAS FILES,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+require_once '../PaymentProfile.php';
+require_once '../Customer.php';
+require_once '../TransactionWithPropertyPromotion.php';
+
+
+$transaction = new TransactionShortHand(5, 'Test');
+
+
+
+
+echo $transaction->customer->PaymentProfile->id;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA QUE ISSO FUNCIONE, A ÚLTIMA LINHA (em que acessamos 'id', dentro de paymentProfile, dentro de 'customer', dentro de 'transaction'),
+
+
+
+
+DEVEMOS ESCREVER A PROPERTY DE 'customer' dentro da transaction, tipo assim:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// With the Constructor Property Promotion Shorthand in the constructor:
+class TransactionShortHand
+{
+    public ?Customer $customer = null;
+
+    public function __construct(
+        private float $amount,
+        private string $description
+    ) {
+
+    }
+}
+;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> COM ISSO, A PROPERTY 'CUSTOMER' de essa class 
+
+de transition vai começar como 'null'... e isso é possível,
+
+pq definimos essa property como 'nullable' (com o '?')...
+
+
+
+
+
+
+
+
+
+
+
+--> ENTRETANTO, AO FAZER ISSO,
+
+É CLARO QUE 
+
+
+NÓS VAMOS GANHAR UM ERRO NESTA LINHA:
+
+
+
+
+
+
+echo $transaction->customer->PaymentProfile->id;
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO PQ  'customer' VAI TER UM VALUE DE NULL,
+    E AÍ NÃO VAMOS CONSEGUIR ACESSAR 
+
+
+    'PaymentProfile'
+
+
+
+    ou 'id' 
+
+    DENTRO 
+
+
+
+    DE ESSA PROPERTY DE 'null'...
+
+
+
+
+
+
+
+O ERRO QUE VAMOS RECEBER É 
+
+
+
+''Warning: Attempt to read property 'paymentProfile' on null in /var/www/public/index.php''
+ 
+''Warning: Attempt to read property 'id' on null in /var/www/public/index.php''
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA CONSERTAR ISSO, VC PODERIA USAR UM 'NULLSAFE OPERATOR',
+
+
+    que é basicamente um '?' AO FINAL DO NOME DO 
+
+    SEU OBJECT...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+echo $transaction->customer?->PaymentProfile->id;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+$transaction = new TransactionShortHand(5, 'Test');
+
+
+
+// Example of nullsafe operator (the '?' at the end of the object name). We use this operator to enforce that 'the customer might be null'... 
+echo $transaction->customer?->PaymentProfile->id;
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO,
+AO RECARREGARMOS A PAGE, DEIXAMOS DE RECEBER AQUELE ERROR DE ANTES..
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS É CLARO QUE ISSO NÃO É PEFEITO...
+
+
+
+
+
+
+
+
+DIGAMOS QUE VC 
+
+_REINICIOU 
+
+
+
+O VALUE DE 'customer',
+
+com 
+
+
+
+
+esta linha:
+
+
+
+
+
+
+
+
+
+$transaction->customer = new Customer();
+
+
+
+
+
+
+
+
+--> AO FAZER ISSO, O VALUE DE 'paymentProfile', a property dentro 
+    de 'customer',
+
+    VAI SER NULL...
+
+
+
+
+
+
+
+-> E ISSO NÃO É BOM, PQ, LOGO ABAIXO,
+
+
+    AQUELE CALL DE 
+
+
+
+    'echo $transaction->customer?->paymentProfile->id'
+
+
+
+
+    AINDA ESTÁ TENTANDO OBTER O VALUE DE 'id'
+
+
+    DENTRO 
+
+    DO 'paymentProfile'.... e como 'paymentProfile'
+
+    está como NULL,
+
+    VAMOS RECEBER 1 ERROR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA TENTAR CONSERTAR ISSO, VC PODERIA ADICIONAR OUTRO NULLSAFE OPERATOR,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+$transaction = new TransactionShortHand(5, 'Test');
+
+
+
+// Example of nullsafe operator (the '?' at the end of the object name). We use this operator to enforce that 'the customer might be null'... 
+echo $transaction->customer?->PaymentProfile?->id;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AO FAZER ISSO,
+
+
+O ERROR VAI SUMIR...
+
+
+
+
+
+
+
+
+
+
+-> OK... MAS AÍ VOCÊ PODE ESTAR SE PERGUNTANDO:
+
+
+
+
+
+
+''MAS VC NÃO PODERIA SIMPLESMENTE APENAS USAR 
+
+O OPERATOR DE 'NULL COALESCING' em vez disso? ''
+
+
+
+
+
+
+
+
+
+
+
+--> A RESPOSTA É __ SIM... _ VC PODERIA USAR 
+    O NULL COALESCING OPERATOR...
+
+
+    MAS HÁ UMA DIFERENÇA 
+
+    ENTRE O 'NULL COALESCING OPERATOR' 
+
+
+
+    E O ADD DE '?' ao final de cada object... e logo 
+
+    veremos isso....
+
+
+
+
+
+
+
+
+
+
+COM O NULL COALESCING OPERATOR,
+
+PODERÍAMOS TER ALGO ASSIM (com o mesmo resultado):
+
+
+
+
+
+
+$transaction = new TransactionShortHand(5, 'Test');
+
+$transaction->customer = new Customer();
+
+
+
+// Example of 'null coalescing operator' usage, to avoid error...
+echo $transaction->customer?->PaymentProfile?->id ?? 'foo';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO FUNCIONA, SIM... NENHUM ERROR É THROWN....
+
+
+
+
+
+
+
+
+--> CERTO, MAS O QUE ACONTECERIA 
+
+SE TROCÁSSEMOS 
+
+ESSA PROPERTY AÍ...
+
+
+
+O QUE ACONTECERIA SE ESTIVÉSSEMOS TENTANDO ACESSAR 
+
+UM___ METHOD, __ E NÃO UMA PROPERTY?
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, O PROFESSOR TROCA ESSA PROPERTY DE 'id' 
+
+    para 'PRIVATE', em vez de public,
+
+
+    e aí 
+
+
+    ELE _ CRIA GETTERS 
+
+
+
+    PARA 'customer' 
+
+
+    e 'paymentProfile',
+
+
+    tipo assim:
+
+
+
+
+
+
+
+// With the Constructor Property Promotion Shorthand in the constructor:
+class TransactionShortHand
+{
+    private ?Customer $customer = null;
+
+    public function __construct(
+        private float $amount,
+        private string $description
+    ) {
+
+    }
+
+    // Getter
+    public function getCustomer(): ?Customer
+    {
+        return $this->customer;
+    }
+}
+;
+
+
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+
+
+
+
+<?php
+
+class Customer
+{
+    private ?PaymentProfile $paymentProfile = null;
+
+
+    public function getPaymentProfile(): ?PaymentProfile
+    {
+        return $this->paymentProfile;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> LÁ NA CALL DE ESSES METHODS,
+    PODEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+
+echo $transaction->getCustomer()->getPaymentProfile()->id ?? 'foo';
+
+
+
+
+
+
+
+
+
+
+
+
+-> E É CLARO QUE  
+
+
+    ficamos com 1 error...
+
+
+    pq o 'null coalescing operator'
+
+    NÃO FUNCIONA COM METHOD CALLS:
+
+
+
+
+
+
+
+
+// example with method access // ! WON'T WORK, BECAUSE null coalescing operator DOESN'T WORK WITH METHOD CALLS...
+echo $transaction->getCustomer()->getPaymentProfile()->id ?? 'foo';
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> E É AQUI, NESSE CASO,
+
+QUE 
+
+
+O 'nullsafe operator' 
+
+
+pode nos salvar...
+
+
+
+PQ AÍ PODEMOS ESCREVER TIPO ASSIM:
+
+
+
+
+
+// * THIS WILL WORK, BECAUSE the 'nullsafe operator' WORKS with method calls, if you use it with the null coalescing operator.
+echo $transaction->getCustomer()?->getPaymentProfile()?->id ?? 'foo';
+
+
+
+
+
+
+
+
+
+
+--> e assim vai funcionar,
+
+    TEREMOS PRINTADO 'foo',
+
+
+    ISSO PQ 
+
+
+    o 'nullsafe operator'
+
+
+    VAI FUNCIONAR COM method calls...
+
+
+
+
+
+
+
+
+
+SE VC TIRAR O COALESCING OPERATOR COM O FOO,
+
+
+VC SIMPLESMENTE FICARIA COM UM ECHO DE 'null'
+
+NA TELA (ou seja, echo de coisa alguma, pq null é branco, no php):
+
+
+
+
+// * THIS WILL WORK, BECAUSE the 'nullsafe operator' WORKS with method calls, if you use it with the null coalescing operator.
+echo $transaction->getCustomer()?->getPaymentProfile()?->id; // will result in 'null'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK...
+
+
+
+
+--> A VANTAGEM DO NULLSAFE OPERATOR É QUE, SEM ELE,
+VC 
+
+FICARIA COM 1 NESTING EXAGERADO DE IF CONDITIONS...
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+require_once '../PaymentProfile.php';
+require_once '../Customer.php';
+require_once '../TransactionWithPropertyPromotion.php';
+
+$transaction = new Transaction(5, 'Test');
+
+$profileId = null;
+
+
+// A lot of if nesting and null checking...
+if($customer = $transaction->getCustomer()) {
+        if ($paymentProfile = $customer->getPaymentProfile()) {
+            $profileId = $paymentProfile->id;
+        }
+}
+
+
+
+echo $profileId;
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS COMO 
+
+
+
+
+
+O NULLSAFE OPERATOR FUNCIONA?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O NULLSAFE OPERATOR BASICAMENTE RESOLVE ESSE PROBLEMA 
+    DE NULL CHECKING 
+
+
+    POR MEIO DO 
+
+    'SHORT CIRCUITING' 
+
+
+    DO ACESSO à PROPERTY/METHOD...
+
+
+
+
+
+
+--> COM ISSO, O 'nullsafe' operator 
+    RETORNA 'NULL' IMEDIATAMENTE, AO MESMO TEMPO 
+    QUE 
+
+    CORTA A EXECUTION DO RESTO DA EXPRESSION...
+
+
+
+
+
+
+
+
+EXEMPLO:
+
+
+
+
+
+
+
+echo $transaction->getCustomer()?->getPaymentProfile()?->id;
+
+
+
+
+
+
+
+--> SE 'getCustomer()' retorna 'NULL',
+
+    A EXPRESSION INTEIRA 
+
+    VAI RETORNAR NULL,
+
+
+    PQ TUDO NO LADO DA DIREITA DE 'getCustomer()?' 
+
+
+
+    VAI _ SER COMPLETAMENTE IGNORADO... ('->getPaymentProfile()?->id')
+
+
+
+
+
+
+-- A MESMA COISA ACONTECE com 'getPaymentProfile()?',
+
+
+    PQ SE ELE RETORNAR NULL,
+
+    A PARTE DE '->id' 
+
+    SERÁ DESCARTADA....
+
+
+
+
+
+
+
+--> É CLARO QUE ISSO TRAZ SEUS PRÓPRIOS 
+
+    PROS E CONS, QUE DISCUTIREMOS BREVEMENTE...
+
+
+
+
+
+
+
+
+
+--> AGORA FALAREMOS SOBRE AS COISAS QUE DEVEMOS TER EM MENTE,
+    QUANDO FALAMOS SOBRE O TRABALHO COM 'NULLSAFE OPERATORS':
+
+
+
+
+
+
+
+
+
+CONSIDERAÇÕES:
+
+
+
+
+
+
+1) O OPERATOR É 'READ-ONLY'...
+
+    ISSO QUER DIZER QUE 
+
+    VC NÃO PODE ASSIGNAR VALUES A ELE...
+
+
+
+
+
+    OU SEJA, ESTA ESCRITA É INVÁLIDA:
+
+
+    echo $transaction->getCustomer()?->getPaymentProfile()?->id = 10;
+
+
+
+
+
+
+
+2) PODEMOS CHAINAR NULLSAFE OPERATORS, COMO FIZEMOS ANTES,
+    MAS DEVEMOS LEVAR EM CONSIDERAÇÃO O FATO DE QUE 
+
+    OS OPERATORS VÃO 'SHORT-CIRCUIT' 
+
+    ASSIM QUE O VALUE DE 'NULL' É ENCONTRADO... 
+
+    (como visto no exemplo de cima)...
+
+
+
+
+
+
+3) ALÉM DISSO, TENHA O CUIDADO DE NÃO PASSAR/CHAINAR 
+    METHOD CALLS QUE SEMPRE PRECISAM SER EXECUTADOS... CALLS QUE 
+    PRECISAM SER EXECUTADOS 
+
+    MESMO QUANDO ALGUM VALUE DE 'NULL' ESTIVER PRESENTE NA CHAIN...
+
+
+
+
+
+
+EXEMPLO:
+
+
+
+
+
+$transaction->getCustomer()?->setPaymentProfile(createProfile())?->id = 10;
+
+
+
+-> SE 'getCustomer()' retornar null, nesse exemplo,
+
+    aquela parte de 'setPaymentProfile()' nunca será executada,
+
+
+    e CONSEQUENTEMENTE, O CÓDIGO DE 'createProfile()'
+
+    TAMBÉM NUNCA SERÁ EXECUTADO... E ISSO PODE SER RUIM,
+
+                                    SE NÃO FOR O COMPORTAMENTO 
+                                    DESEJADO...
+
+                                    (pode causar bugs)...
+
+
+
+
+--> mas isso pode ser bom, também.. imagine que 
+    vc não vai querer rodar 'setPaymentProfile()'
+
+    em casos em que o customer não está settado, 
+
+    principalmente pq 'setPaymentProfile()' é uma heavy function... bem,
+    como acontecerá o 'short-circuit' de tudo que vem depois de 'getCustomer()'
+    essa function de 'setPaymentProfile()' não será executada,
+
+    o que pode acabar economizando resources...
+
+
+
+
+
+
+
+--> TUDO DEPENDE DO DESIGN DE SEU APP, E DE SEU USE-CASE... 
+
+
+
+
+
+
+
+
+
+--> aCABAMOS COM ESTE VÍDEO...
