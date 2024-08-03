@@ -1,0 +1,3548 @@
+
+
+
+
+
+
+
+
+
+
+AGORA FALAREMOS SOBRE 'NAMESPACES'...
+
+
+
+
+
+
+
+
+COMEÇAMOS COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+<?php 
+
+
+require_once '../PaymentGateway/Stripe/Transaction.php';
+
+
+
+var_dump(new Transaction());
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO...
+
+
+
+
+
+
+
+--> QUANDO VC DEFINE 1 CONSTANT, FUNCTION OU CLASS 
+    __ SEM UMA NAMESPACE DEFINITION,
+
+
+    POR DEFAULT,
+
+
+    ESSA COISA_ VAI SER COLOCADA 
+
+    __ EM UM 'GLOBAL SPACE'...  
+
+
+
+
+
+
+
+
+
+
+--> NESSE EXEMPLO INICIAL, TEMOS UMA CLASS DE 'Transaction',
+    QUE ESTÁ 
+
+
+    DENTRO DA PASTA DE 'Stripe',
+ 
+    DENTRO DA PASTA DE 'PaymentGateway'...
+
+
+
+
+
+
+
+
+
+
+--> E NOSSA CLASS É BEM SIMPLES, 
+NÃO TEM NADA DENTRO,
+
+
+É SÓ ISSO AQUI:
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+
+class Transaction
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> como vc pode ver, essa class não tem nenhum namespace definido à ela... 
+
+
+
+
+
+
+
+
+
+
+--> ISSO QUER DIZER QUE O PHP VAI __ TENTAR__ ENCONTRAR __ 
+    ESSA FILE/ CLASS NAME 
+
+
+    __ LÁ NO GLOBAL SPACE,
+
+
+
+    E AÍ 
+
+
+    VAI ENCONTRÁ-LA LÁ,
+
+    E AÍ TUDO VAI FUNCIONAR...
+
+
+
+
+
+
+
+
+
+
+
+--> isso tudo vai funcionar, sim,
+
+    mas vc pode eventualmente 
+
+    ACABAR COM __ NAME COLLISIONS,
+
+    EM QUE 
+
+
+    VC FICA COM MÚLTIPLAS CLASSES COM MESMO NOME...
+
+
+
+
+
+
+
+
+
+
+--> PARA DEMONSTRAR O JEITO COMO ISSO PODE ACONTECER,
+
+O PROFESSOR CRIOU OUTRO FOLDER, DE NOME 'Paddle',
+
+
+no mesmo nível do folder de 'Stripe',
+
+e aí colocou outro arquivo 
+
+'Transaction.php'
+
+DENTRO,
+
+
+
+
+
+E COM 1 CLASS DE MESMO NOME... justamente para existir essa confusão...
+
+
+
+
+
+
+
+
+
+LÁ NO INDEX.PHP,
+
+AS COISAS CONTINUARÃO FUNCIONANDO,
+
+
+
+
+
+MAS SE FIZERMOS REQUIRE DE ESSAS 2 FILES 
+
+E TENTARMOS 
+
+FAZER REQUIRE DA CLASS DE 'Transaction3' (que é a mesma nas 2 files),
+
+
+
+
+FICAREMOS COM 1 ERROR...
+
+
+
+
+
+
+
+
+
+
+COM ESSE CÓDIGO:
+
+
+
+
+
+require_once './PaymentGateway/Stripe/Transaction.php';
+require_once './PaymentGateway/Paddle/Transaction.php';
+
+
+
+FICAMOS COM ESTE ERROR:
+
+
+
+
+PHP Fatal error:  Cannot declare class Transaction3, because the name is already in use 
+
+
+
+
+
+
+
+
+
+
+
+
+-> OU SEJA, ISSO ACONTECEU POR CONTA DA FALTA DE NAMESPACE 
+
+    PARA ESSAS CLASSES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ANTES DE NAMESPACES SEREM 
+    IMPLEMENTADOS NO PHP,
+
+    ESSE TIPO DE PROBLEMA ERA RESOLVIDO SIMPLESMENTE 
+
+    COM 
+
+
+    COISAS COMO 'PREFIXES' NA FRENTE DOS CLASS NAMES,
+
+
+    COMO 'StripeTransaction' e 'PaddleTransaction'...
+
+
+
+
+
+
+
+
+--> MAS OS NAMESPACES 
+
+    NO PHP8 
+
+    TE DEIXAM ORGANIZAR MELHOR SUAS CLASSES E CÓDIGO...
+
+
+
+
+
+
+
+-> Esse tipo de problema também acontece com functions,
+
+    não só com classes...
+
+
+
+
+
+-> Também acontece com constants...
+
+
+
+
+
+--> Também acontece com quaisquer tipos de classes (abstracts, traits, interfaces, etc)...
+
+
+
+
+
+
+
+
+
+
+-> E PODEMOS USAR NAMESPACES PARA EVITAR ESSES PROBLEMAS...
+
+
+
+
+
+
+
+--> DEVEMOS PENSAR EM NAMESPACES COMO 'VIRTUAL DIRECTORY STRUCTURES'
+    PARA NOSSAS CLASSES/functions/constants...
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS COMO PODEMOS DEFINIR NAMESPACES?
+
+
+
+
+
+
+
+
+
+
+--> DEFINIMOS NAMESPACES POR MEIO 
+    DO USO DA KEYWORD DE 'namespace' 
+
+
+    LOGO NO INÍCIO DAS FILES,
+
+    ANTES DE QUALQUER CÓDIGO,
+
+    E DEPOIS __ DO DECLARE STATEMENT...
+
+
+
+
+
+
+
+
+--> TIPO ASSIM:
+
+
+
+
+
+
+<?php 
+
+
+declare(strict_types=1);
+
+
+// Namespace definition 
+
+
+class Transaction {
+
+}
+
+
+
+
+
+
+
+
+
+------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NO CASO, ESCREVEMOS TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php 
+
+
+declare(strict_types=1);
+
+
+namespace YOUR_NAMESPACE
+
+
+// Namespace definition 
+
+class Transaction {
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODERÍAMOS COLOCAR NOSSO NOME, POR EXEMPLO:
+
+
+
+
+
+
+
+
+<?php 
+
+
+declare(strict_types=1);
+
+
+namespace Arthur
+
+
+class Transaction {
+
+}
+
+
+
+
+
+
+
+
+
+
+
+CERTO... DIGAMOS QUE DEIXEI 1 NAMESPACE de 'Arthur'...
+
+
+
+
+
+
+COMO POSSO ACESSAR ESSA CLASS/FILE, DENTRO DE ESSE NAMESPACE?
+
+
+
+
+
+
+------------------------------------------------------
+
+
+
+
+
+ANTES DE MAIS NADA, O CÓDIGO EM 'index.php',
+
+o código de imports,
+
+
+
+ele não muda, continua o mesmo:
+
+
+
+
+
+
+
+
+<?php
+
+
+require_once './PaymentGateway/Stripe/Transaction.php'; // This stays the same, even after creating a namespace.
+require_once './PaymentGateway/Paddle/Transaction.php';
+
+
+
+var_dump(new Transaction3());
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS AQUELE CALL DE 'new Transaction3()'
+
+
+ali vai 
+
+
+nos dar 1 erro... mas 
+
+SERÁ OUTRO 
+
+ERRO,
+
+DIFERENTE DO ERRO DE 'VC DECLAROU A CLASS DE TRANSACTION 2x, em lugares diferentes'..
+
+
+
+
+
+
+
+
+
+
+
+EM VEZ DISSO, RECEBEREMOS O ERROR DE 
+
+
+'Class 'Transaction' not found'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO ACONTECE/ACONTECEU PQ 
+
+    O PHP 
+
+    ESTÁ PROCURANDO POR ESSA CLASS 
+
+    DE 'Transactions' no GLOBAL SPACE, 
+
+    global namespace (que é o default)...
+
+
+
+
+
+
+
+
+
+
+--> PARA CONSERTAR ESSE PROBLEMA,
+
+    APONTAR O PHP NA DIREÇÃO DO NAMESPACE 'Arthur',
+
+    que é 
+
+    onde defini essa transaction aí,
+
+    TEMOS 2 POSSÍVEIS SOLUTIONS:
+
+
+
+
+
+
+
+1) A PRIMEIRA SOLUTION É 
+
+
+''ADD THE QUALIFYING CLASSNAME'',
+
+    que seria 
+
+    algo como ESCREVER O NAMESPACE ANTES DO NOME DA CLASS, com um BACKSLASH,
+
+
+    tipo assim:
+
+
+
+
+
+<?php
+
+
+require_once './PaymentGateway/Stripe/Transaction.php'; // This stays the same, even after creating a namespace.
+require_once './PaymentGateway/Paddle/Transaction.php';
+
+
+
+var_dump(new Arthur\Transaction3()); // This is how you use a constant/variable/function/class contained in a namespace...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-----> E ISSO REALMENTE FUNCIONA,
+
+O VAR_DUMP FUNCIONA...
+
+
+
+
+
+
+
+CONSIGO ACESSAR A CLASS DE 'Transaction3',
+
+dentro da file de 'Transaction.php'
+
+
+em que escrevi o namespace de 'Arthur'...
+
+
+
+
+
+
+
+
+
+
+
+MAS TEMOS UMA OUTRA MANEIRA PARA ACESSAR COISAS EM NAMESPACES,
+
+
+
+que é:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2) IMPORT THE CLASS MANUALLY...
+
+
+
+
+
+
+
+
+
+MAS FALAREMOS SOBRE ESSE TIPO DE IMPORT MAIS TARDE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS EM VEZ DE TER APENAS UM ÚNICO 'namespace' solto,
+
+
+    VC PODE TER __ 'sub-namespaces'...
+
+
+
+
+
+
+
+
+
+
+
+-> OU SEJA,
+
+
+CRIAR AINDA MAIS 'FOLDERS' DENTRO DE CADA NAMESPACE...
+
+
+
+
+
+
+
+
+-> E ISSO FAZ SENTIDO,
+
+
+
+e vc pode até mesmo fazer seus namespaces seguirem a folder structure do seu project...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+// namespace Gio;  // * this is how you create a namespace
+
+namespace PaymentGateway\Paddle; // * this is how you create a namespace (and sub-namespaces)
+
+
+class Transaction3
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> E SE VC QUISER, OU ESTIVER
+    TRABALHANDO
+     
+
+     COM  1 PACKAGE,
+
+     VC 
+
+
+     PREFIXARIA O INÍCIO 
+
+
+
+    COM ALGO COMO 
+
+
+    'namespace MyPackageName\PaymentGateway\Paddle;'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+
+ADICIONAMOS UM NAMESPACE NO STRIPE TAMBÉM...
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+var_dump(new PaymentGateway\Paddle\Transaction3()); // This is how you use a constant/variable/function/class contained in a namespace...
+
+
+var_dump(new PaymentGateway\Stripe\Transaction3());
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR APONTOU, ANTES, QUE DEVEMOS PENSAR NOS NAMESPACES 
+
+    COMO 'VIRTUAL DIRECTORY STRUCTURES'...
+
+
+
+
+
+
+
+
+--> MAS O NAMING DE NOSSO NAMESPACE 
+    NÃO É OBRIGADO A SEGUIR ESSA CONVENTION...
+
+  
+
+
+--> PODEMOS COLOCAR QUALQUER NAME PARA NOSSOS NAMESPACES,
+
+    MAS É RECOMENDADO (E UM STANDARD) 
+
+    MATCHEAR 
+
+    OS NAMESPACES COM 
+
+
+    A FOLDER STRUCTURE DO SEU PROJECT...
+
+
+
+
+
+
+
+
+--> A OUTRA MANEIRA QUE VC PODE FAZER ISSO ,
+
+
+
+
+
+A MANEIRA 2, É:
+
+
+
+
+
+
+
+
+
+
+2a MANEIRA)  
+
+
+
+
+''IMPORT THE TRANSACTION CLASS, FROM THE NAMESPACE, 
+BY _ USING THE 'use' keyword''...
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+require_once './PaymentGateway/Stripe/Transaction.php'; // This stays the same, even after creating a namespace.
+require_once './PaymentGateway/Paddle/Transaction.php';
+
+
+
+use PaymentGateway\Stripe\Transaction3; /// ESTE CÓDIGO AQUI
+
+
+
+
+var_dump(new Transaction3());
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO,
+
+
+SE ESCREVERMOS ESSE 'use' + namespace + desired_class_name,
+
+
+
+
+PODEMOS, NO NOSSO ARQUIVO,
+
+
+CONTINUAR 
+
+
+ESCREVENDO 
+
+
+
+O CLASS NAME SEM PRECISAR ESCREVER TODO NAMESPACE ANTES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALÉM DO NAMESPACE E IMPORT DE CLASSES,
+
+
+
+
+VC PODE TAMBÉM 
+
+
+
+FAZER NAMESPACE DE CONSTANTS E FUNCTIONS,
+
+E AS IMPORTAR TAMBÉM... ENTRETANTO,
+                        ISSO NÃO É AMPLAMENTE UTILIZADO,
+
+                        E O PROFESSOR RECOMENDA EVITAR...
+
+
+
+
+
+
+
+
+
+
+
+-> BASICAMENTE, VC PODERIA NAMESPACE SUAS CUSTOM FUNCTIONS E CONSTANTS,
+
+    E ENTÃO 
+
+
+    IMPORTÁ-LAS,
+
+
+
+    COM A ESCRITA DE 
+
+
+    'use function PaymentGateway\Stripe\functionName;'
+
+
+
+
+
+    E, COM CONSTANTS,
+
+
+    ASSIM:
+
+
+        'use const PaymentGateway\Stripe\yourConstant;'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK.... AGORA O PROFESSOR CONTINUA COM O EXEMPLO DE 'INSTANTIATE CLASSES WITHIN 
+THE SAME NAMESPACES'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, O PROFESSOR CRIA UMA NOVA CLASS 
+
+NA PASTA DE 'Paddle',
+
+chamada de 
+
+
+
+'CustomerProfile'...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+namespace PaymentGateway\Paddle;
+
+
+class CustomerProfile
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ, LÁ NA TRANSACTION CLASS DE 'PADDLE',
+
+ 
+    QUEREMOS USAR ESSA CLASS DE 'CustomerProfile'...
+
+
+
+
+
+
+
+--> COMO 'Transaction.php'
+
+
+e 
+
+
+
+'CustomerProfile.php'
+
+
+USAM O MESMO 
+
+NAMESPACE (
+    que é 'namespace PaymentGateway\Paddle;'
+
+)
+
+
+
+
+NÃO É NECESSÁRIO CHAMAR O NAMESPACE INTEIRO DA CLASS de 'CustomerProfile'
+
+que vc quer chamar em 'Transaction'.... basta escrevê-la normalmente,
+
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+
+namespace PaymentGateway\Paddle; // * this is how you create a namespace (and sub-namespaces)
+
+
+class Transaction3
+{
+    private $customerProfile = new CustomerProfile(); // we don't need to use the full namespace here, because this file and the 'CustomerProfile' class are in the same namespace
+
+    public function __construct()
+    {
+
+    }
+}
+
+
+
+
+
+
+
+E ISSO VAI FUNCIONAR, VC VAI CONSEGUIR REFERENCIAR ESSA CLASS DE 
+
+
+
+'CustomerProfile'
+
+e definí-la como property de 'Transaction3',
+
+sem problemas...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace PaymentGateway\Paddle; // * this is how you create a namespace (and sub-namespaces)
+
+
+class Transaction3
+{
+    private CustomerProfile $customerProfile; // we don't need to use the full namespace here, because this file and the 'CustomerProfile' class are in the same namespace
+
+    public function __construct()
+    {
+        $this->customerProfile = new CustomerProfile();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E ASSIM (index.php):
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+require_once './PaymentGateway/Stripe/Transaction.php'; // This stays the same, even after creating a namespace.
+require_once './PaymentGateway/Paddle/Transaction.php';
+require_once './PaymentGateway/Paddle/CustomerProfile.php';
+
+
+
+var_dump(new PaymentGateway\Paddle\Transaction3()); // This is how you use a constant/variable/function/class contained in a namespace...
+
+
+var_dump(new PaymentGateway\Stripe\Transaction3());
+
+
+
+
+
+
+
+
+
+
+
+----------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+------> INCLUÍMOS TUDO NO INDEX.PHP....
+
+
+
+
+
+
+
+
+
+--> PODERÍAMOS FAZER O INCLUDE DENTRO DA CLASS DE 'transaction', dentro da file 
+de Transaction.php,
+
+MAS O PROFESSOR DIZ QUE É MELHOR FAZER INCLUDE DE TUDO DENTRO DE 'index.php', em vez disso...
+
+
+
+
+
+
+
+
+
+
+
+-> NAS PRÓXIMAS AULAS,
+    VEREMOS O 'AUTOLOADING',
+
+
+    E VEREMOS O QUÃO FÁCIL É FAZER 
+
+    O INCLUDE DE TODAS ESSAS FILES...
+
+
+
+
+
+
+
+
+
+
+--> RECARREGAMOS A PAGE, E AÍ TUDO FUNCIONA...
+
+
+
+
+
+
+
+PORTANTO, COMO APRENDEMOS,
+
+NEM PRECISAMOS 
+
+
+REFERENCIAR O 'FULLY QUALIFYING CLASSNAME',
+
+
+TUDO 
+
+pq essas 2 files já estão no mesmo namespace...
+
+
+
+E NEM PRECISAMOS IMPORTAR ESSA CLASS, LÁ EM 'Transaction.php',
+
+
+só precisamos, anteriormente, importar isso no 'index.php'..
+
+
+
+
+
+
+
+
+
+
+
+E ISSO FUNCIONA PQ _ o PHP VAI TENTAR CARREGAR 
+
+ISSO, ESSA CLASS,
+
+DO 'CURRENT LOCAL NAMESPACE', se ele detectar 
+
+que vc 
+
+está em uma file/class que está 'namespaced'...
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA, ELE LEU QUE 
+
+ESTAMOS EM 
+
+
+'' namespace PaymentGateway\Paddle; '',
+
+
+
+
+
+
+
+e aí ele percebeu que essa class de 'CustomerProfile' já existe nesse namespace,
+
+
+por isso ele a utilizou...
+
+
+
+
+
+
+
+
+
+
+
+
+SE NÃO TIVERMOS ALGUM 'namespace' em nossa file,
+    o php vai tentar encontrar esse 'CustomerProfile'
+
+    no contexto/namespace global,
+
+    e aí 
+    não vai o encontrar,
+
+    o que vai causar um fatal error...
+
+
+
+
+
+
+
+
+
+
+
+
+
+OUTRA EXPLICAÇÃO:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+''''POR CONTA DE O PHP TENTAR CARREGAR CLASSES DO CURRENT NAMESPACE 
+    QUANDO VC ESTÁ EM 1 NAMESPACED FILE,
+
+    SE VC TENTASSE/TENTAR ACESSAR AS CLASSES __ BUILT-IN __ DO PHP NESSAS 
+    CLASSES,
+    VC SERIA/SERÁ OBRIGADO 
+
+    A ADICIONAR UM '\' (backslash)
+
+    PARA INDICAR AO PHP QUE VC QUER ACESSAR 
+
+    ESSAS CLASSES/FUNCTIONS
+
+    LÁ DO __ 'GLOBAL NAMESPACE',
+
+    ou então, no pior dos casos,
+
+    vc será 
+
+    FORÇADO
+     
+     A IMPORTAR ESSAS CLASSES/FUNCTIONS...
+
+
+
+
+
+
+
+    -> COMO EXEMPLO DISSO, PODEMOS CITAR A CLASS 
+
+    'DateTime()', que é uma class BUILT-IN DO PHP...
+
+
+
+
+
+
+
+-> IMAGINE QUE VC TEM ESTE CÓDIGO:
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+
+namespace PaymentGateway\Paddle; // * this is how you create a namespace (and sub-namespaces)
+
+
+class Transaction3
+{
+    private CustomerProfile $customerProfile;
+
+    public function __construct()
+    {
+        var_dump(new DateTime());
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> NO CASO, TENTAMOS CHAMAR ESSA CLASS DE 'DateTime()',
+    que é a class que te deixa TRABALHAR COM DATES NO PHP...
+
+
+
+--> MAS SE TENTAMOS CHAMAR ESSA CLASS 
+
+    EM 1 'NAMESPACED FILE',
+
+    ISSO __ NÃO VAI FUNCIONAR...
+
+
+
+
+
+-> NÃO VAI FUNCIONAR PQ NÃO TEMOS ESSA CLASS IMPORTADA/DECLARADA 
+    NO CURRENT NAMESPACE...
+
+
+
+
+
+
+--> SE TENTAMOS RODAR ESSE CÓDIGO, FICAMOS COM 1 ERROR:
+
+
+
+
+
+''DateTime not found in Transaction.php''...
+
+
+
+
+
+--> PARA CONSERTAR ISSO, PODEMOS FAZER DE 2 MANEIRAS:
+
+
+
+
+1) ESCREVER 'new \DateTime()', 
+    para então INDICAR 
+
+    AO PHP QUE ELE ''DEVE CARREGAR ESSA CLASS NÃO DO LOCAL NAMESPACE,
+                        MAS SIM DO GLOBAL NAMESPACE''..
+
+
+
+            TIPO ASSIM:
+
+
+    public function __construct()
+    {
+
+        $this->customerProfile = new CustomerProfile();
+        var_dump(new DateTime()); // this won't work because we don't have a DateTime class in the same namespace (the 'DateTime' is a global php built-in class)
+        var_dump(new \DateTime());
+    }
+
+
+
+2) ESCREVER 'use DateTime;',
+    LOGO NO INÍCIO DO ARQUIVO,
+
+    TIPO ASSIM:
+
+
+
+
+
+
+namespace PaymentGateway\Paddle; // * this is how you create a namespace (and sub-namespaces)
+
+use DateTime;
+
+
+class Transaction3
+{
+    private CustomerProfile $customerProfile; // we don't need to use the full namespace here, because this file and the 'CustomerProfile' class are in the same namespace
+
+    public function __construct()
+    {
+
+        $this->customerProfile = new CustomerProfile();
+        var_dump(new DateTime()); // this won't work because we don't have a DateTime class in the same namespace (the 'DateTime' is a global php built-in class)
+        var_dump(new DateTime());
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS FAZER DE QUALQUER UMA DESSAS FORMAS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok... mas agora o professor quer nos mostrar 
+
+um outro exemplo..
+
+
+
+
+
+EXEMPLO DE ''TRY TO CREATE AN OBJECT BASED ON ANOTHER   
+                    CLASS, THAT IS IN ANOTHER NAMESPACE''...
+
+
+
+
+
+
+--> PARA ISSO, O PROFESSOR CRIA UMA CLASS DE 'Email',
+
+dentro do namespace de 'Notification',
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace Notification;
+
+
+class Email
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+AÍ, ISSO FEITO, VAMOS TENTAR CRIAR 1 NOVO OBJECT DE 'email',
+
+DENTRO 
+
+
+DO CONSTRUCTOR 
+
+
+
+DA CLASS DE 'Transaction' do paddle..
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+
+namespace PaymentGateway\Paddle; // * this is how you create a namespace (and sub-namespaces)
+
+
+class Transaction3
+{
+    private CustomerProfile $customerProfile; // we don't need to use the full namespace here, because this file and the 'CustomerProfile' class are in the same namespace
+    private \Notification\Email $email; // THIS 
+
+    public function __construct()
+    {
+
+        $this->customerProfile = new CustomerProfile();
+        $this->email = new \Notification\Email; // AND THIS
+        var_dump(new \DateTime()); // This works because we are specifying the namespace as the global namespace (built-in php classes)
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+BASTOU EU ESCREVER A REFERÊNCIA AO NAMESPACE 
+com 
+
+
+
+'\Notification\Email'
+
+
+
+
+
+
+
+
+
+
+
+--> NO CASO, ISSO DEU CERTO PQ __ EU ESCREVI O 
+
+
+'FULLY-QUALIFIED NAME' DE ESSA CLASS...
+
+
+
+
+
+
+-> OS FULLY QUALIFIED NAMES 
+
+    SÃO ESCRITOS COM '\' 
+
+    NO INÍCIO... (e names que são só 'qualified', e não 'fully qualified' 
+                    não possuem esse `\` )
+
+
+
+
+-> O BACKSLASH INICIAL
+    INDICA QUE 
+
+    'THIS IS THE __ FULL NAMESPACE TO THAT CLASS''...
+
+
+
+
+
+
+
+
+
+--> QUANDO VC USA O 'QUALIFIED NAME' EM VEZ DO 'FULLY QUALIFIED NAME',
+
+ O QUE O PHP FAZ É 
+
+ 
+
+
+
+ O  ___ PREPREND_ 
+
+
+
+ de 'PaymentGateway\Paddle'
+
+
+
+AO __ INICIO _ 
+
+DE ESSA ESCRITA 
+
+
+DE 
+
+
+'Notification\'..
+
+
+
+
+
+
+
+
+
+E É EXATAMENTE POR CONTA DISSO QUE O ERROR QUE APARECE,
+
+SE VC ESCREVER APENAS 'new Notification\Email()`,
+
+É 
+
+
+
+
+'PaymentGateway\Notification\Email' was not found.
+
+
+
+
+
+--> COMO ESSA CLASS DE 'Email' não existe 
+
+
+    nesse path/namespace imenso de 
+
+    '''PaymentGateway\Notification\Email''' ,
+
+
+
+
+    FICAMOS IMEDIATAMENTE COM UM __ ERROR_...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> A MANEIRA MAIS FÁCIL DE CONSERTAR ISSO É 
+
+COM 1 ESCRITA ASSIM:
+
+
+
+
+        $this->email = new \Notification\Email; // AND THIS
+
+
+
+
+
+
+
+
+-> OU, ALTERNATIVAMENTE,
+
+
+PODERÍAMOS _ iMPORTAR __ O 'Email' 
+
+
+
+LÁ DO NAMESPACE de 
+
+
+
+'Notification\Email`, usando 'use',
+
+
+
+COM UMA ESCRITA TIPO ASSIM:
+
+
+
+
+
+
+use Notification\Email; // LIKE THIS
+
+
+class Transaction {
+ 
+
+    public function __construct()
+    {
+
+        $this->email = new Email(); // AND LIKE THIS
+  
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok...
+
+
+
+
+
+
+
+O PROFESSOR FAZ UM BREVE RESUMO:
+
+
+
+
+
+
+
+
+
+
+UNQUALIFIED NAME:
+
+''This is an identifier WITHOUT A NAMESPACE SEPARATOR,
+    LIKE 'Foo'... ''
+
+
+
+
+
+QUALIFIED NAME:
+
+''This is an identifier with a NAMESPACE SEPARATOR,
+    such as 'Foo\Bar`  ``
+
+
+
+
+
+FULLY QUALIFIED NAME:
+
+
+``This is an identifier with a namespace separator that begins with a namespace 
+    separator, such as \Foo\Bar. The namespace \Foo is also a fully qualified name''...
+
+
+
+
+
+--------------------------
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS AGORA O PROFESSOR QUER NOS MOSTRAR ALGUNS EXEMPLOS ENVOLVENDO FUNCTIONS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR RELEMBRA 
+
+AQUELA COISA,
+
+DE QUE 
+
+
+''SE VC CHAMAR UMA BUILT-IN CLASS DO 
+    PHP DENTRO DE UM NAMESPACE, SEM 
+
+    CHAMAR 'use' ou sem escrever 
+
+
+    o BACKSLASH no início do call de esse method,
+
+    VC VAI _ FICAr_ _ COM  1 ERROR...''
+
+
+
+
+
+
+
+
+
+
+--> OK... ISSO ACONTECE COM CLASSES, SIM,
+    MAS E QUANTO A FUNCTIONS?
+
+
+
+
+
+
+--> E SE FIZÉSSEMOS ALGO COMO 
+
+
+
+ISTO:
+
+
+
+
+
+
+
+namespace PaymentGateway\Paddle; // * this is how you create a namespace (and sub-namespaces)
+
+class Transaction3
+{
+
+    public function __construct()
+    {
+
+        var_dump(explode(',', 'hello, world'));
+    }
+}
+
+
+
+
+
+
+
+
+
+
+NO CASO,
+
+ESTAMOS CHAMANDO A FUNCTION DE 
+
+
+'explode()"... FUNCTION QUE RETORNA 1 ARRAY DIVIDIDO PELO PARAMETRO QUE VC ESPECIFICOU...
+
+
+
+
+
+
+
+
+
+--> ESSA É UMA BUILT-IN FUNCTION... ELA FUNCIONARIA, 
+
+    MESMO NESSE NAMESPACE LOCAL?
+
+
+
+
+
+
+-> SE RECARREGAMOS A PÁGINA,
+
+    PERCEBEMOS QUE ISSO FUNCIONA... O ARRAY REALMENTE ACABA SEPARADO,
+
+    POR CONTA DESSA FUNCTION...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+        var_dump(explode(',', 'hello world')); // This works because we are calling a built-in function, and not a built-in class...
+
+
+
+
+
+
+
+
+ISSO ACONTECE PQ, COM CLASSES,
+
+
+O PHP TENTA ENCONTRAR AS CLASSES NO LOCAL NAMESPACE.... E CASO ELE NÃO AS ENCONTRA,
+                                                        ELE DÁ O THROW DE 1 ERROR...
+
+
+                                                        ELE DÁ O THROW DE ERROR SE VC 
+                                                        NÃO ESPECIFICOU 'BACKSLASH' 
+
+                                                        ou 
+
+                                                        com a keyword de 'use' + nome da class built-in do php...
+
+
+
+
+
+
+
+-> mas com functions e constantes, É DIFERENTE... -> SE __ A FUNCTION/CONSTANT 
+                                                    NÃO EXISTE NO LOCAL NAMESPACE,
+
+                                                    O PHP AUTOMATICAMENTE FAZ 'FALLBACK' 
+
+                                                    AO __GLOBAL__ NAMESPACE...
+
+
+
+
+
+                                                    NESSE CASO, O 'explode()"
+
+                                                    não funciona 
+                                                    
+
+                                                    no local namespace.. -> POR ISSO 
+
+                                                    ELE 
+
+                                                    FAZ FALLBACK AO GLOBAL NAMESPACE 
+
+                                                    DO PHP,
+
+                                                    E AÍ USA ESSA BUILT-IN 
+
+                                                    FUNCTION DO PHP...
+
+
+
+
+
+                                    --> VC PODERIA FAZER OVERWRITE DISSO, É CLARO,
+
+
+
+                                    COM O CREATE DE UMA FUNCTION CUSTOMIZADA 
+
+
+                                    em 'Transaction.php'
+
+
+
+                                    com o nome de 'explode()"...
+
+
+
+
+
+
+
+                                TIPO ASSIM:
+
+
+
+
+
+
+                                
+namespace PaymentGateway\Paddle; // * this is how you create a namespace (and sub-namespaces)
+
+class Transaction3
+{
+
+    public function __construct()
+    {
+
+        var_dump(explode(',', 'hello, world'));
+    }
+}
+
+
+
+function explode($separator, $str) {
+
+    return 'Foo';
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE FAZEMOS ISSO E RECARREGAMOS A PÁGINA,
+
+    VEREMOS QUE O CALL DE 'explode()'
+
+    vai agora 
+
+    PRINTAR 'Foo',
+
+    e não 
+
+    VAI MAIS FAZER FALLBACK 
+
+
+    à FUNCTION GLOBAL BUILT-IN 
+
+    do 'explode()'...
+
+
+
+
+
+
+
+
+
+-> ISSO PODE àS VEZES SER PROPOSITAL,
+    MAS às VEZES PODE CAUSAR BUGS INESPERADOS...
+
+
+
+
+
+
+
+
+
+-> AÍ, SE VC QUISESSE TER AS 2 FUNCTIONS,
+    VC TERIA DE SEMPRE USAR '\' (backslash)
+
+
+    QUANDO QUISESSE USAR A FUNCTION 'ORIGINAL' (built-in)
+
+    DO PHP em vez da function custom, local,
+
+
+    TIPO ASSIM:
+
+
+
+
+    
+
+                                
+namespace PaymentGateway\Paddle; // * this is how you create a namespace (and sub-namespaces)
+
+class Transaction3
+{
+
+    public function __construct()
+    {
+
+        var_dump(\explode(',', 'hello, world'));
+    }
+}
+
+
+
+function explode($separator, $str) {
+
+    return 'Foo';
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+E É ESSA UMA DAS RAZÕES 
+
+
+
+PARA VER ALGUNS DEVELOPERS USANDO 
+
+
+`\` COM CALLS DE BUILT-IN 
+
+
+PHP FUNCTIONS,
+
+QUANDO 
+
+DENTRO DE NAMESPACES....
+
+
+
+
+
+
+
+
+-> OUTRA RAZÃO PARA 
+    OS DEVELOPERS PREFIXAREM built-in functions php 
+
+
+    com backslash 
+
+
+    É 
+
+
+
+    ''THE POSSIBLE SPEED IMPROVEMENT'',
+
+     
+
+     PQ __ ISSO AÍ ACABA 
+
+
+
+     ''TELLING PHP EXACTLY  __FROM _ WHERE 
+     TO LOAD THAT FUNCTION____...''
+
+
+
+
+
+     -> O QUE QUER DIZER QUE O PHP NÃO VAI PRECISAR FAZER RESOLVE DE COISA 
+        ALGUMA, O QUE PODE LEVAR A 1 PERFORMANCE MELHOR... MAS BEM NEGLIGÍVEL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> DEPOIS DISSO, O PROFESSOR QUER MOSTRAR 'ALIASING'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR VAI ATÉ O 'index.php'...
+
+
+
+
+
+------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+OK.. TEREMOS UM NOVO EXEMPLO...
+
+
+
+
+
+
+-- ASSUMAMOS QUE, POR QUALQUER RAZÃO,
+   PRECISAMOS USAR 
+
+
+   AMBAS AS CLASSES DE 'Transaction'...
+
+
+
+
+
+
+
+
+
+
+-> O CÓDIGO, NO MOMENTO, ESTÁ ASSIM:
+
+
+
+
+require_once './PaymentGateway/Stripe/Transaction.php'; // This stays the same, even after creating a namespace.
+require_once './PaymentGateway/Paddle/Transaction.php';
+require_once './PaymentGateway/Paddle/CustomerProfile.php';
+require_once './Notification/Email.php';
+
+
+
+
+
+use PaymentGateway\Paddle\Transaction;
+
+
+
+var_dump(new Transaction()); 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OU SEJA, COM ESSE CÓDIGO,
+
+    ESTÁ SENDO CRIADO 1 OBJECT 'Transaction'
+
+
+    a partir da class transaction de 'Paddle', e não 'Stripe'..
+
+
+
+
+
+
+
+
+-> MAS DIGAMOS QUE PRECISAMOS CRIAR 1 TRANSACTION 
+DO 'Stripe' também...
+
+
+
+
+
+
+
+
+-> MAS NÃO PODEMOS CHAMAR 2 VEZES O 'use',
+
+
+COM DIFERENTES NAMESPACES...
+
+
+
+
+
+
+
+
+QUER DIZER QUE NÃO PODEMOS FAZER ALGO ASSIM:
+
+
+
+
+
+require_once './PaymentGateway/Stripe/Transaction.php'; // This stays the same, even after creating a namespace.
+require_once './PaymentGateway/Paddle/Transaction.php';
+require_once './PaymentGateway/Paddle/CustomerProfile.php';
+require_once './Notification/Email.php';
+
+
+
+
+
+use PaymentGateway\Paddle\Transaction;
+use PaymentGateway\Stripe\Transaction;
+
+
+
+var_dump(new Transaction()); 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O QUE ESTÁ ACONTECENDO, AQUI, É O IMPORT 
+
+DE 2 CLASSES __ DE 'Transaction',
+
+que possuem o mesmo nome...
+
+
+
+
+
+
+
+-> COM ISSO, O PHP FICA CONFUSO,
+
+NÃO SABE QUAL 
+
+
+__ DOS NAMESPACES USAR PARA CRIAR SEU OBJECT... 
+
+NÃO SABE QUAL CLASS USAR...
+
+
+
+
+
+
+
+
+
+
+
+
+--> VC NUNCA USARIA 
+
+2 CLASSES DE TRANSACTION EM 1 MESMA FILE,
+
+
+
+MAS ISSO CERTAMENTE PODERIA ACONTECER COM OUTRAS CLASSES,
+
+
+
+
+COM PARES DE CLASSES QUE POSSUEM O MESMO NOME,
+
+
+
+
+
+QUE POSSUEM O MESMO NOME, MAS QUE VC GOSTARIA 
+
+DE USAR 
+
+EM 1 MESMA FILE, MESMO ASSIM...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO PODE SER CONSERTADO POR MEIO __ DO __ 'ALIASING'
+
+    DE UMA __ DAS CLASSES...
+
+
+
+
+
+
+
+--> E ISSO É POSSÍVEL, NO PHP...
+
+
+
+
+
+
+
+
+
+
+PARA FAZER ISSO, TEMOS ESTA ESCRITA:
+
+
+
+
+
+
+
+
+
+use PaymentGateway\Paddle\Transaction;
+use PaymentGateway\Stripe\Transaction as StripeTransaction;
+
+
+
+
+
+
+
+
+
+
+
+-> COM ISSO, AO ESCREVERMOS ASSIM,
+
+
+
+UMA MANEIRA ALTERNATIVA DE ESCREVER O CALL DAS CLASSES 
+
+FICA DISPONÍVEL..
+
+
+
+
+
+
+
+
+
+
+
+
+
+AGORA PODEMOS CHAMAR NOSSAS CLASSES ASSIM:
+
+
+
+
+require_once './PaymentGateway/Stripe/Transaction.php'; // This stays the same, even after creating a namespace.
+require_once './PaymentGateway/Paddle/Transaction.php';
+require_once './PaymentGateway/Paddle/CustomerProfile.php';
+require_once './Notification/Email.php';
+
+
+
+
+
+use PaymentGateway\Paddle\Transaction;
+use PaymentGateway\Stripe\Transaction as StripeTransaction;
+
+
+
+$paddleTransaction = new Transaction(); // Will be the paddle transaction
+$StripeTransaction = new StripeTransaction(); // Will be the ALIASED 'StripeTransaction'... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+E O 'ALIASING' TAMBÉM PODE SER USADO PARA LIDAR COM NOMES DE CLASSES IMENSOS...
+
+
+
+
+
+
+
+
+--------------------
+
+
+
+
+
+
+
+
+
+OUTRO USE-CASE PARA ALIASES:
+
+
+
+
+
+
+
+
+-- DIGAMOS QUE ESTAMOS DENTRO DA TRANSACTION DE 'Paddle',
+
+
+
+QUE TEM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace PaymentGateway\Paddle; // * this is how you create a namespace (and sub-namespaces)
+
+
+
+class Transaction3
+{
+
+    public function __construct()
+    {
+
+      
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA DIGAMOS QUE ESTAMOS USANDO ALGUMA PACKAGE/LIBRARY 
+
+
+
+QUE TAMBÉM TEM A CLASS DE 'Transaction' no seu interior...
+
+
+
+AÍ, NO CASO,
+
+QUEREMOS USAR ESSA CLASS DE 'Transaction',
+
+
+EXTENDÊ-LA 
+
+
+LÁ NA SUA CLASS DE TRANSACTION LOCAL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE VC QUISESSE FAZER ISSO,
+
+
+
+VC PODERIA TENTAR ESCREVER ASSIM:
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace PaymentGateway\Paddle; // * this is how you create a namespace (and sub-namespaces)
+
+use VendorName\Transaction; // LIKE THIS
+
+class Transaction3
+{
+
+    public function __construct()
+    {
+
+      
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS É CLARO QUE ISSO NÃO FUNCIONARIA,
+
+
+
+
+PQ VC NAO PODERIA USAR UMA CLASS DE 'Transaction',
+
+lá 
+
+da package do seu vendor,
+
+por cima 
+
+
+
+da class que vc já tem....
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE, EM CASOS COMO ESSES,
+VC TAMBÉM USARIA ALIASES,
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace PaymentGateway\Paddle; // * this is how you create a namespace (and sub-namespaces)
+
+use VendorName\Transaction as VendorTransaction; // Like This
+
+class Transaction3
+{
+
+    public function __construct()
+    {
+
+      
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OU SEJA, TIPO ASSIM:
+
+
+use VendorName\Transaction as VendorTransaction;
+
+
+
+
+
+
+
+-> AÍ, POR FIM, USARÍAMOS ESSA TRANSACTION DO VENDOR,
+
+    LÁ NA NOSSA CLASS DE TRANSACTION,
+
+    TIPO ASSIM:
+
+
+
+
+    
+<?php
+
+declare(strict_types=1);
+
+namespace PaymentGateway\Paddle; // * this is how you create a namespace (and sub-namespaces)
+
+use VendorName\Transaction as VendorTransaction; // Like This
+
+class Transaction3
+{
+
+    public function __construct()
+    {
+
+      $transaction = new VendorTransaction();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR DIZ QUE PODEMOS SIMULAR ISSO 
+
+
+    COM A OUTRA TRANSACTION, DE STRIPE...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace PaymentGateway\Paddle;
+
+use PaymentGateway\Stripe\Transaction as StripeTransaction; // Like This
+
+class Transaction3
+{
+
+    public function __construct()
+    {
+
+      $transaction = new StripeTransaction()
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... QUER DIZER QUE ALIASING PODE SER MT ÚTIL...
+
+
+
+
+
+
+
+
+
+
+-> POR FIM, SE VC ESTÁ IMPORTANDO MÚLTIPLAS CLASSES DE 1 MESMO NAMESPACE,
+
+
+    __ VC PODE ACTUALLY AGRUPAR TODAS SUAS CLASSES TOGETHER...
+
+
+
+
+
+
+
+
+EX: 
+
+
+
+''WE ALSO NEED A CUSTOMER PROFILE WITHIN OUR INDEX.PHP....''
+
+
+
+
+
+
+
+
+--> PARA ISSO, TERIAMOS DE ESCREVER ALGO COMO ISTO:
+
+
+
+
+
+
+use PaymentGateway\Paddle\Transaction;
+use PaymentGateway\Paddle\CustomerProfile;
+
+
+
+
+
+
+
+
+$paddleTransaction = new Transaction();
+$paddleCustomerProfile = new CustomerProfile();
+
+
+
+
+
+
+
+
+
+
+-> E ISSO FUNCIONARIA, CLARO,
+
+    MAS O PROBLEMA 
+
+    É QUE 
+
+    ESTAMOS IMPORTANDO 2 COISAS 
+
+
+    LÁ DO NAMESPACE DE 'PaymentGateway\Paddle'...
+
+
+
+
+    DUAS COISAS, QUE PODERIAM SER AGRUPADAS... 
+
+
+
+
+
+
+
+
+--> MAS COMO PODEMOS AGRUPAR ESSAS COISAS?
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS AGRUPAR COM A SINTAXE DE CURLY BRACES..
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+use PaymentGateway\Paddle\{Transaction, CustomerProfile};
+
+
+
+$paddleTransaction = new Transaction();
+$paddleCustomerProfile = new CustomerProfile();
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+// Grouping multiple imported stuff from a namespace together:
+use PaymentGateway\Paddle\{Transaction3, CustomerProfile};
+
+
+$paddleTransaction = new Transaction3();
+$paddleCustomerProfile = new CustomerProfile();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OUTRA COISA QUE VC PODERIA FAZER,
+
+EM VEZ DE ESCREVER ESSES IMPORTS EM 1 LINHA SÓ,
+
+
+
+
+É 
+
+IMPORTAR 
+O NAMESPACE GERAL EM SI,
+
+TIPO ASSIM:
+
+
+
+
+use PaymentGateway\Paddle;
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO JÁ CONSEGUIRIA IMPORTAR TODAS AS CLASSES 
+    E COISAS DE DENTRO 
+
+    DESSE NAMESPACE... (tanto transaction como customerProfile)...
+
+
+
+
+
+--> E ISSO É BOM, EM ALGUNS CASOS...
+
+
+
+
+
+
+
+-> MAS O PROFESSOR PREFERE TER TUDO 
+
+
+    IMPORTADO DIRETAMENTE NO STATEMENT DE 'use',
+
+
+
+    com aquela sintaxe dos '{}',
+
+    PQ AÍ PODEMOS LER TUDO QUE SERÁ USADO COM A NOSSA FILE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+OUTRA COISA QUE VC DEVE TER EM MENTE, SOBRE OS ALIAS,
+
+
+É QUE TAMBÉM É POSSÍVEL FAZER 
+
+ALIAS DO NAMESPACE EM GERAL,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+use PaymentGateway\Paddle as PA;
+
+
+
+
+$paddleTransaction = new PA\Transaction();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+POR FIM, O PROFESSOR APONTA QUE 
+
+
+''IMPORT RULES ARE __ PER-FILE BASIS...''
+
+
+
+
+
+
+
+
+
+-> isso quer dizer que SE FAZEMOS 
+    IMPORT DE UM OUTRO ARQUIVO PHP,
+
+
+    COM 
+
+    UM CÓDIGO ASSIM:
+
+
+
+
+
+    'include('views/layout.php')',
+
+
+
+    AO FINAL DE NOSSA FILE,
+
+
+
+
+
+
+
+    __ ESSA FILE INCLUÍDA LÁ EMBAIXO 
+
+
+    NÃO VAI INHERITAR 
+
+    AS CLASSES QUE 
+
+    FORAM IMPORTADAS 
+
+
+
+    NESSE ARQUIVO PARENT DE 'index.php'...
+
+
+    ISSO QUER DIZER QUE 
+    SE VC 
+    PRECISAR 
+
+    USAR ESSAS CLASSES DE 'Transaction' 
+    e 'CustomerProfile'  
+
+
+
+
+
+    NA FILE DE 'layout.php',
+
+
+    VC TERÁ 
+
+    DE _ IMPORTAR ESSAS FILES LÁ em 'layout.php' TBM...
+
+
+
+
+
+
+
+
+
