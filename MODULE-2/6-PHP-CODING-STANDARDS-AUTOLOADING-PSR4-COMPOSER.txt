@@ -1,0 +1,4349 @@
+
+
+
+
+
+
+
+
+
+
+--> OK...
+
+
+--> AGORA FALAREMOS SOBRE:
+
+
+
+
+
+
+-- AUTOLOADING 
+
+
+
+
+
+
+-- CODING STANDARDS
+
+
+
+
+
+
+
+-- COMPOSER...
+
+
+
+
+
+
+
+
+
+
+
+--> INICIALMENTE, VEREMOS 
+
+COMO USAR O AUTOLOADING SEM O COMPOSER...
+
+
+
+
+
+
+
+
+
+
+
+
+-> DEPOIS, VEREMOS ALGUNS DOS PHP STANDARDS...
+
+
+
+
+
+
+
+
+
+
+--> POR FIM, VEREMOS COMO USAR O COMPOSER PARA FAZER MANAGE 
+    DE NOSSAS DEPENDENCIES E HANDLAR O AUTOLOADING PARA NÓS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> NO ÚLTIMO VIDEO, 
+    CRIAMOS NAMESPACES 
+
+
+    E CLASSES NESSES NAMESPACES...
+
+
+
+
+
+
+    ENTRETANTO, SEMPRE ÉRAMOS FORÇADOS A ESCREVER 'REQUIRE STATEMENTS'
+
+
+    PARA INCLUIR ESSAS FILES (com as classes) 
+
+    lá no index.php....
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR FEZ 1 MUDANÇA DESDE A ÚLTIMA AULA,
+
+    QUE FOI O CREATE DO FOLDER DE 'app',
+
+     
+     em que colocou todos os arquivos do project...
+
+
+
+
+
+
+
+
+
+--> ALÉM DISSO, O PROFESSOR PREFIXOU TODOS OS NAMESPACES 
+    DAS CLASSES DELE COM 'App\',
+
+    PARA QUE TODAS AS CLASSES DO APP 
+
+    TENHAM O NAMESPACE DE 'App' 
+
+
+
+    COMO O BASE/TOP-LEVEL NAMESPACE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> NOSSO CÓDIGO INICIAL, PORTANTO,
+    SEGUE UM PADRÃO COMO ESTE:
+
+
+
+
+
+
+(index.php):
+
+
+
+
+<?php
+
+
+require_once '../app/PaymentGateway/Stripe/Transaction.php';
+require_once '../app/Notification/Email.php';
+require_once '../app/PaymentGateway/Paddle/CustomerProfile.php';
+require_once '../app/PaymentGateway/Paddle/Transaction.php';
+
+
+
+use App\PaymentGateway\Paddle\Transaction;
+
+
+$paddleTransaction = new Transaction(); // Will be the paddle transaction
+
+
+var_dump(new Transaction());
+
+
+
+
+
+
+
+
+
+
+
+
+
+e, lá nas classes:
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+
+namespace App\PaymentGateway\Stripe; // this is how you create a namespace (and sub-namespaces)
+
+class Transaction
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... COMO VC PODE IMAGINAR,
+O INCLUDE/REQUIRE DE FILES 
+
+DESSA FORMA 
+
+
+PODE 'GET VERY UGLY, VERY FAST'...
+
+
+
+
+
+
+
+
+
+-> QUANTO MAIS CLASSES VC TEM,
+    MAIS REQUIRE STATEMENTS VC VAI PRECISAR...
+
+
+
+
+
+
+
+
+
+
+
+--> E O AUTOLOADING __ CONSERTA __ ESSE PROBLEMA...
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PHP TEM UMA FUNCTION CHAMADA DE 
+
+
+
+
+'spl_autoload_register()'...
+
+
+
+
+
+
+
+
+
+-> ESSA É UMA FUNCTION QUE EXIGE ALGUNS PARAMETERS...
+
+
+
+
+
+
+
+
+
+
+
+--> o primeiro parameter é o que interessa...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1o PARAMETER --> É UMA __ CALLBACK FUNCTION,
+
+                    QUE SERÁ NOSSA 'CUSTOM AUTOLOADING FUNCTION'...
+
+
+
+
+--> ESSA FUNCTION VAI RECEBER 
+
+    ''THE FULLY QUALIFIED 
+      CLASS NAME''
+
+      COMO __ ARGUMENTO...
+
+
+
+
+
+
+
+
+--> PODEMOS ESCREVER TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+
+require_once '../app/PaymentGateway/Stripe/Transaction.php';
+require_once '../app/Notification/Email.php';
+require_once '../app/PaymentGateway/Paddle/CustomerProfile.php';
+require_once '../app/PaymentGateway/Paddle/Transaction.php';
+
+
+spl_autoload_register(
+    function($class) {
+        var_dump($class); // ESCREVER ASSIM...
+    }
+)
+
+
+use App\PaymentGateway\Paddle\Transaction;
+
+
+$paddleTransaction = new Transaction(); // Will be the paddle transaction
+
+
+var_dump(new Transaction());
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> FAZEMOS ISSO E RECARREGAMOS A PAGE...
+
+
+
+
+ 
+
+ COMO PRINT DISSO, NÃO GANHAMOS COISA ALGUMA...
+
+ NÃO DUMPA NADA...
+
+
+
+
+
+
+
+
+
+ --> ISSO ACONTECEU PQ 
+
+
+
+ ''OUR REGISTERED AUTOLOADER FUNCTION _ _DID NOT RUN AT ALL''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO ACONTECEU, POR SUA VEZ,
+    PQ JÁ TEMOS OS STATEMENTS DE 'require_once' escritos 
+    mais acima... como já temos esses statements,
+
+
+    o php já sabe COMO FAZER LOAD DE ESSAS CLASSES...
+
+
+
+    POR ISSO, ELE NÃO PRECISA RODAR O NOSSO AUTOLOADER...
+
+
+
+
+
+
+
+
+
+
+-> MAS O QUE FAZ O AUTOLOADER? (o 'spl_autoload_register()')?
+
+
+
+
+
+
+
+-> ELE _ AUTOMATICAMENTE FAZ LOAD 
+    DE NOSSAS CLASSES, INTERFACES E TRAITS,
+
+    todos esses que não tinham sido included/defined...
+
+
+
+
+
+
+
+---> PARA TESTAR O AUTOLOADER,
+
+COMENTAMOS TODOS OS REQUIRE_ONCE statements para fora...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+// ? AUTOLOADER EXAMPLE:
+spl_autoload_register(function ($class) {
+    var_dump($class);
+
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, COM ESSE VAR_DUMP,
+
+
+FICAMOS COM ESTE DUMP:
+
+
+
+
+
+
+''App\PaymentGateway\Paddle\Transaction'',
+
+
+
+
+OU SEJA,
+
+
+
+FICAMOS 
+
+COM 
+
+
+__ O DUMP_ DO 'FULLY QUALIFIED CLASS NAME'... 
+
+
+
+
+
+
+--> DEPOIS DISSO, FICAMOS COM 1 ERROR
+
+PQ O AUTOLOADER NÃO SABE COMO FAZER 'LOAD' DE ESSA CLASS....
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O QUE ESTÁ ACONTECENDO AQUI,
+    NO CASO,
+
+
+    É
+
+
+
+    '''WHEN YOU TRY TO USE _OR ACCESS A CLASS,
+        PHP _ WILL CHECK IF THAT __ CLASS EXISTS...
+        IF THIS CLASS DOES NOT EXIST,
+        BEFORE THROWING AN ERROR, 
+        PHP WILL LOOK FOR ANY REGISTERED AUTO LOADER FUNCTIONS
+        AND THEN RUNS THEM, ONE-BY-ONE, WHENEVER CLASSES ARE NOT FOUND...'''
+
+
+
+
+
+
+
+
+
+
+->    PARA DEMONSTRAR ESSE COMPORTAMENTO, O PROFESSOR 
+
+    COPIA E COLA OUTRO spl_autoload_register call,
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+// ? AUTOLOADER EXAMPLE:
+spl_autoload_register(function ($class) {
+    // var_dump($class);
+    var_dump('Autoloader 1');
+});
+
+// ? AUTOLOADER EXAMPLE:
+spl_autoload_register(function ($class) {
+    var_dump('Autoloader 2');
+});
+
+
+use App\PaymentGateway\Paddle\Transaction;
+
+
+$paddleTransaction = new Transaction(); // Will be the paddle transaction
+
+
+var_dump(new Transaction());
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E FICAMOS COM ESTES PRINTS E ERRORS:
+
+
+
+
+
+
+
+
+
+string(12) "Autoloader 1"
+string(12) "Autoloader 2"
+PHP Fatal error:  Uncaught Error: Class "App\PaymentGateway\Paddle\Transaction" not found in D:\PROJETO20-PHP-FROM-THE-GROUND-UP\MODULE-2\project\src\coding-autoloading-and-composer-example\app\index.php:28
+Stack trace:
+#0 {main}
+  thrown in D:\PROJETO20-PHP-FROM-THE-GROUND-UP\MODULE-2\project\src\coding-autoloading-and-composer-example\app\index.php on line 28
+
+Fatal error: Uncaught Error: Class "App\PaymentGateway\Paddle\Transaction" not found in D:\PROJETO20-PHP-FROM-THE-GROUND-UP\MODULE-2\project\src\coding-autoloading-and-composer-example\app\index.php:28
+Stack trace:
+#0 {main}
+  thrown in D:\PROJETO20-PHP-FROM-THE-GROUND-UP\MODULE-2\project\src\coding-autoloading-and-composer-example\app\index.php on line 28
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO QUER DIZER QUE 
+
+
+AMBOS AUTOLOADERS RODARAM, 1 POR 1, 
+ANTES 
+
+
+DE FICARMOS COM OS ERRORS...
+
+
+
+
+
+
+
+
+
+
+
+--> COMO ELES RODAM '1 POR 1',
+
+O __ PRIMEIRO AUTOLOADER RODOOU PRIMEIRO (autoloader 1),
+
+
+
+
+e o segundo rodou depois (autoloader 2)
+
+
+
+
+
+
+
+
+
+-> O COMPORTAMENTO, PORTANTO,
+    É DE 'FILA'...
+
+
+
+
+
+
+
+
+
+-> VOCE PODE, NO ENTANTO, PASSAR O TERCEIRO PARAMETER 
+
+DE 'spl_autoload_register' como 
+
+TRUE... SE VC FAZ ISSO,
+
+
+O GIVEN AUTOLOADER SERÁ 'PREPRENDED' 
+
+NA FILA,
+
+
+EM VEZ DE 
+COLOCADO NO FINAL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ESCREVER ESSE 'NAMED ARGUMENT',
+
+podemos fazer ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+// ? AUTOLOADER EXAMPLE:
+spl_autoload_register(function ($class) {
+    // var_dump($class);
+    var_dump('Autoloader 1');
+});
+
+// ? AUTOLOADER EXAMPLE:
+spl_autoload_register(function ($class) {
+    var_dump('Autoloader 2');
+}, prepend: true); /// Named Argument example (will make this autoloader run first, before the 'Autoloader 1');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, VEREMOS QUE O AUTOLOADER 2 
+
+
+RODARÁ ANTES DO AUTOLOADER 1...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> BEM, AGORA QUE SABEMOS O QUE É O AUTOLOADER 
+
+    E COMO ELE FUNCIONA,
+
+
+
+    DEVEMOS O UTILIZAR PARA FAZER __ INCLUDE__ 
+
+    DE NOSSAS CLASSES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO,
+
+O PROFESSOR 
+ 
+ REVERTE 
+
+
+
+
+
+ O CÓDIGO A ESTE FORMATO:
+
+
+
+ // ? AUTOLOADER EXAMPLE:
+spl_autoload_register(function ($class) {
+     var_dump($class);
+
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS PARA INCLUIRMOS NOSSA CLASS,
+TEMOS ALGUMAS REGRAS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> NO CASO, 
+    NÃO PODEMOS ESCREVER 'require $class' dentro do 'spl_autoload_register()'...
+
+        ISSO NÃO VAI FUNCIONAR... VAMOS FICAR COM 1 ERROR...
+
+
+
+
+
+
+--> ISSO NAÕ VAI FUNCIONAR PQ O ARGUMENTO '$class' 
+    NÃO É UM FILEPATH,
+
+    E SIM 
+    É UM 
+
+    'FULLY QUALIFIED CLASSNAME'...
+
+
+
+
+
+
+---> MAS PODEMOS, POR OUTRO LADO,
+    CONSEGUIR O FILEPATH __ POR MEIO __ DO 
+
+    'FULLY QUALIFIED CLASSNAME',
+
+
+
+    basta escrever 1 pouco de parsing...
+
+
+
+
+
+
+
+--> NOSSO OBJETIVO, PORTANTO, 
+É CRIAR/FORMATAR 
+
+ALGO COMO 
+
+
+
+
+'' // require_once '../app/PaymentGateway/Paddle/Transaction.php'; ''
+
+
+
+
+
+
+
+
+A PARTIR DE ALGO COMO 
+
+
+'App\PaymentGateway\Paddle\Transaction`...
+
+
+
+
+
+
+
+
+
+
+PQ SÓ ASSIM O REQUIRE STATEMENT FUNCIONARIA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> BEM, HÁ DIFERENTES CAMINHOS QUE VC PODE SEGUIR 
+    PARA CONSEGUIR ESSE VALUE,
+
+    MAS O PROFESSOR VAI NOS MOSTRAR 
+
+
+    A MANEIRA MAIS FÁCIL...
+
+
+
+
+
+
+
+
+
+
+A MANEIRA É ASSIM:
+
+
+
+
+
+
+
+
+
+1) PRIMEIRAMENTE, SUBSTITUÍMOS OS BACKSLASHES COM '/',  
+    POR MEIO DA function de 'str_replace()"...
+
+
+    EX:
+
+
+    $class = str_replace('\\', '/', $class);
+
+
+
+
+
+2) DEPOIS DISSO, FAZEMOS APPEND DA EXTENSION DE '.php' a essa string,
+    tipo assim:
+
+
+
+    $class = str_replace('\\', '/', $class) . '.php';
+
+
+
+
+
+
+3) DEPOIS DISSO, PRECISAMOS DEIXAR EM LOWERCASE A PRIMEIRA 
+    LETRA DE NOSSA STRING (pq ela está como 'App/...', queremos que 
+    fique 'app/...')..
+
+
+    fazemos isso com 
+
+    uma function do php chamada 
+    de 
+
+    'lcfirst()'...
+
+
+
+    EX:
+
+
+
+
+
+
+        $class = lcfirst(str_replace('\\', '/', $class)) . '.php';
+
+
+
+
+
+
+
+
+-> COMO RESULTADO DISSO, FICAREMOS COM ALGO COMO 
+
+
+    ''app/PaymentGateway/Paddle/Transaction.php''...
+
+
+
+
+
+
+
+-> MAS AINDA FICAREMOS COM UM ERROR__... O ERROR 
+    ESTÁ ACONTECENDO 
+
+    PQ AINDA PRECISAMOS USAR UM 'PROPER PATH'... 
+
+
+
+--> QUER DIZER QUE AINDA PRECISAMOS DOS '../' ao início de nossa string,
+    o proper path...
+
+
+
+
+
+É POR ISSO QUE AINDA TEMOS ESTA ETAPA:
+
+
+
+
+
+4) ADICIONAMOS '../' ao início da string, tipo assim:
+
+
+
+
+
+        $class = '../' . lcfirst(str_replace('\\', '/', $class)) . '.php';
+
+
+
+
+
+
+
+
+--> MAS O PROFESSOR NOS FALA QUE FAZER HARDCODE DISSO É MT RUIM...
+
+    É MT MELHOR USARMOS A MAGIC CONSTANT DO PHP ,
+
+    A MAGIC CONSTANT DE '__DIR__',
+
+
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+            $class = __DIR__ . '/' . lcfirst(str_replace('\\', '/', $class)) . '.php';
+
+
+
+
+
+
+
+
+
+
+--> NO CASO, ISSO VAI RETORNAR 'THE CURRENT DIRECTORY OF THE FILE'...
+
+
+
+
+
+
+--> NO NOSSO CASO, ISSO SERÁ 'var/www/public',
+    pq é NESSE LOCAL QUE COLOCAMOS 
+    O NOSSO 
+    'index.php'...
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+ // ? AUTOLOADER EXAMPLE:
+spl_autoload_register(function ($class) {
+    
+    $path = __DIR__ . '/' . lcfirst(str_replace('\\', '/', $class)) . '.php';
+
+    require $path
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+// ? AUTOLOADER EXAMPLE:
+spl_autoload_register(function ($class) {
+    // var_dump($class);
+    // var_dump('Autoloader 1');
+
+    $path = __DIR__ . '/' . lcfirst(str_replace('\\', '/', $class)) . '.php';
+
+    require $path;
+});
+
+
+
+
+
+
+
+
+
+
+
+NÓS RECARREGAMOS A PAGE, MAS AINDA FICAMOS COM O MESMO ERROR...
+
+
+
+
+
+
+
+
+
+
+
+
+---> A RAZÃO PARA ISSO:
+
+
+
+    ''NOW PHP IS LOOKING FOR THAT 
+        'Transaction' class 
+
+        __ FROM WITHIN THE 
+
+        __PUBLIC__ DIRECTORY''...
+
+
+
+-> PARA CONSERTAR ISSO, DEVEMOS IR 1 NÍVEL ACIMA,
+
+COM '/../',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+// ? AUTOLOADER EXAMPLE:
+spl_autoload_register(function ($class) {
+
+    $path = __DIR__ . '/../' . lcfirst(str_replace('\\', '/', $class)) . '.php';
+
+    require $path;
+
+    var_dump($path);
+});
+
+
+
+
+
+
+
+
+
+AGORA, SE RECARREGAMOS A PAGE,
+
+TUDO FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AGORA QUE SABEMOS COMO FAZER ISSO,
+
+    ESSE 'AUTOLOAD' 
+
+
+    COM O REGISTER DE NOSSA PRÓPRIA 
+    'AUTOLOADER FUNCTION',
+
+
+
+
+
+
+    COM 1 CÓDIGO COMO ESTE:
+
+
+
+
+
+    
+// ? AUTOLOADER EXAMPLE (loads, with 'require', the needed classes automatically):
+spl_autoload_register(function ($class) {
+
+    $path = __DIR__ . '/../' . lcfirst(str_replace('\\', '/', $class)) . '.php';
+
+    require $path;
+
+    var_dump($path);
+});
+
+
+
+
+
+use App\PaymentGateway\Paddle\Transaction;
+
+
+$paddleTransaction = new Transaction(); // Will be the paddle transaction
+
+
+var_dump(new Transaction());
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> BEM... AGORA QUE SABEMOS COMO FAZER ISSO 
+
+    COM NOSSO PRÓPRIO CUSTOM AUTOLOADER FUNCTION,
+
+
+
+
+     
+     DEVEMOS VER _ COMO PODEMOS __ FAZER 
+
+     ISSO COM UMA TOOL CHAMADA 
+
+     DE 
+
+     'COMPOSER'...
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+MAS ANTES DE ESTUDARMOS O 'COMPOSER',
+
+
+
+DEVEMOS REVISAR 1 POUCO DE 'CODING STANDARDS'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CODING STANDARDS E 'PSR-4'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COMO VC PODE RECONHECER,
+
+    O PHP É 'VERY FORGIVING'  
+
+
+    QUANTO CODE LAYOUTS E STRUCTURING...
+
+
+
+
+
+
+
+--> QUER DIZER QUE VC PODE COLOCAR SPACES, TABS,
+    DEIXAR O CÓDIGO BEM DIFÍCIL DE LER...
+
+
+
+
+    E AINDA ASSIM, O CÓDIGO FUNCIONARÁ...
+
+
+
+
+
+
+--> MAS ISSO DEIXA O CÓDIGO MAIS DIFÍCIL DE MAINTAIN...
+
+
+
+
+
+
+
+
+
+-_> SE VC TRABALHAR EM 1 EQUIPE,
+    CADA 1 TEM SUAS PRÓPRIAS PREFERENCIAS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VC FICARÁ COM MTAS INCONSISTENCIES...
+
+
+
+
+
+--> BASTA PEGAR OPEN SOURCE LIBRARIES COMO 
+    EXEMPLOS...
+
+
+
+
+
+
+
+
+-> OPEN SOURCE PROJECT --> SE CADA 1 SEGUE SUA PRÓPRIA CONVENTION,
+                                            A CODEBASE 
+                                            SERIA 
+
+                                            1 
+
+                                            SPAGHETTI HORRÍVEL...
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE TEMOS 'PSR',
+
+
+    PHP STANDARD RECOMMENDATION.. -> ISSO É 
+                                    MANTIDO PELO 
+
+                                    'PHP-FIG'...
+
+
+
+
+
+
+
+
+-> PHP-FIG --> FORMADO PELOS FUNDADORES DO PHP E PROGRAMADORES...
+
+
+
+
+
+
+
+
+
+
+--> TEMOS 1 TABLE DE 'CURRENTLY ACCEPTED STANDARDS'...
+
+
+
+
+
+
+
+
+
+
+--> PSR-1 
+
+
+    PSR-3 
+
+
+
+    PSR-4 
+
+
+
+
+
+
+
+    ETC...
+
+
+
+
+
+
+
+
+PSR-4  -> 'AUTOLOADING STANDARD'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PSR-1:
+
+
+
+
+
+
+''Files MUST only use <?php and <?= tags...''
+
+
+
+
+''Files MUST use only UTF-8 without BOM for PHP code''...
+
+
+
+
+''Class names MUST be declared in StudlyCaps''...
+
+
+
+
+''Class constants MUST be declared in ALL UPPERCASE, with underscore separators...''
+
+
+
+''Method names MUST be declared in camelCase''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PSR-12:
+
+
+
+
+
+
+''Extended Coding Style''
+
+
+
+
+
+
+
+-- ELA SUBSTITUI O 'PSR-2'...
+
+
+
+
+
+-- TEMOS OS STANDARDS DE CLASSES, PROPERTIES E METHODS...
+
+
+
+
+
+-- TAMBÉM STANDARDS DE __ TRAITS__...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> É UMA BOA HORA PARA INSTALAR O 'PHPSTORM'...
+
+
+
+
+
+
+
+
+
+
+ABRIMOS O PSR-4, que é o do AUTOLOADING...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PSR-4:
+
+
+
+
+
+
+
+-- 'Autoloader implementations MUST NOT throw exceptions,
+    MUST NOT _ raise errors of any level, and SHOULD NOT return a value'..
+
+
+
+
+--> NO NOSSO EXEMPLO, NÃO ESTAMOS RETORNANDO VALUE ALGUM,
+
+    MAS _ SE A NOSSA FILE, representada por '$path',
+
+    NÃO EXISTIR, POR QUALQUER MOTIVO,
+
+    ISSO _ VAI _ FAZER O RAISE DE 1 WARNING....
+
+
+
+--> PARA CONSERTAR ESSE PROBLEMA,
+
+PODEMOS ENVELOPPAR NOSSO REQUIRE COM 1 IF STATEMENT CHECANDO POR 'file_exists()",
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+// ? AUTOLOADER EXAMPLE (loads, with 'require', the needed classes automatically):
+spl_autoload_register(function ($class) {
+
+    $path = __DIR__ . '/../' . lcfirst(str_replace('\\', '/', $class)) . '.php';
+
+    if (file_exists($path)) {
+        require $path;
+    }
+
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+depois, na page do psr-4,
+
+TEMOS 
+
+
+
+UMA 'EXAMPLE IMPLEMENTATION'...
+
+
+
+
+
+
+
+
+
+
+--> NESSA EXAMPLE IMPLEMENTATION, TEMOS MAIS CÓDIGO DO QUE 
+    A VERSÃO QUE ESCREVEMOS ACIMA,
+
+    MAS ELA 
+
+    ESSENCIALMENTE FAZ A MESMA COISA....
+
+
+
+
+
+
+
+
+
+
+
+-> A BOA NOTÍCIA, AQUI,
+
+    É QUE NÃO VAMOS PRECISAR DA NOSSA CUSTOM AUTOLOADER 
+    FUNCTION 
+
+
+    ___AT ALL___...
+
+
+
+    PQ VAMOS USAR A FERRAMENTA CHAMADA 'COMPOSER',
+
+    QUE _VAI HANDLAR O AUTOLOADING PARA NÓS...
+
+
+
+
+
+
+
+
+--> VC DEVE SEGUIR STANDARDS?
+
+
+
+
+
+
+
+
+    SIM... ALGUNS STANDARDS DEVEM SER SEGUIDOS...
+
+
+
+
+
+
+
+
+
+
+
+--> TAMBÉM EXISTEM CONVENTIONS ESPECÍFICAS
+
+    A FRAMEWORKS... (commo 'laravel')...
+
+
+
+
+
+    --> O ESSENCIAL É A CONSISTÊNCIA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AGORA ESTUDAREMOS O __ COMPOSER_...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+''WHAT IS COMPOSER''?
+
+
+
+
+
+
+
+
+
+
+--> O COMPOSER É 
+
+    UMA FERRAMENTA QUE FAZ O DEPENDENCY MANAGEMENT, NO PHP...
+
+
+
+
+
+
+
+--> ELE TE DEIXA INSTALAR VÁRIAS LIBRARIES E PACKAGES 
+    NOS SEUS PROJECTS...
+
+
+
+
+
+
+
+
+--> TAMBÉM TE AJUDA COM O AUTO-LOADING, 
+    ALÉM DE TE AJUDAR COM DEPENDENCY MANAGEMENT...
+
+
+
+
+
+
+
+
+
+
+
+
+--> DEVEMOS INSTALAR O COMPOSER...
+
+
+
+
+
+
+
+
+-> HÁ MÚLTIPLAS MANEIRAS DE INSTALAR O COMPOSER...
+
+
+
+
+
+--> PODEMOS INSTALAR O COMPOSER DIRETAMENTE NO NOSSO WINDOWS...
+
+
+
+
+
+
+
+
+-> COMO O PROFESSOR ESTÁ USANDO DOCKER,
+
+    ELE PRECISA 
+
+    DE UMA IMAGE DO COMPOSER... JÁ FIZ ISSO UMA VEZ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VAMOS ADICIONAR O COMPOSER A NOSSA DOCKERFILE...
+
+
+
+
+
+
+
+
+-->  VAMOS ADICIONAR O COMPOSER À DOCKERFILE QUE 
+    RODA O PHP...
+
+
+
+    -> PARA DEVELOPMENT, ISSO É FINE,
+        MAS __ 
+
+        PARA PRODUCTION,
+
+        É MELHOR 
+
+        TER 1 CONTAINER SEPARADO PARA O COMPOSER,
+ 
+        PARA SALVAR RESOURCES...
+
+
+
+
+
+
+
+
+
+
+
+
+--> no outro project, eu tinha 1 dockerfile apenas para o 
+
+    composer, e ela estava escrita assim:
+
+
+    
+FROM composer:2.4
+
+WORKDIR /var/www/html
+
+# É O COMANDO QUE SEMPRE SERÁ EXECUTADO QUANDO RODAMOS 'docker-compose run composer'...
+ENTRYPOINT ["composer", "--ignore-platform-reqs"]
+
+# POR FIM,
+
+# PRECISAMOS ASSEGURAR QUE NOSSO SOURCE CODE DIRECTORY SEJA EXPOSTO A ESSA IMAGE 
+
+# do 
+
+# 'composer'... -->  ISSO PARA QUE ESSA IMAGE CONSIGA TRABALHAR NO NOSSO 'SOURCE CODE'
+
+# DIRETAMENTE --> TUDO PARA QUE 
+
+
+# QUANDO USARMOS ESSA IMAGE PARA 
+
+# INSTALAR O LARAVEL E SETTAR 1 LARAVEL PROJECT,
+# ELE FAÇA ISSO NO NOSSO SOURCE FOLDER... --> É POR ISSO QUE PRECISAMOS DE 1 BIND MOUNT, lá no docker-compose...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... MAS COMO O PROFESSOR VAI USAR O COMPOSER NO MESMO CONTAINER DO PHP COMUM,
+    ELE 
+
+
+    DECIDE PEGAR O COMPOSER POR MEIO DE 'curl',
+
+
+
+    COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+
+
+FROM php:8.0.2-fpm 
+
+
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    zip \
+    unzip 
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+WORKDIR /var/www
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESCREVEMOS ASSIM,
+
+E DEPOIS 
+
+FAZEMOS REBUILD DE NOSSAS IMAGES E CONTAINERS 
+
+DO DOCKER,
+
+
+COM 
+
+
+'docker-compose up -d --build'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS PARA USARMOS O COMPOSER,
+
+
+NÃO BASTA APENAS O DEIXARMOS DENTRO DO CONTAINER DO PHP...
+
+
+
+
+
+
+
+
+
+
+--> PRECISAMOS FAZER 'ssh' 
+
+
+PARA DENTRO DO DOCKER CONTAINER DO PHP + COMPOSER,
+
+PARA AÍ 
+
+
+
+
+EXECUTAR O COMANDO DO COMPOSER...
+
+
+
+
+
+
+
+
+rodamos estes comandos:
+
+
+
+
+
+
+
+
+
+docker ps  --> pegamos o container name 
+
+
+
+docker exec -it programwithgio-app bash  --> EXECUTAMOS O BASH DENTRO DO CONTAINER 
+
+
+
+ composer -->  ISSO VAI NOS MOSTRAR TODOS OS COMANDOS DISPONÍVEIS AO COMPOSER...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+PS D:\PROJETO20-PHP-FROM-THE-GROUND-UP\MODULE-2\project\docker> docker ps      
+CONTAINER ID   IMAGE               COMMAND                  CREATED         STATUS         PORTS                  NAMES
+247e8eaacdfc   docker-app          "docker-php-entrypoi…"   3 seconds ago   Up 
+3 seconds   9000/tcp               programwithgio-app
+28d809e9e917   nginx:1.19-alpine   "/docker-entrypoint.…"   46 hours ago    Up 
+3 seconds   0.0.0.0:8000->80/tcp   programwithgio-nginx
+PS D:\PROJETO20-PHP-FROM-THE-GROUND-UP\MODULE-2\project\docker> docker exec -it programwithgio-app bash
+root@247e8eaacdfc:/var/www# composer
+   ______
+  / ____/___  ____ ___  ____  ____  ________  _____
+ / /   / __ \/ __ `__ \/ __ \/ __ \/ ___/ _ \/ ___/
+/ /___/ /_/ / / / / / / /_/ / /_/ (__  )  __/ /
+\____/\____/_/ /_/ /_/ .___/\____/____/\___/_/
+                    /_/
+Composer version 2.7.7 2024-06-10 22:11:12
+
+Usage:
+  command [options] [arguments]
+
+Options:
+  -h, --help                     Display help for the given command. When no command is given display help for the list command
+  -q, --quiet                    Do not output any message
+  -V, --version                  Display this application version
+      --ansi|--no-ansi           Force (or disable --no-ansi) ANSI output      
+  -n, --no-interaction           Do not ask any interactive question
+      --profile                  Display timing and memory usage information   
+      --no-plugins               Whether to disable plugins.
+      --no-scripts               Skips the execution of all scripts defined in 
+composer.json file.
+  -d, --working-dir=WORKING-DIR  If specified, use the given directory as working directory.
+      --no-cache                 Prevent use of the cache
+  -v|vv|vvv, --verbose           Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug
+
+Available commands:
+  about                Shows a short information about Composer
+  archive              Creates an archive of this composer package
+  audit                Checks for security vulnerability advisories for installed packages
+  browse               [home] Opens the package's repository URL or homepage in your browser
+  bump                 Increases the lower limit of your composer.json requirements to the currently installed versions
+  check-platform-reqs  Check that platform requirements are satisfied
+  clear-cache          [clearcache|cc] Clears composer's internal package cache  completion           Dump the shell completion script
+  config               Sets config options
+  create-project       Creates new project from a package into given directory 
+  depends              [why] Shows which packages cause the given package to be installed
+  diagnose             Diagnoses the system to identify common errors
+  dump-autoload        [dumpautoload] Dumps the autoloader
+  exec                 Executes a vendored binary/script
+  fund                 Discover how to help fund the maintenance of your dependencies
+  global               Allows running commands in the global composer dir ($COMPOSER_HOME)
+  help                 Display help for a command
+  init                 Creates a basic composer.json file in current directory 
+  install              [i] Installs the project dependencies from the composer.lock file if present, or falls back on the composer.json
+  licenses             Shows information about licenses of dependencies        
+  list                 List commands
+  outdated             Shows a list of installed packages that have updates available, including their latest version
+  prohibits            [why-not] Shows which packages prevent the given package from being installed
+  reinstall            Uninstalls and reinstalls the given package names       
+  remove               [rm|uninstall] Removes a package from the require or require-dev
+  require              [r] Adds required packages to your composer.json and installs them
+  run-script           [run] Runs the scripts defined in composer.json
+  search               Searches for packages
+  self-update          [selfupdate] Updates composer.phar to the latest version  show                 [info] Shows information about packages
+  status               Shows a list of locally modified packages
+  suggests             Shows package suggestions
+  update               [u|upgrade] Updates your dependencies to the latest version according to composer.json, and updates the composer.lock file
+  validate             Validates a composer.json and composer.lock
+root@247e8eaacdfc:/var/www#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TEMOS TODOS OS COMMANDS DO COMPOSER...
+
+
+
+
+
+
+
+
+
+
+
+
+--> VAMOS USAR APENAS ALGUNS DESSES COMMANDS...
+
+
+
+
+
+
+
+
+
+
+
+-> OS COMMANDS MAIS USADOS SÃO:
+
+
+
+1) 'composer require' --> ''Adds required packages to your composer.json and installs them''
+
+
+
+
+2) 'composer install' --> ''Installs the project dependencies from the composer.lock file if present, or falls back on the composer.json'
+
+
+
+
+3) 'composer remove' --> ''Removes a package from the require or require-dev''...
+
+
+
+4) 'composer init' --> ''Creates a composer.json file''...
+
+
+
+
+
+
+
+
+
+
+-> SE VC QUER ENCONTRAR PACKAGES PARA INSTALAR,
+
+    USE O SITE 'Packagist'...
+
+
+
+
+
+    --> OU, ENTÃO, NOS DOCS DA LIBRARY QUE VC QUER INSTALAR... 
+
+
+
+
+
+
+
+
+
+
+
+--> QUEREMOS INSTALAR UMA PACKAGE QUE TRABALHE COM 'UNIQUE IDENTIFIERS' (uuID)...
+
+
+
+
+
+
+
+--> é tipo aquele código de uuid4, do node...
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, PROCURAMOS POR 'uuid' em packagist...
+
+
+
+
+
+
+
+
+
+--> temos 'ramsey/uuid'..
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR RECOMENDA QUE VC 
+
+    EXAMINE A DOCUMENTATION DA PACKAGE, ANTES DE A INSTALAR...
+
+
+
+
+
+
+
+
+    'ramsey/uuid'...
+
+
+
+
+
+
+    -> PACKAGE NAME --> 'uuid' 
+
+
+    -> VENDOR NAME --> 'ramsey'...
+
+
+
+
+
+
+
+
+
+--> PODEMOS SIMPLESMENTE COPIAR O 'ramsey/uuid',
+
+E AÍ 
+
+
+
+RODAR O COMANDO COMPOSER COM TIPO 
+
+
+
+
+
+
+
+
+
+
+'composer require ramsey/uuid'
+
+
+
+
+
+
+
+
+
+
+
+--> AO RODAR ISSO,
+
+    SERÁ BAIXADO 
+
+    NÃO APENAS 'ramsey/uuid',
+
+    MAS TAMBÉM 
+
+
+    TODAS AS OUTRAS PACKAGES NECESSÁRIAS 
+    
+    A ESSA PACKAGE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> QUANDO RODAMOS ESSE COMANDO, DE 'require',
+
+
+
+
+O COMPOSER CRIOU 
+
+
+
+
+OS SEGUINTES ARQUIVOS E FOLDERS:
+
+
+
+
+
+
+
+
+
+
+'vendor' (folder)
+
+'composer.json' (file)
+
+'composer.lock' (file)
+
+'autoload.php' (dentro do VENDOR folder)
+
+
+
+
+
+
+
+
+
+
+
+DENTRO DE 'composer.json',
+
+
+
+
+
+TEMOS ISTO:
+
+
+
+
+{
+    "require": {
+        "ramsey/uuid": "^4.7"
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO É BASICAMENTE NOSSA CONFIG FILE,
+    EM QUE COLOCAMOS TODAS NOSSAS DEPENDENCIES...
+
+
+
+
+
+
+
+--> HÁ VÁRIAS OUTRAS CONFIG OPTIONS QUE VC PODE COLOCAR AQUI,
+
+    QUE PODEM SER LIDAS NOS DOCS DO COMPOSER...
+
+
+
+
+
+
+
+
+--> TAMBÉM COLOCA A VERSION DA SUA PACKAGE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR ENTÃO APONTA QUE 
+
+
+
+''YOU DON'T NEED TO USE COMPOSER REQUIRE TO 
+    CREATE THIS 'composer.json''..
+
+
+
+
+
+
+--> VOCE PODE USAR SIMPLESMENTE 'composer init' 
+
+    PARA INICIALIZAR O ARQUIVO 'composer.json'...
+
+
+
+
+
+
+--> AO FAZER ISSO, VC RESPONDE ALGUMAS QUESTIONS,
+    COLOCA OS VENDOR NAMES  E VERSIONS EM 'composer.json',
+
+    E AÍ 
+
+    RODA 
+
+
+    'composer install', para aí instalar essas dependencies...
+
+
+
+
+
+
+
+
+--> 'composer.lock' --> ESSA FILE BASICAMENTE 
+                        'LOCKA' SUAS DEPENDENCIES 
+
+                        EM 1 FIXED STATE...
+
+
+
+
+                        -> ELE CONTÉM TODAS AS PACKAGES 
+                            E DEPENDENCIES  
+                            VITAIS AO SEU PROJECT...
+
+
+                            QUER DIZER QUE ELE LOCKA 
+                            SEU PROJECT A ESSAS VERSIONS...
+
+
+
+
+
+
+                            -> VC DEVE COMMITAR ESSA FILE 
+                            AO GIT TAMBÉM,
+
+                            PARA GARANTIR QUE TODOS QUE 
+                            TRABALHAM 
+
+                            NO SEU PROJECT USARÃO 
+
+                            AS MESMAS VERSIONS DAS DEPENDENCIES...
+
+
+
+
+
+
+
+
+--> OK, MAS COMO É GERADO ESSE ARQUIVO DE 'composer.lock'?
+
+
+
+
+
+
+-> basicamente,
+quando vc roda 'composer install',
+
+
+
+SE __ 1 LOCK FILE JÁ EXISTE,
+
+
+O COMPOSER VAI RESOLVE E VAI INSTALAR TODAS AS DEPENDENCIES 
+
+LISTADAS 
+
+
+NO 'composer.json',
+
+
+MAS 
+
+VAI 
+
+USAR 
+
+AS EXATAS VERSIONS USADAS NA SUA LOCK FILE... SE ESSA LOCK FILE NÃO EXISTIR,
+
+                                                O COMPOSER INSTALL VAI GERAR 
+                                                ESSA LOCK FILE DA MESMA 
+
+                                                MANEIRA QUE 
+
+                                                'composer require' 
+
+                                                a gerou....
+
+
+
+
+
+
+COMPOSER REQUIRE, UPDATE E REMOVE --> TODOS ELES TAMBÉM VÃO UPDATAR 
+                                        A FILE DE LOCK...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NÃO SE IMPORTE MT COM AS VERSIONS AGORA...
+
+
+
+
+
+
+O OUTRO FOLDER QUE FOI GERADO É AQUELE DIRECTORY DE 'vendors',
+
+ QUE É O FOLDER EM QUE TODO O SOURCE CODE 
+
+ DE SUAS DEPENDENCIES VAI EXISTIR...
+
+
+
+
+
+
+
+
+--> TEMOS VÁRIAS COISAS DENTRO DE 'vendor',
+
+
+como o próprio composer 
+
+
+e outars packages como 
+
+'ramsey',
+
+
+
+com o 'uuid' lá dentro...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> DENTRO DE CADA DEPENDENCY,
+
+TEMOS O ARQUIVO 
+
+
+
+
+'composer.json' também,
+
+
+
+QUE, POR SUA VEZ,
+
+
+
+
+APONTA AS DEPENDENCIES DE CADA GIVEN DEPENDENCY...
+
+
+
+
+
+
+
+
+
+
+DENTRO DO 'composer.json' de uuid, por exemplo, temos isto:
+
+
+
+
+
+    "require": {
+        "php": "^8.0",
+        "ext-json": "*",
+        "brick/math": "^0.8.8 || ^0.9 || ^0.10 || ^0.11 || ^0.12",
+        "ramsey/collection": "^1.2 || ^2.0"
+    },
+    "require-dev": {
+        "captainhook/captainhook": "^5.10",
+        "captainhook/plugin-composer": "^5.3",
+        "dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
+        "doctrine/annotations": "^1.8",
+        "ergebnis/composer-normalize": "^2.15",
+        "mockery/mockery": "^1.3",
+        "paragonie/random-lib": "^2",
+        "php-mock/php-mock": "^2.2",
+        "php-mock/php-mock-mockery": "^1.3",
+        "php-parallel-lint/php-parallel-lint": "^1.1",
+        "phpbench/phpbench": "^1.0",
+        "phpstan/extension-installer": "^1.1",
+        "phpstan/phpstan": "^1.8",
+        "phpstan/phpstan-mockery": "^1.1",
+        "phpstan/phpstan-phpunit": "^1.1",
+        "phpunit/phpunit": "^8.5 || ^9",
+        "ramsey/composer-repl": "^1.4",
+        "slevomat/coding-standard": "^8.4",
+        "squizlabs/php_codesniffer": "^3.5",
+        "vimeo/psalm": "^4.9"
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> A DIFERENÇA 
+
+
+
+
+DE 'require' para 'require-dev' 
+
+
+
+
+
+
+
+
+É:
+
+
+
+
+
+
+
+
+
+
+
+REQUIRE -->  LISTS THE DEPENDENCIES FOR YOUR PROJECT THAT WILL BE INSTALLED DURING PRODUCTION, ARE NEEDED IN PRODUCTION 
+
+
+
+
+
+require-dev --> LISTS THE DEPENDENCIES/PACKAGES THAT ARE NEEDED IN DEVELOPMENT..
+
+
+
+
+
+
+
+
+
+
+
+--> THE PACKAGES IN REQUIRE-DEV 
+    __ WILL __ NOT BE INSTALLED_ IF YOUR PACKAGE 
+
+    IS BEING INSTALLED AS A DEPENDENCY FOR SOMETHING ELSE...
+
+
+
+
+
+
+
+
+
+-> ISSO QUER DIZER, EM OUTRAS PALAVRAS,
+    QUE POR PUXARMOS 'ramsey/uuid',
+
+
+    APENAS AS PACKAGES DENTRO DA DEFINITION DE 'require' 
+
+    dele vão ser baixadas,
+
+
+    MAS AS PACKAGES no 'require-dev' do 
+    ramsey/uuid 
+
+    NÃO VÃO SER BAIXADAS/puxadas como as de 'require'...
+
+
+
+
+
+
+
+--> ENTRETANTO, 
+    SE FOSSEMOS ADICIONAR ALGUM TIPO DE PACKAGE 
+
+    COM REQUIRE/REQUIRE-DEV 
+
+
+
+    EM NOSSO PRÓPRIO composer.json,
+
+
+
+
+    QUANDO 
+
+    RODARMOS 'composer install',
+
+
+
+
+    ESSAS COISAS DE 'require-dev' serão instaladas também...
+
+
+
+
+
+    MAS HÁ ALGUNS COMANDOS QUE PODEMOS PASSAR, AO COMPOSER,
+
+    PARA IMPEDIR QUE ELE BAIXE AS COISAS QUE ESPECIFICAMOS 
+
+    EM 'require-dev' também...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> HÁ MAIS UMA FILE IMPORTANTE DENTRO DE 'vendor' ( o folder),
+
+    que é 
+
+
+    'autoload.php'...
+
+
+
+
+
+
+
+
+
+--> 'AUTOLOAD.PHP' --> ESSA É A FILE QUE 
+
+                        VAI TE DEIXAR 
+
+                        'AUTOLOAD' 
+
+                        TODAS AS CLASSES 
+
+
+                        DE SUAS DEPENDENCIES...
+
+
+
+
+
+
+
+
+
+--> A IMPLEMENTATION DE AUTOLOADING DO COMPOSER 
+
+    É __ BEM MAIS COMPLEXA__ DO QUE 
+
+    A IMPLEMENTATION QUE NÓS ESCREVEMOS 
+
+    ANTERIORMENTE,
+
+
+
+    E NÃO PRECISAMOS ENTENDER COMO ELA FUNCIONA..
+
+
+
+
+
+
+
+
+
+
+
+--> O QUE PRECISAMOS FAZER, NO NOSSO PROJECT,
+
+    É APENAS FAZER O REQUIRE DA FILE DE 'autoload.php' 
+
+
+
+    DO COMPOSER,
+
+
+
+
+    COM 1 CÓDIGO TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+''''
+
+
+require __DIR__ . '/../vendor/autoload.php';
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+// * Composer autoloader example (use composer's autoloader, which will load the classes automatically):
+require __DIR__ . '/../vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+use App\PaymentGateway\Paddle\Transaction;
+
+
+$paddleTransaction = new Transaction(); // Will be the paddle transaction
+
+
+var_dump(new Transaction());
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- certo...
+
+
+
+
+
+
+--> AÍ O PROFESSOR QUER NOS MOSTRAR 
+
+
+QUE O COMPOSER ESTÁ FUNCIONANDO,
+
+
+
+
+COM A UTILIZAÇÃO DA PACKAGE DE 'uuid',
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+$id = new \Ramsey\Uuid\UuidFactory();
+
+
+echo $id->uuid4();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NO CASO, O MEU CÓDIGO, LOCAL, FICA ASSIM:
+
+
+
+
+
+
+
+
+require '../../vendor/autoload.php'; // imports the composer's autoloader
+
+$id = new \Ramsey\Uuid\UuidFactory(); // example of usage of package installed with composer.
+
+
+echo $id->uuid4();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO RESULTADO DISSO, FICO COM O UUID PRINTADO NA TELA:
+
+
+
+
+c9719790-f456-41fa-b0b7-9fb73a0a1ad1
+
+
+
+
+
+
+
+
+
+QUER DIZER QUE ESSA CLASS FOI AUTOLOADADA PARA NÓS,
+
+USANDO O AUTOLOADER DO COMPOSER....
+
+
+
+
+
+
+
+
+
+
+--> MAS AGORA DEVEMOS TENTAR IMPORTAR 
+
+AUTOMATICAMENTE 
+
+
+
+A CLASS DE 'Transaction'...
+
+
+
+
+
+
+
+--> AO COMENTARMOS NOSSA CLASS DE 'Transaction'
+
+de volta,
+
+
+ficamos com 1 FATAL ERROR...
+
+
+
+
+
+
+--> COMO PODEMOS FAZER AUTOLOAD 
+    DE NOSSAS CLASSES,
+
+    LÁ DO DIRECTORY DE 'app'?
+
+
+
+
+
+
+
+
+
+--> PODEMOS CONSERTAR ISSO POR MEIO 
+
+DO 
+
+
+'TELL COMPOSER HOW TO AUTO-LOAD OUR OWN CLASSES''..
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, DEVEMOS IR ATÉ O 'composer.json'
+
+
+    E ADICIONAR UMA OPTION NOVA,
+
+
+
+
+    de 
+
+
+    "autoload": {
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> DENTRO DE 'autoload',
+
+
+
+colocamos uma key de nome 'psr-4',
+
+
+
+
+E AÍ, DENTRO DISSO,
+
+
+
+DEVEMOS MAPPEAR 
+
+
+
+ASSIM:
+
+
+
+
+
+
+
+
+
+''NAMESPACE'' : ''SOURCE FOLDER''...
+
+
+
+
+
+
+
+--> NO CASO,
+
+
+
+escrevemos assim:
+
+
+
+'App\\": "app/"
+
+
+
+
+
+
+
+
+
+
+
+O CÓDIGO FINAL, NO CASO, FICA ASSIM:
+
+
+
+
+
+
+
+
+{
+  "require": {
+    "ramsey/uuid": "^4.7"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/"
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+LÁ NO CÓDIGO DE INDEX.PHP,
+
+
+escrevo assim:
+
+
+
+
+require '../../vendor/autoload.php'; // imports the composer's autoloader
+
+$id = new \Ramsey\Uuid\UuidFactory(); // example of usage of package installed with composer.
+
+
+echo $id->uuid4();
+
+
+use App\PaymentGateway\Paddle\Transaction;
+
+
+$paddleTransaction = new Transaction(); // Will be the paddle transaction
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS ISSO AINDA VAI ME DAR 1 ERROR...
+
+
+
+
+
+
+VAI DAR 1 ERROR DE 'class not found'...
+
+
+
+
+
+
+
+
+
+
+ISSO ACONTECE/ACONTECEU 
+
+
+__ PQ 
+
+'COMPOSER'S AUTO-LOAD FILES _ STILL NEED TO BE REGENERATED...''
+
+
+
+
+
+
+
+
+
+
+
+
+--> NO CASO, SÃO AS FILES DENTRO DE 
+
+'vendor/composer/xxxxx'...
+
+
+
+
+
+TEMOS COISAAS COMO 
+
+
+
+
+'autoload_files.php',
+
+
+'autoload_namespaces.php'...
+
+
+
+
+
+
+
+
+
+--> ESSAS SÃO 
+
+    AS __ 'GENERATED FILES'...
+
+
+
+
+
+
+
+--> SE ABRIMOS 'autoload_psr4.php',
+
+
+    PERCEBEMOS QUE ELE CONTÉM 
+
+
+
+    OS NAMESPACES PARA AS DEPENDENCIES (como 'Ramsey'),
+
+
+
+
+    MAS QUE 
+
+    ELE NÃO CONTÉM 
+
+
+
+    __ OS NAMESPACES DE NOSSO PROJETO,
+
+    QUE É 
+
+    'App'...
+
+
+
+
+
+
+    -> PARA CONSEGUIR _FAZER O REGENERATE 
+        DE ESSAS FILES,
+
+        PARA CONSIDERAR OS NAMESPACES DE NOSSO PROJETO,
+
+
+        DEVEMOS USAR 
+
+
+        O COMANDO 
+
+
+
+        'composer dump-autoload'...
+
+
+
+
+        isso vai printar 
+
+
+        'Generating autoload files 
+        Generated autoload files'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+    COM ISSO, VEREMOS QUE ESSA FILE TERÁ SIDO ALTERADA,
+
+    E AGORA TERÁ ESTE CÓDIGO:
+
+
+
+
+
+return array(
+    'Symfony\\Polyfill\\Php81\\' => array($vendorDir . '/symfony/polyfill-php81'),
+    'Ramsey\\Uuid\\' => array($vendorDir . '/ramsey/uuid/src'),
+    'Ramsey\\Collection\\' => array($vendorDir . '/ramsey/collection/src'),
+    'Brick\\Math\\' => array($vendorDir . '/brick/math/src'),
+    'App\\' => array($baseDir . '/app'),
+);
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+
+FOI ADICIONADA AQUELA PARTE DE 
+
+
+''     'App\\' => array($baseDir . '/app'), ''
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> É CLARO QUE ISSO NÃO FUNCIONOU NA MINHA VERSÃO DO PROJETO,
+
+PQ ESTOU RODANDO-A LOCALMENTE, SEM DOCKER...
+
+
+
+
+
+
+
+
+
+MINHA VERSÃO FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+{
+  "require": {
+    "ramsey/uuid": "^4.7"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "coding-autoloading-and-composer-example/app/"
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+E AQUELA FILE Do 'autoload_psr4.php',
+
+ficou assim:
+
+
+
+return array(
+    'Symfony\\Polyfill\\Php81\\' => array($vendorDir . '/symfony/polyfill-php81'),
+    'Ramsey\\Uuid\\' => array($vendorDir . '/ramsey/uuid/src'),
+    'Ramsey\\Collection\\' => array($vendorDir . '/ramsey/collection/src'),
+    'Brick\\Math\\' => array($vendorDir . '/brick/math/src'),
+    'App\\' => array($baseDir . '/coding-autoloading-and-composer-example/app'),
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+ISSO FUNCIONOU...
+
+
+
+
+
+
+
+
+
+COM ISSO, O AUTOLOAD FUNCIONA 
+
+
+LEGAL,
+
+E NEM PRECISAMOS USAR A NOSSA CUSTOM AUTOLOADER FUNCTION....
+
+
+
+
+
+
+
+
+
+
+
+
+TUDO QUE PRECISAMOS FAZER, AQUI, FOI:
+
+
+
+
+
+
+
+
+1) INCLUDE THE 'autoload.php' file, from composer 
+
+
+
+1.5) WRITE THE 'namespace: project-path', inside of the 
+    composer.json file, in the 'psr-4' key...
+
+
+
+2) RUN THE 'composer dump-autoload', inside of the container with composer...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ANTES DE TERMINAR ESSE VIDEO,
+
+O PROFESSOR QUER FALAR 
+
+
+1 POUCO SOBRE 'CLASS MAP'..
+
+
+
+
+
+
+
+
+
+
+
+
+-> ATUALMENTE, ESTAMOS USANDO 
+
+'PSR-4' PARA HANDLAR 
+
+
+
+O _ DYNAMIC AUTOLOADING PARA NÓS...
+
+
+
+
+
+
+
+--> AGORA, SEMPRE QUE ADICIONARMOS 1 NOVA CLASS 
+    DENTRO DO NAMESPACE DE 'App',
+
+
+    NEM PRECISAMOS FAZER REGENERATE 
+
+
+
+    DA FILE DE 'autoload.php',
+
+
+
+    _ AS COISAS VAO 'JUST WORK',
+
+
+    ISSO 
+
+
+    PQ 
+
+    AS NOSSAS CLASSES/FILES JÁ VÃO SER AUTOMATICALLY 
+
+    INCLUDED 
+
+    PARA NÓS,
+
+
+    USANDO 
+
+
+    AS REGRAS PSR-4...
+
+
+
+
+
+
+
+
+    --> E ESSA É A PREFERRED WAY,
+        DURANTE DEVELOPMENT...
+
+
+
+
+        --> MAS, EM PRODUCTION,
+            VC QUER QUE AS COISAS 
+
+
+            SEJAM O MAIS RÁPIDO POSSÍVEL...
+
+
+
+
+
+
+        --> NO DIRECTORY DE 'composer',
+            ENXERGAMOS A GENERATED FILE DE 'autoload_psr4.php'...
+
+
+
+        --> TAMBÉM ENXERGAMOS A FILE DE 
+
+        'autoload_classmap.php'...
+
+
+
+
+
+        --> O PROFESSOR APONTA QUE APESAR 
+
+        DE 
+        'PSR4 AUTOLOADING', com essa file,
+
+        JÁ SER SUPER RÁPIDO,
+
+
+        O USO DE 'CLASSMAPS'
+
+        é ainda mais rápido...
+
+
+
+
+
+        --> ISSO ACONTECE PQ 
+
+        'DYNAMIC AUTOLOADING' 
+
+        PRECISA FAZER 
+
+
+
+        __''CHECK THE FILE SYSTEM''
+
+        ANTES DE FAZER O 'RESOLVE OF THE CLASSNAME''...
+
+
+
+        --> DIFERENTEMENTE, O CLASSMAPS AUTOLOADING 
+            VAI __ FAZER O LOAD DAS CLASSES 
+
+            LÁ DO 'GENERATED ARRAY'... --> E É POR ISSO QUE É CHAMADO 
+                                            DE 'CLASSMAP',
+
+
+                                            PQ _ ELE MAPPEIA AS CLASSES 
+
+                                            A SUAS LOCATIONS..
+
+
+
+
+        --> MAS NA FILE DE 'autoload_classmap',
+
+        TEMOS APENAS ISTO:
+
+
+
+
+
+    
+
+    <?php
+
+// autoload_classmap.php @generated by Composer
+
+$vendorDir = dirname(__DIR__);
+$baseDir = dirname($vendorDir);
+
+return array(
+    'CURLStringFile' => $vendorDir . '/symfony/polyfill-php81/Resources/stubs/CURLStringFile.php',
+    'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
+    'ReturnTypeWillChange' => $vendorDir . '/symfony/polyfill-php81/Resources/stubs/ReturnTypeWillChange.php',
+);
+
+
+
+
+
+
+
+
+
+
+
+
+--> TEMOS 1 ÚNICO ELEMENTO... NÃO TEMOS MAIS NADA MAPPEADO,
+    ALÉM DISSO...
+
+
+
+
+
+
+
+
+--> PODEMOS, NO ENTANTO, PASSAR 1 ARGUMENTO 
+
+
+    AO COMANDO DE 
+
+
+    'composer dump-autoload' 
+
+    PARA __ FAZER O LOAD 
+
+
+    DE ESSE ARRAY 
+
+
+    COM AS CLASSES..
+
+
+
+
+
+
+
+
+
+--> PARA GERAR _ AUTOLOADING OPTIMIZADO,
+
+BASTA RODAR 
+
+
+
+
+'composer dump autoload -o' 
+
+
+
+
+
+
+
+
+
+--> COM ESSE COMANDO, FICAMOS COM 1 OUTPUT DE 
+
+
+
+
+'
+Generating optimized autoload files
+Generated optimized autoload files containing 162 classes
+
+'
+
+
+
+
+
+SE ABRIMOS O CLASSMAP 
+
+
+
+
+em 'autoload_classmap.php',
+
+
+
+
+PERCEBEREMOS QUE ELE TERÁ SIDO POPULADO COM MT MAIS CLASSES:
+
+
+
+
+
+
+
+
+
+
+
+return array(
+    'App\\PaymentGateway\\Paddle\\Transaction' => $baseDir . '/coding-autoloading-and-composer-example/app/PaymentGateway/Paddle/Transaction.php',
+    'App\\PaymentGateway\\Stripe\\Transaction' => $baseDir . '/coding-autoloading-and-composer-example/app/PaymentGateway/Stripe/Transaction.php',
+    'Brick\\Math\\BigDecimal' => $vendorDir . '/brick/math/src/BigDecimal.php',
+    'Brick\\Math\\BigInteger' => $vendorDir . '/brick/math/src/BigInteger.php',
+    'Brick\\Math\\BigNumber' => $vendorDir . '/brick/math/src/BigNumber.php',
+    'Brick\\Math\\BigRational' => $vendorDir . '/brick/math/src/BigRational.php',
+    'Brick\\Math\\Exception\\DivisionByZeroException' => $vendorDir . '/brick/math/src/Exception/DivisionByZeroException.php',
+    'Brick\\Math\\Exception\\IntegerOverflowException' => $vendorDir . '/brick/math/src/Exception/IntegerOverflowException.php',
+    'Brick\\Math\\Exception\\MathException' => $vendorDir . '/brick/math/src/Exception/MathException.php',
+    'Brick\\Math\\Exception\\NegativeNumberException' => $vendorDir . '/brick/math/src/Exception/NegativeNumberException.php',
+    'Brick\\Math\\Exception\\NumberFormatException' => $vendorDir . '/brick/math/src/Exception/NumberFormatException.php',
+    'Brick\\Math\\Exception\\RoundingNecessaryException' => $vendorDir . '/brick/math/src/Exception/RoundingNecessaryException.php',
+    'Brick\\Math\\Internal\\Calculator' => $vendorDir . '/brick/math/src/Internal/Calculator.php',
+    'Brick\\Math\\Internal\\Calculator\\BcMathCalculator' => $vendorDir . '/brick/math/src/Internal/Calculator/BcMathCalculator.php',
+    'Brick\\Math\\Internal\\Calculator\\GmpCalculator' => $vendorDir . '/brick/math/src/Internal/Calculator/GmpCalculator.php',
+    'Brick\\Math\\Internal\\Calculator\\NativeCalculator' => $vendorDir . '/brick/math/src/Internal/Calculator/NativeCalculator.php',
+    'Brick\\Math\\RoundingMode' => $vendorDir . '/brick/math/src/RoundingMode.php',
+    'CURLStringFile' => $vendorDir . '/symfony/polyfill-php81/Resources/stubs/CURLStringFile.php',
+    'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
+    'Ramsey\\Collection\\AbstractArray' => $vendorDir . '/ramsey/collection/src/AbstractArray.php',
+    'Ramsey\\Collection\\AbstractCollection' => $vendorDir . '/ramsey/collection/src/AbstractCollection.php',
+    'Ramsey\\Collection\\AbstractSet' => $vendorDir . '/ramsey/collection/src/AbstractSet.php',
+    'Ramsey\\Collection\\ArrayInterface' => $vendorDir . '/ramsey/collection/src/ArrayInterface.php',
+    'Ramsey\\Collection\\Collection' => $vendorDir . '/ramsey/collection/src/Collection.php',
+    'Ramsey\\Collection\\CollectionInterface' => $vendorDir . '/ramsey/collection/src/CollectionInterface.php',
+    'Ramsey\\Collection\\DoubleEndedQueue' => $vendorDir . '/ramsey/collection/src/DoubleEndedQueue.php',
+    'Ramsey\\Collection\\DoubleEndedQueueInterface' => $vendorDir . '/ramsey/collection/src/DoubleEndedQueueInterface.php',
+    'Ramsey\\Collection\\Exception\\CollectionMismatchException' => $vendorDir . '/ramsey/collection/src/Exception/CollectionMismatchException.php',
+    'Ramsey\\Collection\\Exception\\InvalidArgumentException' => $vendorDir . '/ramsey/collection/src/Exception/InvalidArgumentException.php',
+    'Ramsey\\Collection\\Exception\\InvalidSortOrderException' => $vendorDir . '/ramsey/collection/src/Exception/InvalidSortOrderException.php',
+    'Ramsey\\Collection\\Exception\\NoSuchElementException' => $vendorDir . '/ramsey/collection/src/Exception/NoSuchElementException.php',
+    'Ramsey\\Collection\\Exception\\OutOfBoundsException' => $vendorDir . '/ramsey/collection/src/Exception/OutOfBoundsException.php',
+    'Ramsey\\Collection\\Exception\\UnsupportedOperationException' => $vendorDir . '/ramsey/collection/src/Exception/UnsupportedOperationException.php',
+    'Ramsey\\Collection\\Exception\\ValueExtractionException' => $vendorDir . '/ramsey/collection/src/Exception/ValueExtractionException.php',
+    'Ramsey\\Collection\\GenericArray' => $vendorDir . '/ramsey/collection/src/GenericArray.php',
+    'Ramsey\\Collection\\Map\\AbstractMap' => $vendorDir . '/ramsey/collection/src/Map/AbstractMap.php',
+    'Ramsey\\Collection\\Map\\AbstractTypedMap' => $vendorDir . '/ramsey/collection/src/Map/AbstractTypedMap.php',
+    'Ramsey\\Collection\\Map\\AssociativeArrayMap' => $vendorDir . '/ramsey/collection/src/Map/AssociativeArrayMap.php',
+    'Ramsey\\Collection\\Map\\MapInterface' => $vendorDir . '/ramsey/collection/src/Map/MapInterface.php',
+    'Ramsey\\Collection\\Map\\NamedParameterMap' => $vendorDir . '/ramsey/collection/src/Map/NamedParameterMap.php',
+    'Ramsey\\Collection\\Map\\TypedMap' => $vendorDir . '/ramsey/collection/src/Map/TypedMap.php',
+    'Ramsey\\Collection\\Map\\TypedMapInterface' => $vendorDir . '/ramsey/collection/src/Map/TypedMapInterface.php',
+    'Ramsey\\Collection\\Queue' => $vendorDir . '/ramsey/collection/src/Queue.php',
+    'Ramsey\\Collection\\QueueInterface' => $vendorDir . '/ramsey/collection/src/QueueInterface.php',
+    'Ramsey\\Collection\\Set' => $vendorDir . '/ramsey/collection/src/Set.php',
+    'Ramsey\\Collection\\Tool\\TypeTrait' => $vendorDir . '/ramsey/collection/src/Tool/TypeTrait.php',
+    'Ramsey\\Collection\\Tool\\ValueExtractorTrait' => $vendorDir . '/ramsey/collection/src/Tool/ValueExtractorTrait.php',
+    'Ramsey\\Collection\\Tool\\ValueToStringTrait' => $vendorDir . '/ramsey/collection/src/Tool/ValueToStringTrait.php',
+    'Ramsey\\Uuid\\BinaryUtils' => $vendorDir . '/ramsey/uuid/src/BinaryUtils.php',
+    'Ramsey\\Uuid\\Builder\\BuilderCollection' => $vendorDir . '/ramsey/uuid/src/Builder/BuilderCollection.php',
+    'Ramsey\\Uuid\\Builder\\DefaultUuidBuilder' => $vendorDir . '/ramsey/uuid/src/Builder/DefaultUuidBuilder.php',
+    'Ramsey\\Uuid\\Builder\\DegradedUuidBuilder' => $vendorDir . '/ramsey/uuid/src/Builder/DegradedUuidBuilder.php',
+    'Ramsey\\Uuid\\Builder\\FallbackBuilder' => $vendorDir . '/ramsey/uuid/src/Builder/FallbackBuilder.php',
+    'Ramsey\\Uuid\\Builder\\UuidBuilderInterface' => $vendorDir . '/ramsey/uuid/src/Builder/UuidBuilderInterface.php',
+    'Ramsey\\Uuid\\Codec\\CodecInterface' => $vendorDir . '/ramsey/uuid/src/Codec/CodecInterface.php',
+    'Ramsey\\Uuid\\Codec\\GuidStringCodec' => $vendorDir . '/ramsey/uuid/src/Codec/GuidStringCodec.php',
+    'Ramsey\\Uuid\\Codec\\OrderedTimeCodec' => $vendorDir . '/ramsey/uuid/src/Codec/OrderedTimeCodec.php',
+    'Ramsey\\Uuid\\Codec\\StringCodec' => $vendorDir . '/ramsey/uuid/src/Codec/StringCodec.php',
+    'Ramsey\\Uuid\\Codec\\TimestampFirstCombCodec' => $vendorDir . '/ramsey/uuid/src/Codec/TimestampFirstCombCodec.php',
+    'Ramsey\\Uuid\\Codec\\TimestampLastCombCodec' => $vendorDir . '/ramsey/uuid/src/Codec/TimestampLastCombCodec.php',
+    'Ramsey\\Uuid\\Converter\\NumberConverterInterface' => $vendorDir . '/ramsey/uuid/src/Converter/NumberConverterInterface.php',
+    'Ramsey\\Uuid\\Converter\\Number\\BigNumberConverter' => $vendorDir . '/ramsey/uuid/src/Converter/Number/BigNumberConverter.php',
+    'Ramsey\\Uuid\\Converter\\Number\\DegradedNumberConverter' => $vendorDir . '/ramsey/uuid/src/Converter/Number/DegradedNumberConverter.php',
+    'Ramsey\\Uuid\\Converter\\Number\\GenericNumberConverter' => $vendorDir . '/ramsey/uuid/src/Converter/Number/GenericNumberConverter.php',
+    'Ramsey\\Uuid\\Converter\\TimeConverterInterface' => $vendorDir . '/ramsey/uuid/src/Converter/TimeConverterInterface.php',
+    'Ramsey\\Uuid\\Converter\\Time\\BigNumberTimeConverter' => $vendorDir . '/ramsey/uuid/src/Converter/Time/BigNumberTimeConverter.php',
+    'Ramsey\\Uuid\\Converter\\Time\\DegradedTimeConverter' => $vendorDir . '/ramsey/uuid/src/Converter/Time/DegradedTimeConverter.php',
+    'Ramsey\\Uuid\\Converter\\Time\\GenericTimeConverter' => $vendorDir . '/ramsey/uuid/src/Converter/Time/GenericTimeConverter.php',
+    'Ramsey\\Uuid\\Converter\\Time\\PhpTimeConverter' => $vendorDir . '/ramsey/uuid/src/Converter/Time/PhpTimeConverter.php',
+    'Ramsey\\Uuid\\Converter\\Time\\UnixTimeConverter' => $vendorDir . '/ramsey/uuid/src/Converter/Time/UnixTimeConverter.php',
+    'Ramsey\\Uuid\\DegradedUuid' => $vendorDir . '/ramsey/uuid/src/DegradedUuid.php',
+    'Ramsey\\Uuid\\DeprecatedUuidInterface' => $vendorDir . '/ramsey/uuid/src/DeprecatedUuidInterface.php',
+    'Ramsey\\Uuid\\DeprecatedUuidMethodsTrait' => $vendorDir . '/ramsey/uuid/src/DeprecatedUuidMethodsTrait.php',
+    'Ramsey\\Uuid\\Exception\\BuilderNotFoundException' => $vendorDir . '/ramsey/uuid/src/Exception/BuilderNotFoundException.php',
+    'Ramsey\\Uuid\\Exception\\DateTimeException' => $vendorDir . '/ramsey/uuid/src/Exception/DateTimeException.php',
+    'Ramsey\\Uuid\\Exception\\DceSecurityException' => $vendorDir . '/ramsey/uuid/src/Exception/DceSecurityException.php',
+    'Ramsey\\Uuid\\Exception\\InvalidArgumentException' => $vendorDir . '/ramsey/uuid/src/Exception/InvalidArgumentException.php',
+    'Ramsey\\Uuid\\Exception\\InvalidBytesException' => $vendorDir . '/ramsey/uuid/src/Exception/InvalidBytesException.php',
+    'Ramsey\\Uuid\\Exception\\InvalidUuidStringException' => $vendorDir . '/ramsey/uuid/src/Exception/InvalidUuidStringException.php',
+    'Ramsey\\Uuid\\Exception\\NameException' => $vendorDir . '/ramsey/uuid/src/Exception/NameException.php',
+    'Ramsey\\Uuid\\Exception\\NodeException' => $vendorDir . '/ramsey/uuid/src/Exception/NodeException.php',
+    'Ramsey\\Uuid\\Exception\\RandomSourceException' => $vendorDir . '/ramsey/uuid/src/Exception/RandomSourceException.php',
+    'Ramsey\\Uuid\\Exception\\TimeSourceException' => $vendorDir . '/ramsey/uuid/src/Exception/TimeSourceException.php',
+    'Ramsey\\Uuid\\Exception\\UnableToBuildUuidException' => $vendorDir . '/ramsey/uuid/src/Exception/UnableToBuildUuidException.php',
+    'Ramsey\\Uuid\\Exception\\UnsupportedOperationException' => $vendorDir . '/ramsey/uuid/src/Exception/UnsupportedOperationException.php',
+    'Ramsey\\Uuid\\Exception\\UuidExceptionInterface' => $vendorDir . '/ramsey/uuid/src/Exception/UuidExceptionInterface.php',
+    'Ramsey\\Uuid\\FeatureSet' => $vendorDir . '/ramsey/uuid/src/FeatureSet.php',
+    'Ramsey\\Uuid\\Fields\\FieldsInterface' => $vendorDir . '/ramsey/uuid/src/Fields/FieldsInterface.php',
+    'Ramsey\\Uuid\\Fields\\SerializableFieldsTrait' => $vendorDir . '/ramsey/uuid/src/Fields/SerializableFieldsTrait.php',
+    'Ramsey\\Uuid\\Generator\\CombGenerator' => $vendorDir . '/ramsey/uuid/src/Generator/CombGenerator.php',
+    'Ramsey\\Uuid\\Generator\\DceSecurityGenerator' => $vendorDir . '/ramsey/uuid/src/Generator/DceSecurityGenerator.php',
+    'Ramsey\\Uuid\\Generator\\DceSecurityGeneratorInterface' => $vendorDir . '/ramsey/uuid/src/Generator/DceSecurityGeneratorInterface.php',
+    'Ramsey\\Uuid\\Generator\\DefaultNameGenerator' => $vendorDir . '/ramsey/uuid/src/Generator/DefaultNameGenerator.php',
+    'Ramsey\\Uuid\\Generator\\DefaultTimeGenerator' => $vendorDir . '/ramsey/uuid/src/Generator/DefaultTimeGenerator.php',
+    'Ramsey\\Uuid\\Generator\\NameGeneratorFactory' => $vendorDir . '/ramsey/uuid/src/Generator/NameGeneratorFactory.php',
+    'Ramsey\\Uuid\\Generator\\NameGeneratorInterface' => $vendorDir . '/ramsey/uuid/src/Generator/NameGeneratorInterface.php',
+    'Ramsey\\Uuid\\Generator\\PeclUuidNameGenerator' => $vendorDir . '/ramsey/uuid/src/Generator/PeclUuidNameGenerator.php',
+    'Ramsey\\Uuid\\Generator\\PeclUuidRandomGenerator' => $vendorDir . '/ramsey/uuid/src/Generator/PeclUuidRandomGenerator.php',
+    'Ramsey\\Uuid\\Generator\\PeclUuidTimeGenerator' => $vendorDir . '/ramsey/uuid/src/Generator/PeclUuidTimeGenerator.php',
+    'Ramsey\\Uuid\\Generator\\RandomBytesGenerator' => $vendorDir . '/ramsey/uuid/src/Generator/RandomBytesGenerator.php',
+    'Ramsey\\Uuid\\Generator\\RandomGeneratorFactory' => $vendorDir . '/ramsey/uuid/src/Generator/RandomGeneratorFactory.php',
+    'Ramsey\\Uuid\\Generator\\RandomGeneratorInterface' => $vendorDir . '/ramsey/uuid/src/Generator/RandomGeneratorInterface.php',
+    'Ramsey\\Uuid\\Generator\\RandomLibAdapter' => $vendorDir . '/ramsey/uuid/src/Generator/RandomLibAdapter.php',
+    'Ramsey\\Uuid\\Generator\\TimeGeneratorFactory' => $vendorDir . '/ramsey/uuid/src/Generator/TimeGeneratorFactory.php',
+    'Ramsey\\Uuid\\Generator\\TimeGeneratorInterface' => $vendorDir . '/ramsey/uuid/src/Generator/TimeGeneratorInterface.php',
+    'Ramsey\\Uuid\\Generator\\UnixTimeGenerator' => $vendorDir . '/ramsey/uuid/src/Generator/UnixTimeGenerator.php',
+    'Ramsey\\Uuid\\Guid\\Fields' => $vendorDir . '/ramsey/uuid/src/Guid/Fields.php',
+    'Ramsey\\Uuid\\Guid\\Guid' => $vendorDir . '/ramsey/uuid/src/Guid/Guid.php',
+    'Ramsey\\Uuid\\Guid\\GuidBuilder' => $vendorDir . '/ramsey/uuid/src/Guid/GuidBuilder.php',
+    'Ramsey\\Uuid\\Lazy\\LazyUuidFromString' => $vendorDir . '/ramsey/uuid/src/Lazy/LazyUuidFromString.php',
+    'Ramsey\\Uuid\\Math\\BrickMathCalculator' => $vendorDir . '/ramsey/uuid/src/Math/BrickMathCalculator.php',
+    'Ramsey\\Uuid\\Math\\CalculatorInterface' => $vendorDir . '/ramsey/uuid/src/Math/CalculatorInterface.php',
+    'Ramsey\\Uuid\\Math\\RoundingMode' => $vendorDir . '/ramsey/uuid/src/Math/RoundingMode.php',
+    'Ramsey\\Uuid\\Nonstandard\\Fields' => $vendorDir . '/ramsey/uuid/src/Nonstandard/Fields.php',
+    'Ramsey\\Uuid\\Nonstandard\\Uuid' => $vendorDir . '/ramsey/uuid/src/Nonstandard/Uuid.php',
+    'Ramsey\\Uuid\\Nonstandard\\UuidBuilder' => $vendorDir . '/ramsey/uuid/src/Nonstandard/UuidBuilder.php',
+    'Ramsey\\Uuid\\Nonstandard\\UuidV6' => $vendorDir . '/ramsey/uuid/src/Nonstandard/UuidV6.php',
+    'Ramsey\\Uuid\\Provider\\DceSecurityProviderInterface' => $vendorDir . '/ramsey/uuid/src/Provider/DceSecurityProviderInterface.php',
+    'Ramsey\\Uuid\\Provider\\Dce\\SystemDceSecurityProvider' => $vendorDir . '/ramsey/uuid/src/Provider/Dce/SystemDceSecurityProvider.php',
+    'Ramsey\\Uuid\\Provider\\NodeProviderInterface' => $vendorDir . '/ramsey/uuid/src/Provider/NodeProviderInterface.php',
+    'Ramsey\\Uuid\\Provider\\Node\\FallbackNodeProvider' => $vendorDir . '/ramsey/uuid/src/Provider/Node/FallbackNodeProvider.php',
+    'Ramsey\\Uuid\\Provider\\Node\\NodeProviderCollection' => $vendorDir . '/ramsey/uuid/src/Provider/Node/NodeProviderCollection.php',
+    'Ramsey\\Uuid\\Provider\\Node\\RandomNodeProvider' => $vendorDir . '/ramsey/uuid/src/Provider/Node/RandomNodeProvider.php',
+    'Ramsey\\Uuid\\Provider\\Node\\StaticNodeProvider' => $vendorDir . '/ramsey/uuid/src/Provider/Node/StaticNodeProvider.php',
+    'Ramsey\\Uuid\\Provider\\Node\\SystemNodeProvider' => $vendorDir . '/ramsey/uuid/src/Provider/Node/SystemNodeProvider.php',
+    'Ramsey\\Uuid\\Provider\\TimeProviderInterface' => $vendorDir . '/ramsey/uuid/src/Provider/TimeProviderInterface.php',
+    'Ramsey\\Uuid\\Provider\\Time\\FixedTimeProvider' => $vendorDir . '/ramsey/uuid/src/Provider/Time/FixedTimeProvider.php',
+    'Ramsey\\Uuid\\Provider\\Time\\SystemTimeProvider' => $vendorDir . '/ramsey/uuid/src/Provider/Time/SystemTimeProvider.php',
+    'Ramsey\\Uuid\\Rfc4122\\Fields' => $vendorDir . '/ramsey/uuid/src/Rfc4122/Fields.php',
+    'Ramsey\\Uuid\\Rfc4122\\FieldsInterface' => $vendorDir . '/ramsey/uuid/src/Rfc4122/FieldsInterface.php',
+    'Ramsey\\Uuid\\Rfc4122\\MaxTrait' => $vendorDir . '/ramsey/uuid/src/Rfc4122/MaxTrait.php',
+    'Ramsey\\Uuid\\Rfc4122\\MaxUuid' => $vendorDir . '/ramsey/uuid/src/Rfc4122/MaxUuid.php',
+    'Ramsey\\Uuid\\Rfc4122\\NilTrait' => $vendorDir . '/ramsey/uuid/src/Rfc4122/NilTrait.php',
+    'Ramsey\\Uuid\\Rfc4122\\NilUuid' => $vendorDir . '/ramsey/uuid/src/Rfc4122/NilUuid.php',
+    'Ramsey\\Uuid\\Rfc4122\\TimeTrait' => $vendorDir . '/ramsey/uuid/src/Rfc4122/TimeTrait.php',
+    'Ramsey\\Uuid\\Rfc4122\\UuidBuilder' => $vendorDir . '/ramsey/uuid/src/Rfc4122/UuidBuilder.php',
+    'Ramsey\\Uuid\\Rfc4122\\UuidInterface' => $vendorDir . '/ramsey/uuid/src/Rfc4122/UuidInterface.php',
+    'Ramsey\\Uuid\\Rfc4122\\UuidV1' => $vendorDir . '/ramsey/uuid/src/Rfc4122/UuidV1.php',
+    'Ramsey\\Uuid\\Rfc4122\\UuidV2' => $vendorDir . '/ramsey/uuid/src/Rfc4122/UuidV2.php',
+    'Ramsey\\Uuid\\Rfc4122\\UuidV3' => $vendorDir . '/ramsey/uuid/src/Rfc4122/UuidV3.php',
+    'Ramsey\\Uuid\\Rfc4122\\UuidV4' => $vendorDir . '/ramsey/uuid/src/Rfc4122/UuidV4.php',
+    'Ramsey\\Uuid\\Rfc4122\\UuidV5' => $vendorDir . '/ramsey/uuid/src/Rfc4122/UuidV5.php',
+    'Ramsey\\Uuid\\Rfc4122\\UuidV6' => $vendorDir . '/ramsey/uuid/src/Rfc4122/UuidV6.php',
+    'Ramsey\\Uuid\\Rfc4122\\UuidV7' => $vendorDir . '/ramsey/uuid/src/Rfc4122/UuidV7.php',
+    'Ramsey\\Uuid\\Rfc4122\\UuidV8' => $vendorDir . '/ramsey/uuid/src/Rfc4122/UuidV8.php',
+    'Ramsey\\Uuid\\Rfc4122\\Validator' => $vendorDir . '/ramsey/uuid/src/Rfc4122/Validator.php',
+    'Ramsey\\Uuid\\Rfc4122\\VariantTrait' => $vendorDir . '/ramsey/uuid/src/Rfc4122/VariantTrait.php',
+    'Ramsey\\Uuid\\Rfc4122\\VersionTrait' => $vendorDir . '/ramsey/uuid/src/Rfc4122/VersionTrait.php',
+    'Ramsey\\Uuid\\Type\\Decimal' => $vendorDir . '/ramsey/uuid/src/Type/Decimal.php',
+    'Ramsey\\Uuid\\Type\\Hexadecimal' => $vendorDir . '/ramsey/uuid/src/Type/Hexadecimal.php',
+    'Ramsey\\Uuid\\Type\\Integer' => $vendorDir . '/ramsey/uuid/src/Type/Integer.php',
+    'Ramsey\\Uuid\\Type\\NumberInterface' => $vendorDir . '/ramsey/uuid/src/Type/NumberInterface.php',
+    'Ramsey\\Uuid\\Type\\Time' => $vendorDir . '/ramsey/uuid/src/Type/Time.php',
+    'Ramsey\\Uuid\\Type\\TypeInterface' => $vendorDir . '/ramsey/uuid/src/Type/TypeInterface.php',
+    'Ramsey\\Uuid\\Uuid' => $vendorDir . '/ramsey/uuid/src/Uuid.php',
+    'Ramsey\\Uuid\\UuidFactory' => $vendorDir . '/ramsey/uuid/src/UuidFactory.php',
+    'Ramsey\\Uuid\\UuidFactoryInterface' => $vendorDir . '/ramsey/uuid/src/UuidFactoryInterface.php',
+    'Ramsey\\Uuid\\UuidInterface' => $vendorDir . '/ramsey/uuid/src/UuidInterface.php',
+    'Ramsey\\Uuid\\Validator\\GenericValidator' => $vendorDir . '/ramsey/uuid/src/Validator/GenericValidator.php',
+    'Ramsey\\Uuid\\Validator\\ValidatorInterface' => $vendorDir . '/ramsey/uuid/src/Validator/ValidatorInterface.php',
+    'ReturnTypeWillChange' => $vendorDir . '/symfony/polyfill-php81/Resources/stubs/ReturnTypeWillChange.php',
+    'Symfony\\Polyfill\\Php81\\Php81' => $vendorDir . '/symfony/polyfill-php81/Php81.php',
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESSAS SÃO TODAS AS CLASSES NECESSÁRIAS 
+    AO NOSSO PROJECT...
+
+
+
+
+
+
+
+
+
+--> SE RECARREGARMOS A PAGE, TUDO VAI FUNCIONAR..
+
+
+
+
+
+
+
+
+--> MAS SE VC FOR ADICIONAR NOVAS CLASSES,
+    VC VAI TER DE RODAR 'composer dump-autoload -o' (parameter '-o', de optimized)
+
+    MAIS UMA VEZ,  
+
+    PARA PRODUZIR 
+
+    TODAS ESSAS CLASSES NOVAS,
+
+    NESSE ARRAY...
+
+
+
+
+
+
+
+
+--> E ISSO, É CLARO, NÃO É  
+    MT BOM PARA DEVELOPMENT... -- PQ VC N QUER TER DE RODAR 
+                                        ESSE COMANDO TODA 
+                                        VEZ QUE CRIAR 1 NOVA CLASS..
+
+
+
+
+
+
+--> E É EXATAMENTE POR ISSO QUE VC DEVE:
+
+
+
+
+1) EM DEVELOPMENT, USAR 'composer dump-autoload'
+
+
+
+
+
+
+2) EM PRODUCTION, USAR 'composer dump-autoload -o'....
+
+
+
+
+    PARA QUE SEJA MAIS OPTIMIZADO, MAIS RÁPIDOO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... AQUI, POR FIM,
+        O PROFESSOR 
+
+
+        TEM MAIS 1 DETALHE:
+
+
+
+
+
+
+    ''SEMPRE DEIXE O 'vendor' dentro do gitignore
+        de seus projects, 
+
+        pq ele não deve ser commitado junto...''
