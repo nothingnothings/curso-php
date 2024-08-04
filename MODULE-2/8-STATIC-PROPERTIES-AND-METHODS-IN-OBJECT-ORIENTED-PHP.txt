@@ -1,0 +1,3052 @@
+
+
+
+
+
+
+
+NÓS JÁ ESTUDAMOS 
+
+
+
+
+''STATIC VARIABLES'' NA PRIMEIRA PARTE DO CURSO....
+
+
+
+
+
+
+
+
+
+
+
+--> STATIC VARIABLES ERAM ISTO:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- É APENAS UMA VARIABLE NORMAL, MAS COM LOCAL SCOPE...
+
+
+
+
+
+-- A DIFERENÇA ENTRE VARIABLES NORMAIS E STATIC VARIABLES É QUE 
+
+
+    'VARIABLES NORMAIS' ACABAM _ dESTRUÍDAS __ EM LUGARES 
+    EXTERIORES AO 'SCOPE BOUNDARY',
+
+    ENQUANTO QUE AS STATIC VARIABLES __ NÃO ACABAM DESTRUÍDAS, e retêm seus values...
+
+
+
+
+--> QUER DIZER QUE AS STATIC VARIABLES __ MANTÊM SEU VALUE,
+    MESMO fora de suas boundaries...
+
+
+
+
+
+
+
+
+
+
+
+
+
+PARA EXEMPLIFICAR, O PROFESSOR ESCREVE ISTO:
+
+
+
+
+
+EX:
+
+
+
+
+
+
+function getValue() {
+    $value = someVeryExpensiveFunction();
+
+
+    // some more processing with $value
+
+
+    return $value;
+}
+
+
+
+function someVeryExpensiveFunction() {
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+DIGAMOS QUE VC AINDA FARÁ UM POUCO DE PROCESSAMENTO COM OS DADOS 
+RETORNADOS DE 'someVeryExpensiveFunction()'...
+
+
+
+
+
+-> PODEMOS SIMULAR 
+    A EXPENSIVE FUNCTION COM 'sleep(2)',
+
+    TIPO ASSIM:
+
+
+
+
+
+
+function getValue() {
+    $value = someVeryExpensiveFunction();
+
+
+    // some more processing with $value
+
+
+    return $value;
+}
+
+
+
+function someVeryExpensiveFunction() {
+    sleep(2);
+
+    return 10;
+}
+
+
+
+
+
+
+echo getValue() . '<br />';
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... COM ISSO, AQUELE 'echo getValue()' 
+
+
+VAI FAZER 
+
+PRINT DO VALUE APENAS 
+
+
+DEPOIS DE 2 SEGUNDOS...
+
+
+
+
+
+E ISSO É RUIM... PQ IMAGINE QUE VC PRECISE 
+CHAMAR ESSA FUNCTION MÚLTIPLAS VEZES, ESSA FUNCTION DE 'getValue()':
+
+
+
+
+
+
+
+
+function getValue() {
+    $value = someVeryExpensiveFunction();
+
+
+    // some more processing with $value
+
+
+    return $value;
+}
+
+
+
+function someVeryExpensiveFunction() {
+    sleep(2);
+
+    return 10;
+}
+
+
+
+
+
+
+echo getValue() . '<br />';
+echo getValue() . '<br />';
+echo getValue() . '<br />';
+
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ, A CADA CALL, ISSO DEMORARIA 2 SEGUNDOS...
+
+
+
+
+
+
+
+
+--> A QUESTÃO, AQUI,
+    É QUE 
+
+    O VALUE RETORNADO 
+
+
+
+    POR 'someVeryExpensiveFunction()'
+
+
+    NUNCA MUDA,
+
+    É SEMPRE O MESMO... PQ NÃO ESTAMOS PASSANDO 
+    ARGUMENTS, E NÃO ESTAMOS RODANDO NADA QUE POSSA TER VARIANCIA...
+
+
+
+
+
+
+
+--> RETORNA SEMPRE 10...
+
+
+
+
+
+
+
+
+
+--> O QUE PODEMOS FAZER, AQUI, É USAR 
+    STATIC VARIABLES, com 'someVeryExpensiveFunction',
+
+    PARA CACHEAR__ O RESULTADO (de 10)....
+
+
+
+
+
+
+
+
+
+--> MAS COMO FARÍAMOS ISSO?
+
+
+
+
+
+
+
+
+
+
+1) PRECISAMOS USAR A KEYWORD DE 'static' na frente da nossa variable ('$static value')
+
+
+
+
+2) INICIALMENTE, DEFINIMOS O VALUE DE '$static value' como sendo NULL...
+
+
+
+
+3) DEPOIS, CHECAMOS, COM IF, se o '$value' está null...
+    se ele estiver como null, definimos o value de essa variable 
+    como sendo o resultado de 'someVeryExpensiveFunction()'...
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+function getValue() {
+    static $value = null; //// 1
+
+
+    if ($value === null) {  ///// 2
+        $value = someVeryExpensiveFunction(); ///// 3
+    }
+
+    return $value;
+}
+
+
+
+function someVeryExpensiveFunction() {
+    sleep(2);
+
+    return 10;
+}
+
+
+
+
+
+
+echo getValue() . '<br />';
+echo getValue() . '<br />';
+echo getValue() . '<br />';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, AO RECARREGARMOS A PAGE,
+    TEREMOS O SLEEP ACONTECENDO APENAS 1 ÚNICA VEZ...
+
+    E AÍ O '10' SERÁ PRINTADO 3x...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------
+
+
+
+
+
+
+
+
+MAS, AGORA, VAMOS ESTUDAR STATIC PROPERTIES E METHODS DE NOSSAS CLASSES...
+
+
+
+
+
+
+
+
+
+
+
+--> COMEÇAMOS COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+
+namespace App\PaymentGateway\Paddle;
+
+
+class Transaction
+{
+
+    public function __construct(
+        public float $amount,
+        public string $description
+        )
+    {
+
+
+    }
+
+
+    public function process() {
+        echo 'Processing paddle transaction...';
+    }
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... 
+
+
+
+
+
+
+
+AGORA VAMOS ADICIONAR 1 STATIC PROPERTY E 1 STATIC METHOD A ESSA CLASS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS ADICIONAR COISAS 'STATIC' 
+
+    A NOSSA CLASS COM A KEYWORD DE 'STATIC'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VAMOS ADICIONAR UMA PROPERTY DE NOME 'count',
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+declare(strict_types=1);
+
+
+namespace App\PaymentGateway\Paddle;
+
+
+class Transaction
+{
+
+    public static int $count = 0;
+
+    public function __construct(
+        public float $amount,
+        public string $description
+    ) {
+
+
+    }
+
+
+    public function process()
+    {
+        echo 'Processing paddle transaction...';
+    }
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, DEIXAMOS O VALUE DEFAULT DE ESSA PROPERTY COMO '0'....
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PROPERTIES STATIC GERALMENTE SÃO ESCRITAS 
+    NO INÍCIO DAS CLASSES...
+
+
+
+
+
+
+
+
+
+
+
+--> DE ACORDO COM OS STANDARDS DO PHP,
+    VC DEVE ESCREVER 
+
+
+
+
+
+    ASSIM:
+
+
+    'public static int $count = 0;''
+
+
+
+
+    OU SEJA,
+
+
+
+    {ACCESS MODIFIER} + {STATIC} + {PROPERTY DATA TYPE} + {PROPERTY NAME} = {VALUE}
+
+
+
+
+
+
+
+
+
+
+
+
+
+----> CERTO..
+
+
+
+
+
+
+
+
+
+
+
+-> VC PODE ACESSAR STATIC PROPERTIES E METHODS DA MESMA MANEIRA QUE VC 
+    ACESSA CONSTANTS, OU SEJA,
+
+    USANDO 
+
+
+
+    O 'SCOPE RESOLUTION OPERATOR'... (que é '::')...
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE, EM 'index.php', 
+
+    podemos acessar essa static property assim:
+
+
+
+
+
+
+
+<?php
+
+
+
+require '../../vendor/autoload.php'; // imports the composer's autoloader
+
+
+use App\PaymentGateway\Paddle\Transaction;
+
+
+
+
+$paddleTransaction = new Transaction();
+
+
+
+var_dump($paddleTransaction::$count);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+
+
+
+
+A SINTAXE É 
+
+
+
+REALMENTE 
+
+
+
+
+
+'''${OBJECT}::${STATIC-PROPERTY-NAME}''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+----------------------------
+
+
+
+
+
+
+
+
+
+OK, MAS, AQUI, TEMOS OUTRO DETALHE:
+
+
+
+
+
+
+
+''COMO ESSAS SAO STATIC PROPERTIES,
+    NÓS __ NÃO PRECISAMOS INSTANCIAR OS OBJECTS 
+    PARA ACTUALLY USAR ESSAS STATIC PROPERTIES...''
+
+
+
+
+
+
+
+
+--> quer dizer que podemos escrever assim, também:
+
+
+
+
+
+var_dump(Transaction::$count); // You can access the static property on the class itself...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO PQ ESSAS PROPERTIES NÃO SÃO CRIADAS E ASSOCIADAS NOS OBJECTS,
+
+
+E SIM 
+
+
+''THEY ARE CREATED AND ASSOCIATED ON A CLASS-BASIS'',
+
+
+o que quer dizer que pertencem a class em si,
+
+
+e não a qualquer object ou instance de essa class...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS ACESSAR AS STATIC  PROPERTIES NOS OBJECTS,
+    MAS NÃO PRECISAMOS FAZER ISSO,
+
+    PQ 
+
+    PODEMOS ACESSAR ESSAS STATIC PROPERTIES 
+
+
+    NAS CLASSES THEMSELVES, SEM INSTANCIAR COISA ALGUMA...
+
+
+
+
+
+
+
+
+
+
+
+-->  O PROFESSOR MENCIONOU 
+
+
+''THEY ARE NOT ASSOCIATED BY OBJECT''...
+
+
+
+
+
+
+
+
+
+
+-> O QUE ISSO QUER DIZER, NO CASO,
+
+    É QUE _  COM 'REGULAR CLASS PROPERTIES' (como '$amount' e '$description'),
+
+
+    TODA VEZ QUE VC CRIA UMA INSTANCE, ESSAS PROPERTIES ACABAM CRIADAS 
+
+    E ASSOCIADAS àQUELE INSTANCE/OBJECT EM SI.. ----> ISSO QUER DIZER QUE 
+
+    VC PODERIA 
+    TER 
+
+    MÚLTIPLAS INSTANCES DE 'Transaction',
+
+    e CADA INSTANCE PODE TER VALUES DIFERENTES PARA 'amount' e 'description'..
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VC PODE PENSAR EM 'static properties'
+    COMO SE FOSSEM GLOBAL __ VARIABLES, DE CERTA FORMA... PQ 
+
+    OS VALUES SÃO 'SHARED' 
+
+
+    __ AO LONGO DOS OBJECTS..
+
+
+    COMO ELES NÃO SÃO 'TIED' A UM OBJECT INSTANCE EM PARTICULAR,
+
+    E SIM À CLASS EM SI,
+
+
+    elas funcionam como global variables..
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR NOS MOSTRA 1 EXEMPLO DISSO:
+
+ 
+
+
+
+
+
+
+ '''LET'S INCREMENT 'count', the static variable,
+    EACH TIME AN INSTANCE GETS CREATED...'''
+
+
+
+
+
+
+
+
+
+
+-> ''WHEN REFERENCING STATIC PROPERTIES OR METHODS 
+    FROM WITHIN THE CLASS ITSELF,
+
+    YOU CAN USE EITHER THE 'self' KEYWORD 
+
+    OR YOU COULD USE THE __ CLASS NAME ITSELF (como 'Transaction')...''
+
+
+
+
+
+
+
+--> PODEMOS ESCREVER ASSIM, PORTANTO:
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+
+namespace App\PaymentGateway\Paddle;
+
+
+class Transaction
+{
+
+    public static int $count = 0; // * Static property example
+
+    public function __construct(
+        public float $amount,
+        public string $description
+    ) {
+        self::$count++; // * We increment the static property 'count' on each object that gets created.
+    }
+
+
+    public function process()
+    {
+        echo 'Processing paddle transaction...';
+    }
+
+}
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ --> SE CRIAMOS 5 OBJECTS,
+
+
+
+
+FICAMOS TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+$paddleTransaction1 = new Transaction();
+$paddleTransaction2 = new Transaction();
+$paddleTransaction3 = new Transaction();
+$paddleTransaction4 = new Transaction();
+$paddleTransaction5 = new Transaction();
+
+
+var_dump(Transaction::$count); // You can access the static property on the class itself...
+
+
+// The value of the dump will be '5', because we created 5 objects of the class 'Transaction', which has logic in the constructor to increment the static property 'count' on each object that gets created.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> FICAMOS COM 5, PORTANTO....
+
+
+
+
+
+
+
+
+
+
+--> O VALUE, PORTANTO, É 'SHARED',
+
+
+E FICA DISPONÍVEL 'globalmente',
+
+
+DE CERTA FORMA...
+
+
+
+
+
+
+
+
+
+
+--> VOCê NÃO PRECISA DE UMA 'INSTANCE' DA CLASS,
+    PQ O QUE VC PODE FAZER É SIMPLESMENTE 
+
+    ACESSAR ESSES VALUES 
+
+    NA CLASS ITSELF...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR ENTÃO FAZ 1 CHANGE,
+
+    ELE VAI 
+
+
+    LÁ NA STATIC PROPERTY E DEIXA O ACCESS MODIFIER COMO 'private',
+
+
+    para que seja ACESSÍVEL SOMENTE DE DENTRO 
+
+    DA CLASS DE 'Transaction',
+
+    tipo assim:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+
+namespace App\PaymentGateway\Paddle;
+
+
+class Transaction
+{
+
+    // public static int $count = 0; // * Static property example
+
+    private static int $count = 0; // * Static property example (but private)
+
+    public function __construct(
+        public float $amount,
+        public string $description
+    ) {
+        self::$count++; // * We increment the static property 'count' on each object that gets created.
+    }
+
+
+    public function process()
+    {
+        echo 'Processing paddle transaction...';
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, 
+
+
+
+ESSA PROPERTY FICARÁ DISPONÍVEL SOMENTE DENTRO DA CLASS..
+
+
+
+
+
+
+
+
+
+
+
+--> SE TENTAMOS ACESSAR ESSA PROPERTY NO LADO DE FORA,
+    FICAMOS COM 1 FATAL ERROR...
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO VAI NOS DAR 1 ERROR, POR EXEMPLO:
+
+
+
+
+
+var_dump(Transaction::$count);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> EU CRIO UMA STATIC PROPERTY SEPARADA,
+
+    'count2',
+
+
+    PARA DEMONSTRAR COMO ISSO FUNCIONA MELHOR...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA CONSEGUIRMOS FAZER RETURN DO VALUE DE ESSA 
+    STATIC PROPERTY,
+
+    O PROFESSOR DIZ QUE 
+
+
+    DEVEMOS CRIAR 1 STATIC METHOD...
+
+
+
+
+
+
+
+    É POSSÍVEL CRIÁ-LO COM A KEYWORD DE 'static',
+
+    TIPO ASSIM:
+
+
+
+    
+    public static function getCount2(): int
+    {
+        return self::$count2;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    O CÓDIGO INTEIRO VAI FICAR ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+
+namespace App\PaymentGateway\Paddle;
+
+
+class Transaction
+{
+
+    public static int $count = 0; // * Static property example
+
+    private static int $count2 = 10; // * Static property example (but private, to showcase how static methods work)
+
+    public function __construct(
+        public float $amount,
+        public string $description
+    ) {
+        self::$count++; // * We increment the static property 'count' on each object that gets created.
+    }
+
+
+    public function process()
+    {
+        echo 'Processing paddle transaction...';
+    }
+
+
+    public static function getCount2(): int
+    {
+        return self::$count2;
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+
+
+
+
+
+var_dump($paddleTransaction1::$count); // * This is how to access static properties (you can access them on both objects and classes):
+
+
+
+var_dump(Transaction::$count); // You can access the static property on the class itself...
+
+
+
+var_dump(Transaction::getCount2()); // * This is how to access static methods (you can access them on both objects and classes):
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> E ISSO VAI FUNCIONAR,
+
+
+O CALL DE 
+
+
+
+'Transaction::getCount2()' vai nos retornar 10....
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COMO O CALL DE STATIC METHODS NÃO REQUER 
+    INSTANCES DA CLASS,
+
+
+    E COMO ELES PERTENCEM à CLASS EM SI,
+
+    E NÃO A 
+     
+     UM OBJECT ESPECÍFICO,
+
+
+
+
+     A VARIABLE 
+
+
+     DE 
+
+     '$this'
+
+     NÃO PODE 
+
+     SER USADA
+
+
+
+     DENTRO DE STATIC METHODS...
+
+
+
+
+
+
+
+
+
+
+    --> ISSO QUER DIZER QUE VC NÃO PODE ESCREVER ALGO COMO ISTO:
+
+
+
+
+
+
+
+    public static function getCount2(): int
+    {
+        echo $this; // This won't work, because the 'self' keyword is used to access the current object, and that is not allowed in static methods.
+        return self::$count2;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VC NÃO PODE FAZER ISSO 
+
+PQ '$this' 
+
+
+SE REFERE AO CALLING OBJECT... MAS, NO CASO DE STATICS,
+
+
+NÓS __ NÃO TEMOS 1 OBJECT, E SIM TEMOS APENAS A CLASS ITSELF (com 'self')...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+    public static function getCount2(): int
+    {
+        echo $this; // This won't work, because the 'self' keyword is used to access the current object, and that is not allowed in static methods.
+        return self::$count2; // This will work, because the 'self' keyword is used to access the current class, and that is allowed in static methods.
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-->  HÁ DUAS OUTRAS KEYWORDS QUE VC PODERIA USAR PARA ACESSAR 
+    A CLASS EM SI,
+
+    que são 'parent' e 'static',
+
+
+    mas as estudaremos mais tarde no curso, quando 
+
+
+    estudarmos 'inheritance' e 'late static binding'...
+
+
+
+
+
+
+
+
+
+
+----------------------------------------
+
+
+
+
+
+
+
+
+
+OK, MAS AQUI O PROFESSOR NOS DÁ OUTRO DETALHE:
+
+
+
+
+
+
+
+
+'''IF YOU TRY TO USE THE SCOPE RESOLUTION OPERATOR (::) 
+    ON A __ NON-STATIC PROPERTY, YOU WILL ALSO GET AN ERROR...''
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+var_dump($transaction::$amount); ///// THIS WILL GIVE AN ERROR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO ACONTECE/ACONTECERÁ PQ A STATIC PROPERTY DE 
+    'amount' NÃO EXISTE... SÓ EXISTE A NON-STATIC PROPERTY 
+    DE 'amount'... E VC NÃO PODE ACESSAR NON-STATIC PROPERTIES 
+    DE FORMA 'STATIC', com esse operator...
+
+
+
+
+
+
+
+
+
+
+
+
+--> O MESMO SE APLICA A METHODS... SE VC TENTA 
+    ACESSAR NON-STATIC METHODS 
+    DE FORMA STATIC (com '::'),
+
+    VC TAMBÉM FICARÁ COM 1 ERROR, DESDE O PHP8... antes do php8, vc fica 
+    com uma warning de 'DEPRECATED'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA QUE VIMOS OS BASICS SOBRE STATICS,
+
+
+DEVEMOS __ FALAR SOBRE OS USE-CASES PARA 
+
+
+
+STATIC PROPERTIES E METHODS...
+
+
+
+
+
+
+
+
+
+----------------------------------
+
+
+
+
+
+
+
+
+
+
+
+USE-CASES:
+
+
+
+
+
+
+
+
+--> OS USE-CASES PARA STATIC PROPERTIES E METHODS 
+    SÃO _ __gERALMENTE __ CONSIDERADOS 
+
+    'BAD PRACTICES'...
+
+
+
+
+
+
+
+
+
+--> MAS HÁ ALGUNS USE-CASES EM QUE 
+    ELES PODEM 'COME IN HANDY'...
+
+
+
+
+
+
+
+
+--> UM USE-CASE PARA ELES É 
+
+
+''HAVE SOME SORT OF COUNTER''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OUTRO USE-CASE É O 'CACHING DE VALUES'...
+
+
+
+
+
+
+
+
+
+
+--> PARA O CACHING DE VALUES, 
+    É USADA A TECHNIQUE CHAMADA DE 
+
+    'MEMO-IZATION',
+
+
+
+    que é uma technique que pode FAZER 
+
+    SPEED UP DE EXPENSIVE OPERATIONS 
+
+    POR MEIO DO CACHING DOS RESULTS PARA USO 
+
+    POSTERIOR...
+
+
+    (já vimos um tipo de memo-ization com 
+    
+    static variables, como referenciado no início desta aula...)
+
+
+
+
+
+
+--> VOCÊ TALVEZ ENCONTRE ALGUNS CÓDIGOS QUE 
+    SE APROVEITAM DE STATIC PROPERTIES PARA 
+
+    IMPLEMENTAR O 'SINGLETON PATTERN'...
+
+
+
+
+-> SINGLETON PATTERN --> MANTÉM 1 ÚNICA INSTANCE 
+                        DE 1 CLASS AO LONGO 
+                        DA EXECUTION DO SEU APP...
+
+
+
+
+
+
+
+--> O PROFESSOR VAI MOSTRAR A IMPLEMENTAÇÃO MAIS SIMPLES 
+    DO SINGLETON PATTERN,
+
+    USANDO 'STATIC PROPERTIES E METHODS', agora...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, O PROFESSOR CRIA UMA NOVA CLASS,
+
+    DE NOME 'DB.php'...
+
+
+
+
+    --> ELE DEIXA ISSO DENTRO DA PASTA ROOT...
+
+
+    --> O namespace é 'App' mesmo...
+
+
+
+
+
+
+
+
+
+
+
+
+--> É TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+
+namespace App;
+
+
+class DB
+{
+    private static ?DB $instance = null;
+
+
+
+    private function __construct(public array $config)
+    {
+
+
+    }
+
+
+    public static function getInstance(array $config): DB
+    {
+        if (self::$instance === null) {
+            self::$instance = new DB($config);
+        }
+        return self::$instance;
+    }
+}
+
+
+
+
+
+
+
+
+
+--> ESSE É O EXEMPLO MAIS BÁSICO 
+
+
+DO 'SINGLETON PATTERN'...
+
+
+
+
+
+
+
+
+
+
+--> NÃO É ___EXATAMENTE__ O SINGLETON,
+
+    PQ ELE NÃO CONTÉM COISAS COMO '__clone'
+
+    e outros magic methods...
+
+
+
+
+
+
+--> A RAZÃO PARA ISSO, PARA NÃO TER __clone 
+    e outros magic methods,
+
+    é que ainda não estudamos  esses outros magic methods..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... DEVEMOS EXAMINAR ESSA CLASS... 
+
+
+
+
+
+
+
+
+--> TEMOS UMA PROPERTY STATIC DE nome '$instance',
+    que começa como NULL, e é um NULLABLE TYPE (?DB),
+
+    NULLABLE TYPE DE 'DB'...
+
+
+
+
+
+
+
+-> O TYPE DESSE VALUE, PORTANTO, É A 'CLASS ITSELF'...
+
+
+
+
+
+
+
+
+
+O VALUE DEFAULT, É CLARO, É 'null'...
+
+
+
+
+
+
+
+
+
+
+--> COMO PARAMETER, TEMOS '$config',
+
+
+
+que poderá ser 1 array com db credentials ou coisa do gênero...
+
+
+
+
+
+
+
+
+
+
+
+
+--> o que vc deve perceber, aqui,
+
+
+é que 
+
+
+a property de '$config'
+
+
+SERÁ __ PUBLIC...
+
+
+
+
+
+
+
+EX:
+
+
+
+    private function __construct(public array $config)
+    {
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+--> a property '$config' será public,
+    SIM,
+
+
+    MAS __ O CONSTRUCTOR EM SI,
+
+    DESSA CLASS,
+
+
+
+    SERÁ 'private',
+
+
+    E NÃO 'PUBLIC'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O ACCESS MODIFIER DO PRÓPRIO CONSTRUCTOR SERÁ 'private'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO QUER DIZER QUE __ É IMPOSSÍVEL FAZER O INSTANTIATE DE ESSA 
+    CLASS NO LADO DE FORA DELA,
+
+    COM COISAS 
+
+    COMO 
+
+
+    '$db = new DB();'
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+    // The constructor is private, so it can only be called from within the class itself. This class cannot be instantiated from the outside with a code like 'new DB()'.
+    private function __construct(public array $config)
+    {
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ISSO NÃO É PERMITIDO...
+
+
+
+
+
+
+
+
+
+--> POR CONTA DISSO,
+    JUSTAMENTE POR CONTA DISSO,
+
+    TEMOS AQUELE METHOD DE 'getInstance',
+
+
+
+
+
+    QUE É ISTO:
+
+
+
+
+// Gives the singleton instance of the class.
+    public static function getInstance(array $config): DB
+    {
+        if (self::$instance === null) {
+            self::$instance = new DB($config);
+        }
+        return self::$instance;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+---> ESSE É O STATIC METHOD QUE PODEMOS CHAMAR 
+
+PARA __ CONSEGUIR UMA INSTANCE DA CLASS DE 'DB'...
+
+
+
+
+
+
+
+--> ISSO QUER DIZER QUE 
+
+
+ESSA CLASS 
+
+
+DE 'DB'
+
+é chamada assim:
+
+
+
+
+
+
+
+
+
+// How to use singleton pattern in PHP:
+$dbInstance = DB::getInstance(['username' => 'Arthur']);
+
+
+
+
+
+
+
+
+
+OU ALGO ASSIM....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> A VANTAGEM COM O SINGLETON PATTERN É QUE, NÃO IMPORTA QUANTAS 
+VEZES CHAMARMOS 
+
+
+''$dbInstance = DB::getInstance(['username' => 'Arthur']);'',
+
+
+
+
+
+sempre 
+
+
+FICAREMOS COM A MESMA INSTANCE DO DB...
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+
+
+
+// How to use singleton pattern in PHP (calling a static method on the class):
+$dbInstance = DB::getInstance(['username' => 'Arthur']);
+
+
+// It doesn't matter how many times you call the method, because the singleton pattern will only create/maintain a single instance of the class.
+$dbInstance = DB::getInstance(['username' => 'Arthur']);
+$dbInstance = DB::getInstance(['username' => 'Arthur']);
+$dbInstance = DB::getInstance(['username' => 'Arthur']);
+$dbInstance = DB::getInstance(['username' => 'Arthur']);
+$dbInstance = DB::getInstance(['username' => 'Arthur']);
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ PODEMOS OBSERVAR ISSO POR MEIO DE UM 'echo' 
+
+
+ de 1 string, 
+
+ lá 
+
+
+
+
+ na class:
+
+
+
+
+
+
+
+ <?php
+
+
+namespace App;
+
+
+// Most basic example of singleton pattern:
+class DB
+{
+    private static ?DB $instance = null;
+
+
+    // The constructor is private, so it can only be called from within the class itself. This class cannot be instantiated from the outside with a code like 'new DB()'.
+    private function __construct(public array $config)
+    {
+
+        echo 'Instance Created<br/>';
+    }
+
+    // Gives the singleton instance of the class.
+    public static function getInstance(array $config): DB
+    {
+        if (self::$instance === null) {
+            self::$instance = new DB($config);
+        }
+        return self::$instance;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> isso acontece justamente por conta da combinação entre 
+
+
+'static __construct(){}'
+
+
+
+e 
+
+
+
+'static function getInstance()'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR SÓ ESTÁ MOSTRANDO ISSO A NÓS 
+
+    PQ PROVAVELMENTE ENCONTRAREMOS 
+
+
+    CÓDIGOS QUE IMPLEMENTAM SINGLETON PATTERNS DESSA FORMA...
+
+
+
+
+
+    --> E CÓDIGOS QUE IMPLEMENTAM SINGLETON PATTERNS DESSA FORMA 
+        NEM SEMPRE _ ESTÃO USANDO A FEATURE DE STATIC PROPERTIES/METHODS 
+    
+        DO JEITO CERTO...
+
+
+
+        ---> DEPENDENCY INJECTION __ É A MANEIRA__ REALMENTE __ CORRETA
+            DE USAR ESSA FEATURE... 
+
+
+            E FALAREMOS MAIS SOBRE DEPENDENCY INJECTION 
+
+            E SINGLETON PATTERNS __ MAIS TARDE NO CURSO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O OUTRO USE-CASE PARA STATIC METHODS É _ O CREATE 
+    DE UTILITY METHODS _ QUE REALMENTE NÃO PRECISAM 
+
+    DE INSTANCES DA CLASS ORIGINÁRIA..
+
+
+
+
+    --> OU SEJA,
+
+    VC USA STATIC METHODS COMO UM JEITO 
+    DE AGRUPAR METHODS PARECIDOS (como vários methods 
+    usados para formatting... vc poderia agrupar tudo isso 
+    
+    em 1 class)...
+
+
+
+
+
+ 
+
+
+--> ISSO DEIXA MAIS CONVENIENTE PARA OS DEVS,
+    PQ AÍ VC PODE AGRUPAR TODOS OS METHODS RELACIONADOS 
+
+    EM 1 ÚNICA CLASS...
+
+
+
+
+
+
+
+
+--> AÍ, NESSE CASO, PARA CHAMAR OS UTILITY METHODS CONTIDOS 
+    NA SUA UTILITY CLASS, ESSES STATIC METHODS,
+
+
+
+    vc chamaria com algo como isto:
+
+
+
+
+
+
+Format::stringFormatter('some-string');
+
+
+
+
+
+(com isso, formataríamos um value com esse method static aí...)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OUTRO USE-CASE POSSÍVEL, COM STATIC METHODS,
+    É O 
+
+    'FACTORY PATTERN'...
+
+
+
+
+
+
+
+
+--> FALAREMOS SOBRE O 'FACTORY DESIGN PATTERN'
+    MAIS TARDE NO CURSO,
+
+
+    MAS, BASICAMENTE,
+
+    FACTORY CLASSES SÃO RESPONSÁVEIS 
+
+    __ PELO _ cREATE__ DE OBJECTS__ DE OUTRAS CLASSES...
+
+
+
+
+
+
+
+--> E, FREQUENTEMENTE, DEVELOPERS USAM STATIC METHODS 
+    PARA IMPLEMENTAR FACTORIES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> por exemplo, se quiséssemos USAR 1 FACTORY PARA HANDLAR 
+    A INSTANTIATION E CREATION DO OBJECT '$transaction',
+
+
+
+    ESCREVERÍAMOS ASSIM:
+
+
+
+
+
+
+
+
+''''''
+
+
+
+$transaction = TransactionFactory::make(25, 'Transaction 1');
+
+
+
+
+
+
+
+
+
+--> AÍ, NESSE CASO,
+
+
+ 
+ESSE METHOD STATIC DE 'make'
+
+
+SERIA RESPONSÁVEL PELO CREATE 
+
+
+
+DO OBJECT DE 'Transaction'... 
+
+
+
+
+
+
+
+
+
+
+
+--> MAS VEREMOS ESSE PATTERN, DE FACTORY,
+    MAIS TARDE NO CURSO...
+
+
+
+
+
+
+
+
+
+--> ESSE PATTERN TAMBÉM NÃO É O MELHOR PATTERN...
+
+
+    O MELHOR PATTERN AINDA É O DE 'DEPENDENCY INJECTION'...
+
+
+
+
+
+
+
+--> MAS O PROFESSOR VAI NOS MOSTRAR A MANEIRA CERTA 
+    DE IMPLEMENTAR O _ FACTORY PATTERN,
+
+    SEM USAR OS STATIC METHODS...
+
+
+
+
+
+
+
+
+
+----------------------------
+
+
+
+
+
+
+
+
+A PRINCIPAL RAZÃO 
+    DE O USO 
+
+    DE STATIC PROPERTIES E METHODS 
+
+    SER 
+
+    DESENCORAJADO 
+
+    É QUE 
+
+
+
+    ''THEY REPRESENT __ WHAT'S CALLED THE __GLOBAL STATE''...
+
+
+
+
+    --> O QUE QUER DIZER QUE, COM ELES,
+        É POSSÍVEL 
+
+        __ MODIFICAR A DATA/CHAMAR STATIC FUNCTIONS 
+
+
+        __ DE QUALQUER LUGAR DO CÓDIGO... O QUE 
+
+        PODE DEIXAR AS COISAS MAIS DIFÍCEIS DE MAINTAIN 
+
+        E TEST...
+
+
+
+
+
+    --> EXISTEM ALGUNS USE-CASES BEM NICHO EM QUE 
+        O USO DE STATIC FAZ SENTIDO... MAS,
+
+        A MAIOR PARTE DO TEMPO,
+
+
+        STATICS SÃO RARAMENTE USADAS,
+
+
+        E 
+
+        __DEPENDENCY INJECTION É USADA, NO SEU LUGAR...
+
+
+
+
+
+
+
+    --> VOCE PODERIA ARGUMENTAR QUE O USO DE 'STATICS' 
+        É MAIS RÁPIDO DO QUE O CREATE DE INSTANCES DE OBJECTS....
+
+
+        ISSO É VERDADE, MAS ISSO É UMA MICRO-OPTIMIZATION QUE,
+
+        NA MAIOR PARTE DOS CASOS, NÃO FAZ DIFERENÇA...
+
+
+
+
+
+
+
+
+
+
+--> ANTES DE ACABAR ESSE VÍDEO,
+O PROFESSOR QUER MOSTRAR ALGUMAS COISAS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1a COISA -->   VOCE PODE ACTUALLY ACESSAR 
+                'STATIC METHODS' 
+
+                DE FORMA NÃO STATIC...
+
+
+
+            EX:
+
+
+
+
+            var_dump($transaction::getCount()); /// ISSO FUNCIONA... PQ O 'getCount()' é um static method...
+
+
+
+            var_dump($transaction->getCount()); /// ISSO TAMBÉM FUNCIONA, MESMO QUE 'getCount()' seja um STATIC METHOD, a escrita de access de normal methods AINDA FUNCIONA...
+
+
+
+
+
+
+
+    --> MESMO ASSIM,
+
+        O PROFESSOR N RECOMENDA QUE VC FAÇA ISSO... 
+
+
+        PQ NÃO FICA CLARO QUE AQUELE METHOD DE 'getCount()'
+
+        é static, quando vc chama ele dessa forma, de forma 'normal'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2a COISA)   VOCÊ 
+
+                PODE TER 
+
+                STATIC CALLBACKS (ou STATIC CLOSURES)...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+array_map(
+    function() {
+
+    }, 
+    []  ///your array
+)
+
+
+
+
+
+
+
+
+
+
+PODERÍAMOS DEIXAR ESSA FUNCTION 'static',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+array_map(
+    static function() {
+
+    }, 
+    []  ///your array
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> A PRINCIPAL RAZÃO PARA FAZER ISSO 
+
+É:
+
+
+
+''WHEN YOU SET A FUNCTION TO STATIC,
+    YOU CAN NO LONGER ACCESS 
+    THE '$this' VARIABLE...''
+
+
+
+
+
+
+
+--> ISSO PODE SER USADO PRINCIPALMENTE DENTRO 
+
+    DE METHODS DE SUAS CLASSES, TIPO ASSIM:
+
+
+
+
+
+    <?php
+
+declare(strict_types=1);
+
+
+namespace App\PaymentGateway\Paddle;
+
+
+class Transaction
+{
+
+    public static int $count = 0; 
+    private static int $count2 = 10; 
+
+    public function __construct(
+        public float $amount,
+        public string $description
+    ) {
+        self::$count++; 
+    }
+
+
+    public function process()
+    {   
+        
+        array_map(static function() {
+            $this-> amount //// ISSO SE TORNA IMPOSSÍVEL...
+        }, [])
+
+        echo 'Processing paddle transaction...';
+    }
+
+
+}
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+    public function process()
+    {   
+        
+        array_map(static function() {
+            $this-> amount //// ISSO SE TORNA IMPOSSÍVEL...
+        }, [])
+
+        echo 'Processing paddle transaction...';
+    }
+
+
+
+
+
+
+
+
+
+
+
+--> isso é feito, portanto,
+    para impedir que as pessoas usem a  '$this' variable...
+
+    DE DENTRO 
+
+
+    de methods public,
+    dentro de classes...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO É FEITO PQ, DE DENTRO DO CALLBACK,
+    VC PODE TECNICAMENTE 
+
+
+    TROCAR O VALUE DE '$this',
+
+
+
+    FAZENDO COISAS COMO 
+
+    '$this->amount=35;'
+
+
+
+
+
+
+    EX:
+
+
+
+        public function process()
+    {   
+        
+        array_map(function() { ///SEM O USO DE 'STATIC', '$this' se torna permitido dentro da callback function...
+            $this->amount=35;
+        }, [])
+
+        echo 'Processing paddle transaction...';
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+--> COMO RESULTADO DISSO,
+    PODEMOS FICAR COM RESULTADOS INESPERADOS NO CÓDIGO....
+
+
+
+
+
+
+
+
+
+IMAGINE QUE VC TEM ESTE CÓDIGO, NO INDEX.PHP:
+
+
+
+
+
+
+
+ 
+ $transaction = new Transaction(25, 'Transaction 1'); // 1) TRANSACTION IS INSTANTIATED WITH 'amount' of 25...
+
+
+ $transaction->process(); // 2) BECAUSE WE ALTERED '$this->amount' from within the callback function in the 'process()' method, the amount value gets set as '35'...
+
+
+var_dump($transaction->amount); // 3) AMOUNT gets printed as '35', because of the 'process()' method and the lack of 'static' to block the usage of '$this'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO PODE CAUSAR UNEXPECTED BUGS 
+    AND HARD  TO DEBUG ISSUES...
+
+
+
+
+
+
+
+
+--> SE VC TIVESSE COLOCADO 'static',
+
+    o '$this'
+
+    SERIA BLOQUEADO,
+
+    E ESSA SITUAÇÃO SERIA PREVENIDA...
+
+
+
+
+
+
+
+--> OUTRA RAZÃO PARA ALGUÉM USAR 
+'STATIC CLOSURES' E 'STATIC CALLBACKS'
+
+
+ É A 'MICRO MICRO OPTIMIZATION' 
+
+ em relação a regular functions...
+
+
+
+
+-> O PROFESSOR SÓ USA 
+
+    STATIC CLOSURES__ SOMENTE_ QUANDO QUER ASSEGURAR 
+    QUE 
+    A 
+
+    VARIABLE DE '$this'
+
+    NÃO DEVERÁ SER ACESSÍVEL 
+
+    DE DENTRO DA CALLBACK FUNCTION...
+
+
+
+
+
+
+
