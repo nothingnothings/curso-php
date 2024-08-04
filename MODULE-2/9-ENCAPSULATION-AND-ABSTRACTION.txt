@@ -1,0 +1,2534 @@
+
+
+
+
+
+
+
+
+
+
+-->  ESTAMOS LENTAMENTE AVANÇANDO NA DIREÇÃO DE TÓPICOS MAIS INTERESSANTES...
+
+
+
+
+
+
+
+--> OOP...
+
+
+
+
+
+
+
+
+-> AGORA QUE VIMOS OS BASICS, DEVEMOS VER OS 
+4 MAIN PRINCIPLES DE OBJECT ORIENTED PROGRAMMING...
+
+
+
+
+
+
+
+    OS PRINCIPLES SÃO:
+
+
+
+
+
+
+1) ENCAPSULATION 
+
+
+
+
+2) ABSTRACTION 
+
+
+
+
+
+3) INHERITANCE 
+
+
+
+
+4) POLYMORPHISM...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NESSE VIDEO, VEREMOS ENCAPSULATION E ABSTRACTION..
+
+
+
+
+
+
+
+
+
+
+                            ENCAPSULATION:
+
+
+--> O QUE É ISSO?
+
+
+
+
+
+
+
+
+--> ENCAPSULATION ''SIMPLY BUNDLES 
+                    THE DATA, AND METHODS THAT OPERATE 
+                    ON THAT DATA, 
+
+                    WITHIN ONE UNIT, LIKE A CLASS,
+                    FOR EXAMPLE...''
+
+
+
+                
+
+                EX:
+
+
+
+
+
+
+                CLASS/OBJECT 
+                (
+
+                    PRIVATE/PROTECTED PROPERTIES 
+                    ------------------------
+                    PUBLIC METHODS 
+                    PRIVATE/PROTECTED METHODS
+                )
+
+
+
+
+
+
+ 
+
+--> A ENCAPSULATION 
+
+''HIDES THE INTERNAL REPRESENTATION/STATE OF THE OBJECT,
+  WHICH HIDES__ THE INTEGRITY OF THAT OBJECT...''
+
+
+
+
+
+
+
+
+
+
+--> ENCAPSULATION --> ASSURES THAT 
+                        YOUR OBJECT MANAGES ITS OWN STATE,
+
+                        AND NOTHING CAN CHANGE THAT,
+
+                        UNLESS IT IS EXPLICITLY ALLOWED (ex: 'private properties')...
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, PODEMOS FALAR SOBRE A CLASS DE 'Transaction':
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+
+namespace App\PaymentGateway\Paddle;
+
+
+class Transaction
+{
+
+    public float $amount;
+
+
+    public function __construct(
+        float $amount,
+    ) {
+
+        $this->amount = $amount;
+        }
+
+
+    public function process()
+    {
+        echo 'Processing $' . $this->amount . 'transaction';
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+VEJA ESSE EXEMPLO...
+
+
+
+ 
+
+
+
+
+
+-- TEMOS 1 PROPERTY DE '$amount',
+    ATUALMENTE 
+    DEFINIDA COMO 
+
+    'public'...
+
+
+
+
+
+
+
+
+--> E, ASSIM COMO SABEMOS, TEMOS 
+
+3 VISIBILITY ACCESS MODIFIERS....
+
+
+
+
+
+    são eles:
+
+        1) public --> property/method pode ser acessada do lado de fora 
+
+
+        2) private --> property/method só pode ser acessado de dentro da class, com methods...
+
+
+        3) protected --> PRATICAMENTE A MESMA COISA QUE 'PRIVATE', mas 
+                        'EXTENDS'  À CHILD OU SUBCLASSES... veremos isso quando 
+                        estudarmos inheritance...
+
+
+
+
+
+
+
+    
+
+
+
+-> QUER DIZER QUE 
+
+
+ESSE EXEMPLO, DE CIMA,
+
+
+É UM EXEMPLO RUIM,
+
+
+PQ DEFINIR AS PROPERTIES COMO 'public'
+
+
+
+__QUEBRA__ O PRINCÍPIO DE ENCAPSULATION (essas properties devem ser INACESSÍVEIS DO LADO DE FORA):
+
+
+
+
+
+
+
+
+
+
+
+PARA CORRIGIR ESSA CLASS,
+ ESCREVERÍAMOS ASSIM:
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+
+namespace App\PaymentGateway\Paddle;
+
+
+class Transaction
+{
+
+    private float $amount;
+
+
+    public function __construct(
+        float $amount,
+    ) {
+
+        $this->amount = $amount;
+        }
+
+
+    public function process()
+    {
+        echo 'Processing $' . $this->amount . 'transaction';
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+--> COM ISSO, 
+    OUTROS DEVS NÃO PODEM INTERAGIR COM ESSA PROPERTY DIRETAMENTE DO LADO 
+    DE FORA DA CLASS... O QUE É OPTIMAL...
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+
+namespace App\PaymentGateway\Paddle;
+
+
+class Transaction
+{
+    public float $amount;
+
+
+    public function __construct(float $amount)
+    {
+
+        $this->amount = $amount;
+    }
+
+
+    public function process()
+    {
+        echo 'Processing $' . $this->amount . ' transaction';
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-->  ISSO, POR EXEMPLO, É BOM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+require '../../vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+use App\PaymentGateway\Paddle\Transaction;
+
+
+
+$paddleTransaction = new Transaction(25);
+
+
+
+
+
+$paddleTransaction->process();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS ISTO, POR EXEMPLO, É RUIM:
+
+
+
+
+
+
+
+<?php
+
+require '../../vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+use App\PaymentGateway\Paddle\Transaction;
+
+
+
+$paddleTransaction = new Transaction(25);
+
+
+
+
+
+
+$paddleTransaction->amount = 0; // This is bad (using and modifying public properties)
+
+
+$paddleTransaction->process(); // This is good (accessing public method)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA,
+
+
+
+
+
+ 
+ESCREVER E ALTERAR PROPERTIES 'PUBLIC'
+
+
+
+
+
+
+É UMA BAD PRACTICE:
+
+
+
+
+
+
+
+
+
+
+$paddleTransaction->amount = 0;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO PODE PARECER HARMLESS...
+
+
+
+
+
+
+
+
+
+
+''EU NUNCA PASSARIA 1 VALUE DE 25 NA INSTANCIAÇÃO DA CLASS
+
+E DEPOIS TROCARIA ESSE VALUE PARA 125''...
+
+
+
+
+
+
+
+eX:
+
+
+
+
+
+$paddleTransaction = new Transaction(25);
+
+
+$paddleTransaction->process(); // This is good (accessing public method)
+
+
+$paddleTransaction->amount = 0; //  This is bad (accessing public properties and altering them)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VC NAO PODE GARANTIR QUE PESSOAS NÃO FAÇAM ISSO,
+    QUANDO VC ESTIVER TRABALHANDO EM EQUIPES...
+
+
+
+
+
+
+
+
+
+
+-> PIOR AINDA, IMAGINE QUE ESSE OBJECT DE 
+
+
+'$transaction' foi passado a você em 1 METHOD...
+
+
+
+
+
+
+
+
+--> É MT LIBERDADE NO CÓDIGO, O QUE É MT RUIM...
+
+
+
+
+
+
+--> PODEMOS CONSERTAR ISSO COM O SET DE NOSSA PROPERTY COMO 'private'...
+
+
+
+
+
+
+
+
+
+CERTO... MAS AÍ VC PODE SE PERGUNTAR:
+
+''OK, MAS E SE EU QUISER ACESSAR 
+    ESSA PROPERTY que é 'private' no lado de fora 
+
+    da class?''
+
+
+
+
+--> NESSE CASO, VC VAI USAR AQUILO QUE CHAMAMOS DE 'GETTER METHODS',
+    para aí pegar o value de sua property sem problema algum...
+
+
+
+
+--> GETTER METHODS TAMBÉM SÃO CHAMADOS DE 'ACCESSORS'...
+
+
+
+
+
+
+
+OS ACESSORS PODEM SER USADOS PARA RETRIEVAR O VALUE DA PROPERTY...
+
+
+
+
+
+
+
+-> TEMOS TAMBÉM SETTERS, QUE PODEM SER USADOS PARA 
+    MUDAR O VALUE DA PROPERTY EXPLICITAMENTE...
+
+
+
+
+
+
+
+
+
+
+
+-. ESCREVERÍAMOS ASSIM:
+
+
+
+
+
+''public function getAmount(): float 
+{
+    return $this->amount;
+}
+''
+
+
+
+
+
+
+
+
+
+
+-> COM O SETTER, ESCREVERÍAMOS ASSIM:
+
+    public function setAmount(): void
+    {
+        $this->amount = 100;
+    }
+
+
+
+
+
+
+
+
+
+
+----> OK... TEMOS OS GETTER E SETTER METHODS, PORTANTO:
+
+<?php
+
+declare(strict_types=1);
+
+
+namespace App\PaymentGateway\Paddle;
+
+
+class Transaction
+{
+    private float $amount;
+
+
+    public function __construct(float $amount)
+    {
+
+        $this->amount = $amount;
+    }
+
+
+    public function process()
+    {
+        echo 'Processing $' . $this->amount . ' transaction';
+    }
+
+    // GETTER EXAMPLE
+    public function getAmount(): float
+    {
+        return $this->amount;
+    }
+
+    // SETTER EXAMPLE
+    public function setAmount(): void
+    {
+        $this->amount = 100;
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS AÍ VC PODE SE PERGUNTAR:
+
+
+
+''SE VAMOS EXPOR GETTERS E SETTERS PARA __ cADA _ PROPERTY QUE TEMOS,
+  ISSO NÃO SERIA PRATICAMENTE A MESMA COISA QUE TER ESSA PROPERTY COMO 
+
+  'public'?' ''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PQ MESMO QUE 
+    TENHAMOS ESSA PROPERTY COMO 'private',
+    não seria mt ruim deixar ela exposta com 
+
+    methods como 'setAmount' e 'getAmount'?
+
+
+
+
+
+
+
+-> PQ PODEMOS, REALMENTE, ALTERAR O STATE 
+    DE NOSSO OBJECT,
+
+    COM ESSE SETTER...
+
+
+
+
+
+
+
+
+--> GETTERS E SETTERS 
+
+    NEM SEMPRE FAZEM 'BREAK' DO PRINCÍPIO DE ENCAPSULATION,
+
+
+
+    MAS MTAS VEZES ELES PODEM CAUSAR MAIS MAL DO QUE BEM,
+
+    AO ROMPER ESSE PRINCÍPIO...
+
+
+
+
+
+
+--> E, POR CONTA DISSO, 
+    VC PODE OUVIR 
+
+    MT SOBRE 
+
+
+    'GETTERS AND SETTERS ARE A BAD PRACTICE'...
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR NÃO VAI NOS DIZER SE É BOM OU RUIM...
+
+    TUDO CABE A NÓS DECIDIR, SE SÃO BONS OU RUINS...
+
+
+
+
+
+
+
+
+
+
+
+--> MAS O PROFESSOR ACHA QUE 
+
+
+'''SE EU TENHO 1 PROPERTY QUE REPRESENTA O STATE 
+    DE MEU OBJECT, É MELHOR EU DEIXAR 
+
+    ESSA PROPERTY COMO 'private',
+
+    E É MELHOR EU _ GARANTIR  _ QUE NÃO TENHO OUTRO METHOD 
+
+    QUE MUDA ESSE STATE, O STATE DO OBJECT...''
+
+
+
+
+
+
+'' EM VEZ DISSO, __ EU ACEITO__ O VALUE 
+    DESSA PROPERTY __ ATRAVÉS DO CONSTRUCTOR, 
+
+    ATRAVÉS DO METHOD QUE CHAMAMOS EM VEZ DO SETTER...''
+
+
+
+
+
+
+
+--> NO CASO PRESENTE, TIRARÍAMOS 
+
+    O METHOD DE 'setAmount()',
+
+    
+
+
+    E AÍ 
+
+
+
+    DEIXARÍAMOS APENAS O SET DO AMOUNT NO CONSTRUCTOR, TIPO ASSIM:
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+
+namespace App\PaymentGateway\Paddle;
+
+
+class Transaction
+{
+    private float $amount;
+
+
+    public function __construct(float $amount)
+    {
+
+        $this->amount = $amount;
+    }
+
+
+    public function process()
+    {
+        echo 'Processing $' . $this->amount . ' transaction';
+    }
+
+    // GETTER EXAMPLE
+    public function getAmount(): float
+    {
+        return $this->amount;
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... ISSO FAZ SENTIDO...
+
+
+
+
+
+
+
+
+
+
+
+E, SE POR QUALQUER MOTIVO, 
+
+FOR NECESSÁRIO O CHANGE DO VALUE DO AMOUNT,
+
+
+SERÁ MELHOR SIMPLESMENTE CRIAR 1 NOVO __ OBJECT 
+
+
+DE '$transaction',
+
+em vez de TROCAR 
+
+O STATE DE ESSE OBJECT que temos agora...
+
+
+
+
+
+
+
+
+
+OU SEJA,
+ 
+ EM VEZ DE 
+
+
+
+
+
+MUTARMOS O OBJECT QUE JÁ TEMOS
+
+
+
+com 
+
+algo como 
+
+
+
+
+
+
+
+$transaction = new Transaction(25);
+
+$transaction->setTransaction(125);
+
+
+
+
+
+
+
+
+SERÁ BEM MELHOR 
+
+
+SIMPLESMENTE 
+
+CRIAR UM NOVO OBJECT, COM O VALUE CORRETO DE TRANSACTION,
+
+TIPO ASSIM:
+
+
+
+
+
+$transaction = new Transaction(125);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... E QUANTO AO GETTER METHOD?
+
+
+
+
+(ou seja, o 'getAmount()')
+
+
+
+
+
+-> O PROFESSOR SIMPLESMENTE O DEIXARIA DENTRO DA CLASS...
+
+
+
+
+
+
+
+
+-> ELE DEIXARIA DENTRO DA CLASS __ SE ELE REALMENTE PRECISAR ACESSAR ESSE AMOUNT...
+
+
+
+
+
+--> MAS SE ELE NÃO PRECISA ACESSAR 
+    O AMOUNT,
+    ELE NÃO vai deixar o getter no código só 
+
+    pq ele 'pode', eventualmente, precisar acessar 
+
+    essa property, down the road...
+
+
+
+-> É POR ISSO QUE ELE REMOVE O GETTER...
+
+
+
+
+
+
+
+
+
+---> NOSSA CLASS FICA ASSIM:
+
+
+
+<?php
+
+declare(strict_types=1);
+
+
+namespace App\PaymentGateway\Paddle;
+
+
+class Transaction
+{
+    private float $amount;
+
+
+    public function __construct(float $amount)
+    {
+
+        $this->amount = $amount;
+    }
+
+
+    public function process()
+    {
+        echo 'Processing $' . $this->amount . ' transaction';
+    }
+
+    // GETTER EXAMPLE (only add it in your class if you really need it)
+    // public function getAmount(): float
+    // {
+    //     return $this->amount;
+    // }
+
+    // SETTER EXAMPLE (we should avoid using methods like this, but it's just an example)
+    // public function setAmount(): void
+    // {
+    //     $this->amount = 100;
+    // }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE EXISTIRÃO CASES EM QUE 
+
+TER OS GETTERS E SETTERS FARÁ SENTIDO...
+
+
+
+
+
+
+
+--> CASES EM QUE 
+
+''YOU HAVE SOME ADDITIONAL LOGIC BEFORE 
+    YOU SET THE PROPERTY, 
+
+    OR BEFORE YOU GET THE PROPERTY (validation, formatting, etc)...''
+
+
+
+
+
+
+EM CASOS COMO ESSES, SETTERS E GETTERS FAZEM SENTIDO...
+
+
+
+
+
+
+
+
+
+-> ALÉM DISSO,  
+    COM SETTERS,
+
+
+    VC PODE FAZER 'METHOD CHAINING',
+
+
+
+    em QUE VC TEM A OPÇÃO DE 'BUILD YOUR OBJECT'
+
+
+    POR MEIO DO CHAIN DE VÁRIOS METHODS, 1 EM CIMA DO OUTRO...
+
+
+        (
+            E ISSO TE DÁ ESSA 'FLUENT INTERFACE'...
+        )
+
+
+
+
+
+
+
+
+
+
+--> VC TAMBÉM 
+
+    VERÁ CASES EM QUE 
+
+    PUBLIC PROPERTIES SÃO PERFECTLY FINE,
+
+
+    E VC VERÁ 
+
+    ELAS SENDO USADAS EM FRAMEWORKS POPULARES...
+
+
+
+
+
+
+
+
+
+
+
+
+--> EXEMPLO DE USE-CASE COMUM:
+
+
+
+
+        ''DATA TRANSFER OBJECTS''
+
+
+            (também chamados de 'DTOs'),
+
+
+        
+        QUE VEREMOS 
+
+        MAIS TARDE, NESSE CURSO..
+
+
+
+
+
+
+
+
+
+-> O CONSELHO DO PROFESSOR 
+    É __ NÃO DEFINIR GETTER E SETTER 
+
+
+    METHODS PARA TODAS AS PROPERTIES..
+
+    DEFINA GETTERS/SETTERS 
+
+
+    SOMENTE QUANDO 
+
+    O RETRIEVE DE ESSES VALUES É NECESSÁRIO...
+
+
+
+
+
+
+
+
+
+--> NÃO CRIE GETTERS E SETTERS APENAS PQ VC TEM 1 PROPERTY..
+
+
+
+
+
+
+
+
+
+--> ALÉM DA NECESSIDADE 
+
+    DE PROTEGER SUAS PROPERTIES,
+
+
+    VC TAMBÉM TERÁ CASES EM QUE VC VAI QUERER 
+
+
+
+    PROTEGER 
+
+
+
+    __ OS SEUS METHODS...
+
+
+
+
+
+
+
+
+
+
+
+--> EX: METHODS QUE SÃO 
+
+    'INTERNAL IMPLEMENTATIONS',
+
+
+    por isso precisam 
+
+
+    ser OCULTOS também...
+
+
+
+
+
+
+
+
+
+
+
+-> POR EXEMPLO,
+    DENTRO DO METHOD DE 'process()',
+
+    TALVEZ QUEIRAMOS CHAMAR ALGUNS OUTROS METHODS...
+
+
+
+
+
+
+
+
+
+TIPO UM METHOD DE 'generateReceipt()'...
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+private float $amount;
+
+
+public function process()
+{
+    echo 'Processing $' . $this->amount . ' transaction';
+
+
+    $this->generateReceipt();
+}
+
+
+private function generateReceipt() 
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESSES METHODS (como 'generateReceipt()')
+
+
+SERÃO IMPLEMENTATIONS INTERNAS,
+
+POR ISSO NÃO DEVERÃO SER SETTADAS COMO PUBLIC..
+
+
+
+
+
+
+
+--> SE VC DEFINE SEU METHOD COMO 'public',
+
+ISSO SIGNIFICA/SIGNIFICARÁ QUE 
+
+ESSE GIVEN METHOD 
+
+PODERÁ SER CHAMADO DE FORMA INDEPENDENTE de 'process()',
+
+
+no lado de FORA DA SUA CLASS...  e isso pode levar a errors/bugs 
+inesperados...
+
+(VC PODE ACABAR GERANDO 1 RECEIPT ANTES DO PROCESSAMENTO, ETC...)
+
+
+
+
+
+
+--> OUTRO EXEMPLO, COM 'sendEmail':
+
+
+
+
+
+
+private float $amount;
+
+
+public function process()
+{
+    echo 'Processing $' . $this->amount . ' transaction';
+
+
+    $this->generateReceipt();
+
+    $this->sendEmail();
+}
+
+
+private function generateReceipt() 
+{
+
+}
+
+
+
+
+private function sendEmail()
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+-> SE 'sendEmail' estivesse como 'public',
+
+    VC PODERIA ACABAR 
+
+    ENVIANDO 1 EMAIL ANTES DE FAZER O ACTUAL GENERATE 
+
+    DA TRANSACTION E POR ASSIM VAI...
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE DEVEMOS SETTÁ-LAS COMO 'private'...
+
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+
+
+
+    public function process()
+    {
+        echo 'Processing $' . $this->amount . ' transaction';
+
+        // This way, we can protect the methods from being called directly
+        $this->generateReceipt();
+        $this->sendEmail();
+    }
+
+    // Private method examples
+    private function generateReceipt(): void
+    {
+        echo 'Receipt generated';
+    }
+
+    private function sendEmail(): void
+    {
+        echo 'Email sent';
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+FALAREMOS SOBRE 'protected' 
+
+EM 1 LESSON POSTERIOR...
+
+
+
+
+MAS ANYWAYS,
+
+VC QUER RESTRINGIR O ACESSO DIRETO A ESSAS PROPERTIES E METHODS...
+
+
+
+
+
+------------------------------------------
+
+
+
+
+
+
+
+FALANDO DE 'RESTRICT ACCESS A PROPERTIES E METHODS' (com 'private'),
+
+
+
+O PROFESSOR QUER NOS MOSTRAR UMA TRICK 
+
+
+
+QUE CONSEGUE 'BREAK' A ENCAPSULATION 
+
+E QUE 
+
+
+
+TE DEIXA ACESSAR PRIVATE E PROTECTED PROPERTIES/METHODS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+------> QUAL TRICK É ESSA?
+
+
+
+
+
+-> BEM, VC SABE QUE, SE VC TENTA ACESSAR 
+    PRIVATE PROPERTIES/METHODS DO LADO DE FORA,
+
+    VC FICA COM 1 FATAL ERROR...
+
+
+
+
+
+
+    --> MAS VC PODE ACTUALLY AINDA CONSEGUIR ACESSO 
+        A ESSAS RESTRICTED PROPERTIES/METHODS ATRAVÉS 
+
+        DAQUILO QUE CHAMAMOS 'REFLECTION API',
+
+        PRÓPRIA DO PHP EM SI... 
+
+
+
+
+
+
+
+--> PARA ISSO, O PROFESSOR VAI ATÉ 'index.php',
+
+E TENTA ACESSAR A 
+PRIVATE PROPERTY DE '$amount',
+
+COM ESTA SINTAXE (e ganha um error):
+
+
+
+
+$paddleTransaction = new Transaction(25);
+
+
+// Considering that 'amount' is a private property:
+$paddleTransaction->amount; // This will give a fatal error (because we tried to access a private property)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAIS TARDE, VEREMOS A REFLECTION API EM MAIS DETALHES...
+
+
+
+
+
+
+
+
+
+
+--> ESSA API BASICAMENTE TE DÁ 
+    A ABILIDADE DE 'INTROSPECT' AS SUAS CLASSES...
+
+
+
+
+
+--> PARA ISSO, ESCREVEMOS ALGO COMO:
+
+
+
+
+
+
+
+
+
+
+$paddleTransaction = new Transaction(25);
+
+
+
+$reflectionProperty = new ReflectionProperty();
+
+
+
+
+
+
+
+
+
+
+
+
+COMEÇAMOS ASSIM, SIM..
+
+
+
+
+
+
+
+
+
+
+
+--> DEPOIS DISSO, PRECISAMOS DOS PARAMETERS de 'ReflectionProperty()'...
+
+
+
+
+
+
+
+
+
+OS PARAMETERS SÃO 2:
+
+
+
+
+
+
+
+
+
+1o parameter --> PRECISAMOS DA 'FULLY QUALIFIED CLASS NAME' --> no caso,    
+                                                                esse value 
+                                                                é representado 
+
+                                                                por 'Transaction::class'
+
+
+
+2o parameter --> É A ACTUAL PROPERTY NAME QUE QUEREMOS ACESSAR... --> no caso, é 'amount'...
+
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE O CÓDIGO FICA ASSIM:
+
+
+
+
+
+$paddleTransaction = new Transaction(25);
+
+
+
+$reflectionProperty = new ReflectionProperty(Transaction::class, 'amount');
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> DEPOIS DISSO, PODEMOS CHAMAR O METHOD 'setAccessible()',
+
+DENTRO DO OBJECT de '$reflectionProperty',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+$paddleTransaction = new Transaction(25);
+
+
+
+$reflectionProperty = new ReflectionProperty(Transaction::class, 'amount');
+
+
+$reflectionProperty->setAccessible(true);
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+// * Trick to BYPASS private property protection (PHP's Reflection API/property):
+$paddleTransaction = new Transaction(25);
+$reflectionProperty = new ReflectionProperty(Transaction::class, 'amount');
+$reflectionProperty->setAccessible(true);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... MAS ISSO N QUER DIZER QUE 
+ISSO FAZ COM QUE 
+
+
+A PROPERTY 'amount'
+
+FIQUE DIRETAMENTE ACESSÍVEL
+
+
+NO OBJECT DE '$transaction'...
+
+
+
+
+    OU SEJA,
+
+    AINDA VAMOS GANHAR 1 FATAL ERROR 
+
+    COM 
+
+    '$transaction->amount;'
+
+
+
+
+
+
+
+
+
+
+
+--> mas se escrevemos isso aí,
+    podemos 
+
+    usar o method de 'getValue()',
+
+    DENTRO DE '$reflectionProperty',
+
+
+    PARA CONSEGUIR O VALUE DE ESSA PROPERTY...
+
+
+
+
+    TIPO ASSIM:
+
+
+
+
+
+// * Trick to BYPASS private property protection (PHP's Reflection API/property):
+$paddleTransaction = new Transaction(25);
+$reflectionProperty = new ReflectionProperty(Transaction::class, 'amount');
+$reflectionProperty->setAccessible(true);
+$reflectionProperty->getValue($transaction); // This will return the value of the private property (25, in this case).
+
+
+
+
+ 
+
+
+
+
+
+ EX:
+
+
+
+
+
+
+
+
+ $reflectionProperty->getValue($transaction);
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS SE PODEMOS FAZER 'get' de essa private property,
+
+
+SERIA POSSÍVEL 
+
+FAZER O 'SET' do value dela, também?
+
+
+
+
+
+
+SIM... BASTA RODAR 
+
+
+
+
+$reflectionProperty->setValue($transaction, 200);
+
+
+
+
+
+
+
+
+
+
+
+Ex:
+
+
+
+
+
+
+
+// * Trick to BYPASS private property protection (PHP's Reflection API/property):
+$paddleTransaction = new Transaction(25);
+$reflectionProperty = new ReflectionProperty(Transaction::class, 'amount');
+$reflectionProperty->setAccessible(true);
+$reflectionProperty->getValue($transaction); // This will return the value of the private property (25, in this case).
+$reflectionProperty->setValue($transaction, 200); // This will change the value of the private property to 200.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COMO VC PODE OBSERVAR, PORTANTO,
+
+    NÃO HÁ COMO RESTRINGIR 100% 
+
+    O ACESSO A NOSSAS PROPERTIES/METHODS...
+
+
+
+
+
+
+
+
+--> MAS O PROPÓSITO 
+
+    DESSES ACCESS MODIFIERS 
+
+    É BASICAMENTE 
+
+    COMUNICAR AOS OUTROS DEVS QUE 
+
+
+    ESSAS COISAS SÃO IMPLEMENTAÇÕES INTERNAS,
+
+    E QUE 
+    DEVEM SER USADAS 
+
+    DENTRO DA CLASS,
+
+    E NÃO NO LADO DE FORA...
+
+
+
+
+
+
+
+
+
+
+--> o uso de 'ReflectionProperty'
+
+PARA FAZER BYPASS 
+
+DA PROTECTION DE 'private' e 'protected'
+
+É RARAMENTE 
+
+VISTO,
+
+
+
+
+VC NUNCA VAI USAR ISSO EM 1 APP DE VERDADE...
+
+
+
+                                    ---------------------
+
+
+
+
+
+
+
+
+OK... DEPOIS DISSO, TEMOS O 'PRINCIPLE OF _ _ABSTRACTION__'...
+
+
+
+
+
+
+
+
+
+
+
+
+ABSTRACTION:
+
+
+
+
+
+
+
+
+---- HÁ DIFERENTES FORMAS DE INTERPRETAR O TERMO 'ABSTRACTION'...
+
+
+
+
+
+
+--> HÁ ALGUNS QUE SE REFEREM A ABSTRACTION COMO 'ABSTRACT CLASSES AND METHODS'...
+
+
+
+--> MAS ESSE PRINCIPLE,
+    DOS 4 PRINCIPLES DE OOP,
+
+
+    SE REFERE A 1 CONCEITO DIFERENTE...
+
+
+
+
+
+
+
+--> VC PODERIA IMPLEMENTAR ABSTRACTION USANDO ABSTRACT CLASSES 
+    E METHODS, MAS NAÕ É A MESMA COISA...
+
+
+
+
+
+
+--> ABSTRACTION É ALGO BEM PRÓXIMO DE ENCAPSULATION...
+
+
+
+
+
+-> VEREMOS ABSTRACT CLASSES E METHODS MAIS TARD...
+
+
+
+
+
+
+
+-> MAS ABSTRACTION SIMPLESMNETE 
+
+    SIGNIFICA QUE 
+
+    'INTERNAL IMPLEMENTATION DETAILS OF A GIVEN OBJECT 
+    ARE ALWAYS HIDDEN FROM THE USER'...
+
+
+
+
+
+--> VC PODERIA 
+    
+
+    ''CALL A METHOD ON THE OBJECT,
+    PROVIDE SOME INPUT AND GET SOME OUTPUT'' 
+
+    MAS VC NÃO SE IMPORTA 
+
+    COMO O METHOD É IMPLEMENTADO E COMO ELE FUNCIONA POR TRÁS 
+    DAS SCENES... A ÚNICA
+
+    COISA COM QUE VC SE IMPORTA É QUE 
+     
+
+     'THE METHOD GETS CALLED, AND THEN YOU EXPECT SOME 
+     KIND OF OUTPUT/RESULT'...
+
+
+
+
+
+    -> POR EXEMPLO,
+
+    QUANDO CHAMAMOS 
+
+
+
+    '$transaction->process()',
+
+
+    NÓS NÃO NOS IMPORTAMOS 
+
+    COM AS COISAS QUE ACONTECEM 
+
+    POR TRÁS DAS CENAS... 
+
+
+
+
+
+
+--> NÃO NOS IMPORTAMOS COM AS COISAS QUE SE CONECTAM A ESSE METHOD,
+    NÃO NOS IMPORTAMOS COM COMO OS DADOS SÃO SALVOS NA DATABASE, ETC...
+
+
+
+    -> TUDO COM QUE NOS IMPORTAMOS É QUE 'WE PROCESS THE TRANSACTION'...
+
+
+
+
+
+
+
+    ---> É ESSA A ABSTRACTION.. VC BASICAMENTE  
+                                ESCONDE OS IMPLEMENTATION DETAILS 
+                                
+                                DOS OLHOS DO USER...
+
+
+
+    --> VC PODE MUDAR A MANEIRA COMO SÃO FEITAS AS COISAS,
+        MAS 
+
+        'THE PLACE WHERE YOU CALL THE process() method DOES NOT AND SHOULD 
+        NOT _ CARE_ ABOUT WHAT GOES ON INSIDE THE PROCESS METHOD...''
+
+
+
+        --> E QUAISQUER CHANGES FEITAS NO CÓDIGO DE 'process()'
+
+        NÃO _ DEVEM AFETAR 
+
+        A PARTE DO CÓDIGO EXTERNA 
+
+        AO 'process()"...
+
+
+
+
+    OU SEJA,
+    ESTE TRECHO AQUI:
+
+
+    $transaction = new Transaction(25);
+
+    $transaction->process();
+
+
+
+
+    DEVE SEMPRE SER O MESMO... A LÓGICA DE 
+
+    'process()' pode mudar,
+
+    MAS ESSA PARTE AÍ NÃO DEVE MUDAR...
+
+
+
+
+
+
+
+
+--> VIMOS, ANTERIORMENTE,
+    QUE SETTAR PROPERTIES COMO 'PUBLIC'
+
+    QUEBRA A ENCAPSULATION..
+
+
+
+
+
+
+    MAS SE VC DEIXA A PROPERTY COMO 'PUBLIC',
+
+    VC TAMBÉM 
+
+
+    QUEBRA A ABSTRACTION, junto com a encapsulation..
+
+
+
+
+
+
+
+
+
+
+
+
+-> POR EXEMPLO,
+
+TEMOS A PROPERTY DE 'amount' settada como public...
+
+
+-> DIGAMOS QUE USAMOS ESSA PROPERTY EM 100 outros lugares 
+
+    do código...
+
+
+
+
+
+    --> DIGAMOS QUE, MAIS TARDE, DECIDIMOS 
+    MUDAR O TYPE DESSA PROPERTY COMO 'INT' EM VEZ DE 
+
+    'FLOAT'...
+
+
+
+
+
+    -> BASICAMENTE, VC FEZ UMA CHANGE NA DEFINITION 
+        DESSA PROPERTY... POR CONTA DISSO, SEU CÓDIGO VAI EXPLODIR 
+
+        EM 100 LUGARES DIFERENTES,
+
+        TUDO PQ VC 
+
+        ESTÁ 'DIRECTLY ACESSING THIS PROPERTY'...
+
+
+
+
+
+    --> GOOD OOP DESIGN --> BASICAMENTE, 
+                            SE VC TENTAR CONSTRUIR SUAS CLASSES
+                            DE MANEIRA 
+
+                            QUE NÃO SÃO QUEBRADAS A ENCAPSULATION 
+                            E ABSTRACTION,
+
+                            VC JÁ VAI ESTAR NO CAMINHO DE 
+                            OBTER UM GOOD OOP DESIGN...
+
+
+
+
+
+    --> QUANDO VC CRIA CLASSES, VC DEVE SE PERGUNTAR:
+
+
+
+
+
+
+    ''''CAN YOU MAKE CHANGES TO THIS CLASS WITHOUT BREAKING 
+        TOO MANY THINGS OUTSIDE OF THIS CLASS?'''
+
+
+
+    
+    SE A RESPOSTA É 'SIM',
+
+    VC 
+
+    TEM UMA CLASS WELL DESIGNED,
+
+
+    E FAZER O EXTEND E MAINTAIN DESSA CODEBASE VAI SER 
+    BEM MAIS FÁCIL...
+
+
+
+
+
+
+
+    --> OK, MAS QUAL A DIFERENCA ENTRE ENCAPSULATION E ABSTRACTION?
+
+
+
+
+
+
+    --> ENCAPSULATION --> 'HIDES THE INTERNAL STATE/INFORMATION' OF THE CLASS...
+
+
+
+
+    --> ABSTRACTION --> 'HIDES THE ACTUAL IMPLEMENTATION OF THE CLASS'...
+
+
+
+
+
+
+
+
+COMO O PROFESSOR MENCIONOU,
+HÁ 
+CERTOS USE-CASES PARA PUBLIC PROPERTIES
+
+
+
+E 
+
+GETTERS/SETTERS... 
+
+
+
+
+MAS VC DEVE TER AQUELES PRINCIPLES 
+
+
+
+EM MENTE, QUANDO DESENHAR SUAS CLASSES...
+
+
+
+
+
+
+
+
+
+TEMOS MAIS UM BONUS:
+
+
+
+
+
+
+
+
+'''VC SABIA QUE __
+    OBJECTS DE 1 MESMO TYPE PODEM ACTUALY
+    ACESSAR EACH OTHER'S 
+    __PRIVATE__ AND PROTECTED PROPERTIES?''
+
+
+
+
+
+
+--> ex:
+
+
+
+
+
+
+
+public function copyFrom(Transaction $transaction) {
+
+
+
+}
+
+
+
+
+
+
+
+
+
+-_> DIGAMOS QUE TEMOS ESSA PUBLIC FUNCTION..
+
+
+
+
+
+-> COMO O TYPE DO ARGUMENT É 'Transaction',
+
+E É O MESMO TYPE DO CURRENT OBJECT,
+
+
+
+
+E COMO OS TYPES MATCHEIAM,
+
+
+SOMOS 
+
+CAPAZES DE ACESSAR 
+
+
+AS PROPERTIES DESSE METHOD,
+
+TIPO ASSIM:
+
+
+
+
+
+
+public function copyFrom(Transaction $transaction) {
+
+
+var_dump($transaction->amount, $transaction->sendEmail());
+
+}
+
+
+
+
+
+
+
+
+E, EM INDEX.PHP:
+
+
+
+
+
+
+
+
+
+
+
+$transaction->copyFrom(new Transaction(100));
+
+
+
+
+
+
+
+
+
+-> O QUE QUER DIZER QUE PODEMOS ACESSAR 
+
+AS PRIVATE PROPERTIES E METHODS DESSE OBJECT...
+
+
+
+
+
+
+
+
+-> VEREMOS 
+    INHERITANCE E POLYMORPHISM NO PRÓXIMO VIDEO...
