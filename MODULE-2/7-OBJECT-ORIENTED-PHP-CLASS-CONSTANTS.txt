@@ -1,0 +1,2485 @@
+
+
+
+
+
+
+
+
+
+NÓS ESTUDAMOS 'CONSTANTS'
+
+
+na primeira section do curso...
+
+
+
+
+
+
+
+
+CONSTANTS SÃO DEFINIDAS ASSIM:
+
+
+
+
+
+
+const A_NEW_CONSTANT = "EXEMPLO"; ## É OUTRA MANEIRA DE DEFINIR CONSTANTS..
+
+
+
+// CONSTANTS CRIADAS COM ""const"" keyword SAO _ CRIADAS _ACTUALLY _ DURANTE _O COMPILE TIME...
+
+
+
+// JÁ CONSTANTS CRIADAS COM ""DEFINE()"" SAO DEFINIDAS _ DURANTE _ O RUNTIME...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS O PROFESSOR APONTA QUE 
+
+
+    TAMBÉM É POSSÍVEL __ DEFINIR CONSTANTS DENTRO DE CLASSES...
+
+
+
+
+
+
+
+
+
+--> E É ISSO QUE VEREMOS NESSE VÍDEO,
+    JUNTO COM 
+
+    O OPERATOR DE 'SCOPE RESOLUTION'...
+
+
+
+
+
+
+
+
+-> COMEÇAMOS COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+(index.php):
+
+
+
+
+<?php 
+
+
+
+
+namespace App\PaymentGateway\Paddle;
+
+
+
+
+require_once __DIR__ '/../vendor/autoload.php';
+
+
+
+$transaction = new Transaction();
+
+
+
+
+
+
+
+
+
+--> ESSE CÓDIGO LEVA EM CONSIDERAÇÃO 
+    SEU PROJECT SENDO EXECUTADO NO DOCKER...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... COMO VC SABE,
+    CONSTANTS SÃO IMUTABLE... ISSO QUER DIZER QUE 
+    SEUS VALUES NÃO PODEM SER ALTERADOS
+
+
+    APÓS SEREM SETTADOS...
+
+
+
+
+
+
+
+
+
+--> NÓS DEFINIMOS CONSTANTS DE FORMA SEMELHANTE A PROPERTIES,
+    MAS NÓS SEGUIMOS UMA CONVENÇÃO 
+
+
+
+    DE 'KEEP ALL CONSTANT NAMES UPPERCASE'',
+
+
+
+
+
+    E TAMBÉM DE 'USE UNDERSCORES AS SEPARATOR'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COMO EXEMPLO DISSO, PODEMOS 
+
+DEFINIR ALGUMAS CONSTANTS 
+
+
+NA CLASS 
+
+
+DE 'Transaction'...
+
+
+
+
+
+
+--> NOSSAS TRANSACTIONS TERÃO 'STATUS'...
+
+
+
+
+
+
+OS STATUS PODERÃO SER 'paid', 'pending', 'declined', etc...
+
+
+
+
+
+
+
+
+
+-> PARA CRIAR UMA CONSTANT,
+
+    BASTA ESCREVER ASSIM,
+
+
+    DENTRO DA CLASS:
+
+
+
+
+    ''const CONSTANT_NAME''...
+
+
+
+
+
+
+
+
+
+
+
+
+-> TIPO ASSIM:
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+
+namespace App\PaymentGateway\Paddle;
+
+
+class Transaction
+{
+    const STATUS_PAID = '';
+
+
+
+
+
+
+    public function __construct() 
+    {
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+CERTO... COMO VALUE DE ESSA CONSTANT,
+
+    PODEMOS DEFINIR 1 STRING, UM INTEGER,
+    QUALQUER COISA...
+
+
+
+
+
+
+
+
+-> NO CASO, O PROFESSOR COLOCA VALUES DE STRING,
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+
+namespace App\PaymentGateway\Paddle;
+
+
+class Transaction
+{
+    const STATUS_PAID = 'paid';
+    const STATUS_PENDING = 'pending';
+    const STATUS_DECLINED = 'declined';
+
+
+
+
+
+
+    public function __construct() 
+    {
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE VC TAMBÉM PODE ADICIONAR 
+
+
+
+'ACCESS MODIFIERS' (public/private)
+
+
+às constants DE SUA CLASS...
+
+
+
+
+
+
+
+
+
+--> CASO VC NAO COLOQUE 'public' ou 'private',
+
+    o access modifier default será de 'public'...
+
+
+
+
+
+
+
+-> O PROFESSOR SEMPRE RECOMENDA ESCREVER 
+    ACCESS MODIFIERS NAS SUAS PROPERTIES... É UMA GOOD PRACTICE...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+
+namespace App\PaymentGateway\Paddle;
+
+
+class Transaction
+{
+    // Class Constants example
+    public const STATUS_PAID = 'paid';
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_DECLINED = 'declined';
+
+
+    public function __construct()
+    {
+
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA QUE DEFINIMOS CONSTANTES, COMO PODEMOS AS ACESSAR?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> TALVEZ VC SE LEMBRE:
+
+
+
+''WHEN WE DEFINED NON-CLASS CONSTANTS,
+
+    WE WERE ABLE TO ACCESS THEM BY SIMPLY REFERRING TO 
+    THE CONSTANT NAME...''
+
+
+
+
+
+
+-> CERTO... MAS PARA CONSEGUIRMOS ACESSAR 
+
+    CONSTANTS DEFINIDAS DENTRO DE CLASSES,
+
+
+
+    O APPROACH É DIFERENTE... NÓS ACTUALLY 
+
+
+    SOMOS OBRIGADOS A USAR UMA SINTAXE _ COMPLETAMENTE 
+        DIFERENTE...
+
+
+
+
+
+    -> A SINTAXE PODE SER VISTA LÁ EM 'index.php',
+
+
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+<?php
+
+
+
+require '../../vendor/autoload.php'; // imports the composer's autoloader
+
+
+use App\PaymentGateway\Paddle\Transaction;
+
+
+
+
+$paddleTransaction = new Transaction();
+
+
+
+echo Transaction::STATUS_PAID;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ou seja,
+
+a sintaxe é esta:
+
+
+
+
+
+
+
+''''
+
+
+
+Transaction::STATUS_PAID; /// THIS IS HOW WE ACCESS A CONST THAT WAS DEFINED INSIDE OF A CLASS...
+
+
+
+''''
+
+
+
+
+
+
+
+
+
+
+
+-> ESSE OPERATOR,
+
+'::',
+
+
+É CHAMADO DE 'SCOPE RESOLUTION OPERATOR'....
+
+
+
+
+
+
+
+
+
+
+
+--> PRECISAMOS DE ESSE OPERATOR PARA CONSEGUIRMOS 
+    ACESSAR ESSAS CONSTANTS, DEFINIDAS DENTRO 
+
+    DAS CLASSES THEMSELVES...
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... MAS OUTRO DETALHE:
+
+
+
+''CLASS CONSTANTS ARE __ ALLOCATED__ ONCE PER CLASS,
+    AND __ NOT ONCE PER INSTANCE...''
+
+
+
+
+
+
+
+
+--> ISSO QUER DIZER, EM OUTRAS PALAVRAS,
+    QUE __ _NÃO PRECISAMOS __ 
+
+
+    CRIAR UMA INSTANCE DE  ALGUMA CLASS 
+
+
+    PARA CONSEGUIRMOS ACESSO AO VALUE DA CONST 
+
+    DESSA GIVEN CLASS...
+
+
+
+
+
+
+
+
+
+
+
+
+É EXATAMENTE POR ISSO QUE 
+
+CONSEGUIMOS ESCREVER ALGO COMO 
+
+
+''''
+
+echo Transaction::STATUS_PAID;
+
+
+
+''',
+
+
+
+
+
+PQ 'Transaction', aqui, é a CLASS ITSELF,
+
+E NÃO UM OBJECT CRIADO A PARTIR DESSA CLASS...
+
+
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE AS CONSTANTS SÃO ACESSADAS DIRETAMENTE NO LEVEL 
+    DAS CLASSES...
+
+
+
+
+
+
+
+
+
+-->  CERTO... ALÉM DE 
+
+     DISPORMOS DA CAPACIDADE DE 
+
+
+     __aCESSAR CONSTANTS NO LEVEL DA 'CLASS',
+
+
+
+     TAMBÉM TEMOS A POSSIBILIDADE/CAPACIDADE DE ACESSAR 
+
+     ESSAS CONSTS 
+
+
+     NOS OBJECTS THEMSELVES... no object level...
+
+
+
+
+
+
+
+-------> É POR ISSO QUE PODERÍAMOS TER ESCRITO ASSIM, ALTERNATIVAMENTE:
+
+
+
+
+
+
+
+
+
+echo $transaction::STATUS_PAID;
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+echo Transaction::STATUS_PAID;  // * THIS IS HOW WE ACCESS A CONST THAT WAS DEFINED INSIDE OF A CLASS...
+
+echo $transaction::STATUS_PAID; // * We can also access the constant on the objects instantiated from the class, without any problems (it's basically the same thing).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO... 
+
+
+
+
+
+
+
+
+MAS SE DEFINIMOS ESSA CONST 
+
+DE DENTRO DA CLASS COMO 'private',
+
+
+
+
+
+
+NÓS NÃO SEREMOS MAIS CAPAZES DE ACESSAR ESSA CONST 
+
+NO LADO DE FORA DA CLASS (exatamente como vc não seria capaz de acessar 1 property, por exemplo)...
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+SE TEMOS ALGO COMO 
+
+
+''
+  private const STATUS_DECLINED = 'declined'; '',
+
+
+
+
+
+
+
+
+
+  SE TORNA IMPOSSÍVEL CHAMAR ALGO COMO 
+
+
+
+
+  'echo Transaction::STATUS_DECLINED;'
+
+
+
+
+
+
+
+  SEM FICAR COM UM ERROR...
+
+
+
+
+
+
+
+
+
+
+
+
+--> ENTRETANTO,
+    MESMO COM 'private' definido para sua class constant,
+
+    VC AINDA TEM A POSSIBLIDADE 
+
+
+
+
+    DE 'ACCESS THE CONSTANTS FROM WITHIN THE CLASS ITSELF''..
+
+
+
+
+
+
+
+-> E SE VC QUER ACESSAR AS CONST DE DENTRO DA PRÓPRIA CLASS,
+
+    VC TAMBÉM PODE USAR A SINTAXE DE 'Transaction::CONSTANT_NAME',
+
+
+    sem problema algum...
+
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-->
+
+
+
+
+    public function __construct()
+    {
+
+        var_dump(Transaction::STATUS_DECLINED); // * This is one of the ways of accessing class constants FROM INSIDE OF THE OWN CLASS WHERE THEY ARE DEFINED. This will output 'declined'
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A OUTRA MANEIRA POSSÍVEL DE ACESSAR ESSAS CONSTANTS 
+
+É POR MEIO 
+
+
+DA ESCRITA DE 'self::',
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+    public function __construct()
+    {
+
+        var_dump(self::STATUS_DECLINED); // * This is the another way of accessing class constants FROM INSIDE OF THE OWN CLASS WHERE THEY ARE DEFINED. This will output 'declined'
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO PQ 'self' VAI SE REFERIR à 'CURRENT CLASS'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> 'self' --> SE COMPORTA DE FORMA SIMILAR à VARIABLE DE '$this',
+                APESAR DE SE REFERIR, NO CASO,
+
+                à PRÓPRIA CLASS,
+
+
+                E NÃO AO PRÓPRIO OBJECT (como no '$this')...
+
+
+
+
+
+
+
+
+
+
+
+'self' --> SEMPRE SE REFERE 
+            à 'CURRENT CLASS',
+
+
+            OU 'REFERS TO THE CLASS 
+                FROM WHERE IT IS CALLED' ...
+
+
+            
+
+
+
+
+
+
+
+
+
+
+-> EXISTEM MAIS DIFERENÇAS ENTRE 'self' e '$this',
+
+
+MAS VEREMOS 
+
+ELAS NA PRÓXIMA AULA,
+
+
+QUANDO ESTUDARMOS 'STATICS'...
+
+
+
+
+
+
+
+
+
+
+------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR TAMBÉM APONTA QUE 
+
+
+
+''A CLASS ALSO HAS  A MAGIC CONSTANT 
+    _ CALLED '::class',
+
+    WHICH ALWAYS _ reSOLVES_ AT COMPILE TIME,
+
+    AND WHICH RESULTS A FULLY QUALIFIED CLASS NAME...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS PRINTAR O RESULTADO DE ESSA MAGIC CONSTANT COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+
+$transaction = new Transaction();
+
+
+
+
+echo $transaction::class; //EIS O CÓDIGO EM QUESTÃO...
+
+
+
+
+
+
+
+
+
+
+
+
+--> E ESSE CALL DE '::class'
+
+    FUNCIONA
+
+
+    TANTO EM _oBJECTS__ (como '$transaction')
+
+
+    COMO 
+
+
+    TAMBÉM FUNCIONA NA CLASS EM SI..
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+$transaction = new Transaction();
+
+
+
+
+echo Transaction::class; //EIS O CÓDIGO EM QUESTÃO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS É CLARO QUE EXISTEM VÁRIOS USE-CASES PARA CONSTANTES...
+
+
+
+
+
+
+
+
+
+-> SE VC TEM DATA  __ OU INFO QUE 
+
+    NUNCA MUDA,
+
+    E SE VC 
+
+    MANTÉM REFERÊNCIAS A ESSES VALUES 
+
+
+    EM TODAS AS PARTES  DO SEU CÓDIGO,
+
+
+    É SEMPRE MELHOR MOVER
+
+    ESSA DATA/INFO 
+
+
+    PARA DENTRO DE UMA
+
+
+    'CLASS CONSTANT',
+
+
+
+
+
+    TUDO PARA QUE 
+
+
+
+    ''IF YOU EVENTUALLY 
+        CHANGE YOUR VALUES,
+
+        YOU WILL ONLY NEED TO CHANGE IT IN A SINGLE PLACE''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O OUTRO USE-CASE PARA CLASS CONSTANTS 
+
+    É CASES EM QUE 
+
+
+    VC QUER 
+
+
+    DEFINIR CONSTANTS COMO 'KINDOF ENUMERATIONS (enums)',
+
+
+
+
+
+    COMO RECÉM FIZEMOS COM AS 'TRANSACTIONS', com este código:
+
+
+
+
+
+
+
+
+class Transaction
+{
+    // Class Constants example
+    public const STATUS_PAID = 'paid';
+    public const STATUS_PENDING = 'pending';
+    private const STATUS_DECLINED = 'declined'; // With 'private', the constant can't be accessed from outside the class with the '::' notation 
+
+
+    public function __construct()
+    {
+
+        var_dump(Transaction::STATUS_DECLINED); // * This is one of the ways of accessing class constants FROM INSIDE OF THE OWN CLASS WHERE THEY ARE DEFINED. This will output 'declined'
+        var_dump(self::STATUS_DECLINED); // * This is the another way of accessing class constants FROM INSIDE OF THE OWN CLASS WHERE THEY ARE DEFINED. This will output 'declined'
+
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE VER,
+
+
+
+
+FICAMOS SEM O HARDCODE DOS VALUES DE 
+
+
+''
+
+    public const STATUS_PAID = 'paid';
+    public const STATUS_PENDING = 'pending';
+    private const STATUS_DECLINED = 'declined'; // With 'private', the constant can't be accessed from outside the class with the '::' notation 
+
+
+'',
+
+
+
+
+
+
+
+
+
+PQ FICAMOS COM AUTO-COMPLETE PARA ESSES VALUES...
+
+
+
+
+
+É BEM MELHOR, PQ AÍ TEREMOS MENOS TYPOS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR MOSTRA 1 EXEMPLO DE ENUMS,
+
+
+DE COMO ISSO PODE NOS AJUDAR A EVITAR TYPOS...
+
+
+
+
+
+
+
+
+
+
+
+-> ELE CRIA UM METHOD DE 'setStatus',
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+    public function setStatus(string $status): self
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ELE COLOCOU O RETURN TYPE COMO 'self'
+
+JUSTAMENTE 
+
+PQ 
+
+
+ELE 
+
+PLANEJA 
+
+__RODAR __ VÁRIOS CLASS METHODS EM CASCATA... (chain)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PODERÍAMOS, ALTERNATIVAMENTE,
+
+
+TER ESCRITO ASSIM:
+
+
+
+
+
+
+
+    public function setStatus(string $status): Transaction
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO AINDA FUNCIONARIA PQ 
+
+    REALMENTE ESTAMOS RETORNANDO 1 OBJECT COM O MESMO FORMATO DE NOSSA CLASS...
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO,
+
+
+
+o professor precisa criar uma property de nome '$status',
+
+
+e também definir o value de essa property, lá no constructor...
+
+
+
+
+
+
+
+
+-> FAZEMOS ISSO TIPO ASSIM:
+
+
+
+
+class Transaction
+{
+    // Class Constants example
+    public const STATUS_PAID = 'paid';
+    public const STATUS_PENDING = 'pending';
+    private const STATUS_DECLINED = 'declined'; // With 'private', the constant can't be accessed from outside the class with the '::' notation 
+
+    private string $status;
+
+    public function __construct()
+    {
+
+        var_dump(Transaction::STATUS_DECLINED); // * This is one of the ways of accessing class constants FROM INSIDE OF THE OWN CLASS WHERE THEY ARE DEFINED. This will output 'declined'
+        var_dump(self::STATUS_DECLINED); // * This is the another way of accessing class constants FROM INSIDE OF THE OWN CLASS WHERE THEY ARE DEFINED. This will output 'declined'
+
+
+        $this->setStatus(self::STATUS_PENDING);
+    }
+
+
+    public function setStatus(string $status): self // 'self' --> this return type is often used to be able to chain methods calls together.
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE VER,
+
+
+
+ESTAMOS PASSANDO O VALUE DE 'self::STATUS_PAID',
+
+
+
+O QUE NOS AJUDA A EVITAR TYPOS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE VC NÃO TIVESSE ESSA CONSTANT AÍ,
+
+
+VC SERIA FORÇADO A ESCREVER COISAS COMO 
+
+
+
+
+
+
+
+
+'$transaction->setStatus('paid');'
+
+
+
+
+
+
+
+
+
+-> VC SERIA FORÇADO A PASSAR O HARDCODE do argumento de 'paid',
+
+em vez 
+
+DE 
+
+JÁ USAR 
+
+
+OS VALUES DEFINIDOS  COMO CONSTANT (quase como 1 enum)
+
+DENTRO DE ESSA CLASS....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESSE CÓDIGO AÍ NÃO É TERRÍVEL,
+    MAS PODERIA INTRODUZIR BUGS NO SEU CÓDIGO...
+
+
+
+
+
+
+
+
+-> OUTRO PROBLEMA É QUE PODERÍAMOS ESCREVER STRINGS DE GIBBERISH, inválidas,
+
+    dentro 
+
+    do 
+
+    'setStatus()'...
+
+
+
+
+
+
+-> MAS COM NOSSAS CONSTANTS,
+    A POSSIBILIDADE DE PASSAR GIBBERISH/VALUES INVÁLIDOS 
+
+    DEIXA DE EXISTIR,
+
+
+    PQ 
+
+    AGORA 
+
+
+
+    TEREMOS APENAS  
+
+
+    AQUELES VALUES POSSÍVEIS, DE CLASS CONSTANTS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS COMO PODEMOS 
+
+    _EVITAR__ QUE PESSOAS DIGITEM 'GIBBERISH' 
+
+
+
+    COMO PARAMETER DE 'setStatus()'?
+
+
+
+
+
+
+
+
+--> O PROFESSOR EXPLICA QUE 
+    podemos RESOLVER ESSE PROBLEMA COM 
+
+    1 TIPO DE VALIDATION NO METHOD DE 'setStatus',
+
+
+    1 IF CONDITION, TIPO ASSIM:
+
+
+
+
+
+
+
+
+    public function setStatus(string $status): self // 'self' --> this return type is often used to be able to chain methods calls together.
+    {
+        if (
+            $status === self::STATUS_PAID
+            || $status === self::STATUS_PENDING
+            || $status === self::STATUS_DECLINED
+        ) {
+            $this->status = $status;
+
+            return $this;
+        } else {
+            throw new \Exception('Invalid status');
+        }
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS SE ESCREVÊSSEMOS ISSO AÍ,
+
+
+FICARÍAMOS COM 1 MONTE DE CONDITIONALS... E ISSO É MEIO RUIM...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> EM VEZ DE ESCREVER TUDO ISSO,
+
+    O QUE PODERÍAMOS FAZER É 
+
+    CRIAR OUTRA CONSTANT dentro da class,
+
+    de nome 
+
+
+
+    'ALL_STATUSES',
+
+
+    com 1 value equivalente a 1 array... tipo assim:
+
+
+
+
+
+
+
+
+
+
+    private const ALL_STATUSES = [
+        self::STATUS_PAID,
+        self::STATUS_PENDING,
+        self::STATUS_DECLINED
+    ];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... E ISSO FUNCIONARIA...
+
+
+
+
+
+
+
+
+
+
+
+-> MAS O PROFESSOR EXPLICA QUE 
+
+PODERÍAMOS MAPPEAR OS VALUES DE 'self:xxxx'
+
+
+
+como keys,
+
+e aí, como values,
+
+
+VC PODERIA COLOCAR 
+
+
+'FRIENDLY NAMES',
+
+que mais tarde vc poderia exibir aos users...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+    private const ALL_STATUSES = [
+        self::STATUS_PAID => 'Paid',
+        self::STATUS_PENDING => 'Pending',
+        self::STATUS_DECLINED => 'Declined',
+    ];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NO CASO, ISSO TAMBÉM PODE SER CHAMADA DE EXEMPLO 
+
+DE 
+'LOOKUP TABLE'...
+
+
+
+
+
+
+
+
+
+
+
+MAIS TARDE NO CURSO, ESTUDAREMOS ESSAS 'LOOKUP TABLES'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... A PARTIR DISSO, PODEMOS 
+
+
+
+RODAR UM CALL DE 
+
+
+
+'isset(self:ALL_STATUSES[$status]) {
+
+}',
+
+
+PARA ENTÃO TER A VALIDATION NO METHOD DE 'setStatus',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+    public function setStatus(string $status): self // 'self' --> this return type is often used to be able to chain methods calls together.
+    {
+        if (
+            !isset(self::ALL_STATUSES[$status])
+        ) {
+            throw new \InvalidArgumentException('Invalid status');
+        } else {
+            $this->status = $status;
+            return $this;
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+MAIS TARDE ESTUDAREMOS ESSAS 'EXCEPTION'...
+
+
+
+
+
+
+
+
+
+
+
+--> MAS O QUE INTERESSA É QUE 
+
+
+
+
+AGORA TEREMOS VALIDATION 
+
+
+PARA 
+VALUES INVÁLIDOS 
+
+
+
+QUE SÃO PASSADOS 
+
+
+A 'setStatus()'....
+
+
+
+
+
+
+
+--> NO CASO,
+
+
+SÃO INVALIDOS OS VALUES QUE 
+
+NÃO SE ENCAIXAM NOS VALUES 
+
+
+
+DE STATUS_PAID,  STATUS_DECLINED E STATUS_PENDING...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ISSO QUER DIZER QUE RESOLVEMOS AMBOS PROBLEMAS...
+
+
+
+
+
+
+
+
+
+
+
+-> MAS AINDA EXISTE ALGO QUE ESTÁ INCOMODANDO O PROFESSOR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''WE ARE KIND OF COUPLING THESE 
+    CONSTANTS WITH THE 'Transaction' CLASS...''
+
+
+
+
+
+
+
+--> E A CLASS DE 'Transaction', por sua vez,
+
+
+    DEVE SER RESPONSÁVEL PELO 
+    'PROCESSING'  E 'WORKING' COM TRANSACTIONS...
+
+
+
+
+
+    O PROFESSOR NÃO ACHA QUE É UMA BOA IDEIA/FAZ SENTIDO 
+
+
+    ARMAZENAR STATUS CONSTANTS 
+
+
+    DENTRO DE SI..
+
+
+
+
+
+
+
+    --> PQ NÃO FAZ SENTIDO 
+
+
+            __ FAZER O 'REFER' À CLASS DE 'Transaction' 
+
+
+                    NO LADO DE _fORa__ DO  
+
+                    OBJECT PARA CONSEGUIR ACESSAR ESSAS CONSTANTS,
+
+                    PARA ACESSAR ESSES VALUES...
+
+
+
+
+
+
+
+
+
+
+EX: imagine que vc tem 1 class de 'Cart',
+
+    que então PASSA A PRECISAR 
+
+    DO VALUE DE 'STATUS_PAID', dentro de 'Transaction'...
+
+
+
+
+
+-> PARA CONSEGUIR ESSE VALUE, VC TERIA DE ESCREVER ALGO COMO:
+
+    $desiredValue = Transaction::STATUS_PAID';
+
+
+
+
+
+
+-> NESSE CASO, 
+    VC ACABA PRECISANDO DO VALUE DE ESSE 'STATUS',
+
+    MAS NÃO 
+
+    DA CLASS DE 'Transaction' em si...
+
+
+
+
+
+
+
+
+
+
+
+--> ''REFERENCING A CLASS THAT HAS 
+     OTHER BUSINESS LOGIC, JUST TO GET 
+     THE CONSTANT VALUES,
+
+
+     WON'T LOOK PRETTY, AT ALL...''
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE O PROFESSOR OFERECE UMA SOLUÇÃO ALTERNATIVA...
+
+
+
+
+
+
+
+
+
+
+
+INICIALMENTE, ELE FALA SOBRE AS CONSTANTS/ENUMS 
+
+LÁ NA CLASS DE 'Transaction',
+
+que estão assim:
+
+
+
+
+
+
+
+
+
+
+
+class Transaction
+{
+    // Class Constants example (also pseudo 'enums' example, to avoid typos)
+    public const STATUS_PAID = 'paid';
+    public const STATUS_PENDING = 'pending';
+    private const STATUS_DECLINED = 'declined'; // With 'private', the constant can't be accessed from outside the class with the '::' notation 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> COMO VC PODE PERCEBER,
+
+ ESTAMOS FAZENDO 'PREPEND'
+
+
+ DO NOME 
+
+ DAS NOSSAS CONSTANTS COM 
+
+A 
+
+STRING 'STATUS_'...
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO, NO CASO, É UM INDICADOR 
+
+
+
+
+BEM GRANDE DE QUE ''WE COULD EXTRACT THESE CONSTANTS AND 
+                        CREATE A NEW CLASS TO HOLD THEM''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE O PROFESSOR CRIA UMA NOVA PASTA 
+
+
+NO FOLDER DE 'class-constants' ( de nosso projeto),
+
+
+
+UMA CLASS DE NOME 'Enums'..
+
+
+
+
+
+
+
+
+--> ELE TAMBÉM JÁ DEIXA O 'Namespace'
+
+
+como 'App/Enums'...
+
+
+
+
+
+
+
+
+
+O CÓDIGO VAI FICANDO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+
+namespace App\Enums;
+
+
+
+
+class Status
+{
+
+    public const PAID = "paid";
+    public const PENDING = "pending";
+    public const DECLINED = "declined";
+
+
+
+    public const ALL_STATUSES = [
+        self::PAID => "Paid",
+        self::PENDING => "Pending",
+        self::DECLINED => "Declined",
+    ];
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... COM ISSO, COM ESSE OUTSOURCING,
+
+
+
+
+DEVEMOS REESCREVER O CÓDIGO DE 'Transaction.php',
+
+para que 
+
+
+ELE IMPORTE ESSES ENUMS CORRETAMENTE, LÁ DO FOLDER 'Enums'....
+
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+
+namespace App\PaymentGateway\Paddle;
+
+use App\Enums\Status;
+
+
+class Transaction
+{
+
+
+    private string $status;
+
+    public function __construct()
+    {
+
+
+        $this->setStatus(Status::PAID);
+
+    }
+
+
+    public function setStatus(string $status): self // 'self' --> this return type is often used to be able to chain methods calls together.
+    {
+        if (
+            !isset(Status::ALL_STATUSES[$status])
+
+        ) {
+            throw new \Exception('Invalid status');
+        } else {
+            $this->status = $status;
+            return $this;
+        }
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+require '../../vendor/autoload.php'; // imports the composer's autoloader
+
+
+use App\Enums\Status; // It is best to outsource the enums to a separate file/class
+use App\PaymentGateway\Paddle\Transaction;
+
+
+$paddleTransaction = new Transaction();
+
+
+$paddleTransaction->setStatus(Status::PAID); // more readable and makes more sense than 'Transaction::STATUS_PAID''
+
+echo Status::PAID; // * This is how we access a constant that was defined INSIDE OF A CLASS
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'Status::PAID'
+
+
+é bem melhor do que 
+
+
+'Transaction::STATUS_PAID''...
+
+
+
+
+
+
+
+
+
+
+
+É BEM MAIS READABLE,
+
+BEM MAIS EXPRESSIVE,
+
+E AÍ 
+
+NÃO ACABAMOS 
+'COUPLING OUR STATUS DATA WITH THE TRANSACTION CLASS'
+
+
+(
+    MANTEMOS AS 2 COISAS SEPARADAS, O QUE É MELHOR...
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+OUTRA COISA QUE O PROFESSOR QUER NOS RELATAR:
+
+
+
+
+''PHP WILL BE ADDING NATIVE SUPPORT TO ENUM TYPES (enum classes)'',
+
+
+O QUE QUER DIZER QUE 
+NÃO VAMOS MAIS 
+
+PRECISAR CRIAR CLASSES COMO 'Status',
+
+
+
+
+NÃO VAMOS MAIS PRECISAR DEFINIR CLASSES EM QUE DEFINIMOS CONSTANTS 
+
+PARA FINALIDADE DE 'Enums',
+
+  
+
+
+
+
+
+
+PQ VAMOS, EM VEZ DISSO, CRIAR ENUM CLASSES...
+
+
+
+
+
+
+--> ESSA É UMA FEATURE QUE SERÁ ADICIONADA AO PHP 8.1....
+
+
+
+
+
+
+
+
+
+
+NA PRÓXIMA AULA, VEREMOS STATIC METHODS E CLASSES...
