@@ -1,0 +1,1891 @@
+
+
+
+
+
+
+
+
+
+--> ABSTRACT CLASSES:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+''''ABSTRACT CLASSES SÃO COMO __ TEMPLATES__ OU __BASE_ CLASS__ 
+    THAT THE CHILD/CONCRETE CLASSES CAN extend FROM...'''''
+
+
+
+
+
+isso é feito por MEIO DO PODER DE INHERITANCE,
+QUE VIMOS NA ÚLTIMA AULA...
+
+
+
+
+
+
+
+
+
+
+    EX:
+
+
+
+
+
+
+
+                        ABSTRACT CLASS 
+
+
+
+
+
+DERIVED/CHILD                       
+CLASS
+                                DERIVED/CHILD 
+                                CLASS
+
+
+
+
+
+
+
+
+
+
+
+
+
+TEMOS ALGUMAS REGRAS QUANTO AO USO DE ABSTRACT CLASSES E ABSTRACT METHODS:
+
+
+
+
+
+
+
+
+1a REGRA) AN ABSTRACT CLASS __ CANNOT__ BE INSTANTIATED BY US...    
+
+            -> A ÚNICA COISA QUE PODEMOS FAZER, COM 
+                ABSTRACT CLASSES,
+
+                É O 'EXTEND' DELAS... OU SEJA, FAZER 'ENFORCE' DE SUAS PROPERTIES E METHODS,
+                MAS SEM A INSTANCIAR DE VERDADE...
+
+
+
+            --> quer dizer que vc NÃO PODE CRIAR OBJECTS DIRETAMENTE 
+                DA ABSTRACT CLASS...
+
+
+
+
+
+
+        
+2a REGRA) UMA ABSTRACT CLASS ''CAN CONTAIN ABSTRACT METHODS, IN ADDITION TO REGULAR METHODS AND PROPERTIES''..
+
+
+            -->  OU SEJA, PODE CONTER ABSTRACT METHODS,
+                methods que só contêm a method signature/definition,
+                
+                SEM A ACTUAL IMPLEMENTATION...
+
+
+            
+
+
+        --> ISSO QUER DIZER, EM OUTRAS PALAVRAS,
+            QUE A ABSTRACT 
+            CLASS 
+
+            '''''KNOWS THE __ WHAT____''''''
+
+            MAS 
+
+            ''''DOESN'T KNOW THE ___HOW____'''
+
+
+
+
+
+3a REGRA) THE '''''HOW'''''' PART MUST BE IMPLEMENTED 
+            __ INSIDE __ THE CHILD CLASSES, AND NOT INSIDE THE 
+            ABSTRACT CLASS...
+
+
+
+            -> ''''CHILD CLASSES __ MUST__ IMPLEMENT ABSTRACT METHODS''
+
+
+
+            -> É DAS CHILD CLASSES A RESPONSABILIDADE 
+                DE IMPLEMENTAR ESSES ABSTRACT Methods,
+                definidos na abstract class..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VEJA O EXEMPLO DA ÚLTIMA AULA:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        FIELD 
+                          I 
+    ----------------------------------------------------    
+    I                  I              I                I
+   Text             Text Area       Boolean           ...
+    I                    I           I    I 
+----------------         I     CHECKBOX  RADIO
+I       I       I       WYSIWYG
+EMAIL  NUMBER   I
+        I       DATE/TIME
+        I 
+    -----------
+    I          I 
+PERCENT      DOLLAR
+
+
+
+
+
+
+
+
+
+
+
+
+
+temos o 'base field',
+
+e aí
+ 
+
+
+ temos o text, text area e boolean fields,
+
+
+ que vão inherittando,
+
+ e vão 'drilling down further'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ -> AGORA DEVEMOS VER UMA VERSÃO MAIS SIMPLES DISSO, QUE TERÁ ESTE FORMATO:
+
+
+
+
+
+
+
+
+
+                Field 
+                  I 
+            ----------------
+            I              I
+           Text         Boolean 
+                           I 
+                    ----------------------
+                    I                    I 
+                 Checkbox               Radio
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+CRIAMOS OS ARQUIVOS PARA TUDO ISSO:
+
+
+
+
+Field.php 
+
+
+
+
+Boolean.php 
+
+
+Checkbox.php 
+
+
+Radio.php...
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+<?php
+
+
+
+namespace App;
+
+
+
+class Radio
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+TEMOS TODAS ESSAS CLASSES...
+
+
+
+
+
+
+
+
+
+
+-> ELAS ESTÃO ATUALMENTE EMPTY,
+
+
+
+    MAS O PROFESSOR VAI AS PREENCHENDO...
+
+
+
+
+
+
+
+    ELE TAMBÉM 
+
+    USA INHERITANCE 
+
+
+    COM TODAS ESSAS CLASSES,
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+namespace App;
+
+
+
+class Radio extends Boolean
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+e assim:
+
+
+
+
+
+
+
+
+<?php
+
+
+
+namespace App;
+
+
+
+class Boolean extends Field
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+e assim:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+namespace App;
+
+
+
+class Field
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO,
+
+O PROFESSOR COLOCA OS METHODS...
+
+
+
+
+
+
+
+
+
+
+ELE EXPLICA 
+
+
+
+QUE 'FIELD TERÁ ALGUMAS PROPERTIES QUE SERÃO COMPARTILHADAS 
+POR TODOS OS FIELDS, como 'name'''...
+
+
+
+
+
+
+
+
+
+-> POR ISSO DEFINIMOS 'name' como 1  das properties...
+
+
+
+
+
+
+
+
+--> O PROFESSOR USA A FEATURE DE PROPERTY PROMOTION, TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+
+
+namespace App;
+
+
+
+class Field
+{
+    public function __construct(protected string $name)
+    {
+
+    }
+
+
+    public function render(): string
+    {
+        return '';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O 'render()'
+
+
+SERÁ COLOCADO NOS OUTROS OBJECTS,
+
+PQ CADA OBJECT FARÁ O RENDER DE ALGO DIFERENTE...
+
+
+
+
+
+
+
+
+
+
+EM TEXT, ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+<?php
+
+
+
+namespace App;
+
+
+
+class Text extends Field
+{
+
+
+    public function render(): string
+    {
+        // HEREDOC SYNTAX
+        return <<<HTML
+        <input type="text" name="{$this->name}" value="" />
+HTML;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> com isso, usamos a syntax de heredocs...
+
+
+
+
+
+
+
+
+
+-> EM 1 APP DE VERDADE,
+
+
+    PROVAVELMENTE USARÍAMOS 1 VIEW FILE,
+
+    E AÍ 
+
+
+    RENDERIZARÍAMOS O CONTENT EM 1 STRING,
+
+    E AÍ 
+    RETORNARÍAMOS ESSA STRING...
+
+
+
+    MAS AQUI QUEREMOS DEIXAR AS COISAS SIMPLES... 
+
+
+
+
+
+
+
+
+
+--> NA CLASS DE CHECKBOX, ESCREVEMOS ASSIM:
+
+
+
+
+
+
+<?php
+
+
+
+namespace App;
+
+
+
+class Checkbox extends Boolean
+{
+
+
+    /// Overrides the 'Field' render() method
+    public function render(): string
+    {
+        // HEREDOC SYNTAX
+        return <<<HTML
+            <input type="checkbox" name="{$this->name}" value="" />
+    HTML;
+    }
+}
+
+
+
+
+
+
+
+
+EM RADIO:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+namespace App;
+
+
+
+class Radio extends Boolean
+{
+
+
+
+    /// Overrides the 'Field' render() method
+    public function render(): string
+    {
+        // HEREDOC SYNTAX
+        return <<<HTML
+            <input type="radio" name="{$this->name}" value="" />
+    HTML;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE HÁ VARIAS MANEIRAS DE HANDLAR TUDO ISSO...
+
+
+
+
+
+
+EM VEZ DE TER VÁRIAS CLASSES,
+
+VC 
+
+
+PODERIA ARMAZENAR O 'type'
+
+
+EM 1 PROPERTY,
+
+E AÍ 
+
+
+SIMPLESMENTE FAZER O RENDER CONSIDERANDO ESSA PROPERTY DE 'type'
+nos objects...
+
+
+
+
+
+
+
+
+
+
+-> MAS COMO CADA FIELD PODERÁ TER SUA PRÓPRIA LOGIC,
+    É MELHOR SEPARAR OS CONCERNS,
+
+
+    COLOCÁ-LOS EM SUAS PRÓPRIAS CLASSES,
+
+    MAIS ORGANIZADO,
+
+    MESMO QUE VC REPITA 1 POUCO DO CÓDIGO...
+
+
+
+
+
+
+
+    --> DESSA FORMA, VC TEM MAIS FLEXIBILIDADE 
+        E MAIS ESPAÇO PARA ADICIONAR 
+
+        AS 'FIELD-SPECIFIC FEATURES',
+
+        próprias de cada class/tipo de field...
+
+
+
+    
+
+
+
+
+
+-> ATÉ AGORA, NÃO USAMOS O ABSTRACT...
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE, EM index.php,
+
+
+
+ESCREVEMOS ASSIM:
+
+
+
+
+<?php
+
+
+require '../../vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+
+$fields = [
+    
+]
+
+
+
+ 
+
+
+
+
+
+
+
+
+-> BASICAMENTE, VAMOS CRIAR 1 ARRAY QUE VAI CONTER 1 INSTANCE DE CADA 1 DAQUELES FIELDS,
+
+TIPO ASSIM:
+
+
+
+
+<?php
+
+
+require '../../vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+
+$fields = [
+    new \App\Field('baseField'),
+    new \App\Text('textField'),
+    new \App\Boolean('booleanField'),
+    new \App\Checkbox('checkboxField'),
+    new \App\Radio('radioField')
+];
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA TEMOS 1 ARRAY DE 5 FIELDS,
+
+    SIM...
+
+
+
+
+
+
+
+
+
+-> VAMOS LOOPAR POR DENTRO DE CADA 1 DOS FIELDS,
+
+    E AÍ RODAR 'render()'
+
+    para printar cada HTML:
+
+
+
+
+
+
+
+
+<?php
+
+
+require '../../vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+
+$fields = [
+    new \App\Field('baseField'),
+    new \App\Text('textField'),
+    new \App\Boolean('booleanField'),
+    new \App\Checkbox('checkboxField'),
+    new \App\Radio('radioField')
+];
+
+
+foreach ($fields as $field) {
+    echo $field->render() . '<br />';
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COMO RESULTADO DISSO,
+
+    FICAMOS COM CADA 'FIELD' 
+
+    RENDERIZADO NO HTML...
+
+
+
+
+
+--> QUER DIZER QUE FUNCIONOU...
+
+
+
+
+
+
+
+
+
+-> SE ABRIMOS AS DEV TOOLS,
+    PERCEBEMOS QUE O ATTRIBUTE DE 'name'
+
+    FOI SETTADO ADEQUADAMENTE,,
+
+
+    E QUE CADA FIELD ESTÁ COM 1 TYPE diferente...
+
+
+
+
+
+
+
+
+
+-> CERTO... MAS, AQUI, TEMOS 1 PROBLEMA:
+
+
+
+
+
+''SOMOS CAPAZES DE CRIAR INSTANCES DAS 
+    CLASSES DE 'Base' e 'Boolean'... ''
+
+
+
+
+
+''MAS ESSAS CLASSES, POR SI SÓ,
+    NÃO DEVERIAM SER CAPAZES DE CRIAR FIELDS...''
+
+
+
+
+
+''NÃO QUEREMOS PERMITIR ISSO,
+    PQ O RENDER DE  'BASE' E 'BOOLEAN' 
+    FIELDS NÃO EXISTE... ESSE TIPO DE FIELDS 
+    N EXISTE NO HTML....
+
+
+    OS ÚNICOS TIPOS DE FIELD QUE EXISTEM NO HTML SÃO TEXT,
+    RADIO, CHECKBOX (e outros)...''
+
+
+
+
+
+--> PORTANTO, QUEREMOS RENDERIZAR 
+    APENAS AS CONCRETE CLASSES,
+
+    E NÃO 
+
+
+    ESSAS CLASSES 'TEMPLATE' (classes que providenciam a 'BASE' FUNCTIONALITY aos outros fields, que fazem extend delas)...
+
+
+
+
+
+
+
+
+
+
+
+--> É AQUI, PORTANTO,
+    QUE PODERÍAMOS USAR 'ABSTRACT CLASSES'...
+
+
+
+
+
+
+
+--> PARA TRANSFORMAR 1 CLASS EM 1 ABSTRACT CLASS,
+
+    BASTA ADICIONAR A KEYWORD DE 'abstract'
+
+
+    ao início de sua escrita,
+
+    tipo assim:
+
+
+
+
+
+
+<?php
+
+
+
+namespace App;
+
+
+// * ABSTRACT CLASS EXAMPLE
+abstract class Field
+{
+    public function __construct(protected string $name)
+    {
+
+    }
+
+
+    public function render(): string
+    {
+        return '';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+COM ISSO, COM ESSA MUDANÇA,
+
+
+NÃO CONSEGUIMOS MAIS CRIAR OBJECTS DESSA CLASS...
+
+
+
+
+
+
+
+
+
+--> LÁ NO INDEX.PHP,
+
+TEREMOS 1 UNDERLINE DE ERROR 
+
+por conta dessa escrita...
+
+
+
+
+
+
+
+
+
+Ex:
+
+
+
+
+
+<?php
+
+
+require '../../vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+
+$fields = [
+    // new \App\Field('baseField'),  // WILL error out, because we defined 'Field' as an abstract class (abstract classes cannot be instantiated)
+    new \App\Text('textField'),
+    new \App\Boolean('booleanField'),
+    new \App\Checkbox('checkboxField'),
+    new \App\Radio('radioField')
+];
+
+// Call render() method on each field:
+foreach ($fields as $field) {
+    echo $field->render() . '<br />';
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... MAS HÁ OUTRA COISA QUE PODEMOS FAZER,
+    EM 'Field'...
+
+
+
+
+
+
+-> 'Field' tem o method de 'render()',
+
+    SIM,
+
+
+    MAS ESSE METHOD APENAS FAZ O RETURN DE UMA EMPTY STRING:
+
+
+
+
+
+
+    public function render(): string
+    {
+        return '';
+    }
+
+
+
+
+
+
+
+
+
+
+--> COMO MENCIONAMOS ANTERIORMENTE,
+
+    VC PODE TER ____ABSTRACT METHODS_ TAMBÉM...
+
+
+
+
+
+
+
+
+----> ABSTRACT METHODS SEMPRE POSSUEM 
+        A DEFINITION, SEM A ACTUAL IMPLEMENTATION...
+
+
+
+
+--> E ESSE É O EXEMPLO PERFEITO...
+
+
+
+ 
+ PQ: 
+
+
+
+ '''WE KNOW THAT ALL THESE FIELDS MUST HAVE THE __RENDER()__ METHOD,
+    BUT WE DON'T KNOW HOW THEY WILL BE ACTUALLY IMPLEMENTED'' 
+
+    
+
+    (a actual implementation será escrita nas CHILD CLASSES, e não nas 
+    abstract classes)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> queremos FORÇAR cada CHILD 
+
+    a TER SEMPRE 1 METHOD DE 'render(){}' no interior... 
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA DEFINIR 1 METHOD, NA PARENT CLASS,
+    COMO 'abstract',
+
+
+    BASTA ADICIONAR A KEYWORD DE 'abstract'
+
+    ao início,
+
+    tipo assim:
+
+
+
+
+
+
+
+
+    abstract public function render(): string
+    {
+        return '';
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AQUI FICAMOS COM 1 ERROR... É 
+    PQ, QUANDO DEFINIMOS 1 METHOD COMO 'ABSTRACT',
+
+
+    SOMOS FORÇADOS 
+
+    A TER APENAS A METHOD SIGNATURE,
+
+    SEM A ACTUAL IMPLEMENTATION...
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+namespace App;
+
+
+// * ABSTRACT CLASS EXAMPLE
+abstract class Field
+{
+    public function __construct(protected string $name)
+    {
+
+    }
+
+    // * Abstract method (only the declaration/definition, without the implementation):
+    abstract public function render(): string;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, COM ESSA SIMPLES DECLARATION,
+    TODAS AS FILES QUE IMPLEMENTAREM 
+
+    A CLASS DE 'Field' 
+
+    PRECISARÃO 
+
+    IMPLEMENTAR O METHOD DE 'render()'...
+
+
+
+
+
+
+
+
+
+
+
+
+É POR ISSO QUE,
+
+LÁ 
+
+EM 'Text',
+
+
+
+
+TEMOS QUE TER O METHOD DE 'render()',
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+namespace App;
+
+
+
+class Text extends Field
+{
+
+    /// Overrides the 'Field' render() method
+    public function render(): string  // * as enforced by the 'render()' abstract method declaration in the 'Field' class.
+    {
+        // HEREDOC SYNTAX
+        return <<<HTML
+        <input type="text" name="{$this->name}" value="" />
+HTML; 
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OUTRO DETALHE:::
+
+
+
+
+
+''SE VC TEM PELO MENOS 1 ABSTRACT METHOD, DENTRO DE 1 CLASS,
+    __ A CLASS INTEIRA __ DEVE, OBRIGATORIAMENTE,
+
+    SER DECLARADA COMO 'abstract'...
+'' 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS TAMBÉM ESTÁVAMOS/ESTAMOS RECEBENDO 1 ERROR 
+
+LÁ DA CLASS DE 'Boolean'...
+
+
+
+
+
+
+
+--> A CLASS DE BOOLEAN ESTÁ RECEBENDO 1 ERROR 
+
+    PQ _ ELA TAMBÉM NÃO TEM O METHOD DE 'render()'
+
+    escrito dentro dela... 
+
+
+
+
+    EX:
+
+
+
+
+
+<?php
+
+
+
+namespace App;
+
+
+
+class Boolean extends Field
+{
+
+}
+
+
+
+
+
+
+
+
+
+--> PARA RESOLVER ISSO, TEMOS 2 OPÇÕES:
+
+
+
+
+
+
+
+1) definir 1 implementation de 'render()', dentro dessa class...
+
+
+
+2) definir a class inteira de 'Boolean' como ABSTRACT...
+
+
+
+
+
+
+
+
+-> NO CASO, A MELHOR SOLUÇÃO É A 2,
+
+PQ ESSA TAMBÉM É UMA ESPÉCIE DE 'BASE CLASS',
+
+
+também 
+
+é um tipo de class abstrata,
+
+pq 
+
+NÃO EXISTE NENHUM TIPO DE 'BOOLEAN INPUT' 
+
+em HTML...
+
+
+
+
+
+-> deixamos essa class como 'Boolean',
+
+e aí 
+
+tiramos 
+
+a instanciação do 'Boolean' 
+
+
+
+lá no index.php...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FICA TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+require '../../vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+
+$fields = [
+    // new \App\Field('baseField'),  // * WILL error out, because we defined 'Field' as an abstract class (abstract classes cannot be instantiated)
+    new \App\Text('textField'),
+    // new \App\Boolean('booleanField'), // * WILL error out, because we defined 'Boolean' as an abstract class (abstract classes cannot be instantiated)
+    new \App\Checkbox('checkboxField'),
+    new \App\Radio('radioField')
+];
+
+// Call render() method on each field:
+foreach ($fields as $field) {
+    echo $field->render() . '<br />';
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... COM ISSO, TUDO VOLTOU AO NORMAL...
+
+
+
+
+
+
+
+
+
+
+
+TEMOS TODOS OS FIELDS,
+
+
+MAS AGORA 
+
+USANDO
+ 
+ ABSTRACT CLASSES...
+
+
+
+
+
+
+
+
+
+ -> HÁ TAMBÉM OUTRO DETALHE:
+
+
+
+
+ '''METHODS QUE VC ESTÁ OVERRIDING NA CHILD CLASS 
+    NÃO PODEM ACTUALLY TER ARGUMENTS ADICIONAIS, 
+    se vc não definir DEFAULT VALUES...''
+
+
+
+    (e isso se aplica À implementation de abstract methods também... )
+
+
+
+
+
+EX:
+
+
+
+
+<?php
+
+
+
+namespace App;
+
+
+
+class Text extends Field
+{
+
+    /// Overrides the 'Field' render() method
+    public function render($x = 0): string  /// ISTO FUNCIONARÁ
+    {
+        // HEREDOC SYNTAX
+        return <<<HTML
+        <input type="text" name="{$this->name}" value="" />
+HTML;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+isso funcionará:
+
+
+
+    public function render($x = 0): string  /// ISTO FUNCIONARÁ
+
+
+
+
+
+
+--> FUNCIONARÁ PQ VC ESTÁ COM 1 DEFAULT VALUE DE '0'...
+    
+
+    se vc n tiver esse default value, vc ficará com 1 error:
+
+
+
+
+
+    public function render($x): string  /// ISTO NÃO FUNCIONARÁ
+
+
+
+
+
+
+
+
+
+
+
+
+-> OUTRA COISA QUE DEVEMOS SABER É QUE 
+    A VISIIBLITY DE ABSTRACT METHODS PODE SER OU 
+
+    'PUBLIC' OU 'PROTECTED'...
+
+    MAS ELES NÃO PODEM SER  'PRIVATE'...
+
+
+
+
+
+
+QUER DIZER QUE VC N PODE ESCREVER ASSIM:
+
+
+
+
+
+    private function render($x = 0): string  /// ISTO FUNCIONARÁ
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FAZ SENTIDO PQ 'private methods' naõ podem ser overwrittados...
+
+se vc pudesse colocar 'private' em abstract methods, vc nao poderia 
+overwrittar esses 'abstract methods'
+nas child classes 
+
+que inheritam a ABSTRACT class com esses abstract methods,
+
+O QUE 
+
+DERROTARIA TODO O PROPÓSITO DAS ABSTRACT CLASSES (Que é o ENFORCE do write 
+da IMPLEMENTATION dos abstract methods, lá nas child classes...)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> E É POR ISSO QUE ABSTRACT METHODS DEVEM SER PROTECTED OU PUBLIC...
+
+
+
+
+
+
+
+
+
+--> ok... mas quando vc usaria 1 abstract class?
+
+
+
+
+
+
+
+
+
+
+--> VC USARIA ABSTRACT CLASSES QUANDO VC QUER 
+FORÇAR AS CHILD CLASSES 
+A 
+
+__ IMPLEMENTAR OS METHODS,
+
+ENQUANTO VC PROVIDENCIA 
+
+UMA 'BASE FUNCTIONALITY'
+
+a sua abstract class...
+
+
+
+
+
+
+
+''BASE FUNCTIONALITY'' --> podemos ter tanto 
+                            abstract como 
+                            regular methods 
+                            em 1 
+
+                            abstract class...
+
+
+                            -> podemos ir escrevendo os methods 'as we go',
+                                e as child classes vão se aproveitando 
+                                de esses methods que vão sendo codados...
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS O PROFESSOR APONTA:
+
+
+
+'''SE VC TEM MTOS ABSTRACT METHODS 
+    DENTRO DA SUA ABSTRACT CLASS,
+    TALVEZ SEJA MELHOR USAR UMA __INTERFACE__,
+
+    E NÃO 1 ABSTRACT CLASS COM ABSTRACT METHODS...''
+
+
+
+
+
+
+--> VEREMOS INTERFACES NA PRÓXIMA AULA...
