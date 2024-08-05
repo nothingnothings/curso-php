@@ -1,0 +1,3902 @@
+
+
+
+
+
+
+
+
+
+--> OK...
+
+
+
+
+
+
+
+
+--> INTERFACES SÃO COMO 'CONTRATOS'...
+
+
+
+ 
+ --> SÃO COMO CONTRATOS EM QUE VC DEFINE TODAS 
+    AS ACTIONS/METHODS QUE 
+
+    1 OBJECT DEVE TER...
+
+
+
+
+
+
+
+
+
+
+--> VEREMOS AS INTERFACES COM 1 EXEMPLO NÃO TÉCNICO:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+(CREDITOR) ------------------->  DEBTOR 
+
+
+
+
+
+
+
+
+
+
+
+-> DIGAMOS QUE 1 PESSOA TE DEVE DINHEIRO...
+
+
+
+
+    VC VAI TENTAR COBRAR ESSE DÉBITO VC MESMO...
+
+
+
+
+
+
+
+    MAS SE VC N TEM SUCESSO,
+    VC VAI PROVAVELMENTE 
+
+    CONTRATAR 1 COMPANHIA 
+    QUE 
+
+    VAI 
+
+
+    COLETAR ESSE DÉBITO,
+
+    POR MEIO DE ALGUMA FEE/COMISSION...
+
+
+
+
+
+
+
+
+
+
+
+->_ MAS QUANDO VC CONTRATA 1 DEBT COLLECTOR,
+    VC NÃO SE IMPORTA COM A MANEIRA PELA QUAL 
+
+    ELES VÃO RECUPERAR O DINHEIRO DO CARA....
+
+
+
+    A ÚNICA COISA QUE TE INTERESSA É QUE VC VAI CONSEGUIR 
+
+    O DINHEIRO DE VOLTA...
+
+
+
+
+
+
+
+
+
+
+--> EXISTEM MÚLTIPLOS TIPOS DE DEBT COLLECTOR,
+    E CADA 1 POSSUI SEUS PRÓPRIOS MÉTODOS 
+    PARA COLETAR 
+
+    __ O DÉBITO... -> ALGUNS LEGAIS, OUTROS ILEGAIS...
+
+
+
+
+
+
+
+
+---> VC NÃO SE INTERESSA COM A MANEIRA PELA QUAL 
+    ELES REALIZAM O JOB,
+
+    DESDE QUE ELES CONSIGAM O RESULTADO...
+
+
+
+
+
+
+
+
+
+
+
+
+-> E ESSA É UMA INTERFACE, BASICAMENTE...
+
+
+
+
+VC PROVIDENCIA 
+
+
+''INSTRUCTIONS ON WHAT NEEDS TO BE DONE'',
+
+
+
+MAS 
+
+VC NÃO PROVIDENCIA 
+
+
+''THE ACTUAL IMPLEMENTATION ON HOW IT IS DONE''...
+
+
+
+
+
+
+
+
+
+
+--> A PARTE DO 'HOW' DEPENDE 
+    DA IMPLEMENTATION CONCRETA DESSA INTERFACE...
+
+
+
+
+
+
+
+--> A PRIMEIRA COISA QUE TEMOS QUE FAZER, AQUI, É CRIAR 1 INTERFACE...
+
+
+
+
+
+
+
+
+
+
+
+COMEÇAMOS COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+<?php
+
+
+require_once '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A PRIMEIRA COISA QUE VAMOS FAZER É CRIAR 1 INTERFACE...
+
+
+
+
+
+
+
+
+
+
+CRIAMOS INTERFACES DE 1 JEITO BEM PARECIDO COM O JEITO 
+
+DE CRIAR CLASSES...
+
+
+
+
+
+
+--> MAS UMA DIFERENÇA É QUE 
+
+USAMOS 
+
+A KEYWORD DE 'interface'....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É CRIAMOS UMA INTERFACE, DE NOME 'DebtCollector'...
+
+
+
+
+
+
+
+
+
+-> ALGUNS DEVELOPERS GOSTAM DE COLOCAR 'xxInterface'
+
+no final 
+
+do nome das interfaces,
+
+
+mas isso 
+
+é opcional, e o professor não faz isso...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+<?php
+
+
+
+
+
+interface DebtCollector
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... AÍ ADICIONAMOS O METHOD 
+    QUE VAI 'COLLECT THE DEBT'...
+
+
+
+
+
+
+
+
+
+-> QUEREMOS GARANTIR QUE CLASSES CONCRETAS,
+    QUE IMPLEMENTAM ESSA INTERFACE,
+
+
+    PROVIDENCIARÃO A IMPLEMENTATION PARA ESSE METHOD...
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+
+interface DebtCollector
+{
+
+    public function collect(float $owedAmount): float;   // We want the child classes to implement this method, concretely.
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+DIGAMOS QUE ESTAMOS TRABALHANDO
+
+
+
+COM 1 'CollectionAgency',
+
+QUE 
+
+VAI 
+
+SER 
+
+
+A NOSSA ACTUAL CONCRETE CLASS, que vai implementar 
+
+os methods definidos na interface...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> DEPOIS DE DEFINIRMOS ESSA CLASS,
+
+    PARA IMPLEMENTARMOS A INTERFACE NESSA CLASS,
+
+    PRECISAMOS 
+
+
+
+    DA KEYWORD DE 'implements' + o nome da interface...
+
+
+
+
+
+
+
+
+
+-> NO CASO,
+
+ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+namespace App3;
+
+
+
+class CollectionAgency implements DebtCollector
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+ao escrevermos/implementarmos essa interface na 'CollectionAgency',
+
+
+
+FICAMOS COM 1 MARCAÇÃO DE ERRO NESSA NOSSA CLASSE... ISSO 
+
+ACONTECE/ACONTECEU 
+
+
+PQ 
+
+
+O NOSSO IDE ESTÁ 
+
+NOS COMUNICANDO QUE 
+
+'FALTAM METHODS DA INTERFACE NESSA NOSSA CLASS'...
+
+
+
+
+
+
+
+
+
+
+-> NO CASO, FALTA ESCREVERMOS O METHOD DE 'collect()',
+    que havia sido definido na interface de 'DebtCollector'...
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php
+
+
+
+
+namespace App3;
+
+
+
+class CollectionAgency implements DebtCollector
+{
+
+    public function collect(float $owedAmount): float
+    {
+        return $owedAmount * 0.5;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+AO TERMINARMOS DE ESCREVER ESSE METHOD,
+
+O ERRO SOME...
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''THAT'S ONE OF THE RULES OF INTERFACES: 
+    ALL _ THE METHODS THAT ARE DECLARED IN THE INTERFACE 
+
+    MUST BE IMPLEMENTED IN THE CONCRETE CLASSES THAT IMPLEMENT 
+    THAT INTERFACE...''''
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS AGORA DEVEMOS VER OUTRAS RULES DE INTERFACES...
+
+
+
+
+
+
+
+
+
+2a REGRA)  '''ALL METHODS DECLARED WITHIN INTERFACES 
+             __ MUST__ BE PUBLIC...'''
+
+
+             '''THIS MEANS THAT YOU CANNOT HAVE PRIVATE/PROTECTED METHODS...
+                ALL OF THEM __ MUST__ BE PUBLIC''...
+
+
+            
+
+                DE FORMA SIMILAR A 'INHERITANCE',
+                AS MESMAS REGRAS DE COMPATIBILIDADE DE 
+                'SIGNATURE COMPATIBILITY' DE METHODS 
+                ENTRE CHILD E PARENT CLASSES TAMBÉM 
+
+                SE APLICAM A INTERFACES E CHILD CLASSES 
+                QUE AS IMPLEMENTAM...
+
+            
+
+
+            --> MAS VC PODE FORÇAR CONCRETE CLASSES A TEREM 
+                MAGIC METHODS (methods com '__xxx()') 
+
+
+
+                    POR EXEMPLO,
+                    DIGAMOS QUE QUEREMOS QUE A CLASS 
+                    DE 'CollectionAgency'
+                    TENHA 1 CONSTRUCTOR...
+
+
+
+
+                    --> PARA ISSO, PODEMOS DECLARAR, NA INTERFACE,
+                    A NECESSIDADE DE 1 CONSTRUCTOR,
+
+                    COM ESTE CÓDIGO:
+
+
+
+<?php
+
+
+namespace App3;
+
+
+// * Interface example:
+interface DebtCollector
+{
+    public function __construct(); // * Forces the child classes to implement this magic method (this means that magic methods can also be enforced).
+
+
+
+
+    public function collect(float $owedAmount): float;   // We want the child classes to implement this method, concretely.
+}
+
+
+
+
+
+
+
+
+
+
+
+LÁ NA 'CollectionAgency', A 'CONCRETE CLASS' QUE IMPLEMENTOU ESSA INTERFACE,
+
+SOMOS FORÇADOS A ESCREVER ASSIM:
+
+
+
+
+
+
+
+<?php
+
+
+
+
+namespace App3;
+
+
+
+class CollectionAgency implements DebtCollector
+{
+
+    public function __construct()
+    {
+        echo "A print";
+    }
+
+
+
+    public function collect(float $owedAmount): float
+    {
+        return $owedAmount * 0.5;
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, O ERRO SOME...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+3a REGRA) COM INHERITANCE, 
+            __ VC SÓ PODE FAZER O EXTEND DE 1 ÚNICA CLASS POR VEZ...
+
+
+
+
+            ENTRETANTO, COM 'interfaces',
+            VC PODE __ FAZER O IMPLEMENT DE MÚLTIPLAS INTERFACES AO MESMO 
+            TEMPO...
+
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE PODEMOS ESCREVER ALGO ASSIM:
+
+
+
+
+
+
+
+class CollectionAgency implements DebtCollector, LoanShark, ComplaintCollector {
+
+}
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+
+E AÍ, QUANDO VC IMPLEMENTA MÚLTIPLAS INTERFACES,
+
+VC É FORÇADO A IMPLEMENTAR TODOS OS METHODS DECLARADOS, EM CADA 1 DAS INTERFACES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php
+
+namespace App3;
+
+
+interface AnotherInterface
+{
+
+    public function foo(): void;
+}
+
+
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+namespace App3;
+
+
+
+class CollectionAgency implements DebtCollector, AnotherInterface
+{
+
+    public function __construct()
+    {
+        echo "A print";
+    }
+
+
+
+    public function collect(float $owedAmount): float
+    {
+        return $owedAmount * 0.5;
+    }
+
+    public function foo(): void
+    {
+        echo 'foo';
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ISSO FAZ TOTAL SENTIDO...
+
+
+
+
+
+
+
+-> VC PODE FICAR COM ERRORS SE AS SIGNATURES NÃO SÃO COMPATÍVEIS...
+
+
+
+
+
+
+
+
+
+--> MAS SE AS SIGNATURES DOS METHODS DAS SUAS INTERFACES    
+SÃO AS MESMAS,
+
+VC NÃO VAI RECEBER 1 ERRO, E TUDO VAI FUNCIONAR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+4a REGRA) A KEYWORD 'extends' pode ser usada, 
+        COM INHERITANCE, PARA FAZER EXTEND DE 1 ÚNICA CLASS...
+
+
+
+
+
+
+        --> MAS A KEYWORD DE 'extends' PODE SER 
+            USADA, EM UMA INTERFACE,
+
+            PARA __ FAZER__ 
+
+            O EXTEND DE MÚLTIPLAS INTERFACES AO MESMO TEMPO...
+
+
+
+
+
+
+
+
+
+-> DIGAMOS QUE QUEREMOS QUE A INTERFACE 
+DE 'DebtCollector'
+
+
+
+FAÇA O 
+
+
+
+EXTEND DE 1 OU MAIS INTERFACES (herdar as coisas dessas interfaces)...
+
+
+
+
+
+
+
+É POR ISSO QUE ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+namespace App3;
+
+
+// * Interface example:
+interface DebtCollector extends AnotherInterface, SomeOtherInterface
+{
+    public function __construct(); // * Forces the child classes to implement this magic method (this means that magic methods can also be enforced).
+
+
+
+
+    public function collect(float $owedAmount): float;   // We want the child classes to implement this method, concretely.
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O QUE VAI ACONTECER, COM ISSO,
+
+É:
+
+
+''QUALQUER CONCRETE CLASS QUE IMPLEMENTAR A INTERFACE DE 
+
+'DebtCollector' 
+
+TERÁ 
+
+DE SATISFAZER O QUE FOI DECLARADO TAMBÉM NA INTERFACE DE 'SomeOtherInterface'..
+
+
+
+
+
+
+
+
+
+
+
+O CÓDIGO DE 'SomeOtherInterface' OBRIGA A DEFINIÇÃO DE 1 METHOD DE 'bar()',
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+
+
+namespace App3;
+
+interface SomeOtherInterface
+{
+    public function bar(): void;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É POR ISSO QUE NOSSA CLASS DE 'CollectionAgency'
+
+FICOU COM ESTE CÓDIGO, com tanto foo() (que foi enforced pela interface de 'AnotherInterface')
+
+como bar() (que foi enforced pela interface de 'SomeOtherInterface')..
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+<?php
+
+
+
+
+namespace App3;
+
+
+
+class CollectionAgency implements DebtCollector, AnotherInterface
+{
+
+    public function __construct()
+    {
+        echo "A print";
+    }
+
+
+
+    public function collect(float $owedAmount): float // enforced by the DebtCollector interface.
+    {
+        return $owedAmount * 0.5;
+    }
+
+    public function foo(): void // enforced by the AnotherInterface interface.
+    {
+        echo 'foo';
+    }
+
+    public function bar(): void // enforced by the SomeOtherInterface interface.
+    {
+        echo 'bar';
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+MAS OUTRA COISA QUE DEVEMOS SABER É:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+5a REGRA) YOU _ CANNOT_ HAVE 
+            _PROPERTIES__ INSIDE OF INTERFACES....
+
+
+            BUT __ YOU CAN HAVE_ CONSTANTS...
+
+
+
+
+
+
+
+--> EM DEBTCOLLECTOR,
+
+
+NÃO PODEMOS TER ALGO ASSIM:
+
+
+
+
+
+
+<?php
+
+
+namespace App3;
+
+
+// * Interface example:
+interface DebtCollector extends AnotherInterface, SomeOtherInterface
+{
+    public int $x; // THIS IS NOT ALLOWED
+
+
+    public function __construct(); // * Forces the child classes to implement this magic method (this means that magic methods can also be enforced).
+
+
+
+
+    public function collect(float $owedAmount): float;   // We want the child classes to implement this method, concretely.
+}
+
+
+
+
+
+
+
+
+MAS PODEMOS TER ALGO ASSIM:
+
+
+
+
+
+
+
+
+
+// * Interface example:
+interface DebtCollector extends AnotherInterface, SomeOtherInterface
+{
+    // public int $x; // ! THIS IS NOT ALLOWED (properties are not allowed in interfaces).
+
+    public const MY_CONSTANT = 1; // * But this is allowed (constants are allowed in interfaces).
+
+
+    public function __construct(); // * Forces the child classes to implement this magic method (this means that magic methods can also be enforced).
+
+
+
+
+    public function collect(float $owedAmount): float;   // We want the child classes to implement this method, concretely.
+}
+
+
+
+
+----------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CONSTANTS PODEM SER DEFINIDAS EM INTERFACES,
+
+
+E 
+
+
+'''CONSTANTS DEFINED IN INTERFACES __ CANNOT _ BE OVERRIDEN''...
+
+
+
+
+
+
+
+
+
+ISSO É DIFERENTE DAS CONSTANTS DEFINIDAS EM CLASSES,
+
+
+PQ AS CONSTANTS DE CLASSES (class constants)
+
+PODEM SER __ OVERRIDEN 
+
+
+NAS CHILD CLASSES...
+
+
+
+
+
+
+
+
+----------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA QUE JÁ VIMOS A TEORIA,
+
+
+
+DEVEMOS _ ACTUALLY IMPLEMENTAR 1 METHOD E CONTINUAR COM O CÓDIGO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR CONTINUA COM O METHOD DE 'collect()'....
+
+
+
+
+ 
+ TEMOS ESTE CÓDIGO:
+
+
+
+ 
+    public function collect(float $owedAmount): float // enforced by the DebtCollector interface.
+    {
+        return $owedAmount * 0.5;
+    }
+
+
+
+
+
+
+
+
+MAS ELE DEVE FAZER OUTRAS COISAS...
+
+
+
+
+
+
+
+
+--> COMO MENCIONADO,
+  
+
+
+    PODEMOS PENSAR EM DIFERENTES MANEIRAS 
+    DE COLETAR DEBT...
+
+
+
+
+
+    -- TALVEZ 1 CALL A 1 THIRD PARTY API,
+
+        OU ENTÃO ALGUMA OUTRA BUSINESS LOGIC...
+
+
+
+
+
+
+
+
+
+    --> VAMOS SIMULAR ISSO, POR ENQUANTO,  POR MEIO DE UM RANDOM 
+        NUMBER GENERATOR...
+
+
+
+
+
+
+
+     --> DEVEMOS CONSIDERAR QUE 
+
+
+
+
+
+     ''''' THIS COLLECTION AGENCY GUARANTEES THAT THEY WILL
+          COLLECT AT LEAST 50% OF THE OWED AMOUNT'''...
+
+        
+
+
+
+
+
+
+
+
+--> PARA ISSO,
+
+
+ESCREVEMOS:
+
+
+
+
+$guaranteed = $owedAmount * 0.5;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, USAMOS A FUNCTION DE 'mt_rand()',
+
+
+
+QUE É UMA VERSÃO MELHOR DE 'rand()', mais rápida:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public function collect(float $owedAmount): float // enforced by the DebtCollector interface.
+    {
+        $guaranteed = $owedAmount * 0.5;
+
+        return mt_rand($guaranteed, $owedAmount);
+    }
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+    public function collect(float $owedAmount): float // enforced by the DebtCollector interface.
+    {
+        $guaranteed = $owedAmount * 0.5;
+
+        return mt_rand($guaranteed, $owedAmount);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... MAS AQUI TEMOS 1 DETALHE:
+
+
+
+''mt_rand ACCEPTS INTEGERS __ AS THE ARGUMENT... AND WE ARE PASSING 
+FLOATS''...
+
+
+
+
+--> MAS ISSO É OK, AQUI,
+    PQ  __ NÃO ESTAMOS USANDO __ STRICT _TYPES 
+
+    (com declare(strict_types=1)),
+
+
+    MAS SE 
+
+    ESTIVÉSSEMOS USANDO STRICT TYPES,
+
+
+    TERÍAMOS 
+
+    DE ASSEGURAR QUE 
+
+
+    ESTARÍAMOS 
+
+    PASSANDO 1 INTEGER, E NÃO UM FLOAT...
+
+
+
+
+
+
+
+
+
+-> CERTO, MAS, POR ENQUANTO,
+
+    NÃO PRECISAMOS DOS STRICT TYPES, PARA ESSE EXEMPLO...
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ EM INDEX.PHP,
+
+
+CRIAMOS UMA INSTANCE DE 'CollectionAgency()',
+
+
+e aí chamamos 'collect()',
+
+
+para então PRINTAR ESSE VALUE...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+require '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+
+$collector = new \App3\CollectionAgency();
+
+
+echo $collector->collect(400); // the owed amount is 400, the guaranteed amount (least) is 200.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E ISSO REALMENTE FUNCIONOU, FIQUEI COM 1 PRINT DE 343...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ISSO FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+MAS QUAL É O PROBLEMA QUE ESTAMOS TENTANDO RESOLVER??
+
+
+
+
+
+
+
+
+NA VERDADE, QUAL É O PROBLEM QUE A INTERFACE RESOLVE?
+
+
+
+
+(pq, até agora, não encontramos issue alguma)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O QUE FAREMOS, AGORA, É INTRODUZIR UM ___PROBLEMA_ NO CÓDIGO...
+
+
+
+
+    UM PROBLEMA, PARA QUE ENTÃO CONSIGAMOS COMPREENDER 
+
+    A UTILIDADE 
+
+    DE INTERFACES,
+
+    E QUAIS 
+
+    PROBLEMAS 
+
+    ELAS AJUDAM A RESOLVER...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, PRECISAMOS DE 1 METHOD QUE 
+    EXIJA 
+
+    A INTERFACE de 'DebtCollector'
+
+
+    COMO ARGUMENTO...
+
+
+
+
+
+
+
+--> PODE SER OUTRA CLASS, OU ENTÃO 
+    1 SERVICE CLASS...
+
+
+
+
+
+
+
+--> OK... PARA ISSO, CRIAMOS 1 NOVA CLASS,
+    DE NOME 'DebtCollectionService'...
+
+
+
+
+
+
+
+
+
+--> DENTRO DA CLASS, TEREMOS 1 METHOD QUE VAI COLETAR DEBT,
+
+de nome 'collectDebt'...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+namespace App3;
+
+
+// This class will show the usefulness of interfaces to avoid problems in the code.
+class DebtCollectionService
+{
+
+
+    public function collectDebt(CollectionAgency $collector)
+    {
+
+    }
+}
+
+
+
+
+
+
+
+
+O OBJETIVO DESSE METHOD É:
+
+
+
+
+1) FIGURE OUT HOW MUCH IS OWED 
+
+
+
+
+2) THEN, CALL THE 'collect' method, in the '$collector' (which will be the CollectorAgency instance)..
+
+
+
+3) FINALLY, DO SOME PROCESSING...
+
+
+
+
+
+
+
+
+
+
+--> POR ENQUANTO, APENAS PRINTAREMOS NA TELA 'HOW MUCH OF THE DEBT WAS COLLECTED'...
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+    public function collectDebt(CollectionAgency $collector)
+    {
+        $owedAmount = mt_rand(100, 1000); // RANDOM VALUE BETWEEN 100 and 1000.
+    }
+
+
+
+
+
+
+
+
+
+
+
+--> o owedAmount será 
+
+1 value entre 100 e 1000...
+
+
+
+
+
+
+
+DEPOIS DISSO,
+
+TEREMOS A VARIABLE DE '$collectedAmount',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+    public function collectDebt(CollectionAgency $collector)
+    {
+        $owedAmount = mt_rand(100, 1000); // RANDOM VALUE BETWEEN 100 and 1000.
+
+        $collectedAmount = $collector->collect($owedAmount);
+    }
+
+
+
+
+
+
+
+TIPO ALGO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+namespace App3;
+
+
+// This class will show the usefulness of interfaces to avoid problems in the code.
+class DebtCollectionService
+{
+
+    // Will: 1) FIGURE OUT HOW MUCH IS OWED; 2) CALL THE collect method, in the $collector object; 3) RUN SOME PROCESSING
+    public function collectDebt(CollectionAgency $collector): void
+    {
+        $owedAmount = mt_rand(100, 1000); // RANDOM VALUE BETWEEN 100 and 1000.
+
+        $collectedAmount = $collector->collect($owedAmount);
+
+        echo "The collected amount is {$collectedAmount}.";
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+LÁ NO INDEX.PHP,
+
+
+REAJUSTAMOS NOSSO CÓDIGO,
+
+PARA APENAS CHAMAR ESSE 'DebtCollectionService()'....
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+require '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+
+$collector = new \App3\CollectionAgency();
+
+$service = new \App3\DebtCollectionService();
+
+$service->collectDebt($collector);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AO RECARREGAR, TUDO FUNCIONA COMO ANTES...
+
+
+
+
+
+
+PRINTOU ISTO:
+
+-> '' The collected amount is 601. ''
+
+
+
+
+
+
+
+
+
+
+
+
+-> COMO TUDO ESTÁ FUNCIONANDO,
+    QUAL É O PROBLEMA QUE ESTAMOS TENTANDO RESOLVER?
+
+
+
+
+
+
+--> O PROBLEMA ESTÁ NA FUNCTION DE 'collectDebt()', lá em 
+'DebtCollectionService':
+
+
+
+
+
+
+
+
+
+
+   
+    public function collectDebt(CollectionAgency $collector): void
+    {
+        $owedAmount = mt_rand(100, 1000); // RANDOM VALUE BETWEEN 100 and 1000.
+
+        $collectedAmount = $collector->collect($owedAmount);
+
+        echo "The collected amount is {$collectedAmount}.";
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROBLEMA, NO CASO,
+
+É QUE ESTAMOS SENDO MT ESPECÍFICOS 
+
+QUANTO à IMPLEMENTATION DE 'collectDebt()'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+''MUITO ESPECÍFICOS''' -> mt específicos PQ ESTAMOS DIZENDO   QUE 
+                                ESSA FUNCTION DEVE EXIGIR 1 PARAMETER 
+
+                                DE TIPO 'CollectionAgency'...
+
+
+
+                        
+
+                        --> OU SEJA,
+
+                            ESTAMOS SENDO __ BEM ESPECÍFICOS 
+
+                            SOBRE 'O TIPO DE IMPLEMENTATION DA DEBT 
+                            COLLECTING' que deverá ser aceito...
+
+
+
+
+
+                    --> o problema, aqui, surge se,
+
+
+                        ''DOWN THE ROAD'',
+
+                        NÓS 
+
+                        DECIDIRMOS QUE O DEBT COLLECTOR ATUAL NÃO ESTÁ 
+                        MT BOM,
+
+                        E QUE SERIA MELHOR 
+
+                        OUTRO DEBT COLLECTOR... 
+
+
+
+                        EX: ''QUEREMOS QUE O ROCKY, O LUTADOR, FAÇA O COLLECT 
+                                DE NOSSO DEBT''...
+                            
+
+
+                            ---> EM CASOS COMO ESSE,
+                                SERÍAMOS FORÇADOS A UPDATAR 
+                                1 MONTE 
+
+
+                                DE CÓDIGO,
+
+                                PQ 
+
+                                a 'CollectionAgency'
+
+                                inteira teria de mudar,
+
+
+
+
+                                E A CODEBASE SERIA BEM MAIS DIFÍCIL 
+                                DE SER MANTIDA...
+
+
+
+
+
+
+
+                --> PARA DEMONSTRAR ESSE PROBLEMA,
+                    O PROFESSOR CRIA OUTRA 
+
+                    CLASS DE 'DebtCollector',
+
+
+                    MAS DESSA VEZ CHAMADA 
+
+                    DE 
+
+                    'RockyDebtCollector'...
+
+
+
+
+
+            --> POR ROCKY SER OUTRO TIPO DE 'DebtCollector',
+
+            PODEMOS FAZER IMPLEMENT DA INTERFACE DE 'DeptCollector',
+
+            sem problema algum...
+
+
+
+
+        EX:
+
+
+    
+
+
+
+
+
+
+<?php
+
+
+
+namespace App3;
+
+
+class RockyTheDebtCollector implements DebtCollector
+{
+    public function __construct()
+    {
+        echo "";
+    }
+
+    public function collect(float $owedAmount): float
+    {
+        return $owedAmount * 0.5;
+    }
+
+    public function foo(): void
+    {
+        echo 'foo';
+    }
+
+    public function bar(): void
+    {
+        echo 'bar';
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+CONFORME O PROFESSOR HAVIA MENCIONADO,
+
+
+
+
+'''CADA TIPO DE DEBT COLLECTOR PODE TER 1 MANEIRA DIFERENTE DE FAZER 'collect'
+    do debt...''
+
+
+
+    ''no caso do rocky,
+    esse collect NÃO SERÁ O MESMO 
+
+    da 'CollectionAgency', por exemplo''...
+
+
+
+
+
+
+    NA COLLECTION AGENCY,
+
+
+    NOSSO METHOD DE 'collect' era este:
+
+
+
+
+
+    public function collect(float $owedAmount): float // enforced by the DebtCollector interface.
+    {
+        $guaranteed = $owedAmount * 0.5;
+
+        return mt_rand($guaranteed, $owedAmount);
+    }
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+MAS NO 'rocky',
+
+
+
+
+O METHOD PODE SER DIFERENTE... DIGAMOS QUE ELE SEMPRE COLETA 65% DO DEBT,
+
+TIPO ASSIM:
+
+
+
+
+
+
+    public function collect(float $owedAmount): float
+    {
+        return $owedAmount * 0.65;
+    }
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, LÁ EM 'index.php',
+
+
+
+PODEMOS TENTAR SUBSTITUIR 
+
+
+
+
+AQUELA LINHA DE 
+
+
+
+''
+
+
+$collector = new \App3\CollectionAgency();
+
+
+''
+
+
+
+
+
+
+
+
+
+POR 1 CALL DE 'Rocky',
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+
+$collector = new \App3\RockyTheDebtCollector();
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ, NESSE CASO, O CÓDIGO INTEIRO FICARIA ASSIM:
+
+
+
+
+
+
+
+
+$collector = new \App3\RockyTheDebtCollector();
+
+
+$service = new \App3\DebtCollectionService();
+
+$service->collectDebt($collector);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... MAS QUANDO FAZEMOS ISSO,
+    JÁ FICAMOS COM 1 ERROR/PROBLEMA:
+
+
+
+
+''''
+
+Argument '1' passed to collectDebt() is expected 
+to be of type App3\CollectionAgency, App3\RockyTheDebtCollector givenPHP(PHP0406)
+
+'''
+
+
+
+
+
+
+
+--> OU SEJA,
+    FICAMOS COM ESSE ERROR AÍ,
+
+    ERROR DIZENDO QUE '''O TYPE ERRADO FOI PASSADO'''...
+
+
+
+
+
+
+
+
+ISSO OCORREU PQ, NO CASO,
+
+
+
+O TIPO DE OBJECT QUE FOI PERMITIDO,
+
+LÁ 
+
+
+NO METHOD DE 'collect()',
+
+
+ERA 
+
+
+
+'CollectionAgency '',
+
+
+
+
+
+E NÓS 
+
+ACABAMOS PASSANDO 'RockyTheDebtCollector',
+
+
+
+QUE __ NÃO É A MESMA COISA/OBJECT QUE 
+
+
+A 'CollectionAgency'... NÃO É O MESMO TIPO DE DEBT COLLECTOR...
+
+
+
+
+
+
+
+
+
+
+METHOD COMPLETO:
+
+
+
+
+    public function collectDebt(CollectionAgency $collector): void
+    {
+        $owedAmount = mt_rand(100, 1000); // RANDOM VALUE BETWEEN 100 and 1000.
+
+        $collectedAmount = $collector->collect($owedAmount);
+
+        echo "The collected amount is {$collectedAmount}.";
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E É EXATAMENTE ESSA A RAZÃO DO ERRO,
+
+
+
+
+O PARAMETER ESPERADO ERA 
+
+DE 
+
+
+'' CollectionAgency $collector '',
+
+
+
+MAS ACABAMOS PASSANDO 'RockyTheDebtCollector'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESSE É O PROBLEMA, PORTANTO:
+
+
+
+
+'''NÓS DEFINIMOS UMA IMPLEMENTATION MT ESPECÍFICA'''..
+
+
+
+
+
+
+
+
+
+
+
+--> É O PROBLEMA DE 
+
+
+
+'''PROGRAM/CODE TO A INTERFACE''',
+
+EM VEZ DE 
+
+
+'''PROGRAM/CODE TO A IMPLEMENTATION'''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO PQ O method de 'collectDebt()'
+
+    NÃO DEVE SE IMPORTAR COM ''THE WAY IT IS IMPLEMENTED'',
+
+    E SIM 
+
+    DEVE APENAS SE IMPORTAR 
+
+
+
+    COM ''SOME SORT OF IMPLEMENTATION 
+            OF THE COMMON INTERFACE IS GIVEN...''
+
+
+
+
+
+
+
+--> PARA CONSERTAR ESSE PROBLEMA,
+    PRECISAMOS USAR _ INTERFACES_...
+
+
+
+
+
+
+
+
+
+
+
+
+-> E, POR AMBOS SEREM DEBT COLLECTORS (tanto ROCKY como a COLLECTION AGENCY),
+
+    E, POR AMBOS COMPARTILHAREM A MESMA INTERFACE,
+
+    DE 'DebtCollector',
+
+
+
+    O QUE PODEMOS FAZER, AQUI,
+
+
+    É 
+
+
+    USAR 
+
+
+
+    'DebtCollector' como type do argumento de esse method, em vez de 
+
+    'CollectionAgency'...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+namespace App3;
+
+
+// This class will show the usefulness of interfaces to avoid problems in the code.
+class DebtCollectionService
+{
+
+    public function collectDebt(DebtCollector $collector): void // * THIS IS RIGHT, BECAUSE IT IS MORE GENERAL (we are accepting DebtCollector objects, which are, in our case, both RockyTheDebtCollector and CollectionAgency).
+    {
+        $owedAmount = mt_rand(100, 1000); // RANDOM VALUE BETWEEN 100 and 1000.
+
+        $collectedAmount = $collector->collect($owedAmount);
+
+        echo "The collected amount is {$collectedAmount}.";
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+COM ISTO:
+
+
+
+
+
+
+   public function collectDebt(DebtCollector $collector): void
+
+
+
+
+
+
+
+O ARGUMENT ACEITO FICA BEM MAIS AMPLO,
+
+
+QUE É EXATAMENTE O QUE QUERÍAMOS,
+
+
+com esse method de 'collectDebt()',
+
+
+PARA QUE 
+
+
+
+ELE POSSA ACEITAR DIFERENTES TIPOS DE 'DEBT COLLECTOR'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESSA ADAPTAÇÃO, AQUI,
+    PODE SER CHAMADA 
+
+    TAMBÉM 
+
+    DE 
+
+    'POLYMORPHISM'... 
+
+
+
+
+
+
+
+
+
+--> POLYMORPHISM --> A ÚNICA COISA QUE IMPORTA A 'collectDebt' é que 
+                    ''SOME SORT OF IMPLEMENTATION OF 'DebtCollector' 
+                        IS GIVEN, AS THE ARGUMENT''..
+
+
+
+
+
+
+
+
+--> POLYMORPHISM -> É O ÚLTIMO 
+                        PRINCIPLE 
+                        DO OOP,
+
+                        O PRINCIPLE QUE AINDA NÃO ESTUDAMOS..
+
+
+
+
+
+
+
+
+
+
+--> POLYMORPHISM --> SIGNIFICA MÚLTIPLAS FORMAS... 
+
+
+
+
+
+
+
+--> 1 OBJECT PODE SER 
+    CONSIDERADO 'POLYMORPHIC' 
+
+    SE ___ ELE _ CONSEGUE PASSAR 
+
+    POR MÚLTIPLOS CHECKS DE 'instanceof'....
+
+
+
+
+    --> COM VÁRIOS CHECKS,
+        ISSO INDICA QUE 1 CERTO OBJECT 
+        PODE TOMAR VÁRIAS FORMS...
+
+
+
+
+
+    --> BASTA RODAR 1 BATERIA DE ''instanceof()'' em cima do argument 
+        de '$collector',
+        para 
+
+        saber 
+
+        se ele 
+
+        é polymorphic ou não...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+class DebtCollectionService
+{
+
+    public function collectDebt(DebtCollector $collector): void // * THIS IS RIGHT, BECAUSE IT IS MORE GENERAL (we are accepting DebtCollector objects, which are, in our case, both RockyTheDebtCollector and CollectionAgency).
+    {
+
+
+        var_dump($collector instanceof RockyTheDebtCollector);
+
+
+        $owedAmount = mt_rand(100, 1000); 
+
+        $collectedAmount = $collector->collect($owedAmount);
+
+        echo "The collected amount is {$collectedAmount}.";
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+        var_dump($collector instanceof RockyTheDebtCollector);
+
+
+
+
+
+
+
+AQUI, NO CASO, PODEMOS TESTAR SE AQUELE PARAMETER 
+
+ALI,
+
+'DebtCollector',
+
+PODE 
+
+OU NÃO 
+
+SER 
+
+
+
+UMA INSTANCE DE 'Rocky'..
+
+
+
+
+
+
+
+
+-->  A RESPOSTA, AQUI, É 
+
+__SIM___,
+
+
+pq 'Rocky' é um tipo de DebtCollector... (pq o 'Rocky' Implementa a interface de 'DebtCollector')...
+
+
+
+
+
+
+
+--> VC TAMBÉM PODERIA PASSAR POR ESSE 
+
+
+'instanceof' 
+
+
+
+com 'CollectionAgency',
+
+
+
+PQ 
+
+
+'CollectionAgency'
+
+
+TAMBÉM 
+
+IMPLEMENTA 
+
+A INTERFACE DE 'DebtCollector'...
+
+
+
+
+
+EX:
+
+
+
+
+        var_dump($collector instanceof CollectionAgency);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É MELHOR DEIXAR ESSES METHODS POLYMORPHIC PQ,
+MAIS TARDE,
+
+SE QUISERMOS ADICIONAR MAIS 'DEBT COLLECTOR TYPES',
+
+
+
+
+como um 'LeonTheDebtCollector',
+
+ou algo assim,
+
+
+
+NÃO PRECISAREMOS MUDAR O CÓDIGO TODO...
+
+
+
+
+
+BASTARÁ TROCAR O TIPO DE debt collector que é passado como argument,
+
+e o código continuará funcionando... essa é a vantagem 
+
+de tudo isso,
+
+ e o que deixa nosso código bem mais MAINTAINABLE... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS NÓS EXPLICAMOS, ANTES,
+
+QUE 
+
+
+POLYMORPHISM PODE SER IMPLEMENTADO USANDO INTERFACES 
+
+
+
+PQ _ 1 OBJECT PODE 'TAKE MANY DIFFERENT FORMS'...
+
+
+
+
+
+
+
+
+
+
+
+MAS O MESMO NÃO SERIA POSSÍVEL COM ABSTRACT CLASSES E ABSTRACT METHODS?
+
+
+
+
+
+
+
+
+A RESPOSTA É SIM... 
+
+
+ISSO PQ __ ABSTRACT METHODS KINDOF FAZEM ENFORCE 
+
+DE 1 CONTRACT NAS CLASSES CONCRETAS/CHILD...
+
+
+
+
+
+ISSO TBM PQ _ POLYMORPHISM PODE SER IMPLEMENTADO 
+
+COM __ ABSTRACT CLASSES E INHERITANCE... (pq 1 mesmo object consegue passar por múltiplos checks de 'instanceof()')...
+
+
+
+
+
+
+
+
+
+
+MAS O PROBLEMA DO POLYMORPHISM COM 
+ABSTRACT CLASSES E METHODS É QUE 
+
+ABSTRACT CLASSES E METHODS __ TE FORÇAM 
+
+A EMPREGAR 
+
+__ INHERITANCE... E INHERITANCE PODE NÃO SER UMA BOA IDEIA,
+
+
+EM ALGUNS CASES... (como vimos na aula de INHERITANCE)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ABSTRACT CLASS 
+
+
+
+
+
+VS 
+
+
+
+
+INTERFACE 
+
+
+
+
+
+
+
+
+
+----------------------------------------------------
+
+
+--> ABSTRACT CLASS:
+
+
+-- CAN CONTAIN METHOD IMPLEMENTATIONS, not only method declarations
+    (abstract methods and regular methods mixed 
+        in the same class)
+
+
+
+
+
+--> INTERFACE:
+
+
+-- CAN __ONLY__ CONTAIN__ METHOD DECLARATIONS 
+                        (regular methods cannot exist 
+                        inside of interfaces)
+
+
+-------------------------------------------------
+
+
+
+
+
+
+
+
+
+------------------------------------------
+
+--> ABSTRACT CLASS:
+
+
+-- CAN _ CONTAIN PROPERTIES...
+
+
+
+
+
+
+--> INTERFACE:
+
+
+-- CANNOT CONTAIN PROPERTIES. CAN ONLY CONTAIN METHODS AND CONSTANTS...
+
+
+
+
+
+--------------------------------------------------
+
+
+
+
+
+
+----------------------------------------------
+
+
+
+--> ABSTRACT CLASS:
+
+
+
+-- CAN HAVE PRIVATE AND PROTECTED METHODS 
+
+
+
+
+--> INTERFACE:
+
+
+
+-- CAN ONLY HAVE PUBLIC METHODS
+
+
+
+
+
+---------------------------------------------------------
+
+
+
+
+
+---------------------------------------------------------
+
+
+
+--> ABSTRACT CLASS:
+
+
+
+--> CAN __ONLY EXTEND__ A SINGLE CLASS 
+
+
+
+
+
+
+--> INTERFACE:
+
+
+
+--> CAN IMPLEMENT __ MULTIPLE INTERFACES AT THE SAME TIME.
+
+
+
+
+
+------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK.... A PERGUNTA FINAL É:
+
+
+
+
+
+''MAS PODEMOS TER ESSES 2 TIPOS DE COISAS 
+    TRABALHANDO JUNTAS?
+
+
+
+    É POSSÍVEL TER 1 INTERFACE DENTRO DE UMA ABSTRACT CLASS?''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A RESPOSTA É SIM...
+
+
+
+
+
+
+
+
+--> VC PODE TER 1 INTERFACE QUE DEFINE 
+
+    UM CONTRACT/CONJUNTO DE METHODS  
+
+    QUE PRECISAM SER IMPLEMENTADOS... 
+
+
+    
+    AÍ, NO CASO, VC DEFINE 
+
+    1 ABSTRACT CLASS, QUE IMPLEMENTA ESSA INTERFACE...
+
+
+
+    COM ISSO, VC AINDA ESTÁ ENFORCING O CONTRACT 
+    A SUAS CONCRETE CLASSES, MAS AO MESMO TEMPO 
+    SEM DEIXAR 
+
+    DE PROVIDENCIAR UMA 'BASE FUNCTIONALITY',
+
+    com 
+
+    a abstract class...
+
+
+
+
+
+
+
+
+
+
+
+--> PARA QUE ISSO FIQUE MAIS CLARO,
+DEVEMOS VER 1 EXEMPLO DE 
+
+ABSTRACT CLASSES E INTERFACES TRABALHANDO CONJUNTAMENTE...
+
+
+
+
+
+
+
+
+
+
+
+VEREMOS O EXEMPLO DA AULA ANTERIOR,
+
+
+
+
+DO 'base field' e do 'boolean', que eram nossas abstract classes:
+
+
+
+
+
+
+
+
+               Field 
+                  I 
+            ----------------
+            I              I
+           Text         Boolean 
+                           I 
+                    ----------------------
+                    I                    I 
+                 Checkbox               Radio
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+TEMOS AS CLASSES ABSTRACT DE 'FIELD' E 'BOOLEAN'...
+
+
+
+
+
+
+
+
+
+-----> 
+
+LÁ EM 'Field',
+
+
+a abstract class,
+
+
+temos este código:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+namespace App;
+
+
+abstract class Field
+{
+    public function __construct(protected string $name)
+    {
+
+    }
+
+
+    abstract public function render(): string;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... 
+
+
+    TEMOS AQUELE ABSTRACT METHOD,
+
+    de 'render()',
+
+
+    que vai 
+
+    RETORNAR ALGUM TIPO DE STRING/HTML...
+
+
+
+
+
+
+
+
+
+
+
+CERTO... 
+
+
+
+
+
+
+MAS E SE __ NÓS FIZÉSSEMOS 1 INTERFACE CHAMADA DE 
+
+
+'renderable',
+
+
+QUE DECLARA ESSE METHOD DE 'render()'?
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS ESCREVER ASSIM, PARA ISSO:
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+namespace App;
+
+
+
+
+interface Renderable
+{
+
+    public function render(): string;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, TEMOS O ENFORCE DO METHOD DE 'render()',
+    para todas as classes que fizerem implement dessa interface...
+
+
+
+
+
+
+
+
+
+    LÁ NA ABSTRACT CLASS,
+
+    ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+
+
+namespace App;
+
+
+// * ABSTRACT CLASS EXAMPLE
+abstract class Field implements Renderable
+{
+    public function __construct(protected string $name)
+    {
+
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... MAS ISSO SIGNIFICA QUE VC DEVERIA USAR interfaces 
+    PARA CADA CLASS?
+
+
+
+    --> É CLARO QUE NÃO...
+
+
+
+
+
+
+
+    --> VC TAMBÉM DEVE PENSAR NOS USE-CASES ADEQUADOS PARA INTERFACES..
+
+
+
+
+
+    PENSE ASSIM:
+
+
+
+
+    ''''CAN YOUR CLASS HAVE MULTIPLE DIFFERENT IMPLEMENTATIONS...????''''
+
+
+
+
+
+    --> SE A RESPOSTA É SIM,
+
+    '''INTERFACES ARE THE WAY TO GO...'''
+
+     
+
+
+    
+
+
+
+
+
+
+-> OUTRO USE-CASE BOM PARA INTERFACES 
+
+SÃO CASES 
+
+ EM QUE 
+
+ VC 
+
+
+ SE ENCONTRA RODANDO 1 MONTE DE 
+
+
+
+ CONDITIONALS COM 'instanceof',
+
+
+
+
+
+ TIPO ASSIM:
+
+
+
+
+
+
+
+ public function foo($x) {
+    if ($x instanceof ClassA) {
+        //...
+    } elseif ($x instanceof ClassY) {
+
+    }
+ }
+
+
+
+
+
+
+
+
+
+
+ -> SE VC TIVER CASOS COMO ESSE,
+    SEMPRE É MELHOR 
+
+    USAR 1 INTERFACE,
+
+
+    PQ ISSO VAI DEIXAR O CÓDIGO MAIS LIMPO... TIPO ASSIM:
+
+
+
+
+
+     public function foo(CommonInterface $x) {
+
+ }
+
+
+
+
+
+
+
+
+
+
+
+
+-> VC TAMBÉM PODE USAR INTERFACES QUANDO 
+    VC QUER PROVIDENCIAR 1 CONTRACT/TEMPLATE 
+
+    SEM PROVIDENCIAR IMPLEMENTATION DETAILS...
+
+
+
+
+
+
+
+
+
+
+--> AGORA DEVEMOS VER MAIS ALGUNS EXEMPLOS PRÁTICOS DE 
+    ONDE INTERFACES PODEM SER USADAS...
+
+
+
+
+
+
+
+
+
+--> VOLTAMOS AOS PSR STANDARDS do php...
+
+
+
+
+
+
+
+
+
+
+
+
+PHP 3:
+
+
+
+
+
+
+
+'Logger Interface':
+
+
+
+
+
+
+
+-> ISSO TE DÁ TODAS AS INFORMATIONS...
+
+
+
+
+
+
+-> ENCONTRAMOS A INTERFACE DE LOGGER mais abaixo,
+
+
+com isto:
+
+
+
+
+
+
+
+ 
+
+'interface LoggerInterface {
+
+
+}
+'
+
+
+
+
+
+
+
+
+
+
+-> AÍ ELE TE DÁ A DOCUMENTATION 
+    E A DECLARATION DE TODOS OS METHODS 
+
+    QUE QUALQUER CONCRETE CLASS IMPLEMENTANDO 
+    ESSA CLASS PRECISARIA 
+
+    IMPLEMENTAR...
+
+
+
+
+
+
+--> MAS ONDE ISSO PODERIA SER ÚTIL?
+
+
+
+
+
+
+
+
+--> BEM, DURANTE O DEVELOPMENT,
+    VC TALVEZ QUEIRA 
+
+    loggar as coisas no seu local filesystem,
+
+    enquanto que em production vc queira 
+    loggar 
+
+    na database, ou enviar o logging a uma third-party API, ou uma message no slack...
+
+
+
+
+    --> COM ISSO, VC TERIA MÚLTIPLOS DIFERENTES DRIVERS,
+        MAS DRIVERS IMPLEMENTANDO UMA MESMA INTERFACE...
+
+
+
+
+
+    --> E VEREMOS ESSAS INTERFACES SENDO IMPLEMENTADAS 
+        EM MODERN FRAMEWORKS, HOJE EM DIA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE VOLTAMOS NA LISTA DE PSR,
+
+
+
+TEMOS:
+
+
+
+CACHING INTERFACE 
+
+
+CONTAINER INTERFACE 
+
+
+HTTP MESSAGE INTERFACE
+
+
+
+
+
+
+
+
+--> CACHING INTERFACE --> PROVIDENCIA 
+                            TODOS ESSES METHODS 
+                            QUE PRECISAM SER IMPLEMENTADOS 
+                            PELAS CONCRETE CLASSES...
+
+
+                            CACHING COM O REDIS, MEMCACHE, ETC...
+
+
+
+
+
+
+                            --> ISSO, ESSAS INTERFACES, TE DEIXAM
+                            SWAPPAR A ACTUAL IMPLEMENTATION,
+
+                            ATÉ MESMO DURANTE O RUNTIME...  
+
+
+
+
+
+                            --> LARAVEL --> POR EXEMPLO,
+                                            O LARAVEL OFERECE 
+                                            
+
+                                            MÚLTIPLOS DIFERENTES DRIVERS 
+                                            PARA CACHING, DATABASES, QUEUES, ETC...
+
+
+                                            E TODOS ELES SE CONFORMAM A ALGUM TIPO DE INTERFACE...
+
+
+
+                                            --> SE VC DESEJA ADICIONAR SEU PRÓPRIO DRIVER 
+                                            AO SEU PROJECT,
+
+                                            BASTARIA VC CONFORMAR SEU DRIVER À INTERFACE,
+                                            AO 'MOLDE',
+
+
+                                            PARA AÍ CONSEGUIR TER SUA IMPLEMENTATION PARA 
+                                            ESSES METHODS...
+
+
+
+
+
+
+
+CERTO... FAZ TOTAL SENTIDO...

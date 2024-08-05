@@ -6,7 +6,15 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'App2\\FancyOven' => $baseDir . '/inheritance-example/FancyOven.php',
     'App2\\Toaster' => $baseDir . '/inheritance-example/Toaster.php',
+    'App2\\ToasterPro' => $baseDir . '/inheritance-example/ToasterPro.php',
+    'App2\\ToasterProWithConstructor' => $baseDir . '/inheritance-example/ToasterProWithConstructor.php',
+    'App2\\ToasterWithConstructor' => $baseDir . '/inheritance-example/ToasterWithConstructor.php',
+    'App3\\AnotherInterface' => $baseDir . '/interfaces-and-polymorphism-example/AnotherInterface.php',
+    'App3\\CollectionAgency' => $baseDir . '/interfaces-and-polymorphism-example/CollectionAgency.php',
+    'App3\\DebtCollector' => $baseDir . '/interfaces-and-polymorphism-example/DebtCollector.php',
+    'App3\\SomeOtherInterface' => $baseDir . '/interfaces-and-polymorphism-example/SomeOtherInterface.php',
     'App\\PaymentGateway\\Paddle\\Transaction' => $baseDir . '/coding-autoloading-and-composer-example/app/PaymentGateway/Paddle/Transaction.php',
     'App\\PaymentGateway\\Stripe\\Transaction' => $baseDir . '/coding-autoloading-and-composer-example/app/PaymentGateway/Stripe/Transaction.php',
     'Brick\\Math\\BigDecimal' => $vendorDir . '/brick/math/src/BigDecimal.php',

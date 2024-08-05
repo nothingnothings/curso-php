@@ -28,6 +28,7 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
         'A' => 
         array (
             'App\\' => 4,
+            'App3\\' => 5,
             'App2\\' => 5,
         ),
     );
@@ -53,6 +54,10 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
         array (
             0 => __DIR__ . '/../..' . '/coding-autoloading-and-composer-example/app',
         ),
+        'App3\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/interfaces-and-polymorphism-example',
+        ),
         'App2\\' => 
         array (
             0 => __DIR__ . '/../..' . '/inheritance-example',
@@ -60,7 +65,15 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
     );
 
     public static $classMap = array (
+        'App2\\FancyOven' => __DIR__ . '/../..' . '/inheritance-example/FancyOven.php',
         'App2\\Toaster' => __DIR__ . '/../..' . '/inheritance-example/Toaster.php',
+        'App2\\ToasterPro' => __DIR__ . '/../..' . '/inheritance-example/ToasterPro.php',
+        'App2\\ToasterProWithConstructor' => __DIR__ . '/../..' . '/inheritance-example/ToasterProWithConstructor.php',
+        'App2\\ToasterWithConstructor' => __DIR__ . '/../..' . '/inheritance-example/ToasterWithConstructor.php',
+        'App3\\AnotherInterface' => __DIR__ . '/../..' . '/interfaces-and-polymorphism-example/AnotherInterface.php',
+        'App3\\CollectionAgency' => __DIR__ . '/../..' . '/interfaces-and-polymorphism-example/CollectionAgency.php',
+        'App3\\DebtCollector' => __DIR__ . '/../..' . '/interfaces-and-polymorphism-example/DebtCollector.php',
+        'App3\\SomeOtherInterface' => __DIR__ . '/../..' . '/interfaces-and-polymorphism-example/SomeOtherInterface.php',
         'App\\PaymentGateway\\Paddle\\Transaction' => __DIR__ . '/../..' . '/coding-autoloading-and-composer-example/app/PaymentGateway/Paddle/Transaction.php',
         'App\\PaymentGateway\\Stripe\\Transaction' => __DIR__ . '/../..' . '/coding-autoloading-and-composer-example/app/PaymentGateway/Stripe/Transaction.php',
         'Brick\\Math\\BigDecimal' => __DIR__ . '/..' . '/brick/math/src/BigDecimal.php',
