@@ -1,0 +1,599 @@
+
+
+
+
+
+
+
+-> MAGIC METHODS SÃO METHODS ESPECIAIS 
+QUE 
+
+''OVERWRITAM'' O COMPORTAMENTO DEFAULT 
+
+DO PHP QUANDO CERTOS EVENTOS OU ACTIONS SÃO REALIZADAS EM 1 OBJECT...
+
+
+
+
+
+
+
+--> NO TOTAL, EXISTEM 17 MAGIC METHODS...
+
+
+
+
+
+
+--> TODOS ELES SÃO ACESSADOS COM '__' no início...
+
+
+
+
+
+OS MAGIC METHODS SÃO:
+
+
+
+
+
+
+
+1) __construct() 
+
+
+
+2) __destruct() 
+
+
+3) __call() 
+
+
+4) __callStatic() 
+
+
+5) __get() 
+
+
+6) __set()
+
+
+7) __isset() 
+
+
+8) __unset(),
+
+
+9) __sleep() 
+
+
+10) __wakeup() 
+
+
+11) __serialize() 
+
+
+12) __unserialize() 
+
+
+
+13) __toString() 
+
+
+
+14) __invoke() 
+
+
+
+15) __set_state() 
+
+
+16) __clone() 
+
+
+
+e 
+
+
+17) __debugInfo()
+
+
+
+
+
+
+
+
+
+
+
+--> TODOS ESSES METHODS DEVEM SEMPRE SEREM DECLARADOS COMO 'public',
+    COM EXCEÇÃO DE '__construct()' '__destruct()' e '__clone()'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> JÁ ESTUDAMOS ALGUNS, COMO CONSTRUCT E DESTRUCT...
+
+
+
+
+
+PHP RESERVES QUAISQUER METHODS DEFINIDOS COM '__'...
+
+
+
+
+
+
+
+
+--> NÃO É NADA RECOMENDADO QUE VC PREFIXE SEUS METHODS COM '__',
+
+sob risco de overwrittar  alguma coisa...
+
+
+
+
+
+
+
+
+--> VEREMOS A MAIOR PARTE DOS  MAGIC METHODS NESSA AULA... MAS NÃO VEREMOS 
+    TODOS, PQ ALGUNS ENVOLVEM COISAS QUE AINDA NÃO VIMOS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> COMEÇAMOS COM '__get()'
+
+
+e 
+
+'__set()'..
+
+
+
+
+
+
+
+
+
+
+
+
+ESSES TAMBÉM SÃO CHAMADOS DE 
+
+'MAGIC GETTER AND SETTER METHODS'...
+
+
+
+
+
+
+
+
+
+
+
+-> o magic GET (__get())
+
+
+É CHAMADO SEMPRE QUE VC TENTA CHAMAR ALGUMA 
+
+PROPERTY INEXISTENTE OU AINDA NÃO SETTADA EM ALGUM OBJECT...
+
+
+
+
+
+--> JÁ O MAGIC SETter method 
+
+    ACABA CHAMADO 
+
+
+    __SEMPRE QUE VC TENTA ASSIGNAR 
+
+
+    1 VALUE A UMA PROPERTY UNDEFINED OU INACESSIBLE..
+
+
+
+
+
+
+
+
+
+
+
+O EXEMPLO É ESTE:
+
+
+
+
+
+
+
+
+<?php
+
+
+
+require_once '../../vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+$invoice = new app3\Invoice();
+
+
+
+
+$invoice->amount;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> por exemplo, se tentamos 
+
+acessar 1 property que não existe em algum object,
+
+como 'amount' nesse 'invoice',
+
+
+
+
+
+
+FICAMOS COM UM ERRO COMO ESTE:
+
+
+
+
+
+
+
+
+
+'''Warning: Undefined property: App\Invoice::$amount''
+
+
+
+
+
+
+
+
+---> PODEMOS HOOKAR NESSE EVENT,
+    EVENT DE 'TENTAR ACESSAR 1 PROPERTY QUE NÃO EXISTE EM 1 OBJECT'''...
+
+
+
+
+    --> PARA HOOKAR NESSE EVENT,
+
+    BASTA ESCREVER ASSIM, LÁ NA CLASS DE 'Invoice':
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+
+namespace app3;
+
+
+class Invoice
+{
+
+
+    public function __get(string $name)
+    {
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO É O MAGIC METHOD....
+
+
+
+
+
+
+-> PODEMOS FAZER 1 VAR_DUMP DE '$name', por exemplo>:
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+
+namespace app3;
+
+
+class Invoice
+{
+
+    // THIS IS THE MAGIC GET METHOD, the first of the magic methods. It is called when you try to access a property that doesn't exist.
+    public function __get(string $name)
+    {
+        var_dump($name);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA, SEMPRE QUE 
+
+TENTARMOS 
+
+ACESSAR  UMA PROPERTY QUE NÃO EXISTE DENTRO DESSA CLASS,
+VAMOS FICAR COM ESSE VAR_DUMP AÍ...
+
+
+
+
+ESSE '__get' vai ser chamado, esse é o hook que é ativado....
+
+
+
+
+
+
+
+
+
+--> E O SET FUNCIONA DA MESMA FORMA:
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+
+namespace app3;
+
+
+class Invoice
+{
+
+    // THIS IS THE MAGIC GET METHOD, the first of the magic methods. It is called when you try to access a property that doesn't exist.
+    public function __get(string $name)
+    {
+        var_dump($name);
+    }
+
+    // THIS IS THE MAGIC SET METHOD, the second of the magic methods. It is called when you try to set a property that doesn't exist.
+    public function __set(string $name, $value)
+    {
+        var_dump($name);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> no caso,
+
+ele é triggado 
+
+
+com esta linha:
+
+
+
+
+
+$invoice->amount = 15; // This will trigger the __set() magic method, which will dump the string 'amount'
+
+
+
+
+
+
+
+
+
+O PRIMEIRO ARGUMENT É A PROPERTY NAME, E O SEGUNDO É O VALUE QUE ESTÁ SENDO SETTADO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+
+
+
+
+MAS O QUE ACONTECE SE JÁ TEMOS 
+
+1 PROPERTY DE 'amount'
+
+SETTADA?
+
+
+
+
+
+SE JÁ TEMOS A PROPERTY DE 'amount' settada e tentamos 
+
+
+
+
+'acessar' (get) e settar (set) 
+
+o value de amount,
+
+
+
+NADA É PRINTADO,
+
+PQ ESSES MAGIC METHODS NÃO SERÃO TRIGGADOS...
+
+
+
+
+
+
+
+
+
+
+
+-> MAS SE DEIXARMOS 
+    ESSA PROPERTY COMO 'PRIVATE' OU 'PROTECTED',
+    ESSES 
+
+    MAGIC METHODS SÃO CHAMADOS NOVAMENTE...
+
+
+
+
+
+
+
+-> UM DOS USE-CASES PARA 
+
+    ESSES MAGIC METHODS DE 'GET' E 'SET'
+
+    É PROVIDENCIAR READ-ONLY ACCESS 
+
+
+    A PRIVATE E PROTECTED PROPERTIES...
+
+
+
+
+
+
+EX:
+
+
+
+
+public function __get(string $name) 
+{
+    if (property_exists($this, $name)) {
+        return $this->$name;
+    }
+
+    return null;
+}
+
+
+
+
+
+
+
+
+
+
+COM ISSO, COM ESSE MAGIC GETTER,
+
+PODEMOS TER 1 ERROR HANDLING BÁSICO,
+
+
+
+QUE 
+TE DARÁ 
+
+
+'READ-ONLY ACCESS',
+
+SE VC NÃO DEFINIR O SETTER METHOD...
