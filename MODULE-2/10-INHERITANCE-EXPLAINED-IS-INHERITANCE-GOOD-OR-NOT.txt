@@ -1,0 +1,3987 @@
+ 
+
+
+
+
+
+
+
+
+
+
+
+ --> OK... 
+
+
+
+
+
+
+
+
+
+
+ --> INHERITANCE...
+
+
+
+
+
+
+
+
+
+ --> INHERITANCE ALLOWS YOU TO HAVE A 
+    CLASS THAT IS DERIVED FROM ANOTHER CLASS,
+
+    WHICH IS REFERED AS 'PARENT' CLASS....
+
+
+
+
+
+
+    PARENT VS CHILD CLASSES..
+
+
+
+
+
+
+
+
+
+
+
+--> PARENT IS THE BASE CLASS FROM 
+    WHERE YOU DERIVE THE CLASSES/PROPERTIES FROM...
+
+
+
+
+
+
+
+
+
+-> THE CHILD CLASS WILL 
+
+  INHERIT THE PUBLIC AND PROTECTED 
+
+  METHODS, PROPERTIES AND CONSTANTS  
+
+
+  FROM THE BASE CLASS,
+
+  WHICH CAN THEN BE OVERRIDEN...
+
+
+
+
+
+
+
+
+--> ALÉM DE INHERITAR TUDO ISSO NA CHILD CLASS,
+    VC PODE AINDA TER ADDITIONAL 
+
+    METHODS, PROPERTIES E CONSTANTS, NESSAS CHILD CLASSES...
+
+
+
+
+
+
+
+
+--> VEREMOS ALGUNS EXAMPLES....
+
+
+
+
+
+
+
+
+
+
+
+--> O PRIMEIRO EXAMPLE SERÁ MOSTRADO NO CÓDIGO...
+
+
+
+
+-> OS OUTROS EXAMPLES O PROFESSOR MOSTRARÁ EM DIAGRAMS...
+    DIAGRAMS EM QUE SERÃO MOSTRADOS ALGUNS DOS USE-CASES PARA 
+    INHERITANCE...
+
+    --> O PROFESSOR VAI TAMBÉM FALAR 
+
+
+    SOBRE 'WHEN TO USE AND WHEN NOT TO USE INHERITANCE'...
+
+
+
+
+
+
+
+
+
+-> DEVEMOS ASSISTIR ESTE VÍDEO ATÉ O FINAL...
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA O PRIMEIRO EXEMPLO DE INHERITANCE,
+    USAREMOS ALGO BEM FÁCIL E SIMPLES DE ENTENDER..
+
+
+
+
+
+
+
+
+
+EXEMPLO:
+
+
+
+
+''IMAGINE THAT WE ARE IMPLEMENTING A TOASTER SIMULATOR,
+    WHICH CAN __ TOAST BREAD....''
+
+
+
+
+
+--> para isso,
+
+
+O PROFESSOR TEM UMA CLASS DE 'Toaster'...
+
+
+
+
+
+
+
+A CLASS É ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+namespace App;
+
+
+
+class Toaster
+{
+
+
+    public array $slices = [];
+    public int $size = 2; // Indicates the max amount of slices the toaster can toast at the same time.
+
+    public function addSlice(string $slice): void
+    {
+        if (count($this->slices) < $this->size) {
+            $this->slices[] = $slice;
+        }
+    }
+
+    public function toast()
+    {
+        foreach ($this->slices as $i => $slice) {
+            echo ($i + 1) . ': Toasting ' . $slice . PHP_EOL;
+        }
+    }
+}
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+ESSA CLASS TEM UM ARRAY DE 'SLICES',
+
+QUE É PUBLIC...
+
+
+
+
+
+
+
+OUTRA PROPERTY, de '$size',
+
+
+QUE É DE TIPO INT...
+
+
+
+
+
+
+
+
+A PROPERTY DE '$size'
+
+
+
+SIMBOLIZA A QUANTIDADE MÁXIMA DE TOASTS QUE O 
+
+TOASTER CONSEGUE TORRAR AO MESMO TEMPO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> A PROPERTY DE 'addSlice()'
+
+
+
+SIMPLESMENTE ADICIONA UMA SLICE AO ARRAY DE '$slices'...
+
+
+
+
+
+-> E ELE SÓ FAZ ISSO, ESSE ADD, SE AINDA 
+    NÃO FOI ATINGIDA QUANTIDADE MÁXIMA DE SLICES 
+    (
+        por isso 
+
+        ''
+            if (count($this->slices) < $this->size) 
+
+            ''
+    ) 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> FINALMENTE, TEMOS O method de 'toast()',
+
+
+
+    QUE SIMPLESMENTE FAZ 1 LOOP POR DENTRO DO ARRAY DE 'SLICES'
+
+    E PRINTA 
+
+
+    'Toasting $slice' 
+
+
+    À SCREEN...
+
+
+
+
+
+
+
+
+
+
+
+
+-> VC PODE ESTAR SE PERGUNTANDO:
+
+
+
+''MAS PQ VC NAO USOU UMA CONSTANT 
+    EM VEZ DE 1 PROPERTY, PARA O '$size'?''
+
+
+
+    (pq, tecnicamente, o value do size NÃO MUDA DURANTE 
+    O RUNTIME DE NOSSO APP... o toaster sempre será capaz 
+    de torrar até no máximo 2 slices ao mesmo tempo...)
+
+
+
+
+
+
+
+
+--> A RAZÃO PARA ISSO É 
+
+
+
+'''THE TEACHER WANTS TO __ COVER THE TOPIC 
+    OF ''OVERRIDING CONSTANTS AND STATICS''
+    IN A SEPARATE VIDEO''
+
+
+    (only after WE __ GET TO THE 'LATE STATIC BINDING' topic )....
+
+
+
+
+
+-> OK...
+
+
+
+
+TESTAMOS ESSA CLASS DE 'Toaster',
+
+COM ESTE CÓDIGO, em index.php:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+use App2\Toaster;
+
+
+require '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+$toaster = new Toaster();
+
+
+$toaster->addSlice('bread');
+$toaster->toast();
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+FUNCIONOU, FIQUEI COM 1 PRINT COMO ESTE:
+
+
+> php index.php 
+
+
+1: Toasting bread
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1 SLICE OF BREAD ESTÁ FICANDO TOASTED, COM ESTE CÓDIGO...
+
+
+
+
+
+
+
+
+
+O PROFESSOR ADICIONA MAIS ALGUMAS SLICES...
+
+
+
+
+
+
+EX:
+
+
+
+
+<?php
+
+
+use App2\Toaster;
+
+
+require '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+$toaster = new Toaster();
+
+
+$toaster->addSlice('bread');
+$toaster->addSlice('bread'); // Only two slices will be toasted, because the limit is 2 in the method.
+$toaster->addSlice('bread');
+$toaster->addSlice('bread');
+$toaster->toast();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TEREMOS APENAS 2 PRINTS DE 'Toasting Bread',
+
+    PQ O NÚMERO MÁXIMO DE TOASTS 
+
+    É 2...
+
+
+
+
+
+
+    -> O IDEAL, AQUI, SERIA FAZER O THROW 
+        DE 1 EXCEPTION SE 
+
+        CHEGÁSSEMOS AO NÚMERO MÁXIMO DE SLICES...
+
+
+
+    ---> MAS COMO 
+        AINDA NÃO 
+
+        COBRIMOS O TÓPICO DE 'EXCEPTIONS' ainda,
+
+        o professor decidiu deixar as coisas 
+
+        simples,
+
+
+        sem ter o throw de essa exception...
+
+
+
+
+
+
+
+
+
+
+--> OK... MAS DIGAMOS QUE, MAIS TARDE,
+
+    DECIDIMOS IMPLEMENTAR 1 SIMULATOR PARA 
+
+    1 TOASTER MAIS AVANÇADO, QUE POSSUI ALGUMAS FUNCIONALIDADES,
+
+
+    E MAIS FEATURES DO QUE 
+
+    ESSE TOASTER COMUM...
+
+
+
+
+
+
+
+
+
+
+
+--> NO CASO, QUEREMOS TER A 'PRO VERSION'
+
+
+    de nosso basic toaster...
+
+
+
+
+
+
+
+
+
+-> EM VEZ DE PODER FAZER TOAST DE APENAS 
+    2 SLICES AO MESMO TEMPO,
+
+    A VERSÃO PRO PERMITE O TOAST DE 4 SLICES AO MESMO TEMPO...
+
+
+
+     
+-> ALÉM DISSO, ALÉM DE TER A BASIC TOASTING 
+    ABILITY,
+
+
+    ELE TAMBÉM TEM O PRESET DE 'TOAST AS BAGEL', se vc quiser..
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, O PROFESSOR CRIA 1 NOVA CLASS,
+
+DE NOME 'ToasterPro'...
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+namespace App2;
+
+
+
+class ToasterPro
+{
+
+
+    public array $slices = [];
+    public int $size = 4; // Has more slices than the base class (Toaster)
+
+    public function addSlice(string $slice): void
+    {
+        if (count($this->slices) < $this->size) { // only adds toasts if the array is not filled with >= 2 slices
+            $this->slices[] = $slice;
+        }
+    }
+
+    public function toast()
+    {
+        foreach ($this->slices as $i => $slice) {
+            echo ($i + 1) . ': Toasting ' . $slice . PHP_EOL;
+        }
+    }
+
+
+    public function toastBagel()
+    {
+        foreach ($this->slices as $i => $slice) {
+            echo ($i + 1) . ': Toasting ' . $slice . ' with bagel option' PHP_EOL;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+JÁ DE CARA,
+
+
+PERCEBEMOS QUE OS 2 SÃO BEM PARECIDOS:
+
+
+
+
+
+1) TEMOS O MESMO METHOD DE 'addSlice'
+
+
+
+2) o method de 'toast', que é exatamente o mesmo do 'Toaster' basic..
+
+
+
+
+
+
+
+
+
+
+ISSO ACONTECE, NO CASO,
+
+PQ 
+
+O 'ToasterPro' 
+
+
+NÃO DEIXA DE SER 1 TOASTER...
+
+
+
+
+
+
+(''it is still A TOASTER_...'')
+
+
+
+
+
+
+
+
+
+--> O TOASTER PRO É UM TOASTER....
+    
+
+    ISSO QUER DIZER QUE 
+
+    ELE 
+
+
+    ''STILL CAN TOAST WITH THE REGULAR SETTINGS,
+    BUT CAN ALSO TOAST WITH THE BAGEL SETTING,
+    AND ALSO TOAST MORE THAN 2 TOASTS AT THE SAME TIME...''
+
+
+
+
+
+
+
+
+
+
+
+
+POR SER PARECIDO (quase igual) ao toaster COMUM,
+
+PODEMOS USAR O PODER DA INHERITANCE PARA 
+
+FAZER 
+
+
+O 
+
+'ToasterPro'
+
+
+HERDAR 
+
+
+
+
+OS METHODS _ DO 'Toaster' comum...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS FAZER ISSO COM A KEYWORD DE 'extends',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+// * WITH INHERITANCE:
+class ToasterPro extends Toaster
+{
+
+    public int $size = 4; // Has more slices than the base class (Toaster)
+
+
+    public function toastBagel()
+    {
+        foreach ($this->slices as $i => $slice) {
+            echo ($i + 1) . ': Toasting ' . $slice . ' with bagel option' . PHP_EOL;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO ESTAMOS HERDANDO QUASE TODAS AS COISAS 
+    DO 'Toaster' comum (exceto o 'size', que é maior no ToasterPro, e o method de 'toastBagel()', que existe somente no ToasterPro),
+
+
+PODEMOS REMOVER GRANDE PARTE DO CÓDIGO 
+
+
+
+DO 'ToasterPro'..
+
+
+
+
+
+
+
+
+
+
+
+
+--> COMO O PROFESSOR MENCIONOU ANTERIORMENTE,
+    NÓS SOMOS CAPAZES DE FAZER 
+    __OVERWRITE__ 
+
+    de public e protected constants/properties/methods,
+
+    e é 
+
+    EXATAMENTE ISSO QUE ESTAMOS FAZENDO, AQUI,
+
+
+    COM A PROPERTY DE '$size'....
+
+
+EX:
+
+
+
+    public int $size = 4; // Has more slices than the base class (Toaster)
+
+
+
+
+
+
+
+
+
+--> ISSO PQ O TOASTERPRO PODE 
+TOASTAR 4 SLICES AO MESMO TEMPO,
+
+EM VEZ DE 2...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS TESTAR ESSA CLASS CHILD 
+
+
+LÁ NO index.php,
+
+
+assim:
+
+
+
+
+
+
+<?php
+
+
+use App2\Toaster;
+use App2\ToasterPro;
+
+
+require '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+$toaster = new Toaster();
+
+
+$toaster->addSlice('bread');
+$toaster->addSlice('bread'); // Only two slices will be toasted, because the limit is 2 in the method.
+$toaster->addSlice('bread');
+$toaster->addSlice('bread');
+$toaster->toast();
+
+
+echo 'SPACE' . PHP_EOL;
+
+$toasterPro = new ToasterPro();
+
+$toasterPro->addSlice('bread');
+$toasterPro->addSlice('bread'); // four slices will be toasted, because the limit is 4, in the case of this child class.
+$toasterPro->addSlice('bread');
+$toasterPro->addSlice('bread');
+$toasterPro->toast();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TAMBÉM TEMOS A OPTION DE 'TOAST AS BAGEL',
+
+
+
+
+COM O METHOD DE 'toastBagel()',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+use App2\Toaster;
+use App2\ToasterPro;
+
+
+require '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+$toaster = new Toaster();
+
+
+$toaster->addSlice('bread');
+$toaster->addSlice('bread'); // Only two slices will be toasted, because the limit is 2 in the method.
+$toaster->addSlice('bread');
+$toaster->addSlice('bread');
+$toaster->toast();
+
+
+echo 'SPACE' . PHP_EOL;
+
+$toasterPro = new ToasterPro();
+
+$toasterPro->addSlice('bread');
+$toasterPro->addSlice('bread'); // four slices will be toasted, because the limit is 4, in the case of this child class.
+$toasterPro->addSlice('bread');
+$toasterPro->addSlice('bread');
+$toasterPro->toast();
+echo 'SPACE' . PHP_EOL;
+$toasterPro->toastBagel();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+----------> CERTO... MAS E QUANTO à KEYWORD DE '$this',
+            dentro da parent class? 
+
+
+
+
+--> NO CASO, O '$this'
+
+VAI SEMPRE SE REFERIR AO __ CALLING OBJECT...
+
+
+
+
+se vc chamou com 
+
+'$toasterPro->addSlice()',
+
+
+MESMO 
+
+
+QUE ESSA FUNCTION DE 'addSlice()'
+
+
+SEJA 
+
+
+DA PARENT CLASS, DE 'Toaster',
+
+
+
+__ O '$this' AINDA VAI SE REFERIR 
+
+
+À CHILD CLASS, PQ FOI ELA QUE CHAMOU, NESSE CASO...
+
+
+
+
+
+
+
+
+
+
+--> JÁ SE VC CHAMAR 
+
+
+COM 
+
+
+"$toaster->addSlice()",
+
+
+o '$this'
+
+
+vai SE REFERIR 
+
+À PARENT CLASS,
+
+PQ FOI ELA QUE CHAMOU...
+
+
+
+
+
+
+
+RESUMO:
+
+
+
+
+
+
+
+$toaster->addSlice('bread'); // '$this', inside of this method, will refer to the PARENT class...
+$toasterPro->addSlice('bread'); // '$this', inside of this method, will refer to the CHILD class...
+
+
+
+
+
+
+
+
+
+
+
+
+
+É POR ISSO QUE NOSSO DUMP FICA ASSIM:
+
+
+
+
+
+
+
+object(App2\Toaster)#2 (2) {
+  ["slices"]=>
+  array(2) {
+    [0]=>
+    string(5) "bread"
+    [1]=>
+    string(5) "bread"
+  }
+  ["size"]=>
+  int(2)
+}
+object(App2\ToasterPro)#4 (2) {
+  ["size"]=>
+  int(4)
+  ["slices"]=>
+  array(4) {
+    [0]=>
+    string(5) "bread"
+    [1]=>
+    string(5) "bread"
+    [2]=>
+    string(5) "bread"
+    [3]=>
+    string(5) "bread"
+  }
+}
+
+
+
+
+
+
+
+
+
+
+-> OK...
+
+
+
+
+
+
+-> AGORA QUE SABEMOS O BÁSICO SOBRE INHERITANCE,
+
+DEVEMOS FALAR SOBRE ALGUNS DOS OUTROS DETALHES IMPORTANTES....
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE NÓS SETTARMOS A PROPERTY 
+    DE '$size' da PARENT CLASS 
+
+    como 'private'
+
+
+
+    e entÃO 
+
+
+
+    RODARMOS 
+
+    O METHOD DE 'toastBagel()'
+
+
+
+    LÁ COM o 'toasterPro',
+
+
+
+    FICAREMOS 
+
+
+
+
+    COM O PRINT DE APENAS 
+
+
+    2 TOASTS,
+
+    E NÃO 4...
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO ACONTECE/ACONTECEU PQ 
+
+    O __ OVERWRITE__ DE PROPERTIES 
+    'PRIVATE' É _ IMPOSSÍVEL__....
+
+
+
+
+--> O ÚNICO TIPO DE PROPERTIES QUE PODEM 
+    SER __ OVERWRITTEN
+
+    COM O SET em children classes 
+
+    são:
+
+
+    1) PUBLIC PROPERTIES 
+
+
+    2) PROTECTED PROPERTIES...
+
+
+
+
+
+
+
+--> ISSO, NO CASO, OCORRE 
+
+DEVIDO 
+
+AO FATO DE QUE 
+
+''PRIVATE PROPERTIES BELONG AND _ EXIST 
+    __ ONLY IN THE _ CLASS IN WHICH THEY 
+    WERE DEFINED''... ------>    EVEN THE CLASS 
+                                THAT EXTENDS 
+                                THE 'TOASTER' CLASS,
+
+                                'ToasterPro',
+
+                                CANNOT _ ACCESS_ THE PRIVATE 
+                                PROPERTIES 
+
+                                OF 'Toaster'...
+
+
+
+
+            --> YOU CAN ONLY ACCESS __ AND __ OVERWRITE__ 
+                PUBLIC AND PROTECTED PROPERTIES/METHODS/CONSTANTS...
+
+
+
+
+
+
+
+
+
+
+--> OUTRA RULE:
+
+
+
+
+
+''''YOU CANNOT __ DECREASE THE VISIBILITY OF A PROPERTY 
+    DEFINED INSIDE OF THE PARENT CLASS, FROM WITHIN THE 
+    CHILD CLASS...''
+
+
+    (
+        OU SEJA,
+
+        SE VC DEFINIU 
+
+
+        'public int $size = 2;' 
+
+        LÁ NA PARENT CLASS 'Toaster',
+
+
+        
+        VC NÃO É CAPAZ DE REDUZIR A VISIBILITY 
+
+        DE ESSA PROPERTY,
+        LÁ EM 'ToasterPro',
+
+        com 
+
+        algo como 
+
+        'private int $size = 4;'...
+
+
+
+
+
+        SE VC TENTAR FAZER ISSO, VC VAI FICAR COM 1 ERROR...
+
+
+
+
+
+        SE VC TENTAR DEFINIR COMO 'PROTECTED',
+
+        VC TAMBÉM FICARÁ COM UM ERROR...
+    )
+
+
+
+
+
+
+
+
+
+-> POR OUTRO LADO,
+
+
+SE VC TEM 
+
+
+UMA PROPERTY DEFINIDA 
+
+COMO 'protected int $size = 2;'
+
+
+LÁ 
+NA SUA PARENT CLASS,
+
+
+
+VC É, SIM, 
+CAPAZ DE OVERWRITTAR O ACCESS 
+
+
+LÁ NO 'ToasterPro',
+
+
+
+mas _ somente_ SE VC QUER DEIXAR O ACCESS MODIFIER 
+
+MAIS ABERTO 
+
+(ou seja,
+definir 
+como 
+
+'public int $size = 4;',
+
+LÁ 
+
+NA CHILD CLASS 'ToasterPro'...
+
+
+
+)
+
+
+
+
+
+
+
+
+
+-->  AS REGRAS MOSTRADAS ACIMA, 
+    SOBRE 'REDEFINE ACCESS MODIFIER, SET BEFOREHAND IN THE PARENT CLASS, IN THE CHILD CLASS'
+
+    TAMBÉM SE APLICAM A METHODS, CONSTANTS 
+
+
+    E STATIC PROPERTIES/METHODS/CONSTANTS...
+
+
+
+
+
+
+
+
+
+
+--> COMO JÁ SABEMOS, 
+    PUBLIC PROPERTIES 
+
+    NÃO SÃO NADA IDEAIS,
+
+    PQ 
+
+
+    BASICAMENTE QUEBRAM 
+
+    A _ ENCAPSULATION DAS CLASSES...
+
+
+
+
+
+
+
+
+
+--> NESSE CASO, SETTAR A PROPERTY de '$size'
+
+
+    como 'PROTECTED' na 
+
+    parent class 
+
+    e então 
+
+    AUMENTAR ESSA VISIBILITY (reduzir a proteção),
+
+    LÁ NA CHILD CLASS (ToasterPro)
+
+    COM ALGO 
+
+
+
+    COMO O REDEFINE DO MODIFIER COMO 'public',
+
+
+    É ALGO SUPER RUIM...
+
+
+ 
+
+
+
+--> É ALGO SUPER RUIM PQ 
+
+    INTRODUZIMOS A POSSIBILIDADE 
+
+    DE ALGUÉM ESCREVER ALGO COMO 
+
+
+    $toaster->size=10;,
+
+
+
+    O QUE 
+
+
+    NOS DEIXA 
+
+
+    
+    ALTERAR O VALUE DE '4 SLICES' DE 
+
+    ESSA CHILD CLASS,
+
+    QUE DEVERIA SER FIXO...
+
+
+
+
+
+
+-> 1 FIX, COMO SABEMOS, 
+    É _ DEFINIR __ 
+
+    O MODIFIER COMO 'private'...
+
+
+
+
+    --> MAS SE DEFINIRMOS O MODIFIER DE '$size'
+    da parent class como 'private',
+
+    PERDEMOS A CAPACIDADE DE 'OVERWRITE THAT PROPERTY',
+
+    lá na child class de 'ToasterPro'...
+
+
+
+
+
+
+
+
+
+--> A OUTRA ALTERNATIVA 
+    É USAR O ACCESS MODIFIER DE 'protected',
+
+
+    com 
+
+
+    'protected int $size = 2;',
+
+
+
+    lá na PARENT CLASS...
+
+
+
+
+-> 'protected' É BASICAMENTE A MESMA COISA 
+QUE 'private',
+
+
+MAS É UM 'private'
+
+QUE _ SE ESTENDE 
+
+ÀS CHILD CLASSES... 
+
+
+(ou seja,
+TE DEIXA FAZER OVERWRITE _ DO VALUE DAS PROPERTIES 
+DEFINIDAS, NA PARENT CLASS, LÁ NA CHILD CLASS, AO MESMO TEMPO QUE 
+TE DEIXA APLICAR UMA PROTEÇÃO PARECIDA COM 'private' 
+
+na property da child class...)
+
+
+
+
+
+
+
+
+
+
+-> E É EXATAMENTE POR ISSO QUE 
+
+
+DEIXAMOS NOSSAS PROPERTIES COMO 
+
+
+'protected',
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+
+
+
+namespace App2;
+
+
+
+class Toaster
+{
+
+
+    // public array $slices = [];
+    // public int $size = 2; // Indicates the max amount of slices the toaster can toast at the same time.
+    // private int $size = 2; // * PRIVATE PROPERTIES CANNOT BE ACCESSED AND OVERWRITTEN FROM INSIDE OF CHILD CLASSES (like ToasterPro, for example).
+
+
+    protected array $slices = [];
+    protected int $size = 2; // * PROTECTED PROPERTIES CAN BE ACCESSED AND OVERWRITTEN FROM INSIDE OF CHILD CLASSES (like ToasterPro, for example), but still cannot be accessed FROM OUTSIDE OF THE CLASSES (which is good, for security reasons and for keeping encapsulation and abstraction).
+
+
+    public function addSlice(string $slice): void
+    {
+        var_dump($this); // * this will change depending on the caller of this method (the child class or the parent class)
+
+        if (count($this->slices) < $this->size) { // only adds toasts if the array is not filled with >= 2 slices
+            $this->slices[] = $slice;
+        }
+    }
+
+    public function toast()
+    {
+        foreach ($this->slices as $i => $slice) {
+            echo ($i + 1) . ': Toasting ' . $slice . PHP_EOL;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... DEPOIS DESSA EXPLICAÇÃO,
+
+
+O PROFESSOR QUER NOS MOSTRAR EXEMPLOS DE 'METHOD OVERRIDING'... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR VAI NOS MOSTRAR 1 EXEMPLO DO OVERRIDE DE CONSTRUCTORS 
+    PRIMEIRO, PARA SÓ ENTÃO NOS MOSTRAR 
+
+    EXEMPLOS DE OVERRIDE DE OUTROS METHODS...
+
+
+     
+
+
+
+
+
+
+
+
+--> COMO JÁ PERCEBEMOS,
+
+NÃO TEMOS NENHUM CONSTRUCTOR NAS CLASSES 
+
+DE 
+
+'Toaster' e 'ToasterPro'...
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO ACONTECE/ACONTECEU JUSTAMENTE 
+
+    PQ CONSTRUCTORS NÃO SÃO REQUIRED,
+
+    EM CLASSES...
+
+
+
+
+
+
+
+
+--> BEM, MAS AÍ O PROFESSOR ADICIONA 
+
+
+    1 CONSTRUCTOR METHOD 
+
+
+
+    NO TOASTER PARENT...
+
+
+
+
+
+
+
+    -> AÍ ELE FAZ A INITIALIZATION DOS VALUES DE 
+
+
+    '$slices' e '$size'
+
+
+        NO INTERIOR DO CONSTRUCTOR, TIPO ASSIM:
+
+
+
+
+
+
+
+<?php
+
+
+
+
+namespace App2;
+
+
+
+class ToasterWithConstructor
+{
+
+    protected array $slices;
+    protected int $size;
+
+    public function __construct()
+    {
+        $this->slices = [];
+        $this->size = 2;
+    }
+
+
+    public function addSlice(string $slice): void
+    {
+        if (count($this->slices) < $this->size) {
+            $this->slices[] = $slice;
+        }
+    }
+
+    public function toast()
+    {
+        foreach ($this->slices as $i => $slice) {
+            echo ($i + 1) . ': Toasting ' . $slice . PHP_EOL;
+        }
+    }
+}
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+ISSO FEITO,
+
+
+
+ELE TAMBÉM MODIFICA a 'ToasterPro',
+
+
+
+
+coloca um constructor dentro dela,
+
+e também 
+
+
+
+
+FAZ COM QUE O VALUE DE 'size'
+
+
+
+SEJA INICIALIZADO DENTRO DO CONSTRUCTOR,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+namespace App2;
+
+
+class ToasterProWithConstructor extends ToasterWithConstructor
+{
+
+    public function __construct()
+    {
+        $this->size = 4;
+    }
+
+
+    public function toastBagel()
+    {
+        foreach ($this->slices as $i => $slice) {
+            echo ($i + 1) . ': Toasting ' . $slice . ' with bagel option' . PHP_EOL;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS AO RODARMOS 
+
+
+ESTE CÓDIGO:
+
+
+
+
+$toaster.addSlice('bread');
+
+
+
+
+
+
+
+
+
+
+FICAMOS COM 1 ESTRANHO ERRO:
+
+
+
+
+
+
+
+''Uncaught Error: Typed Property App\ToasterWithConstructor::$slices must 
+    not be accessed before initialization''...
+
+
+
+
+
+
+
+
+
+
+-> O QUE ESTÁ ACONTECENDO, AQUI?
+
+
+
+
+
+
+--> BEM...
+
+
+
+
+
+
+
+--> O METHOD DE ADDSLICE ESTÁ ASSIM:
+
+
+
+
+
+
+
+    public function addSlice(string $slice): void
+    {
+        if (count($this->slices) < $this->size) {
+            $this->slices[] = $slice;
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESSE METHOD, É CLARO,
+
+EXISTE DENTRO DA CLASS DE 'Toaster'...
+
+
+
+
+
+
+ --> O QUE ESSE METHOD FAZ, NO CASO,
+
+ É 
+
+
+ O ACCESS DA PROPERTY DE '$slices'
+
+ dentro de '$this'... (que é o nosso próprio object, 'Toaster')..
+
+
+
+
+ EX:
+
+
+
+
+
+
+
+        if (count($this->slices) < $this->size) {
+
+
+
+
+
+
+
+
+
+
+
+
+-> ELE ESTÁ DIZENDO QUE ESSA PROPERTY,
+
+DE '$slices',
+
+NÃO FOI INICIALIZADA AINDA...
+
+
+
+
+
+
+
+
+
+-> MAS O ESTRANHO É QUE ESSA PROPERTY JÁ FOI INICIALIZADA...
+
+
+
+--> FOI INICIALIZADA JÁ NO CONSTRUCTOR DESSA CLASS, AQUI:
+
+
+
+
+    public function construct()
+    {
+        $this->slices = [];
+        $this->size = 2;
+    }
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS SE ESSE É O CASO,
+
+
+
+PQ ISSO ESTÁ ACONTECENDO?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EXPLICAÇÃO:
+
+
+
+
+
+''''THE REASON THIS DOESN'T WORK IS 
+    THAT __ WHEN YOU OVERRIDE THE PARENT CLASS' 
+    __construct (constructor) in THE ___
+
+    CHILD CLASS, with another '__construct()',
+
+    BY DEFAULT, THE __ CHILD CLASS _ __WON'T__ CALL 
+    THE  CONSTRUCTOR METHOD OF THE PARENT CLASS...''
+
+
+    (isso é parecido com o 'super()', lá do javascript)...
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... E, PARA CONSEGUIRMOS FORÇAR 
+    O CONSTRUCTOR DA PARENT CLASS A SER EXECUTADO,
+    PARA INICIALIZAR 
+    AQUELAS 
+
+    PROPERTIES,
+
+    SOMOS FORÇADOS A USAR ALGO COMO 'super()'...
+
+
+
+
+
+
+--> se comentássemos a parte do __construct() 
+    de 'ToasterPro', esse __construct() 
+
+    QUE ESTÁ _ OVERWRITTING o __construct 
+    da class parent 'ToasterPro',
+
+    NÃO FICARÍAMOS MAIS COM ESSE ERROR...
+
+
+
+
+
+
+-> MAS QUEREMOS TER ESSES 2 CONSTRUCTORS AÍ,    
+    TANTO O DO PARENT COMO O DA CHILD...
+
+
+
+
+
+
+
+
+
+--> ''WE NEED TO __ EXPLICITLY CALL THE PARENT'S CONSTRUCTOR 
+    METHOD.... WE DO THAT BY USING THE 'parent' keyword...''
+
+
+
+
+
+
+    --- USAMOS A KEYWORD DE 
+
+    'parent' + '::' (SCOPE RESOLUTION OPERATOR) + '__construct()';'
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php
+
+
+namespace App2;
+
+
+class ToasterProWithConstructor extends ToasterWithConstructor
+{
+
+    public int $size;
+
+
+    public function __construct()
+    {
+        parent::__construct(); // In javascript, this would be super()
+        $this->size = 4;
+    }
+
+
+    public function toastBagel()
+    {
+        foreach ($this->slices as $i => $slice) {
+            echo ($i + 1) . ': Toasting ' . $slice . ' with bagel option' . PHP_EOL;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+SOMOS FORÇADOS A ESCREVER 
+
+
+ALGO COMO ISTO:
+
+
+
+
+
+
+
+    public function __construct()
+    {
+        parent::__construct(); // In javascript, this would be super()
+        $this->size = 4;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> e esse call de 'parent::__construct()'
+
+TIPICAMENTE É FEITO __ ANTES_ DO INITIALIZE DE QUALQUER 
+OUTRA PROPERTY,
+
+DENTRO DE SUA CHILD CLASS...
+
+
+
+
+
+
+
+
+-> O IDEAL É REALMENTE CHAMAR ISSO, ESSE 'super()',
+
+PRIMEIRO...
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR SEMPRE COLOCA 
+
+
+O CALL DE 
+
+
+'parent::__construct()'
+
+
+
+NO TOPO 
+
+
+DO CONSTRUCTOR,
+
+
+A NÃO SER QUE ELE TENHA DE EXECUTAR ALGUMA LÓGICA ESPECIAL...
+
+(como o prepare de alguns arguments a serem passados ao parent constructor,
+por exemplo...)
+
+
+
+
+
+
+
+
+
+-> SE VC NÃO TEM NENHUM CONSTRUCTOR NA
+    PARENT CLASS,
+
+
+    AÍ O CALL DE 'parent::__construct()' se torna 
+    IMPOSSÍVEL na child class...
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... FAZ SENTIDO...
+
+
+
+
+
+
+
+
+-> ISSO PQ _ VOCê NEM SEMPRE TERÁ 
+    1 CONSTRUCTOR NA SUA PARENT CLASS...
+
+    EXISTIRÃO CASES EM QUE 
+    VC 
+
+    TERÁ 1 CONSTRUCTOR NA CHILD CLASS,
+
+    MAS NÃO 
+    TERÁ 
+
+    NA PARENT CLASS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TUDO ISSO QUE FALAMOS SOBRE OS CONSTRUCTOR METHODS 
+
+SE APLICA 
+
+TAMBÉM 
+
+
+A METHODS COMUNS, methods que não são os constructor methods...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+''''DIGAMOS QUE TEMOS 1 METHOD DE 
+    NOME 'addSlice()' TAMBÉM 
+
+
+    NO 'ToasterPro'...
+
+
+    -> é claro que esse method aí, sua lógica,
+    VAI FAZER OVERWRITE 
+
+    DA LÓGICA DE 'addSlice()'
+
+    EXISTENTE 
+
+
+    NA CLASS PARENT 'Toaster'....
+
+
+
+
+
+    -> SE VC QUER TER A MESMA LÓGICA 
+        DO 'addSlice()'
+
+        existente NA CLASS PARENT 'Toaster',
+
+
+        mas no addSlice() da class CHILD (junto de outras adições, à lógica do method original),
+
+
+
+        O QUE VC PODE FAZER 
+
+        É CHAMAR  
+
+        ''parent::addSlice($slice);''
+
+
+
+        NESSE METHOD DE 'ToasterPro',
+
+
+        TIPO ASSIM:
+
+
+
+
+
+
+
+class ToasterProWithConstructor extends ToasterWithConstructor
+{
+
+    public int $size;
+
+
+
+
+
+    public function addSlice(string $slice): void
+    {
+        parent::addSlice($slice); // Will call the parent class's addSlice method, just as if you were calling 'super()', with the constructor example.
+
+        echo 'Some stuff here...' . PHP_EOL; // Additional logic, besides the parent class's addSlice method.
+    }
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE VC PODE ADICIONAR 
+
+LÓGICA _ ANTES__ OU DEPOIS 
+
+DO CALL DE 'parent::addSlice()'...
+
+
+
+
+
+
+
+
+-> MAS É CLARO QUE ISSO É TOTALMENTE OPCIONAL...
+
+    VC NÃO É OBRIGADO A CHAMAR O 'PARENT METHOD',
+
+    nesse method overwrittado aí...
+
+
+
+    __ SE VC QUER REALMENTE OVERWRITTAR O PARENT METHOD E TER 
+    CUSTOM LOGIC NO METHOD DA SUA CHILD CLASS,
+
+    VC PODE FAZER ISSO, SEM PROBLEMAS...
+
+
+
+
+
+
+EX:
+
+
+
+
+    // * How to build upon the parent class method's logic, using 'parent::methodName()' (this is completely optional, of course):
+    public function addSlice(string $slice): void
+    {
+        parent::addSlice($slice); // Will call the parent class's addSlice method, just as if you were calling 'super()', with the constructor example.
+
+        echo 'Some stuff here...' . PHP_EOL; // Additional logic, besides the parent class's addSlice method.
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS É CLARO QUE 
+
+
+    QUANDO VC FAZ OVERWRITE DE 1 METHOD, NO PHP,
+
+    A 'METHOD SIGNATURE'
+
+
+    DO METHOD DA CHILD CLASS 
+
+    __DEVE, OBRIGATORIAMENTE,
+
+    SER 
+
+    EQUIVALENTE À METHOD SIGNATURE 
+
+
+    DO METHOD DE MESMO NOME, PRESENTE NA PARENT CLASS... CASO CONTRÁRIO, VC FICARÁ COM 1 FATAL ERROR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> APESAR DISSO, HÁ COISAS COMO 
+
+'Covariance' e 'Contravariance',
+
+
+
+QUE __ DEIXAM PAREMETERS E RETURN TYPES 
+
+
+1 POUCO FLEXÍVEIS 
+
+QUANDO O ASSUNTO É INHERITANCE...
+
+
+
+
+
+-> MAS N DEVEMOS NOS IMPORTAR COM 'Covariance' e 'Contravariance'
+
+agora, pq vamos as estudar em 1 vídeo separado...
+
+
+
+
+
+
+
+
+--> AS REGRAS DE COMPATIBILIDADE 
+    DE 'METHOD SIGNATURES'
+
+    __ NÃO SE APLICAM _ A CONSTRUCTORS (__construct()),
+
+
+    MAS __ SE APLICAM A PROPERTIES... (como já vimos anteriormente)...
+
+
+
+
+
+
+
+
+
+
+--> É EXATAMENTE POR ISSO QUE PODEMOS TER COISAS DIFERENTES,
+
+    ENTRE OS CONSTRUCTORS DE NOSSAS PARENT E CHILD CLASSES...
+
+
+
+
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+(child class):
+
+
+    public function __construct(string $x)
+    {
+        parent::__construct(); // In javascript, this would be super(). Always call it before doing anything else.
+        $this->size = 4;
+    }
+
+
+
+
+
+
+
+(parent class):
+
+
+
+
+    public function __construct()
+    {
+        parent::__construct(); // In javascript, this would be super(). Always call it before doing anything else.
+        $this->size = 4;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+-> COMO VC PODE VER,
+
+A METHOD SIGNATURE 
+
+
+DO '__construct()'
+
+
+
+
+do parent e da child classes 
+
+NÃO ESTÃO EQUIVALENTES... MESMO ASSIM,
+
+ISSO É PERMITIDO...
+
+
+
+
+
+
+QUER DIZER QUE AS SIGNATURE RULES NÃO SE APLICAM 
+AOS ___ CONSTRUCTOR METHODS...
+
+
+
+
+
+
+
+
+
+--> VC TAMBÉM PODE ACEITAR DIFERENTES  TIPOS DE ARGUMENTS 
+    NO PARENT CONSTRUCTOR, DIFERENTES DAQUELES 
+    ACEITOS 
+    NO CHILD CONSTRUCTOR...
+
+
+
+
+        -> A ÚNICA COISA QUE VC PRECISA FAZER,
+        EM CASOS COMO ESSES,
+
+        É __ GARANTIR QUE OS ARGUMENTS CORRETOS ESTÃO SENDO PASSADOS 
+        AO CONSTRUCTOR DA PARENT CLASS,
+
+        COM 'parent::__construct()'...
+
+
+
+        TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+(parent class):
+
+
+
+
+    public function __construct(string $x) // PAY ATTENTION TO THIS (the type, string)
+    {
+        parent::__construct();
+        $this->size = 4;
+    }
+
+
+
+
+
+
+        
+(child class):
+
+
+    public function __construct(string $x, int $z)
+    {
+        parent::__construct($x); // LIKE THIS
+        $this->size = 4;
+    }
+
+
+
+
+
+
+
+
+
+
+OK....
+
+
+
+
+
+
+
+
+
+
+
+VC TAMBÉM PODE TER DIFERENTES 
+
+NAMES PARA OS METHOD PARAMETERS... ISSO AINDA 
+NÃO VAI 
+CAUSAR 
+
+COMPATIBILITY ISSUES...   MAS VAI CAUSAR ERRORS,
+                            SE A FEATURE DE 'NAMED ARGUMENTS'
+                            
+                            FOR UTILIZADA...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+nesse exemplo, digamos que estamos 
+fazendo overwrite do method de 'addSlice':
+
+
+
+
+
+
+
+
+(child class):
+
+
+
+public function addSlice(string $sliceX): void 
+{
+    parent::addSlice($sliceX);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+(index.php):
+
+
+
+
+$toaster->addSlice(slice: 'bread');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> é por isso que, desde que 
+    a feature de named parameters foi introduzida,
+
+    reconhece-se que é 
+
+    MELHOR USAR O PARAMETER NAME,
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+(child class):
+
+
+
+public function addSlice(string $slice): void 
+{
+    parent::addSlice($slice);
+}
+
+
+
+
+
+
+(index.php):
+
+
+
+    
+$toaster->addSlice(slice: 'bread');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+''BUT WHAT IF YOU  WANTED TO MAKE SURE 
+_ THAT A SPECIFIC CLASS/METHOD CAN BE __EXTENDED FROM??''
+
+
+
+
+
+
+-> EM CASOS COMO ESSES, VC PODE USAR 
+
+A KEYWORD DE 'final'...
+
+
+
+
+
+
+
+
+
+
+
+
+-> NO CASO, A ESCRITA É TIPO ASSIM:
+
+
+
+
+
+
+
+
+final class Toaster {
+
+}
+
+
+
+
+
+
+
+
+
+--> AO FAZER ISSO,
+
+VC _ GARANTE_ QUE ESSA CLASS 
+
+'NÃO TERÁ CHILDREN',
+
+
+
+NÃO PODERÁ SER PARENT DE MAIS NENHUMA OUTRA CLASS...
+
+
+
+
+
+
+
+''''YOU CANNOT INHERIT FROM/EXTEND 
+    A 'final' class...''
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA,
+
+SE DEIXÁSSEMOS ASSIM,
+
+
+A CLASS DE 'ToasterPro'
+
+NÃO CONSEGUIRIA 
+
+FAZER 
+'extend'
+
+
+de essa class de 'Toaster'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+SIMILARMENTE A ISSO,
+
+SE VC 
+
+
+
+DEFINE 
+
+1 
+
+METHOD COMO 
+
+
+'final',
+
+tipo 
+
+
+
+'final public function addSlice(string $slice): void 
+{
+
+}
+',
+
+
+
+
+
+VC __ GARANTE _QUE NÃO SERÁ 
+
+POSSÍVEL
+ 
+
+ FAZER 
+
+ OVERRIDE 
+ DE ESSE METHOD,
+
+
+ EM CHILD CLASSES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+ --> BASICAMENTE,
+ A KEYWORD DE 'final'
+
+ PODE SER USADA 
+
+
+
+ __ PARA __ IMPEDIR_ _ 
+
+ CLASS INHERITANCE E METHOD OVERRIDING... É BEM INTERESSANTE...
+
+
+
+
+
+
+
+
+
+
+
+ ANTES DE PROSSEGUIRMOS,
+
+ O PROFESSOR QUER APONTAR QUE 
+
+ O PHP 
+
+ __ NÃO SUPORTA 
+
+
+ 'MULTIPLE INHERITANCE'
+
+
+ (ao contrário do javascript, no caso)...
+
+
+
+
+
+
+ -> ISSO QUER DIZER QUE VC NÃO PODE FAZER EXTEND DE MÚLTIPLAS CLASSES  
+    AO MESMO TEMPO...
+
+
+
+
+
+
+
+
+--> O JAVASCRIPT, NA VERDADE,
+    NÃO PERMITE MULTIPLE INHERITANCE...
+
+
+
+
+
+
+    MAS:
+
+
+    Multiple inheritance in JavaScript can be implemented
+     through techniques such as the prototype chaining, mixins,
+     or by combining both. 
+
+
+
+
+
+
+
+
+
+
+
+-> O PHP, POR OUTRO LADO,
+
+SUPORTA 
+
+'MULTI-LEVEL INHERITANCE'...
+
+
+
+
+
+
+
+--> COM ISSO, COM 'MULTI-LEVEL INHERITANCE',
+
+    O PHP CONSEGUE OBTER 
+
+    'HIERARCHICAL INHERITANCE'...
+     
+
+
+
+
+
+
+     O EXEMPLO É ESTE:
+
+
+
+
+      
+
+
+
+    1) BASIC TOASTER 
+
+
+    2) TOASTER PRO (with all features of the basic toaster + features of pro toaster)
+
+
+    3) TOASTER PRO PRO (all features of pro toaster + pro pro toaster)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O TOASTER PRO PRO, com isso, ficaria 
+
+com todas as properties/methods/constants 
+
+
+dos toasters anteriores...
+
+
+
+
+
+
+
+
+
+
+-------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA DEVEMOS VER MAIS ALGUNS EXEMPLOS...
+
+
+
+
+
+
+
+
+
+
+
+DIGAMOS QUE TEMOS 1 CLASS DE TRANSACTION:
+
+
+
+
+
+
+
+
+
+
+
+(Transaction)
+
+
+
+
+
+
+
+
+
+
+ESSA CLASS TEM TODAS AS NECESSARY PROPERTIES E METHODS PARA 
+
+PROCESSAR TRANSACTIONS...
+
+
+
+
+
+
+
+
+
+
+
+-> MAS DIGAMOS QUE TEMOS 
+    1 OUTRO TIPO DE TRANSACTION,
+
+
+    'REFUND TRANSACTION',
+
+
+    QUE PODERIA SER REPRESENTADA POR OUTRA CLASS...
+
+
+
+
+
+
+
+--> SIM, VC PODERIA TER 1 METHOD DE 'refund()'
+    dentro da class de 'Transaction'... MAS IMAGINE 
+    QUE VC TEM 
+
+    LÓGICA ESPECÍFICA SOBRE 'HOW YOU WILL REFUND YOUR TRANSACTIONS'...
+
+
+
+
+-> NESSE CASO,
+    O 'Refund Transaction' 
+
+    SERÁ UMA OUTRA CLASS,
+
+    COM SUA PRÓPRIA CUSTOM FUNCTIONALITY,
+
+
+    MAS QUE VAI HERDAR TODAS AS PROPERTIES E METHODS 
+
+
+    DA TRANSACTION CLASS COMUM (Transaction, que é a PARENT, nesse caso)...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+(Transaction)
+
+^
+I 
+I 
+I 
+I 
+
+(Refund Transaction)
+
+
+
+
+
+
+
+
+
+-> OUTRO EXEMPLO É COM 
+
+A CLASS DE 'Payment Account':
+
+
+
+
+
+
+
+
+
+
+DIGAMOS QUE VC TEM 2 TIPOS DE 'Payment Account':
+
+
+
+
+
+
+
+1) Checking Account 
+
+
+
+
+2) Savings Account 
+
+
+
+
+
+
+
+
+
+
+-> ESSES 2 TIPOS DE ACCOUNT 
+
+    FAZEM 'SHARE' DE CERTAS FUNCTIONALITIES...
+
+
+
+    POR CONTA DISSO,
+
+
+    VC PODE TER UMA 'Payment Account'
+
+    COMO A BASE CLASS 
+
+    DAS DUAS,
+
+
+    E AÍ TER AS ACCOUNTS DE 'CHECKING'
+
+    E 'SAVINGS'
+
+
+    COMO CHILDREN 
+
+    DELA...
+
+
+
+
+
+
+Ex:
+
+
+
+
+
+                Payment Account 
+                I           I 
+                I           I 
+                I           I 
+                I           I 
+            CHECKING        SAVINGS
+            ACCOUNT         ACCOUNT
+
+
+
+
+
+
+
+
+
+
+
+
+-> VC NAO PODERIA FAZER A MESMA COISA,
+UM 'EXTEND'
+
+DA ACCOUNT DE 'SAVINGS' EM RELAÇÃO 
+
+À ACCOUNT DE 'CHECKING',
+
+POR EXEMPLO...
+
+
+
+
+
+
+
+--> VC PRECISA TER EM MENTE 
+
+    A RELATIONSHIP 
+    DE 
+
+
+    'IS A'...
+
+
+
+    TIPO, POR EXEMPLO,
+
+
+
+
+
+ESTAS FRASES:
+
+
+
+
+
+
+
+''Checking Account __IS__ A ___ Payment Account'' (is a type of payment account, yes)...
+
+
+
+''Savings Account __IS __ A __ Payment Account'' (this is true, as well)...
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR LOGO NOS EXPLICARÁ 
+    MELHOR O QUE TUDO ISSO, DAS FRASES,
+    SIGNIFICA...
+
+
+
+
+
+
+
+
+
+
+---> DEPOIS DISSO,
+
+        TEMOS 1 EXEMPLO 
+
+        DE 'FORM FIELDS'...
+
+
+
+
+
+
+
+IMAGINE ISTO:
+
+
+
+
+
+
+
+
+'''TEMOS ALGUNS BASE FIELDS, 
+    QUE POSSUEM ALGUMAS PROPERTIES/METHODS
+    
+
+    QUE SE APLICAM AO FIELD 'BASE' (fields que existem em quase todas forms)...
+''
+
+
+
+
+
+
+
+->AÍ, DEPOIS DISSO, FAZEMOS EXTEND DESSE 'FIELD'
+
+    em diferentes tipos de fields, como 'text fields',
+
+    'text area fields',
+
+
+    'boolean fields',
+
+    etc...
+
+
+
+
+
+
+--> ESSES FIELDS,
+
+POR SUA VEZ,
+
+PODEM FAZER EXTEND AINDA MAIS LONGE....
+
+
+
+
+
+TIPO COM ESTA REPRESENTAÇÃO:
+
+
+
+                        FIELD 
+                          I 
+    ----------------------------------------------------    
+    I                  I              I                I
+   Text             Text Area       Boolean           ...
+    I                    I           I    I 
+----------------         I     CHECKBOX  RADIO
+I       I       I       WYSIWYG
+EMAIL  NUMBER   I
+        I       DATE/TIME
+        I 
+    -----------
+    I          I 
+PERCENT      DOLLAR
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO PQ, POR EXEMPLO,
+
+'PERCENT' E 'DOLLAR'
+NÃO DEIXAM DE SER 'NUMBER'
+
+FIELDS,
+
+
+MAS É CLARO QUE ELES POSSUEM MAIS ALGUMAS FUNCTIONALITIES ESPECÍFICAS 
+
+A ELES...
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE VER,
+
+ESSE É UM EXEMPLO 
+
+DE 
+
+'MULTI-LEVEL INHERITANCE'... 
+
+
+
+
+
+
+
+
+
+
+-> OU SEJA,
+
+
+EM VEZ DE INHERITAR DE VÁRIAS CLASSES DIFERENTES 
+AO MESMO TEMPO,
+
+
+
+
+VC ESTÁ INHERITANDO DE 
+MÚLTIPLAS CLASSES,
+
+MAS ATRAVÉS 
+
+DE 1 HIERARCHY...
+
+
+
+
+
+
+
+
+--> NÃO É MULTIPLE INHERITANCE,
+
+MAS É INHERITANCE ATRAVÉS DE HIERARQUIA...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+O 'DOLLAR' FIELD INHERITA 
+
+TUDO DO 'NUMBER FIELD',
+
+
+DO 'TEXT FIELD'
+
+
+E 
+
+
+DO 
+
+'BASE FIELD'....
+
+
+
+
+
+
+
+
+
+
+
+
+VEREMOS MAIS EXAMPLES E USE-CASES 
+
+
+MAIS PARA FRENTE NO CURSO...
+
+
+
+
+
+
+
+
+-> MAS O PROFESSOR QUER 
+    NOS MOSTRAR ALGUNS EXEMPLOS 
+
+
+    DE 
+
+
+    COMO 'INHERITANCE CAN SOMETIMES NOT BE SUCH A GOOD IDEA'...
+
+
+
+
+
+
+
+
+
+
+
+--> INHERITANCE 
+
+    IS GOOD, IN GENERAL,
+
+    __ BECAUSE IT IS PART OF THE OOP 
+    PRINCIPLES...
+
+
+
+
+
+
+
+-_> MAS PODE SER RUIM, TAMBÉM,
+
+    SE __ É MISUSED,
+
+    OU SE É OVERUSED...
+
+
+
+
+
+
+
+-> A INHERITANCE PODE ACABAR 
+    __ QUEBRANDO__ A ENCAPSULATION DE SUAS 
+    CLASSES,
+
+    JUSTAMENTE 
+
+    PQ ISSO TE DEIXA 
+
+
+    TER ACESSO A TODAS AS PROTECTED E PUBLIC 
+
+    PROPERTIES/CLASSES/METHODS 
+
+
+    DA _ PARENT CLASS...
+
+
+
+
+
+--> VEJA ESTE CÓDIGO:
+
+
+
+
+    public function __construct()
+    {
+        parent::__construct(); 
+        $this->size = 4; //ESTE TRECHO
+    }
+
+
+
+
+
+
+
+
+-> COM ESTE CÓDIGO,
+
+SOMOS CAPAZES 
+    DE ALTERAR DIRETAMENTE 
+
+    AS PROPERTIES 
+
+    DA PARENT CLASS...
+
+
+
+
+
+--> E ISSO PODE SER OK,
+    PQ 
+
+    ISSO É 'BY-DESIGN',
+
+
+
+    MAS ISSO TAMBÉM PODERIA QUEBRAR A ENCAPSULATION,
+
+
+    PQ VC PODERIA FAZER ISSO EM QUALQUER 
+
+    OUTRO METHOD,
+
+
+
+
+    TIPO ASSIM:
+
+
+
+
+
+    public function toastBagel()
+    {
+        $this->size = 999;
+
+    }
+
+
+
+
+
+
+
+
+
+    VC PODERIA MUDAR O VALUE DE 'size',
+
+    nessa child class,
+    por exemplo...
+
+
+
+
+
+
+
+-> OUTRA DESVANTAGEM 
+    DA INHERITANCE 
+    É QUE 
+
+
+    QUANDO VC 
+
+    FAZ INHERITANCE 
+
+
+    DA PARENT CLASS,
+
+
+    VC ESTÁ ACTUALLY HERDANDO 
+
+
+    __ TODOS __ OS PROTECTED E PUBLIC
+
+
+    METHODS... ATÉ MESMO AQUELES 
+
+    QUE 
+
+    NÃO SÃO 
+
+    REALMENTE 
+
+    NECESSÁRIOS 
+
+    NESSA CHILD CLASS...
+
+
+
+
+
+
+
+
+
+-> VC PODE ACABAR INHERITANDO 
+ATÉ MESMO METHODS QUE 
+
+PODEM JÁ ESTAR DEPRECADOS,
+
+
+ABANDONADOS...
+
+
+
+
+
+
+
+
+-> OU, PIOR DO QUE ISSO,
+    VC PODE ACABAR CHAMANDO METHODS 
+
+    QUE __ NÃO POSSUEM RELAÇÃO ALGUMA 
+
+    COM 'ToasterPro'... (possuem efeitos com o Toaster comum, por exemplo)...
+
+
+
+
+
+
+
+
+
+
+--> UM TIPO DE SOLUÇÃO QUE VC PODE ENCONTRAR 
+    A ESSE PROBLEMA,
+
+    EM MTAS CODEBASES,
+
+
+
+    É O OVERWRITE 
+
+
+
+    DO METHOD 
+
+    ESCRITO 
+    LÁ NA PARENT CLASS 
+
+
+
+    COM 1 METHOD 
+
+
+
+    NA CHILD CLASS DE MESMO NOME,
+
+
+    MAS QUE FAZ O 
+
+    THROW 
+
+    DE 
+
+    UMA EXCEPTION,
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+(Toaster, parent class):
+
+
+
+
+public function foo() {
+
+    echo 'some Logic';
+}
+
+
+
+
+
+
+
+(ToasterPro, child class):
+
+
+
+
+public function foo() { // This function overwrites the 'foo()' in the parent class...
+
+
+    throw new \Exception('Not supported'); // THIS IS WHAT THE TEACHER IS TALKING ABOUT...
+
+}
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR 
+    ACHA ISSO AÍ TERRÍVEL...
+
+
+
+
+
+--> SE VC ENCONTRA ALGO ASSIM,
+    EM QUE 
+
+    ''YOU ARE FORCED TO OVERWRITE A METHOD AND 
+        THROW AN EXCEPTION THAT WAY'',
+
+
+
+        O PROFESSOR ACHA QUE 
+
+        VC 
+
+        DEVE RECONSIDERAR 
+
+        O USO DE INHERITANCE,
+
+
+
+        E QUE VC DEVE PENSAR EM OUTRA COISA...
+
+    
+
+
+
+
+--> 'inheritance CREATES TIGHT COUPLING 
+    BETWEEN PARENT AND CHILD CLASSES'...
+
+
+
+ 
+
+
+--> TALVEZ SEJA MELHOR USAR OUTRA COISA,
+
+COMO 'COMPOSITION'...
+
+
+
+
+
+
+
+-> VEREMOS ISSO MAIS TARDE NO CURSO,
+    QUANDO ESTUDARMOS 'COMPOSITION VS INHERITANCE'...
+
+
+
+
+
+
+    

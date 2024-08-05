@@ -6,6 +6,7 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'App2\\Toaster' => $baseDir . '/inheritance-example/Toaster.php',
     'App\\PaymentGateway\\Paddle\\Transaction' => $baseDir . '/coding-autoloading-and-composer-example/app/PaymentGateway/Paddle/Transaction.php',
     'App\\PaymentGateway\\Stripe\\Transaction' => $baseDir . '/coding-autoloading-and-composer-example/app/PaymentGateway/Stripe/Transaction.php',
     'Brick\\Math\\BigDecimal' => $vendorDir . '/brick/math/src/BigDecimal.php',

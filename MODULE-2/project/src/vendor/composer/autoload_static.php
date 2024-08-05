@@ -28,6 +28,7 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
         'A' => 
         array (
             'App\\' => 4,
+            'App2\\' => 5,
         ),
     );
 
@@ -52,9 +53,14 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
         array (
             0 => __DIR__ . '/../..' . '/coding-autoloading-and-composer-example/app',
         ),
+        'App2\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/inheritance-example',
+        ),
     );
 
     public static $classMap = array (
+        'App2\\Toaster' => __DIR__ . '/../..' . '/inheritance-example/Toaster.php',
         'App\\PaymentGateway\\Paddle\\Transaction' => __DIR__ . '/../..' . '/coding-autoloading-and-composer-example/app/PaymentGateway/Paddle/Transaction.php',
         'App\\PaymentGateway\\Stripe\\Transaction' => __DIR__ . '/../..' . '/coding-autoloading-and-composer-example/app/PaymentGateway/Stripe/Transaction.php',
         'Brick\\Math\\BigDecimal' => __DIR__ . '/..' . '/brick/math/src/BigDecimal.php',

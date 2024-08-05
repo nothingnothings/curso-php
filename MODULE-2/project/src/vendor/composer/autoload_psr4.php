@@ -11,4 +11,5 @@ return array(
     'Ramsey\\Collection\\' => array($vendorDir . '/ramsey/collection/src'),
     'Brick\\Math\\' => array($vendorDir . '/brick/math/src'),
     'App\\' => array($baseDir . '/coding-autoloading-and-composer-example/app'),
+    'App2\\' => array($baseDir . '/inheritance-example'),
 );
