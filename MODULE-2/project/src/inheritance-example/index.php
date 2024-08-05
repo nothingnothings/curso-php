@@ -36,3 +36,18 @@ $toasterPro->toastBagel();
 // '$this' variable behavior, inside of the called method:
 $toaster->addSlice('bread'); // '$this', inside of this method, will refer to the PARENT class...
 $toasterPro->addSlice('bread'); // '$this', inside of this method, will refer to the CHILD class...
+
+
+
+
+
+
+// Example of a function that accepts a parameter of type 'object'/class:
+function foo(ToasterPro $toasterPro)
+{
+    $toasterPro->toast();
+}
+
+
+
+foo($toaster);

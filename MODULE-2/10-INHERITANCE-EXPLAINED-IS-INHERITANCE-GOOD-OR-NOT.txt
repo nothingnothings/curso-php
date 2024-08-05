@@ -3985,4 +3985,682 @@ COMO 'COMPOSITION'...
 
 
 
+
+
+
+
+--> UMA COISA QUE O PROFESSOR NÃO FALOU É 
+    SOBRE 
+
+COMO 
+
+
+
+
+'''YOU CAN __ ACTUALLY TYPEHINT 
+    Toaster or ToasterPro as a type,
+    and how to include these class/object 
+    types as ARGUMENTS of other functions...''''
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, O PROFESSOR 
+    DECIDE CRIAR 1 CUSTOM FUNCTION NO NOSSO CÓDIGO,
+
+    E NÃO 1 METHOD...
+
+
+
+
+
+
+
+--> para isso, ele cria assim, em 'index.php':
+
+
+
+
+
+
+
+
+
+
+// Example of a function that accepts a parameter of type 'object'/class:
+function foo(ToasterPro $toasterPro)
+{
+    $toasterPro->toast();
+}
+
+
+
+foo($toaster);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... E ISSO VAI FUNCIONAR...
+
+
+
+
+
+
+
+
+
+
+
+--> MAS E SE, NO CASO,
+    TENTÁSSEMOS PASSAR 'Toaster' em vez de 'ToasterPro',
+
+    como argumento?
+
+
+
+
+
+--------> ISSO VAI RESULTAR EM 1 ERRO,
+
+            PQ 'Toaster' NÃO É UM _ 'ToasterPro'...
+
+
+
+
+            o 'Toaster' não faz 'extend' da class de 'ToasterPro'...
+
+
+
+
+
+        --> EM VEZ DISSO, O 'ToasterPro' faz extend da class 
+            de 'Toaster'...
+
+
+            --> O QUE QUER DIZER QUE,
+
+                SE O PARAMETER FOSSE DE TYPE 'Toaster',
+
+                PODERÍAMOS USAR 'ToasterPro' 
+
+                no seu lugar... 
+
+
+
+
+
+
+                RESUMINDO:
+
+
+
+                ''ToasterPro  _IS A Toaster'',
+
+                MAS 
+
+
+                ''Toaster IS _NOT __ A ToasterPro'...
+
+
+
+
+
+
+
+--> A ALTERNATIVA, NO CASO, SERIA ESCREVER ASSIM:
+
+
+
+
+
+
+
+function foo(Toaster $toaster) {
+    $toaster->toast();
+}
+
+
+
+foo($toasterPro);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VEREMOS 'COMPOSITION' MAIS TARDE NO CURSO...
+
+
+
+
+
+
+---------------------------------------
+
+
+
+
+
+
+
+
+O PROFESSOR MENCIONOU, ANTES, 
+
+
+
+A RELATION DE 'IS A'...
+
+
+
+
+
+
+--> ELE MENCIONOU ISSO QUANDO DISSE QUE 
+
+
+''ToasterPro is a Toaster''...
+
+
+
+
+
+
+
+
+
+
+
+--> E PODEMOS USAR ESSA RELATION PARA DECIDIR 
+    SE VC PRECISA DE INHERITANCE OU NÃO...
+
+
+
+
+
+--> SE VC TEM 1 CLASS EM QUE 
+    VC PODERIA APLICAR ESSA FRASE,
+
+        VC PODERIA 
+
+        USAR O PODER DA INHERITANCE 
+
+        COM ESSA CLASS...
+
+
+
+
+
+
+--> COMO 'ToasterPro' não deixa de ser 
+1 Toaster,
+
+            O USO DE INHERITANCE FUNCIONA COM ELE...
+
+
+
+
+
+---> SE A RELATION DE 'IS A' 
+
+    NÃO FAZ SENTIDO 
+
+
+    OU 
+
+    NÃO SE APLICA A SUA CLASS QUE USA INHERITANCE,
+
+    VC 
+
+    PODE ESTAR USANDO INHERITANCE
+
+
+    NO LUGAR DE COMPOSITION, QUANDO COMPOSITION SERIA BEM MELHOR,
+    NESSE CASO CONCRETO...
+
+
+
+
+
+
+
+
+--> O CONSELHO DO PROFESSOR É _ NÃO__ TENTAR USAR 
+    INHERITANCE PARA TODOS OS CASOS,
+
+    E SIM APENAS QUANDO HÁ RELATIONSHIPS ENTRE CHILD E PARENT....
+
+
+
+
+
+
+
+--> BEM... MAS QUANDO VC N USARIA INHERITANCE?
+
+
+
+
+
+
+
+
+
+
+
+--> BEM, DIGAMOS QUE 
+    NO FUTURO, TEMOS DE PROJETAR 
+
+    1 CLASS DE 'Oven',
+
+
+    UM FANCY OVEN QUE TAMBÉM TEM 
+
+    A FUNCTION DE 'TOAST BAGELS'...
+
+
+
+
+
+
+--> VC PODE ACHAR QUE FAZER EXTEND 
+    DA CLASS DE ToasterPro 
+
+    bastaria, MAS ISSO VAI ADICIONAR MAIS 
+    PROBLEMAS 
+
+    AO LONGO DO CAMINHO,
+
+
+
+    TUDO PQ 
+
+    'Oven is not a ToasterPro'... 
+
+
+
+
+
+
+    --> VAI CAUSAR PROBLEMAS DE MAINTENANCE 
+        E TAMBÉM PROBLEMAS COM O ADD DE NOVAS 
+            FEATURES AO SEU APP...
+
+
+
     
+
+
+
+
+
+
+
+
+
+AQUI, NO CASO,
+
+A FRASE APLICÁVEL AO OVEN É 
+
+
+
+
+''OVEN _ HAS__ A FEATURE OF THE TOASTER'',
+
+
+
+ou 
+
+
+''Toaster is PART OF the OVEN''..
+
+
+
+
+
+
+
+
+
+
+
+-> PARA DEMONSTRAR,
+
+
+
+CRIAMOS 
+
+
+
+
+A CLASS DE 
+'
+FancyOven'...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+namespace App2;
+
+
+
+class FancyOven
+{
+
+    public function fry()
+    {
+
+    }
+
+    public function toast()
+    {
+
+    }
+
+    public function toastBagel()
+    {
+
+    }
+}
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+-------------> essas functions, de 'toast()'
+
+
+e 'toastBagel()',
+
+
+
+EXISTEM LÁ
+
+
+
+
+em 'ToasterPro',
+sim....
+
+
+
+
+
+
+
+
+
+
+--> MAS EM VEZ DE USARMOS INHERITANCE 
+    ENTRE 'ToasterPro' e 'Oven',
+
+
+    EM VEZ DE FAZERMOS EXTEND DO ToasterPro,
+
+
+
+    O QUE PODERÍAMOS USAR, AQUI, É A FEATURE DE 
+
+
+    'COMPOSITION' do php...
+
+
+
+
+
+
+    tudo pq 
+
+
+    ''FancyOven HAS _ A TOASTERPRO FUNCTIONALITY, but 
+    is not a toaster''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, PARA USARMOS 'COMPOSITION',
+    BASTA ESCREVER '$toaster' como 1 property 
+
+    de 'FancyOven',
+
+    e então 
+
+
+    DEFINIR O TYPE COMO SENDO 'ToasterPro'...
+
+
+
+--> NO CONSTRUCTOR, INSTANCIAMOS UM 'ToasterPro'
+    dentro da nossa class de 'FancyOven',
+
+    E, ENTÃO,
+
+    SERÁ 
+
+    ESSA CLASS QUE VAI RODAR OS METHODS PARA NÓS,
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+namespace App2;
+
+
+
+class FancyOven
+{
+
+
+    public function __construct(private ToasterPro $toaster)
+    {
+    }
+
+
+    public function fry()
+    {
+
+    }
+
+    public function toast()
+    {
+
+    }
+
+    public function toastBagel()
+    {
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA QUE JÁ TEMOS O TOASTER,
+
+
+PODEMOS SÓ CHAMAR ASSIM, NOS METHODS:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+namespace App2;
+
+
+// * Example of usage of 'composition' instead of 'inheritance':
+class FancyOven
+{
+
+
+    public function __construct(private ToasterPro $toaster)
+    {
+    }
+
+    // * Example of a method that uses 'composition' instead of 'inheritance':
+    public function fry()
+    {
+
+    }
+
+    public function toast()
+    {
+        $this->toaster->toast();
+    }
+
+    public function toastBagel()
+    {
+        $this->toaster->toastBagel();
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
+
+        $this->toaster->toast();
+
+
+
+''
+
+
+
+
+
+
+
+
+-> ESSE É O PODER DA COMPOSITION...
+
+
+
+
+
+
+FALAREMOS MAIS SOBRE COMPOSITION AO LONGO DO CURSO...
