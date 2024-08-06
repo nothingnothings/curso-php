@@ -1138,3 +1138,1737 @@ public function __unset(string $name): void
 
 
 PQ ISSO VAI REALMENTE REMOVER ESSE VALUE AÍ...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+namespace app3;
+
+
+class Invoice
+{
+
+    protected array $data = [];
+
+    // THIS IS THE MAGIC GET METHOD, the first of the magic methods. It is called when you try to access a property that doesn't exist.
+    public function __get(string $name)
+    {
+        var_dump($name);
+    }
+
+    // THIS IS THE MAGIC SET METHOD, the second of the magic methods. It is called when you try to set a property that doesn't exist.
+    public function __set(string $name, $value)
+    {
+        var_dump($name);
+    }
+
+    // THIS IS THE MAGIC ISSET METHOD, the third of the magic methods. It is called when you try to check if a property exists.
+    public function __isset(string $name): bool
+    {
+        return array_key_exists($name, $this->data);
+    }
+
+    // THIS IS THE MAGIC UNSET METHOD, the fourth of the magic methods. It is called when you try to unset a property that doesn't exist.
+    public function __unset(string $name)
+    {
+        unset($this->data[$name]);
+    }
+}
+
+
+
+
+
+
+
+
+
+-> PARA TRIGGAR O '__isset()',
+
+
+
+BASTA CHAMARMOS ASSIM:
+
+
+
+
+var_dump(isset($invoice->data)); // This will trigger the __isset() magic method, which will return a boolean because of our logic of array_key_exists().
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> FICAMOS COM 1 RETURN DE 'false',
+    justamente pq 
+
+    a key de '$data'
+
+
+    está como 'protected'...
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA CONSEGUIRMOS 'TRUE',
+    podemos rodar assim:
+
+
+
+
+
+
+$invoice->amount = 15; // sets amount as '15'
+ 
+
+
+
+var_dump(isset($invoice->amount)); //returns true, because amount is already set.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> DEPOIS DISSO, TEMOS __unset()...
+
+
+
+
+
+
+
+
+----> O UNSET É CHAMADO SEMPRE QUANDO VC 
+
+    RODA 'unset()'
+
+    em alguma de suas properties, tipo assim:
+
+
+
+
+
+
+
+unset($invoice->data); // This will trigger the __unset() magic method, which will dump the string 'data'
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+
+VIMOS 4 MAGIC METHODS, ATÉ AGORA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> 1 DETALHE IMPORTANTE É QUE 
+    ESSES MAGIC METHODS __ NÃO SERÃO __ CHAMADOS,
+
+    SE VC TENTAR FAZER GET DE SUAS PROPERTIES COM 
+
+    O OPERATOR DE STATICS (o '::')....
+
+
+    
+
+    EX:
+
+
+
+
+    App\Invoice::amount;  /// ISSO VAI GERAR 1 ERRO...
+
+
+
+
+
+
+
+
+
+--> ISSO VAI GERAR 1 ERRO,
+    E O METHOD DE '__get()'
+    NÃO SERÁ TRIGGADO.... 
+
+
+
+    ISSO ACONTECE, NO CASO, PQ __ TODOS ESSES 4 MAGIC METHODS 
+    ___ PRECISAM __ DE OBJECTS __ PARA PODEREM FUNCIONAR/SEREM TRIGGADOS...
+
+
+
+
+
+
+
+
+
+
+--> OUTRA COISA QUE O PROFESSOR QUER APONTAR É QUE 
+
+
+'''ESSES MAGIC METHODS NÃO DEVEM SER PENSADOS COMO SUBSTITUTOS 
+    DE GETTERS E SETTERS COMUNS...''''
+
+
+
+
+
+
+
+-> ELES SÃO ÚTEIS APENAS QUANDO:
+
+        - VC QUER TER HANDLING ESPECIAL QUANDO 
+            1 PROPERTY  __UNDEFINED__ OU __INACESSIBLE__ 
+            ESTÁ TENTANDO SER ACESSADA OU SET...
+
+        
+        - SÓ NESSES CASOS, BASICAMENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OS PRÓXIMOS MAGIC METHODS QUE VEREMOS SÃO 
+
+'__call()' e '__callStatic()'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+POR EXEMPLO, DIGAMOS QUE TENTAMOS CHAMAR 1 METHOD QUE NÃO EXISTE, EM 1 OBJECT:
+
+
+
+
+
+
+
+
+
+
+$invoice->inexistentMethod(); // This will result in a FATAL error...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ENTRETANTO, TAMBÉM É POSSÍVEL FAZER 'HOOK' 
+    NESSE CALL AÍ, CALL ERRADO,
+
+    E ENTÃO DEFINIR 1 MAGIC CALL METHOD,
+
+    QUE ENTÃO VAI RODAR SUA LÓGICA CUSTOM,
+    EM VEZ DE RETORNAR/DAR THROW DE ESSE ERROR...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // THIS IS THE MAGIC CALL METHOD, the fifth of the magic methods. It is called when you try to call a method that doesn't exist.
+    public function __call(string $name, array $arguments)
+    {
+        var_dump($name);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+e então, assim:
+
+
+
+
+
+
+
+$invoice->inexistentMethod(); // This will trigger the __call() magic method, which is triggered when you try to call a method that doesn't exist.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO NOS DÁ O 'NAME' (nome do method que foi chamado)  
+
+
+
+
+E 'arguments' (que são os arguments que foram passados nesse method call)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO.... MAS 1 DETALHE IMPORTANTE É 
+
+QUE '__call()', esse static method,
+
+__ NÃO É TRIGGADO_ 
+
+
+__ QUANDO___ STATIC METHOD CALLS SÃO FEITOS...
+
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA,
+
+    SE RODAMOS ASSIM:
+
+
+
+
+
+
+App\Invoice::process(1, 2, 3); // THIS, STATIC METHOD CALLS, WON'T TRIGGER THE __CALL() magic method...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA CASOS COMO ESSE, EM QUE VC CHAMA METHODS STATIC QUE NÃO EXISTEM,
+    VC TEM OUTRO MAGIC METHOD,
+
+    '__callStatic(),
+
+    QUE PODE SER DEFINIDO ASSIM:
+
+
+
+
+
+
+
+
+
+
+    public static function __callStatic($method, $args)
+    {
+        var_dump($method);
+    }
+
+
+
+
+
+
+
+
+--> ELE PRECISA SER DEFINIDO COMO STATIC METHOD, PARA FUNCIONAR...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+    // THIS IS THE MAGIC CALLSTATIC METHOD, the sixth of the magic methods. It is called when you try to call a static method that doesn't exist.
+    public static function __callStatic(string $name, array $arguments)
+    {
+        var_dump('static', $name, $arguments);
+    }
+
+
+
+
+
+
+
+
+
+E O TRIGGER:
+
+
+
+
+
+
+
+$invoice::inexistentStaticMethod(); // This will trigger the __callStatic() magic method, which is triggered when you try to call a static method that doesn't exist.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESSES 2 MAGIC METHODS SÃO, ACTUALLY,
+
+PRETTY POWERFUL,
+
+E VC VERÁ 
+
+
+ESSES 2 MAGIC METHODS SENDO USADOS EM FRAMEWORKS POPULARES, COMO O LARAVEL,
+
+                                                            PARA 'SPRINKLE SOME MAGIC'
+                                                            into the code...
+
+
+
+
+
+
+
+
+
+
+
+
+
+POR EXEMPLO, ESSES METHODS DE '__call()' e '__callStatic()' 
+
+PODEM SER USADOS PARA __ DEFERIR__ CALLS__ PARA OUTROS OBJECTS,
+
+
+ou até mesmo para dentro desse próprio object...
+
+
+
+
+
+
+
+
+
+O PROFESSOR NOS MOSTRA 1 EXEMPLO:
+
+
+
+
+
+
+  
+-- Digamos que temos 1 method de nome 'process()'....
+
+
+
+
+
+
+
+
+
+ASSIM:
+
+
+
+
+
+
+public function process() {
+    var_dump('process');
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AQUI, ELE ESTÁ COMO 'public'...
+
+
+
+
+
+
+
+
+
+--> MAS SE O DEFINIMOS COMO 'protected' ou 'private'
+
+    E TENTAMOS CHAMÁ-LO,
+
+
+
+    COM ESTE CÓDIGO:
+
+
+
+
+
+protected function process() {
+    var_dump('process');
+}
+
+
+
+
+
+
+
+$invoice->process();
+
+
+
+
+
+
+
+
+-> SE TENTAMOS ACESSAR ESSE METHOD, FICAMOS COM O TRIGGER DE '__call()',
+    pq ele não existe como 'public'....
+
+
+
+
+
+
+
+
+---> COMO JÁ ENTRAMOS DENTRO DE ''__call()'',
+
+
+
+podemos rodar lógica custom dentro desse magic method,
+
+como isto aqui:
+
+
+
+
+
+
+    public static function __callStatic(string $name, array $arguments)
+    {   
+        if(method_exists($this, $name)) {
+            $this->$name();
+        }
+    }
+
+
+
+
+
+
+
+
+-> COM ISSO, 
+
+        
+        ''IF THIS METHOD EXISTS IN OUR OBJECT, CALL THIS METHOD''...
+
+
+
+
+
+
+---> E AÍ ELE VAI CHAMAR ESSE METHOD...
+
+
+
+
+
+
+
+--> MAS HÁ UM PROBLEMA COM ISSO TUDO.... 
+
+    '''WHAT IF THIS PROCESS METHOD REQUIRES SOME ARGUMENTS?'''
+
+
+
+
+
+-> arguments como '$amount', '$description'....
+
+
+
+
+
+
+
+
+--> QUEREMOS CONSEGUIR PASSAR ISSO AO 
+
+''
+    $this->$name(); ''',
+
+
+    que chama esse method,
+
+    também...
+
+
+
+
+
+
+
+
+
+--> PODEMOS FAZER ISSO COM 
+
+
+'$this->$name($arguments)',
+
+
+
+MAS ISSO VAI RESULTAR EM 1 ERRO TBM,
+
+
+PQ 
+
+
+ESTAREMOS PASSANDO TODOS OS ARGUMENTS COMO 1 ARRAY, E NÃO 
+
+
+COMO 1 LISTA DE ARGUMENTS SEPARADOS..
+
+
+
+
+
+
+
+--> PARA CONSERTAR ISSO, PODEMOS USAR O SPREAD OPERATOR, OU, ENTÃO,
+    FAZER DECONSTRUCT DO ARRAY...
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+    // THIS IS THE MAGIC CALL METHOD, the fifth of the magic methods. It is called when you try to call a method that doesn't exist.
+    public function __call(string $name, array $arguments)
+    {
+        // var_dump($name);
+        if (method_exists($this, $name)) {
+            $this->$name(...$arguments);
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OUTRA SOLUÇÃO, PARA ISSO, É USAR 
+
+
+
+UMA BUILT-IN FUNCTION,
+
+chamada 
+
+
+de 
+
+
+'call_user_func_array()'...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+call_user_func_array([$this, $name], $arguments);
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+    // THIS IS THE MAGIC CALL METHOD, the fifth of the magic methods. It is called when you try to call a method that doesn't exist.
+    public function __call(string $name, array $arguments)
+    {
+        // var_dump($name);
+        if (method_exists($this, $name)) {
+            // $this->$name(...$arguments);
+            call_user_func_array([$this, $name], $arguments); // best way to do this (call the method with the original arguments)
+        }
+    }
+
+
+
+
+
+
+
+
+
+O MESMO APLICA-SE A 
+
+
+'__callStatic()':
+
+
+
+
+
+
+-- VOCÊ CHECARIA SE 1 METHOD EXISTE EM ALGUM OBJECT,
+    E AÍ VC FARIA O 'DEFER' DESSA CALL...
+
+
+
+-- ISSO FAZ COM QUE ESSES 2 MAGIC METHODS SEJAM MT POWERFUL,
+    TE DEIXAM SPRINKLE MAGIC NA SUA CODEBASE...  TE DEIXAM 
+    FAZER 'DEFER' DOS METHOD CALLS A OUTROS OBJECTS,
+
+    OBJECTS QUE NEM MESMO PRECISAM SER O CURRENT OBJECT...
+
+
+
+
+
+
+-- NO PRESENTE EXEMPLO, O PROFESSOR USOU O MESMO OBJECT,
+    COM CALLS ÀQUELE METHOD QUE ESTAVA PROTECTED,
+    MAS É CLARO QUE 
+
+    __ VC PODE FAZER 'RESOLVE' DE OUTRO OBJECT, DE 1 CONTAINER,
+
+    __ E AÍ __ CHAMAR O METHOD NESSE OUTRO OBJECT, EM VEZ DISSO...
+
+    O PROFESSOR SÓ USOU O MESMO OBJECT, AQUI, PQ QUERIA 1 EXEMPLO RÁPIDO...
+
+
+
+
+-- VOCÊ PODE ATÉ MESMO __CHAMAR__ NON-STATIC METHODS 
+    ESTATICAMENTE, POR MEIO DO 'RESOLVE' DO OBJECT 
+
+    NO INTERIOR DO magic method de '__callStatic()',
+
+    E ENTÃO DEFERIR A CALL A ESSE OBJECT QUE FOI RESOLVED/INSTANCIADO...
+
+    --------------> E É EXATAMENTE ASSIM QUE AS 'FACADES' DO LARAVEL
+                    FUNCIONAM, POR TRÁS DAS CENAS...
+
+
+
+
+
+
+
+
+
+--> OK..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PRÓXIMO MAGIC METHOD QUE VEREMOS É 
+
+O METHOD DE '__toString()',
+
+
+
+O QUAL ACABA CHAMADO 
+
+
+__SEMPRE QUE VC 
+
+
+
+__ TENTA__ INTERAGIR __ COM O OBJECT COMO 'STRING'...
+
+
+
+
+
+
+
+--> POR EXEMPLO, TALVEZ VC QUEIRA FAZER 'ECHO' DO SEU OBJECT,
+    OU ENTÃO CASTÁ-LO COMO STRING...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, ESCREVA ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+public function __toString(): string
+{
+    return 'hello';
+}
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA TRIGGAR ESSA FUNCTION,
+
+BASTA ESCREVER ASSIM:
+
+
+
+
+
+$invoice = new App\Invoice;
+
+
+echo $invoice;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AO RODARMOS ESSE CÓDIGO, FICAMOS COM 'hello'...
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS SE COMENTAMOS ESSE MAGIC METHOD PARA FORA E RE-RODAMOS O CÓDIGO,
+    FICAMOS COM 
+
+    1 ERROR 
+
+    DE 
+
+
+    'Object could not be converted to string'...
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO DEIXA AS COISAS BEM FLEXÍVEIS,
+    PQ AGORA VC TEM OBJECTS QUE PODEM SER INTERAGIDOS COMO SE FOSSEM STRINGS...
+
+
+    (pq, em vez de vc ficar com 1 error, ao tentar converter esse object em string,
+        a lógica custom de '__toString()' é executada...)
+
+
+
+
+
+
+--> MAS UMA COISA QUE VC DEVE TER EM MENTE É QUE,
+    SE VC TENTAR RETORNAR ALGUMA COISA DIFERENTE DE 'string',
+        nesse magic method de '__toString()',
+    
+    VC FICARÁ COM 1 ERROR... NÃO PODE RETORNAR 'INT', POR EXEMPLO...
+
+
+
+
+
+
+
+--> OUTRA COISA: DESDE PHP8, CLASSES QUE IMPLEMENTAM 
+                            O MAGIC METHOD DE '__toString()'
+
+                            __ IMPLICITAMENTE __ IMPLEMENTAM 
+
+
+                            A INTERFACE DE 'Stringable'...
+
+
+
+
+
+
+
+-->  PODEMOS CHECAR ISSO, COM 
+
+        'var_dump($invoice instanceof Stringable);' ,
+
+
+        que vai retornar 'true'...
+
+
+
+
+
+
+--> E ESSA IMPLMENTATION, DA INTERFACE DE 'Stringable',
+    ocorre desde o PHP8...
+
+
+
+
+
+
+--> ANTES DO PHP8, VC TERIA DE IMPLEMENTAR A INTERFACE DE 'Stringable'
+    MANUALMENTE,
+
+    COM 1 CÓDIGO COMO ESTE:
+
+
+
+    class Invoice implements \Stringable {
+
+    }
+
+
+
+
+
+
+
+
+
+
+---> se vc clica em 'Stringable',
+
+
+
+    VC PERCEBE QUE 
+
+    ELE TEM A DECLARATION DE '__toString()',
+
+
+
+    o que quer dizer que todas as classes que a implementam 
+    são forçadas a implementar esse method dessa forma (com o return de string type)...
+
+
+
+
+
+
+
+-> RESUMINDO:
+
+
+    SE VC COLOCA O MAGIC METHOD DE '__toString()'
+    na sua class, a interface de 'Stringable' já será 
+    aplicada, automaticamente, no PHP8...
+
+
+
+
+
+--> ENTRETANTO, AINDA É ALTAMENTE RECOMENDADO 
+    ESCREVER MANUALMENTE 
+
+
+
+    '''class Invoice implements \Stringable '''
+
+
+
+    na sua class,
+
+    para que fique bem claro que 
+    essa class vai implementar essa interface, de 'Stringable'...
+
+
+
+
+
+-------------------------------------------------------------
+
+
+
+
+
+
+
+O PRÓXIMO MAGIC METHOD QUE VEREMOS 
+
+É 
+
+CHAMADO DE 
+
+'__invoke()'...
+
+
+
+
+
+
+
+
+
+
+ESSE METHOD ACABA TRIGGADO QUANDO VC 
+
+__ TENTA__ CHAMAR O OBJECT DIRETAMENTE....
+
+
+
+
+
+NO CASO,
+
+
+ELE É TRIGGADO QUANDO VC ESCREVE ALGO COMO ISTO:
+
+
+
+
+
+
+'$invoice()'...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+$invoice = new app3\Invoice();
+
+
+$invoice(); // This will trigger the __invoke() magic method, which is triggered when you try to call the object as a function.
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+ EX:
+
+
+
+
+
+
+
+     // THIS IS THE MAGIC INVOKE METHOD, the eighth of the magic methods. It is called when you try to call the object as a function.
+    public function __invoke()
+    {
+        var_dump('invoke');
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE COMENTARMOS ESSE MAGIC METHOD PARA FORA, FICAMOS COM 1 FATAL ERROR,
+    DIZENDO 
+
+
+
+    ''Object of type Invoice is not callable''..
+
+
+
+
+
+
+
+
+
+
+-> PARA VER SE 1 OBJECT É CALLABLE,
+PODEMOS 
+
+RODAR ASSIM:
+
+
+
+
+
+
+var_dump(is_callable($invoice));
+
+
+
+
+
+
+
+
+
+
+-> MAS QUANDO VC DEFINE o magic method de __invoke(),
+    é claro que isso vai começar a retornar 'true', em vez de 'false'....
+
+
+
+
+
+
+    EX:
+
+
+
+
+
+
+
+
+
+
+
+$invoice = new app3\Invoice();
+
+var_dump(is_callable($invoice)); // this will return 'false' if the __invoke() magic method is not defined, and true if otherwise.
+
+
+$invoice(); // This will trigger the __invoke() magic method, which is triggered when you try to call the object as a function.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... FAZ SENTIDO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- ESSE MAGIC METHOD, '__invoke()',
+    É USEFUL PARA IMPLEMENTAR 'SINGLE-ACTION CLASSES'...
+
+
+
+
+
+-- O PROFESSOR USA MT ESSE TIPO DE MAGIC METHOD QUANDO 
+    ELE QUER TER 'SINGLE-RESPONSIBILITY CLASSES', OU SEJA,
+    CLASSES RESPONSÁVEIS POR APENAS 1 COISA/TAREFA...
+
+
+
+
+
+
+
+
+COMO EXEMPLO DISSO, DIGAMOS QUE NOSSA CLASS TEM O NOME DE 'ProcessInvoice':
+
+
+
+
+
+
+
+class ProcessInvoice
+{
+
+
+    
+    public function __invoke()
+    {
+        var_dump('invoked');
+    }
+}
+
+
+
+
+
+
+ProcessInvoice();
+
+
+
+
+
+
+
+
+
+
+
+---> COM ISSO, ESTAMOS INDICANDO, COM O NAME,
+
+    QUE ESSA CLASS TEM A ÚNICA TAREFA 
+    DE PROCESSAR AS INVOICES... COLOCAR OUTRA LÓGICA NESSA 
+    CLASS NÃO FARIA SENTIDO, PQ ESSE 'SINGLE-RESPONSIBILITY' PRINCIPLE 
+    SERIA _ QUEBRADO__...
+
+
+    
+
+    -> É POR ISSO QUE O PROFESSOR DIZ QUE 
+        DEVEMOS TER APENAS 1 ÚNICO METHOD DENTRO DE 'ProcessInvoice'...
+
+
+
+
+    --> E, EM VEZ DE DEFINIR ESSE SINGLE METHOD DENTRO DE 'ProcessInvoice',
+        O PROFESSOR PODE SIMPLESMENTE O DEFINIR 
+        DENTRO DE '__invoke()',
+
+        para que esse object seja invokable e para que então 
+        a lógica já seja triggada... a call será triggada 
+
+        ao 
+
+        ser rodado 
+
+
+        'ProcessInvoice()'....
+
+
+
+
+
+
+--------------------------------------
+
+
+
+
+
+
+
+
+
+
+FINALMENTE, TEMOS O ÚLTIMO MAGIC METHOD, QUE É '__debugInfo()'...
+
+
+
+
+
+
+
+
+
+
+
+    // THIS IS THE MAGIC DEBUGINFO METHOD, the ninth of the magic methods. It is called when you try to get debug information about the object.
+    public function __debugInfo(): ?array
+    {
+        return ['data' => $this->data];
+    }
+
+
+
+
+
+
+
+
+
+
+--> ESSE MAGIC METHOD DEVE, OBRIGATORIAMENTE,
+    RETORNAR OU 'NULL' OU 'ARRAY'... QUE DEVE 
+    SER PRINTADO QUANDO VC FIZER 
+
+    'var_dump()'
+
+    do object em si....
+
+
+
+
+
+--> isso, esse magic method, pode ser implementado como forma
+    de PROTEGER o conteúdo da sua class,
+
+
+    pq se vc 
+
+    tem 1 class com várias private properties, tipo assim:
+
+
+
+
+    class Invoice 
+    {
+        private float $amount;
+        private int $id;
+        private string $accountNumber;
+    }
+
+
+
+
+
+E SIMPLESMENTE FAZ O VAR_DUMP DESSA CLASS,
+
+com isto:
+
+
+var_dump($invoice);
+
+
+
+
+
+VC FICA COM TODAS AS PROPERTIES E CONTEÚDOS DA CLASS... ficamos 
+
+com todas elas, até mesmo as private...
+
+
+
+
+
+
+
+--> SE TEMOS SENSITIVE INFORMATION,
+    DENTRO DESSA CLASS,
+
+    PODEMOS USAR 
+
+    O 
+
+    '__debugInfo()'
+
+
+    PARA __ TER MAIOR PROTEÇÃO, 
+
+
+
+    PARA ESPECIFICAR_ _ EXATAMENTE O QUE DEVE SER PRINTADO,
+
+    QUANDO 
+
+
+    'var_dump()' for usado com esse object...
+
+
+
+
+
+POR EXEMPLO, RETORNAR APENAS OS 4 ÚLTIMOS DÍGITOS DE 'accountNumber',
+
+em vez do número inteiro...
+
+
+
+
+EX:
+
+
+
+
+
+
+
+    // THIS IS THE MAGIC DEBUGINFO METHOD, the ninth of the magic methods. It is called when you try to get debug information about the object.
+    public function __debugInfo()
+    {
+        // This is used to protect the object from being var_dumped or serialized (return only a part of the informations, for example):
+        return [
+            'id' => $this->id,
+            'accountNumber' => '****' . substr($this->accountNumber, -4)
+        ];
+
+        // return ['data' => $this->data];
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+FAZ TOTAL SENTIDO...
+
+
+
+
+
+ISSO VAI PRINTAR 
+
+
+
+
+ALGO COMO 
+
+
+
+
+'Object(2) {
+
+
+    ["id"]=>int(1)
+    ["accountNumber"]=>string(8) "****6789"
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+->_ O PROFESSOR NÃO USA MT ESSE MAGIC METHOD NOS APPS DELE... SÓ 1 OU 2...
+
+
+
+
+
+
+-> MAS É BOM SABER QUE ELE EXISTE...
+
+
+
+
+--> FALAREMOS MAIS SOBRE OUTROS MAGIC METHODS,
+
+COMO 
+
+
+
+''__clone()''
+
+
+
+''__sleep()''
+
+
+
+''__wakeup()''
+
+
+''__serialize()''
+
+
+e 
+
+'__unserialize()''
+
+em vídeos futuros...
