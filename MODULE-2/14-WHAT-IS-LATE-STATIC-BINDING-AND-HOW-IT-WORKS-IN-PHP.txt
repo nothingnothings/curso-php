@@ -1,0 +1,1661 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NÓS JÁ COBRIMOS
+
+    STATIC PROPERTIES 
+
+    E METHODDS...
+
+
+
+
+
+
+
+--> MAS AINDA NÃO FALAMOS SOBRE O USO 
+    DE STATIC PROPERTIES E METHODS 
+
+    COM ____INHERITANCE___...
+
+
+
+
+
+
+
+
+--> NUNCA OUVI FALAR DO TERMO 'LATE STATIC BINDING'...
+
+
+
+
+
+
+
+para entender melhor o 'late static binding',
+
+
+DEVEMOS, PRIMEIRAMENTE,
+
+
+
+ENTENDER QUAL É O PROBLEMA,
+
+E COMO ELE O RESOLVE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---> há 2 tipos de binding:
+
+
+
+
+
+
+
+
+
+1) EARLY BINDING 
+
+
+
+-- OCORRE DURANTE O 'COMPILE TIME'...
+
+
+
+
+-- O PHP É SEMPRE COMPILADO 'ON-DEMAND',
+    PQ NÃO É UMA LINGUAGEM COMPILADA, COMO 'C#' E OUTRAS...
+
+
+
+-- APESAR DE SER ABSTRACTED PARA LONGE DE NÓS,
+   O COMPILE AINDA EXISTE...
+
+
+
+
+
+
+2) LATE BINDING
+
+
+
+
+
+-- OCORRE DURANTE O 'RUNTIME'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA EXEMPLIFICAR A EXISTÊNCIA DE 'COMPILE TIME',
+
+
+O PROFESSOR TEM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+<?php 
+
+
+
+require_once '../../vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+$classA = new \App\ClassA();
+$classB = new \App\ClassB();
+
+
+echo $classA->getName() . PHP_EOL;
+echo $classB->getName() . PHP_EOL;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... QUANTO àS CLASSES,
+
+TEMOS ISTO:
+
+
+
+
+
+
+
+
+<?php
+
+namespace App5;
+
+class ClassA
+{
+    protected string $name = 'A';
+
+
+    public function getName()
+    {
+        return $this->name;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E A CLASSB FAZ EXTEND DA CLASSB,
+
+
+
+MAS FAZ OVERWRITE DO VALUE DA PROPERTY '$name',
+
+
+TIPO ASSIM:
+
+
+
+
+<?php
+
+namespace App5;
+
+class ClassB extends ClassA
+{
+    protected string $name = 'B';
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+NO INDEX.PHP,
+
+ESTAMOS INSTANCIANDO AMBAS AS CLASSES,
+
+
+E PRINTANDO 
+
+ A e B,
+
+ basicamente...
+
+
+
+
+
+
+
+
+ EX:
+
+
+
+
+
+
+
+
+PS D:\PROJETO20-PHP-FROM-THE-GROUND-UP\MODULE-2\project\src\late-static-binding-example> php index.php
+
+
+A
+B
+
+
+
+
+
+
+
+
+
+
+--> OK... TEMOS 1 CLASS A, QUE PRINTA 'A'
+
+por conta da property de 'name' com value de 'A'
+
+e por conta do method de 'getName'....
+
+
+
+
+
+-_> JÁ A CLASS DE B USA O MESMO METHOD, INHERITED,
+    MAS 
+
+
+    COM 1 VALUE DE 'B',
+
+    por conta do overwrite... 
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO TUDO, QUE ACONTECEU AQUI,
+    É CONSIDERADO COMO 
+
+    'LATE BINDING'... ->  É __LATE__ BINDING__ PQ 
+                            A CLASS É __ RESOLVED__ 
+
+                            DURANTE O RUNTIME,
+
+                            USANDO A INFORMATION DO RUNTIME...
+
+
+
+
+
+
+--> COMO VC SABE,
+
+    A VARIABLE DE '$this', dentro das classes,
+
+    SEMPRE SE REFERE 'AO CALLING OBJECT',
+
+
+    ao object que a chamou...
+
+
+
+
+
+
+
+
+
+
+    QUANDO O METHOD DE 'getName' é chamado 
+
+    por 'classB',
+
+
+    o '$this' se refere à class B... ESSE É O COMPORTAMENTO PADRÃO...
+
+
+
+
+
+
+
+
+    AS METHOD CALLS, AQUI, 
+
+    '''WILL DEPEND ON THE TYPE OF THE OBJECT WE ARE CALLING THAT 
+        METHOD ON''...
+
+
+
+        (no caso do classA, estamos chamando o method na classA...)
+
+
+
+
+
+        -> COMO ESTAMOS FAZENDO INHERIT DO METHOD DE 'getName',
+
+        DE CLASSA, EM CLASSB,
+
+
+            O METHOD DE 'getName'
+
+
+            AINDA É CHAMADO LÁ DENTRO DE 'CLASSA',
+
+
+            MAS __ O QUE INTERESSA É QUE __ A VARIABLE 
+
+            '$this', no method de 'getName' em classA,
+
+            
+            VAI SE REFERIR AO CALLING OBJECT (que é 'CLASSB')...
+
+
+        
+
+        --> E ESSA ''CLASS AND METHOD RESOLVING AND BINDING''
+            ACONTECE TODA ELA DURANTE O RUNTIME...
+
+
+            --> ACONTECE DURANTE O RUNTIME,
+                PQ PRECISA DESSA RUNTIME INFO ADICIONAL 
+
+                PARA __'FIGURE OUT' EM QUE CLASS DEVE 
+                SER CHAMADO O METHOD de 'getName()',
+
+                E EM QUE __ CLASS DEVERÃO SER ACESSADAS 
+
+                AS PROPERTIES E CONSTANTS E ETC...
+
+
+
+        --> E TUDO ISSO ACONTECE DURANTE O RUNTIME...
+
+
+
+
+
+
+
+
+--> PODEMOS COMPROVAR QUE ISSO ACONTECE DURANTE O RUNTIME,
+    COM UM VAR_DUMP 
+
+    de 'get_class($this)',
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+namespace App5;
+
+class ClassA
+{
+    protected string $name = 'A';
+
+
+    public function getName()
+    {
+        var_dump(get_class($this));
+        return $this->name;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... AÍ EXECUTAMOS O SCRIPT, ESTE AQUI:
+
+
+
+
+
+<?php
+
+
+
+require_once '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+$classA = new \App5\ClassA();
+$classB = new \App5\ClassB();
+
+
+echo $classA->getName() . PHP_EOL;
+echo $classB->getName() . PHP_EOL;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO RESULTADO, FICAMOS COM ESTE PRINT:
+
+
+
+
+
+
+string(1) "A"
+A
+string(1) "B"
+B
+
+
+
+
+
+
+ISSO FAZ TOTAL SENTIDO,
+
+
+PQ 
+
+ESSES METHODS FORAM EXECUTADOS DURANTE O RUNTIME DO SCRIPT...
+
+
+
+
+
+
+PRIMEIRO EXECUTAMOS A VERSÃO DE 'A',
+
+
+E DEPOIS EXECUTAMOS A VERSÃO DE 'B',
+
+E É POR ISSO QUE FICAMOS COM ESSE OUTPUT...
+
+
+
+
+
+
+
+
+
+
+
+-> OK... MAS PARA MUDAR AS COISAS,
+    AGORA DEIXAREMOS 
+
+    A PROPERTY 
+
+
+
+    DE 
+
+
+    '$name' E o method de '$getName()'
+
+
+
+    STATIC....
+
+
+
+
+
+
+DEPOIS DISSO, VAMOS TENTAR CHAMAR O METHOD ESTATICAMENTE,
+TANTO DE CLASS A COMO CLASS B...
+
+
+
+
+
+
+
+
+
+
+
+--> É CLARO QUE STATIC METHODS NÃO PERMITEM A KEYWORD DE '$this',
+    e apenas permitem 'self',
+
+    por isso escrevemos assim:
+
+
+
+
+
+
+
+<?php
+
+namespace App5;
+
+class ClassA
+{
+
+    protected static string $name = "A"; // is static
+
+
+    public static function getName() // is also static.
+    {
+
+        return self::$name;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> LÁ NO INDEX.PHP,
+
+
+
+    FAZEMOS O CALL DE ESSE METHOD STATIC DIRETAMENTE 
+
+    NA CLASS,
+
+    E COMENTAMOS O RESTO DO CÓDIGO PARA FORA:
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+require_once '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+echo \App5\ClassA::getName() . PHP_EOL;
+echo \App5\ClassB::getName() . PHP_EOL;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+COMO RESULTADO DISSO, FICAMOS COM 2 PRINTS DE 'A':
+
+
+
+
+A
+A
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... FICAMOS COM 'A' 2 vezes... A é o value 
+    da class A...
+
+
+
+
+
+
+
+
+--> O RESULTADO ESPERADO/DESEJADO, AQUI,
+    ERA 
+
+    'A 
+     B
+     ',
+
+
+mas acabou sendo A A...
+
+
+
+
+
+
+
+
+
+
+--> ISSO ACONTECEU PQ FOMOS FORÇADOS A USAR A KEYWORD DE 'self'
+    em vez de '$this',
+
+    pq '$this' se tornou INDISPONÍVEL...
+
+
+
+
+
+
+--> ISSO AQUI, QUE VC ESTÁ VENDO,
+    É 'EARLY BINDING'...
+
+
+    --> CADA VEZ QUE A LINHA DE CÓDIGO 
+
+    ''         return self::$name;           '''
+ 
+
+
+ FOR EXECUTADA,  __ ELA _ VAI __ SE REFERIR 
+
+ A MESMA CLASS, VAI SE REFERIR à CLASS DE 'ClassA',
+
+ durante o  __cOMPILE___ TIME_....
+
+
+
+
+
+
+
+ --> E ESSA É TAMBÉM A __ LIMITAÇÃO __ DA 
+    KEYWORD DE 'self',
+
+    esse behavior de compile time... AO CONTRÁRIO 
+
+    __ DA VARIABLE DE '$this',
+
+    A KEYWORD DE 'self'
+
+    NÃO SEGUE AS MESMAS INHERITANCE RULES... NO FINAL DAS CONTAS,
+
+        ELA FAZ 'RESOLVE' __ DE 'self' COMO ''''THE CLASS A QUE ESSE METHOD 
+        PERTENCE'' (no caso, o 'getName()' pertence a 'ClassA', por isso self 
+                    será 'ClassA'... )
+
+
+
+
+
+-> PARA OBSERVAR AINDA MELHOR ISSO,
+
+    BASTA RODAR 1 
+
+    var_dump 
+
+
+    de 
+
+    'self::class',
+
+    TIPO ASSIM:
+
+
+
+
+
+
+    public static function getName(): string 
+    {
+        var_dump(self::class); // Will always print "App5\ClassA", even when called from a subclass, like ClassB...
+        return self::$name;
+    }
+
+
+
+
+
+
+
+
+ISSO VAI PRINTAR 
+
+ "App5\ClassA"
+
+
+ DUAS VEZES... (Call com ClassA e com ClassB)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+MESMO NÓS TENDO CHAMADO ESSA FUNCTION EM 'ClassB',
+
+
+ainda ficaremos com o 'self' se referindo ao ClassA...
+
+
+
+
+
+
+
+
+--> E ESSE É O __ PROBLEMA__ QUE É RESOLVIDO POR LATE STATIC BINDING,
+    QUE LOGO ESTUDAREMOS...
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR APONTA UMA SOLUÇÃO A ISSO:
+
+
+
+
+
+
+'''ONE WAY TO SOLVE THIS PROBLEM IS TO _ OVERRIDE_ 
+    THE METHOD, IN THE __CHILD CLASS__, 
+    AND THEN PRINT 'self::name' IN THE getName()
+    method of THE CHILD CLASS (in this case, 'ClassB')....'''
+
+
+
+
+
+
+
+
+
+
+
+
+
+->_ PARA ISSO, ESCREVERÍAMOS ASSIM:
+
+
+
+
+
+<?php
+
+namespace App5;
+
+class ClassB extends ClassA
+{
+    protected static string $name = 'B';
+
+
+    public static function getName(): string
+    {
+        return self::$name;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS É CLARO QUE ISSO NÃO É IDEAL,
+    PQ ACABA COM O PROPÓSITO DE INHERITANCE EM SI...
+
+    NÓS NÃO QUEREMOS FICAR SEMPRE 'OVERRIDING' OS METHODS 
+    ORIGINAIS DESSA FORMA... O QUE QUEREMOS É FICAR COM A BASE 
+    CLASS E FUNCTIONALITY NA PARENT CLASS,
+
+    QUE ENTÃO SERÃO INHERITADAS PELAS CHILD CLASSES...
+
+
+
+
+    É POR ISSO QUE ESSA SOLUTION É RUIM...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> NO PHP BEM OLD-SCHOOL,
+    ANTES DA SOLUTION ADEQUADA SER IMPLEMENTADA,
+
+
+    EXISTIA 1 SOLUÇÃO QUE ERA ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- nós usávamos a function de 
+
+
+'get_called_class()',
+
+
+
+QUE ERA USADA PARA 'FIGURE OUT' QUAL ERA A CALLING 
+CLASS,
+
+PARA AÍ  __fORWARDAR__ AS STATIC CALLS A ISSO...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+var_dump(get_called_class());                                    
+
+
+
+
+
+
+
+---> isso nos dá algo como 
+
+
+App\ClassA 
+
+e 
+
+
+App\ClassB 
+
+
+
+
+
+
+
+
+--> DEVELOPERS GERALMENTE 
+    USAVAM ESSA BUILT-IN FUNCTION PARA 
+
+    DESCOBRIR 
+
+    ''QUAL É A CALLING CLASS'',
+
+    E, ENTÃO,
+
+    A PARTIR DISSO, 
+
+    FORWARDAR AS CALLS 
+
+    ÀS CLASSES APROPRIADAS...
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+MAS NO PHP 5.3,
+
+
+
+UMA SOLUÇÃO BEM MELHOR FOI INTRODUZIDA,
+
+CHAMADA 
+
+DE 
+
+'LATE STATIC BINDING'....
+
+
+
+
+
+
+
+
+
+
+--> COM O 'LATE STATIC BINDING',
+
+
+
+''''THE CLASSES ARE RESOLVED __ USING _ LATE 
+    BINDING, DURING RUNTIME''' 
+
+
+    (em vez de ''early binding, during compile time'')
+
+
+
+
+
+
+
+
+
+
+''''IT RESOLVES CLASSES THAT WERE INITIALLY 
+    CALLED AT RUNTIME''''...
+    
+
+
+
+
+
+
+
+
+
+
+--> em vez de adicionar 
+
+    uma keyword nova,
+
+    os maintainers do PHP 
+
+
+
+    DECIDIRAM USAR UMA KEYWORD QUE JÁ EXISTIA....
+
+
+
+
+
+
+    NO CASO, USARAM A KEYWORD DE 'static'...
+
+
+
+
+
+
+
+
+
+
+--> NO CASO, A KEYWORD DE 'static' pode ser usada,
+    junto com '::' (scope resolution operator)
+
+
+    PARA ACESSAR 
+
+    STATIC PROPERTIES E CONSTANTS,
+
+    E TAMBÉM PARA CHAMAR STATIC METHODS,
+
+
+    USANDO 'LATE STATIC BINDING'...
+
+
+
+
+
+
+
+
+
+
+
+--> PARA CONSEGUIR USAR O 'late static binding',
+
+BASTA VC SUBSTITUIR ESTE CÓDIGO AQUI:
+
+
+
+
+
+
+
+
+
+    public static function getName(): string // is also static.
+    {
+        return self::$name;
+    }
+
+
+
+
+
+
+
+
+
+esse código, de 'self::$name',
+
+
+
+
+
+
+
+POR 
+
+
+ESTE CÓDIGO AQUI,
+
+
+COM 'static':
+
+
+
+
+
+
+
+    public static function getName(): string // is also static.
+    {
+        return static::$name;
+    }
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace App5;
+
+class ClassA
+{
+    // protected string $name = 'A';
+
+    protected static string $name = "A"; 
+
+
+    public static function getName(): string 
+    {
+        return static::$name; // * THIS IS WITH LATE STATIC BINDING (will always refer/return the value of the class that called it, classA or classB)...
+    }
+}
+
+
+
+
+
+
+
+
+LATE STATIC BINDING --> BASICAMENTE USA 
+                        'RUNTIME INFORMATION' 
+
+                        PARA DETERMINAR _ COMO DEVE SER 
+                        EXECUTADO O METHOD, OU 
+
+                        LIDA A CONSTANT/PROPERTY...
+
+
+
+
+
+
+MAS COMO ISSO FUNCIONA?
+
+
+
+
+
+
+
+'''WHEN THE METHOD IS CALLED,
+
+with something like this:
+
+
+
+echo \App5\ClassB::getName(),
+
+
+
+
+
+
+PHP STORES _ _THE _ORIGINAL CLASSNAME OF THE 
+LAST NON-FORWARDING CALL... THEN, WHEN IT ENCOUNTERS 
+THE 'static' keyword, it RESOLVES TO THE ORIGINAL CLASS 
+THAT IT HAD STORED BEFORE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> o professor aponta que 
+
+    TAMBÉM É POSSÍVEL USAR A KEYWORD DE 'static'
+
+    em um contexto 'NON-STATIC'...
+
+
+
+
+
+
+
+    ESTE, POR EXEMPLO, É UM CONTEXTO 'STATIC':
+
+    echo \App5\ClassB::getName()  
+
+
+
+
+    ISSO PQ ESTAMOS CHAMANDO ESSE METHOD STATICALLY...
+
+
+
+
+
+
+
+
+mas poderíamos usar a keyword de 'static'
+
+
+em 1 contexto sem static methods,
+
+
+
+como por exemplo aqui:
+
+
+
+
+echo $classA->getName();
+
+
+
+
+
+
+
+--> A DIFERENÇA ENTRE OS 2,
+
+    É QUE 
+
+
+    NO 'STATIC CONTEXT',
+
+
+    O CLASSNAME É EXPLICITAMENTE 
+    ESPECIFICADO NA PARTE DA ESQUERDA DO '::',
+
+    E ESSE É O CLASSNAME QUE ACABA ARMAZENADO PELO PHP,
+
+    E ENTÃO __ É UTILIZADO, DURANTE O RUNTIME,
+
+    QUANDO A KEYWORD DE 'static' é encontrada,
+    no method/property/constant...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> DESDE O PHP8, VC PODE 
+USAR O 'static' como RETURN TYPE, TAMBÉM...
+
+
+
+
+
+
+
+
+--> JÁ ERA POSSÍVEL USAR O 'self' ou 'parent' 
+    types anteriormente.... mas desde o php8,
+
+    vc pode retornar o 'static'...
+
+
+
+
+
+    --> ISSO PODE SER ÚTIL QUANDO 
+        VC ESTÁ CRIANDO 1 NOVA INSTANCE USANDO 
+        A KEYWORD DE 'static', e quando 
+        vc está retornando essa instance para 
+
+        criar 
+
+        1 'static pattern'...
+
+
+
+
+
+
+
+
+PARA ISSO, TEMOS 1 EXEMPLO:
+
+
+
+
+
+
+
+
+
+
+
+
+-- DIGAMOS QUE TEMOS 1 PUBLIC STATIC FUNCTION, 'make()',
+    QUE VAI RETORNAR 1 NOVO OBJECT DE 'classA'...
+
+
+--> O CÓDIGO FICARIA TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+class ClassA {
+
+
+    public static function make()
+    {
+        return new ClassA();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+ISSO SERIA FINE, SIM, MAS APENAS NO CONTEXTO DA CLASS A..
+
+
+
+
+
+
+
+
+
+
+-> NO CONTEXTO DA CLASSB,
+
+
+ISSO NÃO SERIA LEGAL, 
+
+PQ SERIA CRIADO CLASS A MESMO ASSIM...
+
+
+
+
+
+
+
+
+
+
+
+--> QUEREMOS QUE A CLASSB FAÇA O CREATE DE 1 CLASS B...
+
+
+
+
+
+
+
+
+-> É CLARO QUE com 'new self()'',
+
+FICAMOS COM O MESMO PROBLEMA,
+
+PQ, NOVAMENTE,
+
+SERÃO CRIADOS APENAS OBJECTS DE TIPO 'ClassA'... (mesmo chamando isso em ClassB)..
+
+
+
+
+
+
+
+
+
+
+
+-> PARA RESOLVER ISSO,
+    PODEMOS USAR A KEYWORD DE 'static',
+
+    TIPO ASSIM:
+
+
+
+
+
+
+    public static function make()
+    {
+
+        return static::class; // * This will work (with late static binding)
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CHAMAMOS ESTE METHOD ASSIM:
+
+
+
+
+
+
+var_dump(\App5\ClassA::make());
+var_dump(\App5\ClassB::make());
+
+
+
+
+
+
+
+E CONSEGUIMOS ESTE PRINT:
+
+
+
+
+
+
+
+object(App5\ClassA)#2 (0) {
+}
+object(App5\ClassB)#2 (0) {
+}
+
+
+
+
+
+
+
+
+
+
+O QUE QUER DIZER QUE FOI 1 SUCESSO, COM ESSE 'late static binding'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok..
+
+
+
+
+
+
+
+
+
+
+MAS O QUE PODEMOS COLOCAR, COMO RETURN TYPE,
+
+
+HOJE EM DIA,
+
+É 
+
+'static'... -----> E ISSO REALMENTE VAI FUNCIONAR....
+
+
+
+
+
+
+COLOCAMOS TIPO ASSIM:
+
+
+
+
+
+
+    public static function make(): static
+    {
+        // return new ClassA();
+        // return new self(); // ! This won't work (no late static binding)
+        return new static(); // * This will work (with late static binding)
+    }

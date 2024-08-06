@@ -6,7 +6,9 @@
     "psr-4": {
       "App\\": "coding-autoloading-and-composer-example/app/",
       "App2\\": "inheritance-example/",
-      "App3\\": "interfaces-and-polymorphism-example/"
+      "App3\\": "interfaces-and-polymorphism-example/",
+      "App4\\": "magic-methods-example/",
+      "App5\\": "late-static-binding-example/"
     }
   }
 }

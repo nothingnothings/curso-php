@@ -28,6 +28,8 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
         'A' => 
         array (
             'App\\' => 4,
+            'App5\\' => 5,
+            'App4\\' => 5,
             'App3\\' => 5,
             'App2\\' => 5,
         ),
@@ -54,6 +56,14 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
         array (
             0 => __DIR__ . '/../..' . '/coding-autoloading-and-composer-example/app',
         ),
+        'App5\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/late-static-binding-example',
+        ),
+        'App4\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/magic-methods-example',
+        ),
         'App3\\' => 
         array (
             0 => __DIR__ . '/../..' . '/interfaces-and-polymorphism-example',
@@ -72,8 +82,12 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
         'App2\\ToasterWithConstructor' => __DIR__ . '/../..' . '/inheritance-example/ToasterWithConstructor.php',
         'App3\\AnotherInterface' => __DIR__ . '/../..' . '/interfaces-and-polymorphism-example/AnotherInterface.php',
         'App3\\CollectionAgency' => __DIR__ . '/../..' . '/interfaces-and-polymorphism-example/CollectionAgency.php',
+        'App3\\DebtCollectionService' => __DIR__ . '/../..' . '/interfaces-and-polymorphism-example/DebtCollectionService.php',
         'App3\\DebtCollector' => __DIR__ . '/../..' . '/interfaces-and-polymorphism-example/DebtCollector.php',
+        'App3\\RockyTheDebtCollector' => __DIR__ . '/../..' . '/interfaces-and-polymorphism-example/RockyTheDebtCollector.php',
         'App3\\SomeOtherInterface' => __DIR__ . '/../..' . '/interfaces-and-polymorphism-example/SomeOtherInterface.php',
+        'App5\\ClassA' => __DIR__ . '/../..' . '/late-static-binding-example/ClassA.php',
+        'App5\\ClassB' => __DIR__ . '/../..' . '/late-static-binding-example/ClassB.php',
         'App\\PaymentGateway\\Paddle\\Transaction' => __DIR__ . '/../..' . '/coding-autoloading-and-composer-example/app/PaymentGateway/Paddle/Transaction.php',
         'App\\PaymentGateway\\Stripe\\Transaction' => __DIR__ . '/../..' . '/coding-autoloading-and-composer-example/app/PaymentGateway/Stripe/Transaction.php',
         'Brick\\Math\\BigDecimal' => __DIR__ . '/..' . '/brick/math/src/BigDecimal.php',
@@ -236,6 +250,7 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
         'Ramsey\\Uuid\\Validator\\ValidatorInterface' => __DIR__ . '/..' . '/ramsey/uuid/src/Validator/ValidatorInterface.php',
         'ReturnTypeWillChange' => __DIR__ . '/..' . '/symfony/polyfill-php81/Resources/stubs/ReturnTypeWillChange.php',
         'Symfony\\Polyfill\\Php81\\Php81' => __DIR__ . '/..' . '/symfony/polyfill-php81/Php81.php',
+        'app3\\Invoice' => __DIR__ . '/../..' . '/magic-methods-example/Invoice.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

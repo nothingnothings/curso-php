@@ -13,8 +13,12 @@ return array(
     'App2\\ToasterWithConstructor' => $baseDir . '/inheritance-example/ToasterWithConstructor.php',
     'App3\\AnotherInterface' => $baseDir . '/interfaces-and-polymorphism-example/AnotherInterface.php',
     'App3\\CollectionAgency' => $baseDir . '/interfaces-and-polymorphism-example/CollectionAgency.php',
+    'App3\\DebtCollectionService' => $baseDir . '/interfaces-and-polymorphism-example/DebtCollectionService.php',
     'App3\\DebtCollector' => $baseDir . '/interfaces-and-polymorphism-example/DebtCollector.php',
+    'App3\\RockyTheDebtCollector' => $baseDir . '/interfaces-and-polymorphism-example/RockyTheDebtCollector.php',
     'App3\\SomeOtherInterface' => $baseDir . '/interfaces-and-polymorphism-example/SomeOtherInterface.php',
+    'App5\\ClassA' => $baseDir . '/late-static-binding-example/ClassA.php',
+    'App5\\ClassB' => $baseDir . '/late-static-binding-example/ClassB.php',
     'App\\PaymentGateway\\Paddle\\Transaction' => $baseDir . '/coding-autoloading-and-composer-example/app/PaymentGateway/Paddle/Transaction.php',
     'App\\PaymentGateway\\Stripe\\Transaction' => $baseDir . '/coding-autoloading-and-composer-example/app/PaymentGateway/Stripe/Transaction.php',
     'Brick\\Math\\BigDecimal' => $vendorDir . '/brick/math/src/BigDecimal.php',
@@ -177,4 +181,5 @@ return array(
     'Ramsey\\Uuid\\Validator\\ValidatorInterface' => $vendorDir . '/ramsey/uuid/src/Validator/ValidatorInterface.php',
     'ReturnTypeWillChange' => $vendorDir . '/symfony/polyfill-php81/Resources/stubs/ReturnTypeWillChange.php',
     'Symfony\\Polyfill\\Php81\\Php81' => $vendorDir . '/symfony/polyfill-php81/Php81.php',
+    'app3\\Invoice' => $baseDir . '/magic-methods-example/Invoice.php',
 );
