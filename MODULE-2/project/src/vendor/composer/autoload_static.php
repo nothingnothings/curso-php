@@ -28,6 +28,7 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
         'A' => 
         array (
             'App\\' => 4,
+            'App6\\' => 5,
             'App5\\' => 5,
             'App4\\' => 5,
             'App3\\' => 5,
@@ -55,6 +56,10 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
         'App\\' => 
         array (
             0 => __DIR__ . '/../..' . '/coding-autoloading-and-composer-example/app',
+        ),
+        'App6\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/traits-how-they-work-and-drawbacks',
         ),
         'App5\\' => 
         array (
@@ -88,6 +93,9 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
         'App3\\SomeOtherInterface' => __DIR__ . '/../..' . '/interfaces-and-polymorphism-example/SomeOtherInterface.php',
         'App5\\ClassA' => __DIR__ . '/../..' . '/late-static-binding-example/ClassA.php',
         'App5\\ClassB' => __DIR__ . '/../..' . '/late-static-binding-example/ClassB.php',
+        'App6\\AllInOneCoffeeMaker' => __DIR__ . '/../..' . '/traits-how-they-work-and-drawbacks/AllInOneCoffeeMaker.php',
+        'App6\\CoffeeMaker' => __DIR__ . '/../..' . '/traits-how-they-work-and-drawbacks/CoffeeMaker.php',
+        'App6\\LatteMaker' => __DIR__ . '/../..' . '/traits-how-they-work-and-drawbacks/LatteMaker.php',
         'App\\PaymentGateway\\Paddle\\Transaction' => __DIR__ . '/../..' . '/coding-autoloading-and-composer-example/app/PaymentGateway/Paddle/Transaction.php',
         'App\\PaymentGateway\\Stripe\\Transaction' => __DIR__ . '/../..' . '/coding-autoloading-and-composer-example/app/PaymentGateway/Stripe/Transaction.php',
         'Brick\\Math\\BigDecimal' => __DIR__ . '/..' . '/brick/math/src/BigDecimal.php',

@@ -1,0 +1,3671 @@
+
+
+
+
+
+
+
+
+
+
+-> OK... 
+
+
+
+
+
+
+-> ''PHP IS A SINGLE INHERITANCE LANGUAGE''
+
+
+
+
+-> ISSO QUER DIZER QUE ELE NÃO SUPORTA MÚLTIPLOS INHERITS 
+    EM 1 MESMA CLASS...
+
+
+
+
+
+
+
+--> 1 MESMA CLASS SÓ PODE FAZER EXTEND 1 ÚNICA VEZ...
+
+
+
+
+
+
+
+
+
+
+
+--> MAS HÁ TRUQUES QUE VC PODE USAR,
+    PARA TER 1 RESULTADO PARECIDO COM MULTIPLE INHERITANCE...
+
+
+
+
+
+
+
+
+--> O TRUQUE QUE VC PODE USAR, NO CASO, 
+    É 'TRAITS' OU 'INTERFACES'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> ANTES DE ESTUDARMOS TRAITS,
+    DEVEMOS RELEMBRAR QUAL É O PROBLEMA 
+
+    DO LACK OF MULTIPLE INHERITANCE NO PHP...
+
+
+
+
+
+
+
+-> MAS PQ SERIA BOM TER 1 ALTERNATIVA à 'MULTIPLE INHERITANCE',
+    NO PHP?
+
+
+
+
+
+
+
+
+
+
+
+--> BEM...
+
+
+
+
+
+    DIGAMOS QUE TEMOS 
+
+    1 CLASS 'CoffeeMaker',
+
+
+    COM 1 METHOD DE 'makeCoffee'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        (CoffeMaker) 
+                        - makeCoffee 
+
+
+
+
+
+
+
+
+
+
+
+
+--> DEPOIS DISSO, DIGAMOS QUE TEMOS 
+    SPECIALTY COFFEE MAKERS,
+
+
+
+    COMO 
+
+
+    'LATTEMAKER' E 'CAPPUCINOMAKER'...
+
+
+
+
+
+
+
+
+
+
+
+
+tipo ASSIM:
+
+
+
+
+
+
+
+
+
+
+                                    
+
+                        (CoffeMaker) 
+                        - makeCoffee 
+
+
+
+
+
+(LatteMaker)
+- makeCoffee 
+- makeLatte 
+
+
+
+
+
+(CappuccinoMaker)
+- makeCoffee 
+- makeCappuccino
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROBLEMA, COM ISSO,
+
+É QUE 
+
+
+ESSES SPECIAL COFFEE MAKERS 
+
+
+TAMBÉM 
+
+CONSEGUEM FAZER REGULAR COFFEE..
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE USARÍAMOS INHERITANCE,
+    PARA FAZER INHERIT DO METHOD DE 'makeCoffee'
+
+
+    da base class 'CoffeMaker':
+
+
+
+
+
+
+
+                        (CoffeMaker) 
+                        - makeCoffee 
+
+
+
+
+
+(LatteMaker)
+- makeCoffee (inherited)
+- makeLatte 
+
+
+
+
+
+(CappuccinoMaker)
+- makeCoffee (inherited)
+- makeCappuccino
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+ESSA É A 'SINGULAR INHERITANCE',
+
+
+E É BEM SUPORTADA PELO PHP, E FUNCIONA...
+
+
+
+
+
+
+
+
+
+----> MAS DIGAMOS QUE,
+
+    'DOWN THE ROAD',
+
+    CONSEGUIMOS UM NOVO COFFEE MAKER,
+
+    DE NOME 
+
+    'All in One Coffee Maker',
+
+
+
+
+    UM COFFEE MAKER QUE CONSEGUE 
+
+    fazer tudo que aquelas outras classes conseguiam, tipo assim:
+
+
+
+
+
+
+
+
+
+
+
+                        (CoffeMaker) 
+                        - makeCoffee 
+
+
+
+
+
+(LatteMaker)
+- makeCoffee (inherited)
+- makeLatte 
+
+
+
+
+
+(CappuccinoMaker)
+- makeCoffee (inherited)
+- makeCappuccino
+
+
+
+
+(All in One Coffee Maker)
+- makeCoffee 
+- makeLatte 
+- makeCappuccino
+
+
+
+
+
+
+
+
+
+
+-> OK... EM ALGUMAS LANGUAGES,
+    VC PODE 
+
+    TER MULTIPLE INHERITANCE,
+
+    E AÍ 
+
+
+    SIMPLESMENTE FAZER EXTEND DE 'Latte Maker' 
+
+    e 'Cappuccino maker'
+
+
+
+    NA CLASS DE 'ALL IN ONE COFFEE MAKER'...
+
+
+
+
+
+
+
+
+
+
+--> MAS ESSA FEATURE, DE MULTIPLE INHERITANCE,
+    NÃO É SUPORTADA PELO PHP...
+
+
+
+
+
+
+
+
+--> MAS O FATO É QUE 
+    MULTIPLE INHERITANCE TAMBÉM TRAZ 
+    SEUS PRÓPRIOS PROBLEMAS...
+
+
+
+
+
+
+
+
+-> UM __ PROBLEMA __ 
+    DA FEATURE DE MULTIPLE INHERITANCE 
+
+    É 
+    O 
+
+    'DIAMOND PROBLEM'...
+
+
+
+
+
+-->  DIAMOND PROBLEM:
+
+
+
+
+
+
+
+
+
+                        (CoffeMaker) 
+                        - makeCoffee 
+
+
+
+
+
+(LatteMaker)                                        (CappuccinoMaker)
+- makeCoffee (inherited)                             - makeCoffee (inherited)
+- makeLatte                                          - makeCappuccino
+                                              
+                                            
+
+                     (All in One Coffee Maker)
+                    - makeCoffee (inherited)
+                    - makeLatte  (inherited)
+                    - makeCappuccino (inherited)
+
+
+
+
+                                
+
+
+
+
+
+
+
+
+
+
+--> ESSE É O DIAMOND PROBLEM..
+
+
+---> COMO VC PODE PERCEBER, ISSO FORMA UM DIAMANTE...
+
+
+
+
+
+
+--> O PROBLEMA, AQUI,
+
+É QUE 
+
+
+
+__ SE _ NÓS FAZEMOS _ OVERWRITE 
+
+DO METHOD DE 
+
+'makeCoffee'
+
+
+LÁ 
+
+
+NAS CLASSES DE 'LatteMaker' e 'CAPPUCCINOMAKER',
+
+
+A CLASS 
+
+DE 'All in one coffe maker'
+
+
+
+não vai _sABER 
+
+
+__ 'FROM WHICH CLASS I SHOULD INHERIT 'makeCoffee' from????''
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+                        (CoffeMaker) 
+                        - makeCoffee 
+
+
+
+
+
+(LatteMaker)                                        (CappuccinoMaker)
+- makeCoffee (inherits and overwrites)               - makeCoffee (inherits and overwrites)
+- makeLatte                                          - makeCappuccino
+                                              
+                                            
+
+                     (All in One Coffee Maker)
+                    - makeCoffee (inherit, BUT FROM WHICH OF THE CLASSES??)
+                    - makeLatte  (inherited)
+                    - makeCappuccino (inherited)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESSE É O PROBLEMA... 
+
+
+
+
+
+--> E LANGUAGES QUE SUPORTAM MULTIPLE INHERITANCE 
+    SOLUCIONAM ESSE PROBLEMA 
+
+    DE _ DIFERENTES MANEIRAS...
+
+
+
+
+
+
+--> ENTRETANTO,
+    O QUE O PHP TEM, AO CONTRÁRIO DESSAS LANGUAGES,
+
+    É A FEATURE DE 'TRAITS',
+
+    QUE TE DEIXA 
+
+
+
+
+    '''SHARE'''
+
+
+
+    '''COMMON FUNCTIONALITY''''
+
+
+    AO LONGO DE __ MÚLTIPLAS CLASSES...
+
+
+
+
+
+
+
+-> COM ISSO, VC BASICAMENTE FICA COM OS 
+    BENEFITS DA FEATURE DE MULTIPLE INHERITANCE,
+    MAS SEM O ACTUAL EXTEND DE MÚLTIPLAS CLASSES...
+
+
+
+
+
+
+
+
+
+--> DEVEMOS VER ESSE EXEMPLO NO CÓDIGO:
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> TEMOS 1 SETUP DE COFFEEMAKER, EXATAMENTE COMO O PROFESSOR HAVIA 
+    EXPLICADO, HÁ POUCO...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+
+class CoffeeMaker
+{
+    public function makeCoffee()
+    {
+        echo static::class . ' is making coffee' . PHP_EOL;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, ISTO:
+
+
+
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+
+class LatteMaker extends CoffeeMaker
+{
+    public function makeLatte()
+    {
+        echo static::class . ' is making latte' . PHP_EOL;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+E ISTO:
+
+
+
+
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+
+class CappucinoMaker extends CoffeeMaker
+{
+    public function makeCappuccino()
+    {
+        echo static::class . ' is making cappuccino' . PHP_EOL;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+POR FIM,
+
+
+
+TEMOS O 'ALL IN ONE':
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+
+class AllInOneCoffeeMaker
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+TEMOS TUDO PRONTO, E EM INDEX.PHP:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+require_once '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+$coffeMaker = new \App6\CoffeeMaker();
+$coffeMaker->makeCoffee();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AO RODAR ISSO, FICAMOS COM ISTO:
+
+
+
+
+
+
+
+
+
+
+php index.php
+App6\CoffeeMaker is making coffee
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TEMOS O MESMO CÓDIGO PARA O LATTE MAKER 
+
+E CAPPUCCINOMAKER...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+require_once '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+
+$coffeMaker = new \App6\CoffeeMaker();
+$coffeMaker->makeCoffee();
+
+$latteMaker = new \App6\LatteMaker();
+$latteMaker->makeCoffee();
+$latteMaker->makeLatte();
+
+$cappuccinoMaker = new \App6\CappuccinoMaker();
+$cappuccinoMaker->makeCoffee();
+$cappuccinoMaker->makeCappuccino();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PRINT FICA ASSIM:
+
+
+
+
+
+
+
+
+App6\CoffeeMaker is making coffee
+App6\LatteMaker is making coffee
+App6\LatteMaker is making latte
+App6\CappuccinoMaker is making coffee
+App6\CappuccinoMaker is making cappuccino
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK.... 
+
+
+
+
+
+
+
+MAS, AGORA, COMO PODEMOS FAZER 
+
+
+NOSSO 'ALL IN ONE COFFE MAKER'
+
+
+
+FAZER TODOS OS TIPOS DE COFFEE,
+
+
+
+
+
+REGULAR COFFEE,
+LATTE 
+E CAPPUCCINO...
+
+
+
+
+
+
+
+
+
+
+
+--> MAS COMO PODEMOS FAZER ISSO?
+
+
+
+
+
+
+
+
+
+
+--> UMA MANEIRA SERIA USAR INTERFACES...
+
+
+
+
+
+
+
+--> NA VERDADE, USAR INTERFACES NÃO SERIA 1 IDEIA TÃO RUIM...
+
+
+
+
+
+
+
+
+
+-> PODERÍAMOS SIMPLESMENTE COLOCAR 'makeLatte' em 1 interface,
+    E AÍ 
+
+    IMPLEMENTAR ESSA INTERFACE NAS CLASSES 
+
+    DE 
+
+    'LatteMaker'
+
+    e 
+
+    'AllInOneCoffeeMaker',
+
+
+    em que 
+    ESCREVERÍAMOS AS CONCRETE IMPLEMENTATIONS 
+
+
+    desse method....
+
+
+
+
+
+
+-> E FARÍAMOS A MESMA COISA COM O CAPPUCCINO MAKER,
+
+    CRIAR 1 INTERFACE, implementar a interface lá no 'AllInOneCoffeeMaker',
+
+
+    AO MESMO TEMPO QUE FARÍAMOS 
+
+
+    O extends do 'CoffeeMaker'
+    lá 
+
+    no 'AllInOneCoffeeMaker'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> podemos, com isso 'KIND OF IMPLEMENT MULTIPLE INHERITANCE',
+    COM O USO DE INTERFACES...
+
+
+
+
+
+
+
+
+
+--> OU, COM O USO DE TRAITS, QUE LOGO ESTUDAREMOS...
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSENCIALMENTE, TERÍAMOS ALGO ASSIM:
+
+
+
+
+
+
+
+
+class LatteMaker extends CoffeeMaker implements MakesLatte {
+
+
+
+}
+
+
+
+
+
+
+
+
+
+class CappuccinoMaker extends CoffeeMaker implements MakesCappuccino {
+
+
+}
+
+
+
+
+
+
+
+
+class AllInOneCoffeeMaker extends CoffeeMaker implements MakesLatte, MakesCappuccino {
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+-> MAS O PROBLEMA, COM ESSE APPROACH, É QUE BASICAMENTE 
+
+TERÍAMOS DE REPETIR 1 MONTE DE CÓDIGO,
+
+PQ A 'CONCRETE IMPLEMENTATION' de  'makeCappuccino()'
+
+teria de ser escrita 
+
+
+tanto em 'cappuccinoMaker' como 'AllInOneCoffeeMaker',
+
+
+e a mesma coisa com 'makeLatte',
+
+com 'latteMaker' e 'AllInOneCoffeeMaker'...
+
+
+
+
+
+
+
+
+
+
+
+ 
+BASICAMENTE, O AllInOneCoffeeMaker FICARIA BLOATED,
+
+FICARIA COM ESTE CÓDIGO TODO:
+
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+
+class AllInOneCoffeeMaker extends CoffeeMaker implements MakesLatte, MakesCappuccino
+{
+
+    public function makeLatte()
+    {
+        echo static::class . ' is making latte' . PHP_EOL;
+    }
+
+    public function makeCappuccino()
+    {
+        echo static::class . ' is making cappuccino' . PHP_EOL;
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+ISSO FICARIA IMENSAMENTE BLOATED...
+
+
+
+
+
+ESSA CLASS CONSEGUIRIA, COM ISSO, 
+
+
+FAZER COFFEE, LATTE 
+
+E CAPPUCCINO...
+
+
+
+
+
+
+
+
+
+
+
+--> ESTAMOS DUPLICANDO PRA CARAMBA...
+
+
+
+
+
+
+
+
+-> O ÚNICO JEITO DE ISSO FAZER SENTIDO,
+    O USO DE INTERFACES FAZER SENTIDO E SER MELHOR do que traits,
+
+    É SE CADA  
+
+
+    IMPLEMENTATION DE CADA METHOD 
+
+
+
+    FOSSE DIFERENTE,
+
+
+
+    NESSA CLASS DE 'AllInOneCoffeeMaker'...
+
+
+
+    PQ AÍ VC ESTARIA PROVIDENCIANDO A IMPLEMENTATION CONCRETA 
+    PARA CADA 1 DESSES METHODS..
+
+
+
+
+
+
+
+
+
+
+RESUMO:
+
+
+
+''''INTERFACES ARE GOOD AND A IDEAL SOLUTION 
+    ___wHEN_ THE ACTUAL IMPLEMENTATION WILL BE DIFFERENT 
+    BETWEEN CLASSES... BUT IF WE ARE JUST DUPLICATING THE 
+    CODE, THERE IS A BETTER WAY, WITH _ TRAITS__...'''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TRAITS -----> ELES FORAM CRIADOS 
+                PARA 'REDUCE CODE DUPLICATION' 
+
+                E 
+
+
+                'INCREASE CODE RE-USE'...
+
+
+
+
+
+
+
+
+--> VAMOS IMPLEMENTAR ESSA MESMA SOLUTION, MAS COM TRAITS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O QUE QUEREMOS FAZER, AGORA,,
+
+
+    É __ ''''EXTRACT THE 'makeLatte()' METHOD 
+                INTO A TRAIT'''...
+
+
+
+            
+
+
+
+
+
+--> QUEREMOS COLOCAR ESSE METHOD EM 1 'TRAIT'...
+
+
+
+
+
+
+
+--> A MANEIRA DE CRIAR TRAITS É PARECIDA COM 
+A MANEIRA PELA QUAL CRIAMOS CLASSES...
+
+
+
+
+
+
+
+
+--> MAS PARA CRAIR 1 TRAIT,
+USAMOS A KEYWORD DE 'trait'...
+
+
+
+
+
+
+-> E, PARA UTILIZAR 1 TRAIT,
+    USAMOS A KEYWORD DE 'use'...
+
+
+
+
+
+
+
+
+
+
+O CÓDIGO INICIAL DE LATTEMAKER É ESTE:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+
+class LatteMaker extends CoffeeMaker
+{
+    public function makeLatte()
+    {
+        echo static::class . ' is making latte' . PHP_EOL;
+    }
+}
+
+
+
+
+
+
+
+
+
+-> se queremos ter um trait chamado de 'latteTrait',
+
+
+    ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+
+class LatteMaker extends CoffeeMaker
+{
+    use LatteTrait;
+
+    public function makeLatte()
+    {
+        echo static::class . ' is making latte' . PHP_EOL;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AO FAZER ISSO, IMPORTAMOS O CÓDIGO 
+
+DESSE 'LatteTrait'
+
+PARA DENTRO DESSA CLASS, DURANTE O 'COMPILE TIME'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA CRIAR ESSE TRAIT,
+    USAMOS 1 ARQUIVO SEPARADO, CHAMADO DE 'LatteTrait.php',
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+trait LatteTrait
+{
+    public function makeLatte()
+    {
+        echo static::class . ' is making latte' . PHP_EOL;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE PERCEBER, ESTAMOS USANDO A KEYWORD DE 'trait' em vez de 
+
+'class'...
+
+
+
+
+
+
+
+
+
+
+
+
+PARA USAR, NOVAMENTE:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+
+class LatteMaker extends CoffeeMaker
+{
+
+    use LatteTrait;
+
+    // * OUTSOURCED TO THE 'LatteTrait' trait
+    // public function makeLatte()
+    // {
+    //     echo static::class . ' is making latte' . PHP_EOL;
+    // }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> E PODEMOS FAZER A MESMA COISA COM O CAPPUCCINO,
+CRIAR 1 TRAIT DE 'CAPPUCCINO', de nome 'CappuccinoTrait',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace App6;
+
+trait CappucinoTrait
+{
+    public function makeCappuccino()
+    {
+        echo static::class . ' is making cappuccino' . PHP_EOL;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+e assim:
+
+
+
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+
+class CappuccinoMaker extends CoffeeMaker
+{
+    use CappucinoTrait;
+
+
+    // * OUTSOURCED TO THE 'CappuccinoTrait' trait
+    // public function makeCappuccino()
+    // {
+    //     echo static::class . ' is making cappuccino' . PHP_EOL;
+    // }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ISSO É BEM LEGAL...
+
+
+
+
+
+
+
+TALVEZ MAIS LEGAL DO QUE USAR O INHERITANCE DE CLASSES...
+
+
+
+
+
+
+
+
+
+
+
+
+-----
+
+
+
+
+
+
+
+
+
+
+
+-- O PROFESSOR APONTA QUE 'TRAITS' OFERECEM UM MONTE 
+    DE FEATURES...
+
+
+
+
+-- TAMBÉM  HÁ ALGUMAS REGRAS QUE DEVEMOS TER EM MENTE, QUANDO TRABALHAMOS COM TRAITS...
+
+
+
+
+
+
+
+-- A PRIMEIRA COISA QUE VC DEVE SABER, NO CASO,
+
+É QUE 
+
+
+'''YOU CANNOT INSTANTIATE OBJECTS OF __ TRAITS...'''
+
+
+
+
+
+
+
+
+-- O ÚNICO JEITO DE UTILIZAR TRAITS É COM A KEYWORD 'use'
+
+    NO INTERIOR __ DE OUTROS TRAITS, OU DE OUTRAS CLASSES...
+
+
+
+
+
+--> PARA ENTENDER ISSO, BASTA VER O CÓDIGO DE 'LatteMaker' e 'CappuccinoMaker',
+    em que importamos os traits de LatteTrait e CappuccinoTrait....
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+AGORA DEVEMOS TESTAR ISSO, COM O TERMINAL..
+
+
+
+
+
+PERCEBEMOS QUE TUDO AINDA ESTÁ FUNCIONANDO,
+
+MAS AGORA COM ESSES TRAITS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+AGORA VAMOS TENTAR COLOCAR ESSES TRAITS DENTRO DA CLASS DE 
+
+
+'AllInOneCoffeeMaker'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE VC QUER USAR MULTIPLOS TRAITS 
+    EM 1 MESMA CLASS,
+    BASTA SEPARÁ-LOS COM ','...
+
+
+
+
+
+
+-> BASTA USAR OS TRAITS NESSA CLASS,
+TIPO ASSIM:
+
+
+<?php
+
+
+namespace App6;
+
+
+// * ''Multiple inheritance' using traits example:
+class AllInOneCoffeeMaker
+{
+    use LatteTrait, CappuccinoTrait; // Lets us use the makeLatte() and makeCappuccino() methods.
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+MAS SE VC ESTÁ SEGUINDO O 'PSR-12', RECOMENDAÇÃO,
+
+AÍ 
+
+
+VC VAI QUERER COLOCAR TUDO ISSO 
+
+
+EM LINHAS SEPARADAS, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+// * ''Multiple inheritance' using traits example:
+class AllInOneCoffeeMaker
+{
+    use LatteTrait; // Lets us use the makeLatte() and makeCappuccino() methods.
+    use CappuccinoTrait;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+COM ISSO, 
+
+'AllInOneCoffeeMaker'
+
+
+
+consegue 
+
+
+
+USAR OS METHODS 
+
+
+
+DE REGULAR COFFEE, LATE E CAPPUCCINO...
+
+
+
+E NEM PRECISAMOS DUPLICAR CÓDIGO ALGUM.... ESSA É A GRANDE VANTAGEM...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... ISSO É EXCELENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS COMO ISSO FUNCIONA? COMO TRAITS FUNCIONAM?
+
+
+
+
+
+
+
+
+
+''TRAITS WORK ESSENTIALLY AS __ COPY__ AND PASTE...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TRAITS BASICAMENTE PEGAM O CODE,
+    QUE ESTÁ ESCRITO NO TRAIT,
+
+
+    E ENTÃO __COLAM__ ESSE CODE NA 
+
+    CLASS QUE USA O TRAIT,
+
+    DURANTE COMPILE TIME...
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA DEVEMOS FALAR SOBRE ALGUMAS DAS REGRAS 
+    QUE VC DEVE TER EM MENTE, SOBRE TRAITS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+1a REGRA)
+
+
+
+
+-- ''PRECEDENCE AND METHOD OVERRIDING''...
+
+
+
+
+
+
+
+
+-- VOCÊ É _ CAPAZ__ DE __REDEFINIR __ 
+    O METHOD QUE É DEFINIDO DENTRO 
+
+    DO TRAIT....
+    
+    ------> SE A CLASS QUE 
+                USA O TRAIT 
+
+                DEFINE/RE-DEFINE O MESMO METHOD,
+
+                QUANDO __ AQUELE METHOD FOR CHAMADO,
+
+                O METHOD DEFINIDO DIRETAMENTE NA CLASS TERÁ PRECEDENCE 
+                EM RELAÇÃO AO TRAIT DEFINIDO EXTERNAMENTE...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+class CappuccinoMaker extends CoffeeMaker
+{
+    use CappuccinoTrait;
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+ESSA CLASS, 'CappucinoMaker',
+
+
+ESTÁ PULLANDO ESSE TRAIT DE 'CappuccinoTrait',
+
+
+
+QUE TEM O METHOD DE 'makeCappuccino()"...
+
+
+
+
+
+
+
+
+
+
+
+--> SE  ESCREVERMOS ESSE METHOD 
+    DENTRO DE 'CappuccinoMaker',
+    ele existirá POR CIMA 
+
+    do method do CappucinoTrait...
+
+
+
+
+    EX:
+
+
+
+    
+
+class CappuccinoMaker extends CoffeeMaker
+{
+    use CappuccinoTrait;
+
+
+
+    public function makeCappuccino() 
+    {
+        echo 'Making Cappucino (UPDATED)' . PHP_EOL;
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS É CLARO QUE ISSO NÃO VAI APAGAR 
+
+O CÓDIGO DO TRAIT ORIGINAL,
+
+ELE CONTINUARÁ EXISTINDO E INFLUENCIANDO 
+
+AS OUTRAS CLASSES QUE 
+
+
+ESTÃO O UTILIZANDO, COMO 
+
+'AllInOneCoffeeMaker',
+
+nesse caso...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ENTRETANTO,
+
+    SE VC 
+
+    TEM 1 METHOD QUE É GIVEN 
+
+    PELA BASE CLASS A 1 CHILD CLASS,
+
+
+    E ESSE METHOD EXISTE TAMBÉM NO TRAIT,
+
+
+
+    O CÓDIGO QUE TERÁ PRECEDENCE SERÁ O DO _tRAIT..
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+class CappuccinoMaker extends CoffeeMaker
+{
+
+    use CoffeeTrait; // if this has a 'makeCoffee' method, it will override the 'makeCoffee' method of the 'CoffeeMaker' base class...
+    use CappuccinoTrait;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FAZ SENTIDO... PQ 
+
+O COMPORTAMENTO DOS TRAITS É 'COPY AND PASTE THE CODE INTO THE UNDERLYING CLASS THAT USES 
+                                THE TRAIT'...
+
+
+
+
+
+
+ISSO QUER DIZER QUE,
+
+QUANDO USAMOS O trait de 'CoffeeTrait' 
+
+
+em 'CappuccinoMaker',
+
+
+É PRATICAMENTE COMO SE ESTIVÉSSEMOS
+
+
+FAZENDO OVERWRITE DO METHOD DA PARENT CLASS, 
+
+COM 1 METHOD DA CHILD CLASS (só que esse method, nesse caso, vem do trait, e não da child class em si)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... RESUMINDO, A PRECEDENCE É:
+
+
+
+
+
+
+1) O METHOD QUE É DEFINIDO DIRETAMENTE NA CLASS (na child class, para ser mais específico)
+
+
+2) O METHOD QUE É DEFINIDO NO TRAIT, QUE É IMPORTADO NA CLASS (na child class)
+
+
+3) O METHOD 'BASE' QUE É IMPORTADO, POR MEIO DE INHERITANCE, LÁ DA PARENT CLASS, NA CLASS (child class)...
+
+
+
+
+
+
+-------------------------------------
+
+
+
+
+
+OK... MAS AGORA FALAREMOS SOBRE OUTRO TÓPICO,
+
+
+SOBRE 'CONFLICT RESOLUTION'.... 
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROBLEMA QUE EXISTE COM MULTIPLE INHERITANCE,
+    
+    AQUELE PROBLEMA DE 
+
+
+    '''DE QUAL CLASS VOU TIRAR ESSE METHOD X????''',
+
+
+    EXISTE 
+
+    TAMBÉM 
+
+
+
+    COM OS TRAITS...
+
+
+
+
+
+
+--> ESSE PROBLEMA ACONTECE QUANDO 
+
+        __ DOIS __ METHODS 
+
+        ESTÃO 'CONFLICTING'
+
+        POR CONTA DE TEREM O MESMO NOME...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA TER ESSE PROBLEMA,
+    DIGAMOS QUE o trait CappuccinoTrait
+
+
+    TAMBÉM TEM 1 METHOD 
+
+    DE 
+
+    'makeLatte()',
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+namespace App6;
+
+trait CappuccinoTrait
+{
+    public function makeCappuccino()
+    {
+        echo static::class . ' is making cappuccino' . PHP_EOL;
+    }
+
+
+    public function makeLatte() {
+        echo static::class . ' is making latte (from the CappuccinoTrait)' . PHP_EOL;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+ok....
+
+
+
+
+AO TENTARMOS IMPORTAR E RODAR ESSA FUNCTION,
+
+
+
+LÁ COM 
+
+'AllInOneCoffeeMaker::makeLatte()',
+
+
+
+FICAMOS 
+
+
+COM ESTE ERRO (bem óbvio):
+
+
+
+
+
+'''Fatal error: Trait method App\LatteTrait::makeLatte HAS NOT BEEN APPLIED 
+    as ...:makeLatte, because of COLLISION with ....'
+
+
+
+
+
+
+
+
+
+
+
+
+
+FICAMOS COM ESSE FATAL ERROR PQ 
+
+
+ELE NÃO SABE QUAL 
+
+
+
+'makeLatte()'
+
+
+method chamar...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... MAS COMO PODEMOS CONSERTAR ESSE PROBLEMA?
+
+
+
+
+
+
+
+--> NO PHP, ESSE PROLBEMA PODE SER FACILMENTE CONSERTADO,
+    POR MEIO DO OPERATOR DE 'insteadof'...
+
+
+
+
+
+
+
+
+
+
+--> ESSE OPERATOR TE DEIXA __ ESPECIFICAR 
+
+        ''''WHICH METHOD SHOULD BE EXECUTED,
+            WHENEVER THERE IS A CONFLICT BETWEEN 
+            METHODS THAT HAVE THE SAME NAME'''...
+
+
+
+
+
+
+
+
+
+
+
+
+--> DIGAMOS, POR EXEMPLO, QUE QUEREMOS 
+    EXECUTAR SOMENTE O 
+
+    'makeLatte' 
+
+    DO TRAIT DE 'LatteTrait',  e não de 'CappuccinoTrait',
+
+    
+
+    quando chamado dessa class de 'AllInOneCoffeeMaker'...
+
+
+
+
+
+
+
+
+-> PARA ISSO, PARA TER ESSE EFEITO,
+    ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+// * ''Multiple inheritance' using traits example:
+class AllInOneCoffeeMaker
+{
+
+    use CappuccinoTrait;
+    use LatteTrait {
+        LatteTrait::makeLatte insteadof CappuccinoTrait; // WILL USE THE 'makeLatte' of the LatteTrait, instead of the makeLatte of the 'CappuccinoTrait'...
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok.. COM ISSO, TUDO VOLTARÁ A FUNCIONAR,
+
+
+PQ O 'makeLatte' do LatteTrait
+
+SERÁ USADO  
+
+
+__INSTEAD OF __ o makeLatte do 'CappuccinoTrait'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> se vc quisesse o contrário,
+
+vc escreveria assim:
+
+
+
+
+// * ''Multiple inheritance' using traits example:
+class AllInOneCoffeeMaker
+{
+
+    use CappuccinoTrait {
+        CappuccinoTrait::makeLatte insteadof LatteTrait; // WILL USE THE 'makeLatte' of the CappuccinoTrait, instead of the 'makeLatte' of the LatteTrait...
+    }
+    use LatteTrait;
+}
+
+
+
+
+
+
+------------------------------------------
+
+
+
+
+
+
+
+
+
+CERTO... FAZ SENTIDO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------
+
+
+
+
+
+há outra maneira de evitar esse problema...
+
+
+
+
+
+
+
+
+
+-- A OUTRA MANEIRA ENVOLVE FAZER 'ALIAS' 
+    DE ESSES METHODS....
+
+
+
+
+
+
+
+--> DIGAMOS QUE 
+
+
+
+
+''''WE WANT TO MAKE LATTE FROM THE LATTE TRAIT AND CAPPUCINO TRAITS 
+    AS WELL... FOR THAT PURPOSE, WE CAN USE DIFFERENT NAMES (aliases)'''..
+
+
+
+
+
+PODEMOS FAZER ISSO TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+// * ''Multiple inheritance' using traits example:
+class AllInOneCoffeeMaker
+{
+    use CappuccinoTrait {
+        CappuccinoTrait::makeLatte insteadof LatteTrait;
+    }
+
+    use LatteTrait {
+        LatteTrait::makeLatte as makeOriginalLatte; ///////EIS O CÓDIGO EM QUESTÃO.
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, DEFINIMOS ESSE 
+
+
+
+CALL COMO 'makeOriginalLatte'...
+
+
+
+ 
+ O QUE QUER DIZER QUE PODEMOS 
+
+ CHAMAR TIPO ASSIM, LÁ NO INDEX.PHP:
+
+
+
+
+
+
+
+
+
+
+
+
+
+ $allInOneCoffeeMaker->makeLatte();
+ $allInOneCoffeeMaker->makeOriginalLatte();
+
+
+
+
+
+
+
+
+
+
+ COM ISSO, CONSEGUIMOS DIFERENCIAR OS CALLS DE 'makeLatte()',
+
+
+ e continuar usando os 2 tipos de method 'makeLatte' (o do CappucinoTrait e o do latteTrait)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------
+
+
+
+
+
+
+
+VC TAMBÉM PODE MUDAR A VISIBILITY DE SEUS METHODS...
+
+
+
+
+
+
+
+--> PARA ISSO, CONSIDERE ESTE CÓDIGO INICIAL:
+
+
+
+
+
+
+<?php
+
+namespace App6;
+
+trait CappuccinoTrait
+{
+    public function makeCappuccino()
+    {
+        echo static::class . ' is making cappuccino' . PHP_EOL;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA IMAGINE QUE 'makeCappuccino()' é um PRIVATE METHOD:
+
+
+
+
+
+
+
+<?php
+
+namespace App6;
+
+trait CappuccinoTrait
+{
+    private function makeCappuccino()
+    {
+        echo static::class . ' is making cappuccino' . PHP_EOL;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+POR ESSE METHOD SER PRIVATE,
+
+
+VC SÓ CONSEGUE ACESSÁ-LO NO INTERIOR 
+
+DA CLASS 
+
+
+
+
+QUE USA ESSE TRAIT (AllInOneCoffeeMaker)..
+
+
+
+
+
+
+EX:
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+class AllInOneCoffeeMaker
+{
+    use LatteTrait; 
+    use CappuccinoTrait;
+
+    public function foo() {
+        $this->makeCappuccino(); /// THIS WILL WORK, EVEN SO...
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+->  ou seja, ainda podemos usar esse method de dentro da class,
+    mesmo ele sendo 'private' lá no trait...
+
+
+
+
+
+
+
+
+
+
+--> MAS É CLARO QUE NÃO VAMOS PODER 
+
+
+CHAMAR ESSE METHOD NO LADO DE FORA...
+
+
+
+QUER DIZER QUE ISTO É PROIBIDO:
+
+
+
+
+
+
+
+
+$allInOneCoffeeMaker->makeCappuccino(); // THIS WILL RETURN AN ERROR...
+
+
+
+
+
+
+
+
+OK... MAS COMO PODEMOS CONSERTAR ISSO, FAZER 
+
+ELE NÃO DAR ERRO?
+
+
+
+
+
+
+
+
+--> PODEMOS ACTUALLY ___ MUDAR A VISIBILITY DE 'makeCappuccino()',
+
+    esse method aí,
+
+    quando estamos usando um trait com ele...
+
+
+
+
+
+
+
+
+
+--> PODEMOS FAZER ISSO 
+
+    LÁ NO CAPPUCCINOMAKER...
+
+
+
+    PARA FAZER ISSO, PRECISAMOS USAR O OPERATOR DE 'as',
+
+    DA MESMA FORMA QUE FIZEMOS PARA ALIASAR
+
+    AQUELE METHOD NAME PARA OUTRO NAME.... MAS AGORA, EM VEZ DE 
+
+    USAR O 'alias'
+
+    PARA FAZER O METHOD 'TROCAR DE NOME',
+
+    VAMOS USAR O ALIAS 
+
+
+    PARA __ ESCOLHER A KEYWORD DE VISIBILITY (public/private/protected)....
+
+
+
+
+
+
+
+
+
+
+
+PARA ISSO, ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+class CappuccinoMaker extends CoffeeMaker
+{
+    use CappuccinoTrait;
+
+
+    use CappuccinoTrait {
+        CappuccinoTrait::makeCappuccino as public; //EIS O CÓDIGO EM QUESTÃO.
+    }
+}
+
+
+
+
+
+
+
+
+
+
+AGORA, COM ISSO, O METHOD DE 'makeCappuccino()'
+
+
+VIRARÁ 
+
+__PUBLIC_ 
+
+QUANDO FOR 
+
+
+
+COLADO __ DENTRO DO 'CappuccinoMaker'... --->  COM ISSO,
+                                                O METHOD 
+
+                                                DE 'makeCappuccino'
+
+                                                SERÁ SETTADO COMO 'PUBLIC'
+                                                NESSA CLASS,
+
+
+                                                SENDO IRRELEVANTE O FATO DE QUE 
+                                                ELE ESTAVA SETTADO COMO 'PRIVATE'
+
+                                                LÁ NO 'CappuccinoTrait',
+                                                anteriormente...
+
+
+
+
+
+PODEMOS FAZER A MESMA COISA NA CLASS DE 'AllInOneCoffeeMaker':
+
+
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+// * ''Multiple inheritance' using traits example:
+class AllInOneCoffeeMaker
+{
+    use LatteTrait;
+    use CappuccinoTrait {
+    CappuccinoTrait::makeCappuccino as public; //EIS O CÓDIGO EM QUESTÃO.
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... COM ISSO, 
+
+APRENDEMOS 
+
+QUE 
+
+
+PODEMOS FAZER 'PRIVATE/PROTECTED 
+
+METHODS SE TRANSFORMAREM EM PUBLIC....
+
+
+
+
+
+
+
+--> POR MAIS POWERFUL QUE ISSO PAREÇA,
+    O PROFESSOR NÃO ACHA QUE ESSA É UMA DAS MELHORES 
+    FEATURES DOS TRAITS...
+
+
+
+
+
+
+
+
+--> NA OPINIAO DELE,
+    ESSA FEATURE NÃO É BOA, E ELE NÃO RECOMENDA USAR ISSO...
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR FALARÁ MAIS SOBRE A OPINIÃO DELE 
+    NO FINAL DA AULA....
+
+
+
+
+
+------------------
+
+
+
+
+
+
+
+
+
+
+
+
+-- VOCE TAMBÉM TEM A OPÇÃO DE ''USE TRAITS WITHIN OTHER TRAITS''...
+
+
+
+--> ISSO TE DÁ O POWER DE 'COMPOSE TRAITS FROM ANOTHER TRAITS'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> POR EXEMPLO, NO TRAIT DE 'CappuccinoTrait',
+
+    PODEMOS QUERER, DOWN THE ROAD,
+
+    QUE 
+
+
+    O 'CappuccinoTrait'
+
+    TAMBÉM SEJA CAPAZ DE 'makeLatte'...
+
+
+
+
+
+
+
+INICIALMENTE, PODEMOS TER ESTE CÓDIGO:
+
+
+
+
+
+
+
+<?php
+
+namespace App6;
+
+trait CappuccinoTrait
+{
+    private function makeCappuccino()
+    {
+        echo static::class . ' is making cappuccino' . PHP_EOL;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS SE ESCREVÊSSEMOS 'makeLatte()"
+    dentro de 'CappuccinoTrait',
+
+    teríamos CÓDIGO DUPLICADO...
+
+
+
+
+
+
+-> MAS PARA EVITAR A DUPLICAÇÃO DE CÓDIGO,
+    PODEMOS SIMPLESMENTE ESCREVER 'use LatteTrait',
+
+    para fazer 
+    o 
+
+    CappuccinoTrait
+
+    ter a capacidade de 'makeLatte()' também...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace App6;
+
+trait CappuccinoTrait
+{
+
+    use LatteTrait; // You can also use/import traits inside of other traits
+
+    public function makeCappuccino()
+    {
+        echo static::class . ' is making cappuccino' . PHP_EOL;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VC PODE, ALÉM DE DEFINIR 
+    METHODS NOS TRAITS,
+
+    DEFINIR TAMBÉM PROPERTIES,
+
+
+    E ENTÃO
+
+
+
+    ACESSAR ESSAS PROPERTIES NAS CLASSES QUE USAM OS TRAITS..
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+trait LatteTrait
+{
+
+    protected string $milkType = "whole-milk";
+
+    public function makeLatte()
+    {
+        echo static::class . ' is making latte' . PHP_EOL;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, TEMOS ESSA PROPERTY DE '$milkType'...
+
+
+
+
+
+
+
+
+
+
+--> AÍ PODEMOS USAR ISSO DENTRO DO TRAIT,
+
+    OU DO LADO DE FORA DO TRAIT...
+
+
+
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+trait LatteTrait
+{
+
+    protected string $milkType = "whole-milk";
+
+    public function makeLatte()
+    {
+        echo static::class . ' is making latte with' . $this->milkType . PHP_EOL;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ok... mas como definimos essa property no 'LatteTrait',
+
+    A REGRA É QUE 
+
+    __A UNDERLYING CLASS 
+
+
+
+    __ NÃO VAI SER CAPAZ 
+
+
+    _ DE DEFINIR A MESMA PROPERTY COM O MESMO NOME... A NÃO SER 
+
+    QUE 
+
+    ESSA PROPERTY SEJA 'FULLY COMPATIBLE' (ou seja, MESMA VISIBILITY, TYPE E DEFAULT VALUE, todos devem matchear)..
+
+
+
+
+
+
+
+
+
+
+--> ok... quer dizer que , se vc setta 1 property 
+    como algum value/visibility em 1 trait,
+
+    vc nao pode ter essa mesma property 
+
+
+    na class  que 
+
+    vai usar esse trait...
+     
+    
+
+
+
+
+
+
+-------------------------------------
+
+
+
+
+
+
+
+-- ALÉM DISSO, OUTRA COISA QUE 
+
+VC PODE VER NO CÓDIGO DE OUTRAS PESSOAS 
+
+É ELES USANDO 
+
+A PROPERTY DE '$this' 
+
+
+
+dentro do 'trait',
+
+
+mesmo quando a property referenciada NÃO EXISTE NO TRAIT,
+
+tipo assim:
+
+
+
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+trait LatteTrait
+{
+
+    public function makeLatte()
+    {
+        echo static::class . ' is making latte with' . $this->milkType . PHP_EOL; // THIS PROPERTY DOESN'T EXIST ON THE TRAIT, but we use it even so.
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO, NO CASO,
+    ASSUME QUE 
+
+    ESSA PROPERTY EXISTE DENTRO DA CLASS QUE 
+    VAI USAR ESSE TRAIT...
+
+
+
+
+
+
+
+
+-> MAS O PROBLEMA, COM ISSO,
+    COM O USO DE 'MAGIC PROPERTIES',
+
+    É __ QUE ESTAMOS ASSUMINDO QUE A UNDERLYING 
+    CLASS VAI DEFINIR ESSA PROPERTY...
+
+
+    O PROFESSOR TAMBÉM NÃO GOSTA DISSO...
+
+
+
+
+
+--> O PROFESSOR PREFERE, EM VEZ DISSO, O ENFORCE DE 1 UNDERLYING CLASS, 
+    1 CLASS QUE DEFINE 1 METHOD QUE VAI TE DAR O VALUE PARA ESSA PROPERTY...
+
+
+
+
+
+
+
+-> COM ISSO, COM ESSE APPROACH ALTERNATIVO,
+
+
+FICARÍAMOS COM ALGO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+trait LatteTrait
+{
+
+    public function makeLatte()
+    {
+        echo static::class . ' is making latte with' . $this->getMilkType() . PHP_EOL; // THIS PROPERTY DOESN'T EXIST ON THE TRAIT, but we use it even so.
+    }
+
+
+
+    public function getMilkType():string 
+    {
+        return 'whole-milk';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+MAS É CLARO QUE ESSA NÃO É A MELHOR SOLUTION,
+PQ 
+
+ESTAMOS FAZENDO HARD CODE DO VALUE DE 'whole-milk' aí...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> EM VEZ DISSO, 
+    QUEREMOS CONSEGUIR O VALUE 
+
+    DE 'whole-milk'
+
+    LÁ DA PROPERTY DA CLASS EM QUE 
+
+
+    É USADO ESSE TRAIT...
+
+
+
+
+
+
+
+---> ALGUNS DEVELOPERS ESCREVEM ASSIM:
+
+
+
+
+
+if (property_exists($this, 'milkType')) {
+    return $this->milkType;
+}
+
+return '';
+
+
+
+
+
+
+
+
+--> MAS É CLARO QUE ISSO NÃO É IDEAL,
+    PQ VC ESTÁ SENDO FORÇADO A USAR ESSA VALIDATION DE 'property_exists()',
+
+    E PQ VC TAMBÉM TALVEZ QUEIRA USAR VALIDATION DE 'method_exists()',
+
+    se vc está se referindo a um method que vc acha que existirá em uma underlying 
+    class...
+
+
+
+
+
+
+
+--> PARA RESOLVER TUDO ISSO, O TRAITS TEM 1 FEATURE ESPECÍFICA,
+
+    QUE É O DEFINE DE _ ABSTRACT METHODS__ NO INTERIOR DE TRAITS....
+
+
+
+
+
+-> PQ VOCÊ PODE, SIM, DEFINIR ABSTRACT METHODS, DENTRO DE TRAITS...
+
+
+
+
+
+
+--> MAS O PROFESSOR NÃO GOSTA DESSA FEATURE...

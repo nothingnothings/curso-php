@@ -8,7 +8,8 @@
       "App2\\": "inheritance-example/",
       "App3\\": "interfaces-and-polymorphism-example/",
       "App4\\": "magic-methods-example/",
-      "App5\\": "late-static-binding-example/"
+      "App5\\": "late-static-binding-example/",
+      "App6\\": "traits-how-they-work-and-drawbacks/"
     }
   }
 }

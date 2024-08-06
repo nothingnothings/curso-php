@@ -11,6 +11,7 @@ return array(
     'Ramsey\\Collection\\' => array($vendorDir . '/ramsey/collection/src'),
     'Brick\\Math\\' => array($vendorDir . '/brick/math/src'),
     'App\\' => array($baseDir . '/coding-autoloading-and-composer-example/app'),
+    'App6\\' => array($baseDir . '/traits-how-they-work-and-drawbacks'),
     'App5\\' => array($baseDir . '/late-static-binding-example'),
     'App4\\' => array($baseDir . '/magic-methods-example'),
     'App3\\' => array($baseDir . '/interfaces-and-polymorphism-example'),
