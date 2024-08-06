@@ -1659,3 +1659,23 @@ COLOCAMOS TIPO ASSIM:
         // return new self(); // ! This won't work (no late static binding)
         return new static(); // * This will work (with late static binding)
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... É MEIO COMPLICADO, MAS FAZ SENTIDO...
