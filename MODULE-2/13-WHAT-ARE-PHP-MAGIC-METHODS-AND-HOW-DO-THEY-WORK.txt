@@ -586,14 +586,555 @@ public function __get(string $name)
 
 COM ISSO, COM ESSE MAGIC GETTER,
 
-PODEMOS TER 1 ERROR HANDLING BÁSICO,
+PODEMOS TER 1 KINDOF ERROR HANDLING BÁSICO,
+QUE, EM VEZ DE TE RETORNAR ERRORS/WARNINGS DEFAULT,
+
+TE RETORNARIA UM DEFAULT VALUE DE 'null'...
 
 
 
-QUE 
-TE DARÁ 
 
 
-'READ-ONLY ACCESS',
 
-SE VC NÃO DEFINIR O SETTER METHOD...
+
+
+
+
+
+
+
+-> MAS O PROFESSOR ADMITE QUE 
+
+
+ESSE USE-CASE, VISTO ACIMA,
+
+NÃO É O 
+
+
+__ MELHOR USE-CASE PARA 
+
+
+OS MAGIC GETTERS E MAGIC SETTERS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR PESSOALMENTE N GOSTA DISSO...
+
+
+
+
+
+N GOSTA DISSO PQ:
+
+
+
+
+
+1) ESSA ARTIMANHA QUEBRA ENCAPSULATION 
+
+
+
+
+
+2) QUANDO VC USA TYPE HINTING,
+    PRINCIPALMENTE COM OS 'STRICT_TYPES'
+
+    definidos/declarados como ENABLED,
+
+
+    E VC TENTA SETTAR 1 PROPERTY 
+
+    COMO 1 VALUE QUE NÃO É O MESMO QUE 
+    AQUELE QUE FOI DECLARADO/SETTADO NA PROPERTY,
+
+    VC FICA COM 1 ERROR...
+
+
+
+
+
+    --> ESSE ERROR, NO CASO, TE FORÇARIA 
+    A IMPLEMENTAR ALGUM TIPO DE VALIDATION 
+
+    NO MAGIC SETTER METHOD, E ASSIM POR DIANTE...
+
+
+
+
+
+
+-> O PROFESSOR NÃO RECOMENDA O USO DE ESSES MAGIC 
+    METHODS DESSA FORMA,
+
+    MAS ELE QUERIA NOS MOSTRAR, MESMO ASSIM...
+
+
+
+    NOS MOSTRAR QUE É POSSÍVEL, SIM...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS OUTRO USE-CASE 
+    PARA ESSES MAGIC METHODS 
+
+
+    É 
+
+
+
+''EM VEZ DE DEFINIR AS PROPERTIES na sua class
+    E TER 1 MONTE DE PROPERTIES,
+
+    VC PODERIA ARMAZENÁ-LAS EM 1 ÚNICO ARRAY,
+
+
+
+algo como isto:
+
+
+
+
+
+
+<?php
+
+
+
+
+
+namespace app3;
+
+
+class Invoice
+{
+
+    protected array $data;
+
+
+    // THIS IS THE MAGIC GET METHOD, the first of the magic methods. It is called when you try to access a property that doesn't exist.
+    public function __get(string $name)
+    {
+        var_dump($name);
+    }
+
+    // THIS IS THE MAGIC SET METHOD, the second of the magic methods. It is called when you try to set a property that doesn't exist.
+    public function __set(string $name, $value)
+    {
+        var_dump($name);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA, ESSE ARRAY DE '$data'....
+
+
+
+
+
+
+
+
+
+
+-_> AÍ, COM ESSE ARRAY,
+
+
+VC PODERIA 
+
+
+
+USAR 
+
+
+o magic getter com uma call de 
+
+
+'array_key_exists()',
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+<?php
+
+
+
+
+
+namespace app3;
+
+
+class Invoice
+{
+
+    protected array $data;
+
+
+    public function __get(string $name)
+    {
+         if (array_key_exists($name, $this->data)) {
+            return $this->data[$name];
+         }
+
+         return null;
+    }
+
+    public function __set(string $name, $value)
+    {
+        this->data[$name] = $value;
+    }
+}
+
+
+
+
+
+
+
+
+COM ISSO, DEFINIRÍAMOS O VALUE DENTRO 
+DO ARRAY, SEM PROBLEMA ALGUM,
+
+MESMO O ARRAY SENDO 'protected'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... QUER DIZER QUE OS MAGIC METHODS DE '__get()' e '__set()' são meio inúteis... bem situacionais...
+
+
+
+
+SERVEM, BASICAMENTE, PARA:
+
+1) DEIXAR SUAS PROTECTED PROPERTIES COMO 'READ-ONLY'...
+
+
+
+2) retornar 'null' em vez de dar throw 
+    de exceptions de error comuns,
+    se vc 
+
+    codar esse 'return null;',
+
+
+
+    lá no '__get()'..
+
+
+-----------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, TEMOS OS MAGIC METHODS DE 
+
+
+
+
+
+
+
+
+
+''__isset()''
+
+
+
+
+e 
+
+
+
+''__unset()''...
+
+
+
+
+
+
+
+
+
+
+
+
+NOVAMENTE, AQUI TEMOS 2 METHODS QUE SÃO 
+
+
+CHAMADOS A PARTIR DE EVENTOS DIFERENTES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1) '__isset()' --> É CHAMADO 
+                    SEMPRE QUANDO 
+
+                    VC USA 'isset()' 
+
+
+                    OU _ _EMPTY FUNCTIONS 
+
+
+
+
+                    __ EM UNDEFINED/INACESSIBLE (private ou protected)
+                     PROPERTIES...
+
+
+
+
+2) '__unset()' --> É CHAMADO SEMPRE QUANDO VC USA 
+
+
+                    'unset()'
+                    EM 
+                     'UNDEFINED/INACESSIBLE' properties....
+
+
+
+
+
+
+
+
+
+
+--> NO CASO,
+
+
+AS ESCRITAS DOS 2 MAGIC METHODS SÃO:
+
+
+
+
+
+
+(__isset):
+
+
+
+public function __isset(string $name): bool 
+{
+
+
+}
+
+
+
+
+
+
+(__unset):
+
+
+public function __unset(string $name): void 
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+--> OK...
+
+
+
+E O MAGIC METHOD DE '__isset()'
+
+ 
+
+
+ PRECISA, OBRIGATORIAMENTE,
+
+ RETORNAR 1 BOOLEAN VALUE...
+
+
+
+
+
+
+
+
+
+
+ --> É POR ISSO QUE ESCREVI ':bool'...
+
+
+
+
+
+
+
+
+
+ --> PARA CONSEGUIR 1 BOOLEAN VALUE,
+
+    O PROFESSOR APONTA QUE PODEMOS SIMPLESMENTE CHAMAR A FUNCTION DE 
+
+
+    'array_key_exists()'...
+
+
+
+
+
+
+ISSO VAI DETECTAR SE AQUELA key, de '$name',
+
+    EXISTE DENTRO DA PROPRIEDADE '$data',
+
+    de tipo array...
+
+
+
+
+
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+public function __isset(string $name): bool 
+{
+
+    return array_key_exists($name, $this->data);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... MAS E QUANTO AO '__unset()'?
+
+
+
+
+
+
+
+
+--> O PROFESSOR DECIDE RODAR 1 LOGICA, NESSE 
+    CASO, PARA FAZER 'UNSET', NO ARRAY, DO LOCAL EM QUE 
+    TEMOS 
+
+
+    O VALUE DE '$name',
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+public function __unset(string $name): void
+{
+
+    unset($this->data[$name]);
+}
+
+
+
+
+
+
+
+
+PQ ISSO VAI REALMENTE REMOVER ESSE VALUE AÍ...
