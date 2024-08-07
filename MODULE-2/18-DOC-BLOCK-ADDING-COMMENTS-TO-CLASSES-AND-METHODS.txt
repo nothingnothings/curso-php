@@ -1,0 +1,1662 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA DEVEMOS COBRIR COMMENTS...
+
+
+
+
+
+ANTERIORMENTE, VIMOS COMMENTS COM ESTA SINTAXE:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+use App10\Invoice;
+
+
+require_once '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+
+// single line comment 
+
+# single line comment 
+
+
+/**
+ * multi-line comment
+ */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS AGORA VEREMOS 'DOCBLOCKS',
+
+
+que são um tipo MAIS AVANÇADO DE COMMENT...
+
+
+
+
+
+
+
+
+
+
+
+-> DOCBLOCK...
+
+
+
+
+
+
+
+
+
+
+--> PODEM SER ADICIONADOS A:
+
+
+
+
+1) FUNCTIONS 
+
+2) METHODS 
+
+3) CLASSES 
+
+4) INTERFACES 
+
+5) VARIABLES 
+
+6) PROPERTIES 
+
+7) ETC...
+
+
+
+
+
+
+
+
+PARA ATIVAR/DESCREVER DOCBLOCKS,
+
+
+
+basta 
+
+
+
+
+colocar assim:
+
+
+
+/**....
+
+
+
+
+
+
+
+
+
+
+
+
+DOCBLOCKS SÃO UMA BETTER STRUCTURED 
+
+DOCUMENTATION PARA SEU CÓDIGO...
+
+
+
+
+
+
+
+
+
+
+
+
+-> PODE SER USADO PARA 
+
+
+''AUTOMATICALLY GENERATE API DOCUMENTATIONS''....
+
+
+
+
+
+
+
+
+-->  PODE SER USADO, POR OUTROS DEVS,
+QUE ESTÃO LENDO SEU CÓDIGO....
+
+
+
+
+
+
+
+
+
+
+-> PODE SER USADO PARA ENHANCE OU MUDAR A FUNCTIONALITY 
+    DO SEU CÓDIGO,
+    POR MEIO DE ANNOTATIONS...
+
+
+
+
+
+
+--> PODE SER USADO POR IDEs para 
+    PROVIDENCIAR MELHOR AUTO-COMPLETE, ETC...
+
+
+
+
+------------------------------------
+
+
+
+
+--> DOCBLOCKS TAMBÉM PODEM TER TAGS...
+
+
+
+
+
+
+
+
+--> O PROFESSOR TEM 1 EXEMPLO SIMPLES, AQUI:
+
+
+
+
+
+/**
+ *  Docblock example
+ * 
+ * @param 
+ * @return
+ */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ VEREMOS AS TAGS MAIS USADAS E VISTAS...
+
+
+
+
+
+
+    ----------------------------------------------
+
+
+
+
+
+
+
+
+AS 2 PRIMEIRAS, MAIS USADAS, SÃO '@param' e '@return'...
+
+
+
+
+
+
+
+
+
+
+
+@PARAM -->  ESSA TAG 'CAN BE USED _ TO DOCUMENT AN ARGUMENT OF A FUNCTION/METHOD'....
+
+
+
+
+
+
+@RETURN -> 'CAN BE USED TO DOCUMENT THE RETURN TYPE'....
+
+
+
+
+
+
+
+
+
+
+--> ESSAS TAGS SÃO ESPECIALMENTE ÚTEIS 
+    SE VC NÃO ESTÁ TYPE HINTING,
+
+
+    OU SE VC QUER PROVIDENCIAR ADDITIONAL INFO SOBRE 
+    O ARGUMENT OU RETURN TYPE...
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR TEM 1 CLASS SIMPLES, 'Transaction',
+
+
+COM ESTA SINTAXE:
+
+
+
+
+
+
+
+
+<?php
+
+
+namespace App10;
+
+class Transaction
+{
+
+
+    public function process($customer, $amount)
+    {
+        // Process Transaction 
+
+        // if failed, return false 
+
+        // otherwise return true
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> process é um method simples... recebe esses 2 params...
+
+
+
+
+
+
+
+-> RETORNAMOS 'true' ali embaixo...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+<?php
+
+
+namespace App10;
+
+class Transaction
+{
+
+
+    public function process($customer, $amount)
+    {
+        // Process Transaction 
+
+        // if failed, return false 
+
+        // otherwise return true
+
+        return true;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR ENTÃO ADICIONA 1 DOC BLOCK,
+
+
+
+
+com /** ,
+
+
+
+
+LOGO ACIMA DO METHOD, TIPO ASSIM:
+
+
+
+
+
+<?php
+
+
+namespace App10;
+
+class Transaction
+{
+    /**
+     * @param $customer
+     * @param $amount
+     * 
+     * @return bool
+     */
+
+    public function process($customer, $amount)
+    {
+        // Process Transaction 
+
+        // if failed, return false 
+
+        // otherwise return true
+
+        return true;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+O IDE DO PROFESSOR COMPLETOU O DOCBLOCK AUTOMATICAMENTE 
+
+AO escrever '/**'...
+
+
+
+
+
+MAS EU NÃO TENHO ISSO, NO VSCODIUM...
+
+
+
+
+
+
+DEVE EXISTIR ALGUMA EXTENSION PARA ISSO...
+
+VOU PROCURAR...
+
+
+php docblocker...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CONSEGUI... ISSO REALMENTE ADICIONA DOCBLOCKS..
+
+
+
+
+
+
+
+
+
+basta escrever '/**'....
+
+
+
+
+
+
+NO MEU CASO, ELE 
+
+
+
+OUTPUTTOU ISTO:
+
+
+
+
+
+
+<?php
+
+
+namespace App10;
+
+class Transaction
+{
+
+
+    /**
+     * Summary of process
+     * @param mixed $customer
+     * @param mixed $amount
+     * @return bool
+     */
+    public function process($customer, $amount)
+    {
+        // Process Transaction 
+
+        // if failed, return false 
+
+        // otherwise return true
+
+        return true;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+o type de '$customer' e '$amount'
+
+
+
+ficou como 'mixed',
+
+pq eu nao havia específicado type algum para essas properties...
+
+
+
+mas ele faz infer, provavelmente...
+
+
+
+
+
+
+
+
+
+
+
+TIPO ALGO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+namespace App10;
+
+class Transaction
+{
+
+
+
+    /**
+     * Summary of process
+     * @param Customer $customer
+     * @param string $amount
+     * @return bool
+     */
+    public function process(Customer $customer, string $amount)
+    {
+        // Process Transaction 
+
+        // if failed, return false 
+
+        // otherwise return true
+
+        return true;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS COLOCAR O TYPE DE 'float' para amount, tamb´me...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+namespace App10;
+
+class Transaction
+{
+
+
+
+
+    /**
+     * Summary of process
+     * @param Customer $customer
+     * @param float $amount
+     * @return bool
+     */
+    public function process(Customer $customer, float $amount)
+    {
+        // Process Transaction 
+
+        // if failed, return false 
+
+        // otherwise return true
+
+        return true;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... 
+
+
+VC TAMBÉM PODE PROVIDENCIAR UMA DESCRIPTION,
+
+LÁ NA PARTE DE 'Summary of process'...
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+namespace App10;
+
+class Transaction
+{
+
+
+
+
+    /**
+     * Some Description
+     * 
+     * @param Customer $customer
+     * @param float $amount
+     * @return bool
+     */
+    public function process(Customer $customer, float $amount)
+    {
+        // Process Transaction 
+
+        // if failed, return false 
+
+        // otherwise return true
+
+        return true;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALGUNS DEVELOPERS GOSTAM DE DOCUMENTAR TUDO...
+
+
+
+
+
+
+
+MAS O PROFESSOR NÃO GOSTA,
+
+PQ PODEMOS SIMPLESMENTE TYPEHINT ESSA INFO AÍ...
+
+
+
+
+
+
+
+
+se especificarmos os types dos argumentos + o return type,
+no method em si,
+
+
+o docblock em si acaba ficando meio redundante...
+
+
+
+
+
+
+
+
+
+--> OS DOC BLOCKS SÃO ÚTEIS, PORTANTO,
+    APENAS SE VC QUER PROVIDENCIAR ALGUMA INFO ADICIONAL 
+    
+    SOBRE OS ARGUMENTS/RETURN TYPE OU O _ METHOD ITSELF...
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+<?php
+
+
+namespace App10;
+
+class Transaction
+{
+
+
+
+
+    /**
+     * Some Description
+     * 
+     * @param Customer $customer
+     * @param float $amount
+     * @return bool
+     */
+    public function process(Customer $customer, float $amount): bool
+    {
+        // Process Transaction 
+
+        // if failed, return false 
+
+        // otherwise return true
+
+        return true;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALÉM DISSO,
+
+
+SE VC ESTÁ ESPERANDO QUE  
+
+
+1 ARGUMENT POSSA SER DE MULTIPLOS TYPES,
+
+
+OU SE O RETURN TYPE 
+
+PODE SER DE MÚLTIPLOS TYPES,
+
+
+
+VC PODE ESPECIFICAR ISSO NO DOCBLOCK....
+
+
+
+
+
+
+
+
+
+
+--> ANTERIORMENTE AO PHP8, NAÕ EXISTIA '|' 
+    na definição dos methods, 
+
+
+
+
+    POR ISSO ÉRAMOS FORÇADOS A DEFINIR ISSO NO DOCBLOCK...
+
+
+
+
+
+-> COMO UNION TYPES SÃO SUPORTADOS NO PHP8,
+    VC PODE SIMPLESMENTE OS UTILIZAR NOS ARGUMENT E RETURN TYPES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+A PRÓXIMA TAG QUE VEREMOS É A TAG DE '@THROWS'...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+@throws 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+THROWS -> SIMPLESMENTE ESPECIFICA QUAIS EXCEPTIONS 
+          SÃO EXPECTED/PODEM SER THROWN, POR ESSA FUNCTION...
+
+
+
+
+
+
+-> NÓS AINDA NÃO COBRIMOS EXCEPTIONS,
+    MAS BASICAMENTE 
+
+    VC TEM A CAPACIDADE DE ESPECIFICAR QUAIS EXCEPTIONS VÃO SER 'THROWN' POR ESSE METHOD...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS ESCREVER ASSIM, ESSENCIALMENTE:
+
+
+
+
+
+
+
+<?php
+
+
+namespace App10;
+
+class Transaction
+{
+
+
+    /**
+     * Some Description
+     * 
+     * @param Customer $customer
+     * @param float|int $amount
+     * 
+     * @throws \Exception
+     * @throws \Exception2
+     * 
+     * @return bool
+     */
+    public function process(Customer $customer, float $amount): bool
+    {
+        // Process Transaction 
+
+        // if failed, return false 
+
+        // otherwise return true
+
+        return true;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A PRÓXIMA TAG QUE VEREMOS É A TAG DE 
+
+
+'@var'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@VAR:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@var --> ''IT IS USED TO DOCUMENT THE _ TYPE __ OF THE PROPERTY'S VARIABLES 
+            AND CONSTANTS...''
+
+
+
+
+
+
+
+
+
+
+--> PARA MOSTRAR COMO '@var' funciona,
+    digamos que 
+
+    queremos ter '$customer' e '$amount'
+
+
+    como PROPERTIES,
+
+
+    EM VEZ DE ARGUMENTS PASSADOS 
+
+
+    AO METHOD...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+
+namespace App10;
+
+class Transaction
+{
+
+
+    private $customer;
+    private $amount;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+BEM... ANTERIORMENTE AO PHP 7.4, 
+ 
+ NÃO ERA POSSÍVEL FAZER TYPE HINTING DE ESSAS PROPERTIES...
+
+
+
+
+
+ O QUE QUER DIZER QUE ÉRAMOS FORÇADOS A USAR DOC BLOCKS PARA 
+
+ ESPECIFICAR O TYPE DESSAS PROPERTIES,
+
+ TIPO ASSIM:
+
+
+
+
+
+<?php
+
+
+namespace App10;
+
+class Transaction
+{
+    /**
+     * Summary of customer2
+     * @var Customer
+     */
+    private $customer2;
+
+    
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+essa tag de '@var'
+
+
+É ESPECIALMENTE ÚTIL 
+
+
+QUANDO VC ESTÁ TRABALHANDO COM LOOPS...
+
+
+
+
+
+
+''IF YOU ARE LOOPING THROUGH A COLLECTION,
+    WHERE EACH ELEMENT IS AN OBJECT OF SOME CLASS,
+    YOU CAN TYPEHINT THAT, USING @var tags...''
+
+    (COM ISSO, IDEs como o PHPSTORM, 
+    vão auto-complete properties e methods que 
+    existam naquele object...) 
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+public function foo(array $arr)
+{
+    foreach($arr as $obj) {
+        $obj->myMethod();
+    }
+}
+
+
+
+
+
+
+
+
+IDEs não vao saber como fazer autocomplete de 'myMethod()'
+
+
+em cima do '$obj',
+
+
+
+PQ 
+
+
+
+VC PRECISA 
+
+ESPECIFICAR 
+
+
+''QUAL É ESSE TIPO DE OBJECT''...
+
+
+
+
+
+
+--> É POSSÍVEL ESPECIFICAR ISSO COM A TAG DE '@var',
+
+tipo assim:
+
+
+
+
+
+
+    // * Usage of '@var' tag:
+    public function foo(array $arr): void
+    {
+        /** @var Customer $obj */
+        foreach ($arr as $obj) {
+            $obj->getName();
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VC PODERIA ESPECIFICAR ISSO COM UM DOCBLOCK EXTERNO, TAMBÉM,
+
+    TIPO ASSIM:
+
+
+
+/**
+* @param Customer[] $arr 
+*/
+public function foo(array $arr): void
+    {
+        /** @var Customer $obj */
+        foreach ($arr as $obj) {
+            $obj->getName();
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+--> AS 2 ÚLTIMAS TAGS QUE O PROFESSOR QUER NOS MOSTRAR SÃO 
+
+
+AS 
+
+
+
+'@property'
+ 
+ e 
+
+
+
+ '@method'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@property --> ''ALLOWS A CLASS TO KNOW WHICH MAGIC PROPERTIES ARE AVAILABLE'' 
+
+
+
+@method --> ''ALLOWS A CLASS TO KNOW WHICH MAGIC METHODS ARE AVAILABLE''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ESSAS TAGS,
+
+
+PODEMOS ESPECIFICAR QUAIS MAGIC METHODS E PROPERTIES 
+
+
+FICAM DISPONÍVEIS, NA NOSSA CLASS...
+
+
+
+
+
+
+
+
+
+PODEMOS ESPECIFICAR AS PROPERTIES DE 'int $x' e 'float $y',
+
+no 
+DOCBLOCK....
+
+
+
+
+
+
+aí, com os magic getters e setters,
+
+
+
+OS IDEs vão poder 'autocomplete'
+
+essa info,
+
+com os magic methods....
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+namespace App10;
+
+
+
+/**
+ * @property int $x;
+ * @property float $y;
+ */
+class Transaction
+{
+
+
+    public function __get(string $name)
+    {
+
+    }
+
+    public function __set(string $name, $value): void
+    {
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE VC QUER QUE ESSA PROPERTY 
+
+SEJA 'read-only',
+
+
+
+
+pode escrever 
+
+
+'@property-read' 
+
+
+
+
+
+e 
+
+'@property-write' para 'write-only'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PARA '@method',
+
+temos algo assim:
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * @method int foo(string $x)
+ * 
+ */
+class Transaction
+{
+
+
+    public function __call(string $name, array $arguments)
+    {
+
+    }
+
+    public function __set(string $name, array $arguments): void
+    {
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> NENHUMA DESSAS TAGS 
+
+ADICIONA QUALQUER TIPO DE VALIDATION...
+
+
+
+
+
+TALVEZ ALGUM IDE-LEVEL VALIDATION,
+
+MAS NÃO 
+
+AFETA SUA CODE EXECUTION...
+
+
+
+
+
+
+
+
+--> PODE TER EFEITO SOBRE A MANEIRA PELA QUAL SEU 
+    CÓDIGO SE COMPORTA..
+
+
+
+
+
+
+
+
+
+--> PHP8 INTRODUZIU ALGO CHAMADO DE 'ATTRIBUTES',
+
+    QUE POSSUEM EFEITOS PARECIDOS...
+
+
+
+
+
+
+-> VEREMOS ATTRIBUTES MAIS TARDE...
+
+
+
+
+
+
+
+
+-> O PROFESSOR COSTUMAVA COMENTAR TUDO...
+
+
+
+
+
+
+
+--> MAS COMO AGORA O PHP8 
+    TEM TYPE HINTING MELHOR,
+    O PROFESSOR 
+
+    TEM ADICIONADO MENOS E MENOS DOC BLOCKS AO CÓDIGO...
+
+
+
+    O PROFESSOR SÓ ADICIONA SE 
+
+    É ABSOLUTAMENTE ESSENCIAL...
+
+
+
+
+    --> O PROFESSOR ACHA QUE É EXTRA NOISE,
+        NADA DE VALIOSO...
+
+
+    --> PODE ADICIONAR 1 POUCO DE COLORIZAÇÃO,
+        MAS NÃO É RAZÃO SUFICIENTE PARA USAR ISSO..
+
+
+
+
+    --> OUTRA RAZÃO  PARA NÃO USAR 
+        DOCBLOCKS É PARA 
+
+        ESCREVER CÓDIGO MELHOR, MAIS SIMPLES...
+
+
+    
+
+    --> AÍ VC É FORÇADO A REFORMATAR O CÓDIGO, DEIXÁ-LO MELHOR...
