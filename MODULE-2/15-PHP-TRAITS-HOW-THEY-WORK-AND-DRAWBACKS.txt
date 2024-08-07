@@ -2991,8 +2991,6 @@ PARA ISSO, ESCREVEMOS ASSIM:
 
 class CappuccinoMaker extends CoffeeMaker
 {
-    use CappuccinoTrait;
-
 
     use CappuccinoTrait {
         CappuccinoTrait::makeCappuccino as public; //EIS O CÓDIGO EM QUESTÃO.
@@ -3668,4 +3666,1705 @@ return '';
 
 
 
---> MAS O PROFESSOR NÃO GOSTA DESSA FEATURE...
+--> MAS O PROFESSOR NÃO GOSTA DESSA FEATURE... 
+
+
+
+
+
+
+
+
+
+
+--> COMO É IMPLEMENTADA, ESSA FEATURE?
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, BASTA PEGAR O CÓDIGO DO 'LatteTrait,
+
+QUE ESTÁ ASSIM, atualmente:
+
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+trait LatteTrait
+{
+
+    protected string $milkType = "whole-milk";
+
+    public function makeLatte()
+    {
+        echo static::class . ' is making latte with' . $this->milkType . PHP_EOL;
+    }
+
+
+    public function getMilkType(): string 
+    {
+        if (property_exists($this, 'milkType')) {
+            return $this->milkType;
+        }
+
+        return '';
+    }
+}
+
+
+
+
+
+
+EM VEZ DE PROVIDENCIAR A DEFINIÇÃO CONCRETA, AQUI,
+
+PODEMOS SIMPLESMENTE 
+
+
+DEIXAR ESSE METHOD COMO 'abstract'...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+trait LatteTrait
+{
+
+    protected string $milkType = "whole-milk";
+
+    public function makeLatte()
+    {
+        echo static::class . ' is making latte with' . $this->milkType . PHP_EOL;
+    }
+
+
+   abstract public function getMilkType(): string 
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, ASSEGURAMOS DE QUE QUALQUER 
+
+CLASS QUE USA ESSE TRAIT DEVERÁ PROVIDENCIAR A CONCRETE IMPLEMENTATION 
+DESSE METHOD...
+
+
+
+
+
+
+
+
+
+
+
+-> OK... MAS AQUI VC DEVE SE LEMBRAR 
+
+    DAQUELA AULA ANTERIOR,
+
+
+    EM QUE ESTUDAMOS 
+
+
+    QUE 
+
+
+    ''''IF YOU HAVE EVEN A SINGLE ABSTRACT METHOD INSIDE OF A CLASS,
+        THE WHOLE CLASS MUST BE DECLARED AS ABSTRACT...'''''
+
+
+
+
+
+
+
+--> BEM, ISSO É CORRETO, É REALMENTE VERDADE,
+    ___ EXCETO__ QUANDO ESTAMOS LIDANDO COM TRAITS....
+
+
+
+
+
+
+--> QUANDO ESTAMOS LIDANDO COM TRAITS,
+    VC NÃO PRECISA MARCAR A CLASS QUE ESTÁ USANDO ESSE TRAIT
+    COMO 'ABSTRACT'... 
+
+
+
+
+
+
+
+--> ISSO QUER DIZER QUE, EM 'LatteMaker',
+    PODEMOS USAR ESSE TRAIT ASSIM:
+
+
+
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+
+class LatteMaker extends CoffeeMaker
+{
+
+    use LatteTrait;
+
+    // * OUTSOURCED TO THE 'LatteTrait' trait
+    // public function makeLatte()
+    // {
+    //     echo static::class . ' is making latte' . PHP_EOL;
+    // }
+}
+
+
+
+
+
+
+
+
+--------> E, AO USARMOS ESSE TRAIT,
+            O DEFINE DE getMilkType(),
+            nessa class,
+
+
+            SE TORNA OBRIGATÓRIO... MAS ELA, EM SI, A CLASS,
+            NÃO PRECISA SER DEFINIDA COMO ABSTRACT... o que é 
+            certamente uma grande diferença em relação ao uso comum/normal 
+            de abstract methods...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+class LatteMaker extends CoffeeMaker
+{
+
+    use LatteTrait;
+
+    public function getMilkType(): string /// this gets enforced by the abstract method, in the trait...
+    {
+        return $this->milkType;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS O PROFESSOR NÃO É UM GRANDE FÃ 
+DE ABSTRACT METHODS DENTRO DE TRAITS...
+
+
+
+
+
+
+
+--> PARA O PROFESSOR, 
+    O MELHOR APPROACH É ESTE:
+
+
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+trait LatteTrait
+{
+
+    private string $milkType = "whole-milk";
+
+    public function makeLatte()
+    {
+        echo static::class . ' is making latte with' . $this->milkType . PHP_EOL;
+    }
+
+    
+    public function setMilkType(string $milkType): static 
+    {
+        $this->milkType = $milkType;
+        
+        return $this; 
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+O MELHOR SERIA DEIXAR A PROPERTY COM 1 DEFAULT VALUE, NO TRAIT,
+
+
+
+
+E AÍ, DENTRO DO TRAIT,
+
+
+
+
+SE QUISÉSSEMOS MUDAR ESSE VALUE,
+
+
+
+USARÍAMOS UM SETTER,
+
+COMO 'setMilkType'...
+
+
+
+
+
+
+
+
+
+
+
+--> COMO 'setMilkType' vai estar disponível na class que usa o 
+    trait, podemos 
+
+    usar esse setter para mudar o value de 'milkType',
+    lá no trait em si...
+
+
+
+
+
+
+    -> o professor acha essa uma maneira MT MAIS CLEAN
+        DO QUE TER 1 ABSTRACT METHOD (pq o abstract method implica a 
+        DUPLICAÇÃO DE CÓDIGO AO LONGO DE VÁRIAS CLASSES...)
+
+
+
+
+
+
+
+
+
+
+-> OK.. MAS 1 COISA QUE VC DEVE TER EM MENTE,
+    SOBRE OS ABSTRACT METHODS DENTRO DE TRAITS,
+
+
+    É QUE ANTES DO PHP8, VC SÓ ERA CAPAZ DE 
+
+    DEFINIR PROTECTED/PUBLIC ABSTRACT METHODS 
+
+
+    DENTRO DOS TRAITS... --> MAS, DEPOIS DO PHP8,
+                             VC PODE TAMBÉM 
+
+                             DEFINIR 'PRIVATE ABSTRACT METHODS'...
+
+                             O QUE NÃO É POSSÍVEL COM ABSTRACT CLASSES, quando 
+                             VC ESTÁ DEFININDO ABSTRACT METHODS...
+
+
+
+
+
+
+
+
+-- CERTO...
+
+
+
+
+
+
+
+
+
+--> AGORA DEVEMOS VER 'STATICS'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ALÉM DE PODER TER REGULAR PROPERTIES E METHODS,
+    VC PODE TAMBÉM 
+
+    TER STATIC PROPERTIES E STATIC METHODS, DENTRO DOS SEUS TRAITS...
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+trait LatteTrait
+{
+
+    protected string $milkType = "whole-milk";
+
+    public function makeLatte()
+    {
+        echo static::class . ' is making latte with' . $this->milkType . PHP_EOL;
+    }
+
+
+    public static function foo(): void // example of static method in trait.
+    {
+        echo 'Foo';
+    }
+}
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+AÍ, DENTRO DO INDEX.PHP,
+
+podemos rodar assim:
+
+
+
+
+
+
+
+
+\App\LatteMaker::foo();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... E ISSO REALMENTE FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO TAMBÉM FUNCIONA COM PROPERTIES...
+
+
+
+
+
+
+
+
+PODEMOS DEFINIR ASSIM:
+
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+trait LatteTrait
+{
+
+    protected string $milkType = "whole-milk";
+
+    public static $x = 1;
+
+    public function makeLatte()
+    {
+        echo static::class . ' is making latte with' . $this->milkType . PHP_EOL;
+    }
+
+
+    public static function foo(): void // example of static method in trait.
+    {
+        echo 'Foo';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ ACESSAMOS ASSIM:
+
+
+
+
+
+
+
+echo \App\LatteMaker::$x;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS 1 COISA QUE VC DEVE TER EM MENTE:
+
+
+
+
+
+
+
+
+'''WHEN A TRAIT HAS A STATIC PROPERTY, EACH CLASS THAT 
+    USES THAT TRAIT WILL HAVE _THE___INDEPENDENT_ INSTANCE 
+    OF THAT PROPERTY...''
+
+
+AO CONTRÁRIO DE STATICS COM __ INHERITANCE,
+EM QUE __ A STATIC PROPERTY É 'SHARED' 
+
+AO LONGO DAS DIFERENTES CLASSES QUE FAZEM INHERITANCE...
+
+
+
+
+
+
+
+
+
+
+
+
+--> basta testar isso, o comportamento regular de static properties (em classes com inheritance)
+    com este código ('CoffeeMaker' é inheritado por tanto 'LatteMaker' como 'CappuccinoMaker'):
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+
+class CoffeeMaker
+{
+
+    public static $foo;
+
+
+    public function makeCoffee()
+    {
+        echo static::class . ' is making coffee' . PHP_EOL;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\App\CoffeeMaker::$foo = 'foo';
+\App\LatteMaker::$foo = 'bar';
+
+
+
+
+
+echo \App\CoffeeMaker::$foo . ' ' . '\App\LatteMaker::$foo' . PHP_EOL;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AO PRINTARMOS ISSO, FICAMOS
+
+
+COM 'bar bar' ,
+
+
+
+
+
+
+
+
+MOSTRANDO QUE 
+
+
+A STATIC PROPERTY É __ SHARED__ _ENTRE 
+
+
+AS DIFERENTES CLASSES QUE FIZERAM INHERIT DA CLASS DE 'CoffeeMaker' e da 
+static property de '$foo', nesse CoffeeMaker...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... MAS QUANDO ESTAMOS USANDO 
+    TRAITS,
+
+
+    ESSA STATIC PROPERTY _ _NÃO SERÁ COMPARTILHADA,
+    SERÁ TOTALMENTE INDEPENDENTE 
+
+
+    ENTRE AS CLASSES QUE USAM ESSE TRAIT...
+
+
+
+
+
+
+
+
+----------------------------------------------------
+
+
+
+
+
+
+
+OUTRA COISA QUE VC DEVE TER EM MENTE:
+
+
+
+
+
+
+''THE MAGIC '__CLASS__' CONSTANT, WHEN USED IN A TRAIT,
+  WILL RESOLVE  __ TO THE __ CLASS WHERE THE TRAIT IS USED'...
+
+
+
+
+
+
+
+
+
+
+
+ex:
+
+
+
+no trait de 'LatteTrait',
+
+
+ESTAMOS USANDO A 
+
+
+CLASS 
+
+
+de 
+
+
+''static:class''..
+
+
+
+
+
+NESTE CÓDIGO AQUI:
+
+
+
+    public function makeLatte()
+    {
+        echo static::class . ' is making latte with' . $this->milkType . PHP_EOL;
+    }
+
+
+
+
+
+
+
+MAS SE SUBSTITUÍRMOS 'static::class' por '__CLASS__',
+
+tipo assim:
+
+
+
+
+
+    public function makeLatte()
+    {
+        echo __CLASS__ . ' is making latte with' . $this->milkType . PHP_EOL;
+    }
+
+
+
+
+
+
+
+
+
+
+
+E SE TESTARMOS COM O CÓDIGO TODO,
+
+
+
+
+
+VEREMOS QUE '__CLASS__'
+
+
+
+será sempre 
+
+
+
+'''THE CLASSNAME __ WHERE_ _THAT TRAIT__ IS BEING USED...''
+
+
+-------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+OK.... AGORA QUE FALAMOS SOBRE O QUE SÃO TRAITS 
+
+E COMO OS UTILIZAR,
+
+
+
+SUAS FEATURES,
+
+ETC...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA O PROFESSOR COMPARTILHA A OPINIÃO PESSOAL DELE, SOBRE TRAITS:
+
+
+
+
+
+
+-- TRAITS ARE GREAT WHEN USED PROPERLY...
+
+
+
+
+
+
+
+
+-- TRAITS ARE GREAT WHEN NOT OVERUSED..
+
+
+
+
+
+
+
+
+-- ONE ISSUE WITH THE TRAITS IS BEING ABLE TO PROVIDE 
+    ABSTRACT METHODS, WITH THE TRAITS...
+
+
+
+
+
+
+
+-- TRAITS _ SHOULD NOT BE USED FOR ANYTHING OTHER THAN 
+    CODE REUSE...
+
+
+
+
+
+
+
+-- WHEN YOU ARE DEFINING A METHOD AS 'ABSTRACT' IN A TRAIT,
+    YOU ARE KINDOF TRYING TO ENFORCE A __cONTRACT_..
+
+
+
+
+
+-- AND ENFORCING CONTRACTS WITH TRAITS IS A PRETTY BAD IDEA..
+
+
+
+
+
+
+
+-- IF YOU WANT TO ENFORCE CONTRACTS,
+    YOU SHOULD USE EITHER ABSTRACT CLASSES + ABSTRACT METHODS,
+
+    OR INTERFACES (which are even better)...
+
+
+
+
+
+
+    TRAIT != Contract 
+
+
+    Interface = Contract 
+
+
+
+
+
+
+
+-- THAT'S WHAT INTERFACES ARE FOR, FOR CONTRACTS...
+
+
+
+
+
+
+
+
+
+-- INTERFACES ARE CONTRACTS....
+
+
+
+
+
+
+
+
+
+
+-- O PROFESSOR MOSTRA 1 EXEMPLO 
+    EM QUE 
+
+    VC PODE TENTAR ENFORCE RULES COM TRAITS,
+
+
+
+    UM USE-CASE EM QUE 
+
+
+
+    AS REGRAS NORMAIS DE INHERITANCE NÃO SÃO SUFICIENTES A NÓS...
+
+
+
+
+
+
+
+
+
+-- POR EXEMPLO, A KEYWORD DE 'final'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> POR EXEMPLO, QUANDO ESTAMOS USANDO INHERITANCE,
+    NA BASE CLASS,
+
+    PODEMOS DEFINIR 1 METHOD COMO 'final',
+    tipo assim:
+
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+
+class CoffeeMaker
+{
+
+    public static $foo;
+
+
+    final public function makeCoffee()
+    {
+        echo static::class . ' is making coffee' . PHP_EOL;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AO FAZER ISSO, VC GARANTE QUE 
+    ESSE METHOD NÃO PODE SER 
+
+    OVERWRITTEN 
+
+    NAS SUAS CHILD CLASSES...
+
+
+
+
+
+
+
+    SE TENTAMOS FAZER OVERRIDE DE 'makeCoffee' NA CHILD CLASS 'LatteMaker',
+
+    FICAMOS COM 1 ERROR... ESSE É O COMPORTAMENTO 
+
+    ESPERADO...
+
+
+
+
+
+
+
+
+----> E ESSA É UMA RESTRIÇÃO __ BOA__.... É UMA BOA DECLARAÇÃO...
+
+
+
+
+
+
+
+
+--> MAS ESSA MESMA RESTRIÇÃO __ NÃO SE APLICA,
+
+    QUANDO 1 METHOD É DECLARADO COMO 'final'
+
+    dentro de 1 trait...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+trait LatteTrait
+{
+
+    protected string $milkType = "whole-milk";
+
+    final public function makeLatte() // DEIXAMOS ESSE METHOD COMO 'FINAL'...
+    {
+        echo static::class . ' is making latte with' . $this->milkType . PHP_EOL;
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA, COM ISSO,
+
+
+
+PODEMOS ACTUALLY 
+
+
+
+RE-DEFINIR O METHOD DE 'makeLatte'
+
+lá em 'LatteMaker',
+
+
+
+__MESMO COM ESSA RESTRIÇÃO NO TRAIT DE 'LatteTrait':
+
+
+
+
+
+<?php
+
+
+namespace App6;
+
+
+
+class LatteMaker extends CoffeeMaker
+{
+
+    use LatteTrait;
+
+
+     public function makeLatte()  ///THIS OVERWRITE WILL WORK (and it shouldn't) 
+     {
+         echo 'MAKING WRONG LATTE' . PHP_EOL;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO É MT RUIM...
+
+
+
+É RUIM PQ BASICAMENTE IGNORA a keyword de 'final',
+lá na definição do method, no trait...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- OUTRA COISA QUE O PROFESSOR N GOSTA 
+    É 
+
+
+
+    '''YOU SHOULD NOT BE ABLE TO CHANGE 
+        A METHOD'S VISIBILITY'''
+
+
+        (pq isso deixa MAINTENANCE e TESTING bem mais complicados )...
+
+
+
+
+
+    --> NÃO FAZ SENTIDO DEFINIR 1 METHOD COMO protected/private,
+        só para então trocar a visibility como 'public'
+
+
+        mais tarde...
+
+
+
+
+    --> E ISSO É POSSÍVEL COM TRAITS, COMO VIMOS COM ESTE CÓDIGO, com o alias de 'as public':
+
+
+
+
+
+
+
+
+class CappuccinoMaker extends CoffeeMaker
+{
+
+    use CappuccinoTrait {
+        CappuccinoTrait::makeCappuccino as public; //EIS O CÓDIGO EM QUESTÃO.
+    }
+}
+
+
+
+
+
+
+
+--> COM ISSO, CONSEGUIMOS TROCAR A VISIBILITY DE ESSE METHOD, O QUE É MT RUIM...
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR TBM N GOSTA DE OUTRAS COISAS...
+
+
+
+
+
+
+
+
+
+
+
+
+-> AINDA ASSIM, TRAITS SÃO MT FORTES..
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR ACHA QUE VC DEVE USAR TRAITS PARA __ REDUZIR __ cODE DUPLICATION....
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS ELE QUER NOS MOSTRAR 1 EXEMPLO MAIS ÚTIL DO QUE COFFEEMAKERS..
+
+
+
+
+
+
+
+
+
+--> NO EXEMPLO DOS COFFEMAKERS, ESTÁVAMOS USANDO 'SINGLE INHERITANCE'....
+
+
+
+
+
+
+
+
+
+
+--> TODAS AS CLASSES DAQUELE EXEMPLO ANTERIOR 
+    POSSUÍAM CERTA RELATION ENTRE SI... PQ ERAM TODAS 
+    ELAS COFFEEMAKERS...
+
+
+
+
+
+
+
+
+
+--> MAS TRAITS SÃO BONS TAMBÉM PQ 
+    PERMITEM QUE  'NON-RELATED' (INDEPENDENTES)
+    classes 
+
+    FAÇAM __ SHARE__ DE FUNCTIONALITY...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PARA NOSSO EXEMPLO, DIGAMOS QUE 
+
+VC TEM 
+
+
+CLASSES:
+
+
+
+
+1) CUSTOMER 
+
+
+
+
+2) INVOICE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SEUS CÓDIGOS:
+
+
+
+
+
+
+
+
+
+<?php 
+
+
+
+
+namespace App6;
+
+
+
+class Customer
+{
+    public function updateProfile() 
+    {
+        echo 'Profile updated' . PHP_EOL;
+
+
+        //send email
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+E ESTE:
+
+
+
+
+
+<?php
+ 
+namespace App6;
+
+
+
+class Invoice
+{
+    public function process()
+    {
+        echo 'Processed invoice' . PHP_EOL;
+
+
+        //send email
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... COMO VC PODE VER, AMBOS 
+
+POSSUEM 
+
+
+1 CAMPO COM 'send email'..
+
+
+
+
+
+
+
+
+--> AMBAS AS CLASSES NÃO SÃO EXATAMENTE RELATED,,
+
+    MAS AMBAS AS CLASSES TÊM METHODS QUE PRECISAM 
+
+    ENVIAR 1 EMAIL...
+
+
+
+
+
+
+
+
+
+
+
+--> E ENVIAR EMAILS PODE SER O MESMO PARA AMBOS METHODS...
+
+
+
+
+
+
+--> É POR ISSO QUE USAR 1 TRAIT PARA IMPLEMENTAR 
+    ESSE METHOD NAS 2 CLASSES É ALGO MT BOM...
+
+
+
+
+
+
+
+
+
+
+
+--> TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+namespace App6;
+
+
+
+trait EmailTrait
+{
+    public function sendEmail() 
+    {
+        echo 'Email Sent' . PHP_EOL;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+aí, com isso, usaríamos esse trait lá nas classes, tipo assim:
+
+
+
+
+
+
+
+
+
+
+<?php 
+
+
+
+
+namespace App6;
+
+
+
+class Customer
+{
+
+    use EmailTrait;
+
+    public function updateProfile() 
+    {
+        echo 'Profile updated' . PHP_EOL;
+
+
+        $this->sendEmail();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+ 
+namespace App6;
+
+
+
+class Invoice
+{
+
+    use EmailTrait;
+
+
+    public function process()
+    {
+        echo 'Processed invoice' . PHP_EOL;
+
+
+               $this->sendEmail();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE NÃO TIVÉSSEMOS ESSE RECURSO DE 'traits',
+
+seríamos forçados a usar inheritance,
+
+
+
+
+e não seria bom...
+
+
+
+
+
+
+
+algo como 
+
+
+
+'class Invoice extends Mail '
+{  
+
+}
+
+
+
+
+
+
+
+
+
+
+ISSO NÃO SERIA BOM,
+
+
+
+PQ 
+
+
+
+
+'''INVOICE __ IS NOT __ A MAIL''''
+
+
+
+(uso errado de inheritance)
