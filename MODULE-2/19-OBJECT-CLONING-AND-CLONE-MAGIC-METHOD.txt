@@ -1,0 +1,514 @@
+
+
+
+
+
+
+
+HÁ ALGUMAS MANEIRAS DE CRIAR NOVOS OBJECTS, A PARTIR DE CLASSES,
+
+NO PHP....
+
+
+
+
+
+
+
+
+
+1a Maneira)  --> POR MEIO DO USO DA KEYWORD 
+
+                'new ClassName()'..
+
+
+
+
+
+    
+
+
+
+
+2a Maneira) --> por meio do uso da keyword 
+                    'new' com a keyword de 'static' ou 'self()',
+
+                    tipo assim:
+
+
+                
+
+
+                'return new static();'
+
+
+
+
+
+
+
+-> VC TAMBÉM PODE CRIAR OBJECTS A PARTIR DE OUTROS OBJECTS,
+
+
+
+
+
+
+
+COM A TERCEIRA MANEIRA:
+
+
+
+
+
+
+3a Maneira) --> por meio de EXPANSION, com algo tipo assim:
+
+
+
+        $invoice = new \App\Invoice();
+
+        $invoice2 = new $invoice();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NA CLASS DE 'Invoice', temos algo assim:
+
+
+
+
+
+
+
+<?php
+
+
+namespace App11;
+
+
+
+class Invoice
+{
+    private string $id;
+
+
+
+    public function __construct()
+    {
+        $this->id = uniqid('invoice_');
+
+    }
+
+    public static function create(): static
+    {
+        return new static();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+-> voce nao settaria ids com 'uniqid',
+
+
+mas isto serve como 1 exemplo...
+
+
+
+
+
+
+
+
+-> em index.php, temos este código:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+require_once '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+
+$invoice = new \App11\Invoice();
+
+
+$invoice2 = new $invoice();
+
+
+var_dump($invoice, $invoice2, \App11\Invoice::create());
+
+
+
+
+
+
+
+
+
+
+
+FICAMOS COM 3 DIFERENTES 
+
+OBJECTS...
+
+
+
+
+
+
+
+
+
+
+
+SÃO 3 OBJECTS DIFERENTES, 
+
+
+COM ids diferentes no interior.....
+
+
+
+
+
+
+
+
+
+
+
+-> É CLARO QUE O CREATE DE OBJECTS É BOM,
+
+
+
+    mas __ COMO PODEMOS CRIAR CÓPIAS DE OBJECTS...?
+
+
+
+
+
+
+
+--> PARA SERMOS MAIS PRECISOS,
+
+    COMO PODEMOS 'CLONE' UM OBJECT, NO PHP?
+
+
+
+
+
+
+---> VC PODERIA PENSAR QUE O ASSIGN DE 1 OBJECT A OUTRO OBJECT  
+    CRIARIA 1 CÓPIA DE OUTRO OBJECT....
+
+
+    TIPO ASSIM:
+
+
+
+    $invoice2 = $invoice;
+
+
+
+
+
+
+
+--> MAS ISSO NÃO FUNCIONA, VAI APENAS CRIAR 1 POINTER AO MESMO OBJECT,
+    NA MEMORY...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE ALTERAMOS 1 DESSAS VARIABLES, O MESMO OBJECT ACABA ALTERADO... PQ 
+    APONTAM PARA O MESMO OBJECT...
+
+
+
+
+
+
+--> PARA ACTUALLY CRIAR 1 CLONE 
+    DE 1 OBJECT,
+
+    PRECISAMOS DA KEYWORD DE 'clone'...
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+$invoice2 = clone $invoice; // * This will actually clone the object.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO VAI ACTUALLY CLONAR O OBJECT,
+
+    ELE NÃO SERÁ O MESMO EXATO OBJECT QUE 
+
+
+    FOI CLONADO,
+
+
+    MAS TERÁ O MESMO VALUE DAS PROPERTIES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AS 2 VARIABLES VÃO APONTAR PARA 
+
+
+OBJECTS DIFERENTES NA MEMORY...
+
+
+
+
+
+
+
+
+
+--> O OBJECT CLONADO SERÁ UMA 'SHALLOW COPY'...
+
+
+
+
+
+
+
+
+
+
+
+--> TALVEZ VC N QUEIRA UMA CÓPIA EXATA...
+
+
+
+
+
+
+--> TALVEZ VC N QUEIRA COPIAR EXATAMENTE A MESMA COISA,
+
+    TALVEZ VC QUEIRA UM VALUE DE 'id'
+
+    diferente, por exemplo..
+
+
+
+
+
+--> PARA ISSO, O PHP TEM UM MAGIC METHOD DE '__clone',
+
+
+    QUE É CHAMADO SEMPRE QUE 1 OBJECT É CLONADO... VC PODE 
+    HOOKAR 
+    NESSE MAGIC METHOD 
+
+    E REALIZAR QUALQUER CLEANUP 
+
+
+    OU QUALQUER COISA, DEPOIS DE ESSE OBJECT SER CLONADO...
+
+
+
+
+
+
+
+PODEMOS FAZER TIPO ASSIM, PORTANTO:
+
+
+
+
+
+
+
+
+
+
+
+
+
+namespace App11;
+
+
+
+class Invoice
+{
+    private string $id;
+
+
+
+    public function __construct()
+    {
+        $this->id = uniqid('invoice_');
+
+    }
+
+    public static function create(): static
+    {
+        return new static();
+    }
+
+
+    // This method is called whenever the object is cloned
+    public function __clone(): void
+    {
+        // Generate new unique id, whenever the object is cloned.
+        $this->id = uniqid('invoice_');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok... agora sempre que clonarmos o object original,
+
+ficaremos com 1 object clone com 1 value 'id' diferente...
+
+
+
+
+
+
+
+
+
+
+
+
+-> QUANDO VC CLONA 1 OBJECT,
+
+O CONSTRUCTOR NÃO É CHAMADO....O QUE É CHAMADO,
+
+NO CASO,
+
+É APENAS AQUELE MAGIC METHOD DE '__clone()'...
+
+
+
+
+
+
+
+
+
+
+
+--> com '__clone()',
+    VC 
+
+    PODE REASSIGN SOME PROPERTIES,
+
+    OU ENTÃO REMOVE VALUES FROM SOME OF THE PROPERTIES,
+
+    OR MAYBE 
+
+    ASSIGN SOME NEW VALUES, ETC...
+
+
+
+
+
+
+
+
+
+--> O QUE VC DEVE SABER, TAMBÉM, É QUE O 
+
+
+'__clone()' 
+
+
+
+'''GETS CALLED ON THE __ INSTANCE__ ON THE 
+    CLONED OBJECT, __AFTER__ THE OBJECT HAS BEEN CLONED...''
+
+
+
+
+
+
+    
