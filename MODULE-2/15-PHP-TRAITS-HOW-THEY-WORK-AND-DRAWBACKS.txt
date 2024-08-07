@@ -5368,3 +5368,49 @@ PQ
 
 
 (uso errado de inheritance)
+
+
+
+
+
+
+
+
+
+-> no caso, aqui ficaríamos:
+
+
+
+1) SEM CODE DUPLICATION 
+
+
+MAS 
+
+
+2) COM UM USO ERRADO DE INHERITANCE....
+
+
+
+
+
+
+
+
+
+
+
+
+--> USANDO TRAITS, COMO FIZEMOS,
+
+FICAMOS:
+
+
+
+
+
+1) SEM CODE DUPLICATION 
+
+
+
+
+2) SEM USO ERRADO DE INHERITANCE...
