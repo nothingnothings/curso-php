@@ -6,6 +6,8 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'App11\\Invoice' => $baseDir . '/object-cloning-and-clone-magic-method/Invoice.php',
+    'App13\\Invoice' => $baseDir . '/serialize-objects-and-serialize-magic-methods/Invoice.php',
     'App2\\FancyOven' => $baseDir . '/inheritance-example/FancyOven.php',
     'App2\\Toaster' => $baseDir . '/inheritance-example/Toaster.php',
     'App2\\ToasterPro' => $baseDir . '/inheritance-example/ToasterPro.php',
@@ -20,8 +22,11 @@ return array(
     'App5\\ClassA' => $baseDir . '/late-static-binding-example/ClassA.php',
     'App5\\ClassB' => $baseDir . '/late-static-binding-example/ClassB.php',
     'App6\\AllInOneCoffeeMaker' => $baseDir . '/traits-how-they-work-and-drawbacks/AllInOneCoffeeMaker.php',
+    'App6\\CappuccinoMaker' => $baseDir . '/traits-how-they-work-and-drawbacks/CappuccinoMaker.php',
+    'App6\\CappuccinoTrait' => $baseDir . '/traits-how-they-work-and-drawbacks/CappuccinoTrait.php',
     'App6\\CoffeeMaker' => $baseDir . '/traits-how-they-work-and-drawbacks/CoffeeMaker.php',
     'App6\\LatteMaker' => $baseDir . '/traits-how-they-work-and-drawbacks/LatteMaker.php',
+    'App6\\LatteTrait' => $baseDir . '/traits-how-they-work-and-drawbacks/LatteTrait.php',
     'App\\PaymentGateway\\Paddle\\Transaction' => $baseDir . '/coding-autoloading-and-composer-example/app/PaymentGateway/Paddle/Transaction.php',
     'App\\PaymentGateway\\Stripe\\Transaction' => $baseDir . '/coding-autoloading-and-composer-example/app/PaymentGateway/Stripe/Transaction.php',
     'Brick\\Math\\BigDecimal' => $vendorDir . '/brick/math/src/BigDecimal.php',

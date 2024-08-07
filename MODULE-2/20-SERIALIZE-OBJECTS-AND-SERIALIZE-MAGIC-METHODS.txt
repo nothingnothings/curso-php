@@ -1,0 +1,584 @@
+
+
+
+
+
+
+
+
+
+
+-> SERIALIZATION É O SIMPLES PROCESSO DE CONVERTER UM GIVEN VALUE EM 1 FORMATO STRING..
+
+
+
+
+
+
+-->  VC PODE SERIALIZAR QUALQUER VALUE QUE PODE SER ARMAZENADO NO PHP,
+    INCLUSIVE OBJECTS, MAS VC NAO PODE SERIALIZAR RESOURCE TYPES, NEM CLOSURES,
+
+    NEM ALGUNS OUTROS BUILT-IN PHP OBJECTS...
+
+
+
+
+
+
+
+
+
+--> TEMOS ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+use App12\Invoice;
+
+
+
+require_once '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+$invoice = new Invoice();
+
+
+echo serialize(true);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS FAZER SERIALIZE DE OUTROS TIPOS DE VALUES:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+use App12\Invoice;
+
+
+
+require_once '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+$invoice = new Invoice();
+
+
+echo serialize(true) . PHP_EOL;
+echo serialize(1) . PHP_EOL;
+echo serialize(2.5) . PHP_EOL;
+echo serialize('hello world') . PHP_EOL;
+echo serialize([1, 2, 3]) . PHP_EOL;
+echo serialize(['a' => 1, 'b' => 2]) . PHP_EOL;
+
+
+
+
+
+
+
+
+
+
+FICAMOS COM ESTE PRINT:
+
+
+
+
+
+
+
+-magic-methods> php index.php
+b:1;
+i:1;
+d:2.5;
+s:11:"hello world";
+a:3:{i:0;i:1;i:1;i:2;i:2;i:3;}
+a:2:{s:1:"a";i:1;s:1:"b";i:2;}
+
+
+
+
+
+
+
+
+
+
+
+-_> FICAMOS COM A STRING REPRESENTATION DESSES VALUES...
+
+
+
+
+
+
+
+
+--> O PROFESSOR TAMBÉM RODA UM 'unserialize' em volta do array,
+    para ver se é possível desconverter, de string para array:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+use App12\Invoice;
+
+
+
+require_once '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+// $invoice = new Invoice();
+
+
+echo serialize(true) . PHP_EOL;
+echo serialize(1) . PHP_EOL;
+echo serialize(2.5) . PHP_EOL;
+echo serialize('hello world') . PHP_EOL;
+echo serialize([1, 2, 3]) . PHP_EOL;
+echo serialize(['a' => 1, 'b' => 2]) . PHP_EOL;
+var_dump(unserialize(serialize(['a' => 1, 'b' => 2]))); // We can also unserialize the serialized array
+
+
+
+
+
+
+
+
+
+
+
+
+SERIALIZATION 
+
+
+PODE SER ÚTIL PARA 'PASS PHP VALUES AROUND' 
+
+
+OU PARA SALVÁ-LOS 'FOR LATER', 
+
+
+
+USANDO A DATABASE, POR EXEMPLO... OU ATÉ MESMO ARMAZENÁ-LOS EM OUTROS LUGARES...
+
+
+
+
+
+
+
+
+
+
+
+
+-> QUANDO SERIALIZANDO OBJECTS,
+    NO ENTANTO, 
+
+
+
+VC DEVE TER EM MENTE QUE ELE VAI:
+
+
+
+1) SERIALIZE THE CLASS NAME 
+
+
+2) SERIALIZE ITS PROPERTIES AND VALUES 
+
+
+
+3) ___BUT__ IT __ WON'T__ SERIALIZE ITS METHODS...
+
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE, SE VC SERIALIZAR 
+    ALGUM OBJECT DE 1 CLASS 
+
+    E ARMAZENAR ESSE OBJECT 
+
+
+    EM ALGUMA DATABASE OU COISA DO GÊNERO, PARA LATER USE,
+    VC PRECISA 
+    GARANTIR 
+
+    QUE 
+    
+    EXISTAM TANTO:
+
+
+1) A CLASS DEFINITION 
+
+
+
+2) OS METHODS NECESSÁRIOS À CLASS,
+    ASSIM QUE A CLASS STRINGIFADA  FOR UNSERIALIZED...
+
+
+
+
+
+--> CASO CONTRÁRIO, SE VC N FIZER ISSO,
+
+    VC VAI FICAR COM ERRORS..
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+DIGAMOS QUE VAMOS SERIALIZAR O OBJECT DE '$invoice',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+require_once '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+$invoice = new Invoice();
+
+
+
+
+echo serialize($invoice) . PHP_EOL;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO, NO CASO, VAI NOS PRINTAR 
+
+
+ISTO:
+
+
+
+
+
+
+
+
+"App\Invoice": 1:{s:15:"App\Invoiceid";s:21:"invoice_512124124das";}
+
+
+
+
+
+
+
+
+
+
+
+
+--> PERCEBA QUE A 'CLASSNAME' 
+
+ESTÁ PREFIXADA LOGO NA FRENTE 
+
+DO PROPERTY NAME (de 'id')...
+
+
+
+
+-> ISSO ACONTECE/ACONTECEU, NO CASO,
+    PQ ESSA 
+
+    PROPERTY ESTÁ SETTADA COMO 'private'...
+
+
+
+
+
+--> todas as private properties vão sempre 
+
+    FICAR COM A 'CLASSNAME' PREFIXADA A SEU INÍCIO...
+
+
+
+
+
+
+
+
+
+--> SE TROCARMOS A PROPERTY,
+
+
+DE 'private' para 'protected',
+tipo assim:
+
+
+
+
+<?php
+
+
+namespace App12;
+
+
+
+class Invoice
+{
+    protected string $id;
+
+
+
+    public function __construct() 
+    {
+        $this->id = uniqid('invoice_');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE VC DEIXAR 'PROTECTED',
+
+
+    EM VEZ DE 
+
+
+
+    TER A ___CLASS__NAME PREFIXADA AO 'PROPERTY NAME',
+
+
+    VC 
+
+
+    TERÁ _ 
+
+    UM '*' (asterisco),
+
+    TIPO ASSIM:
+
+
+
+    
+
+
+
+require_once '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+$invoice = new Invoice();
+
+
+
+
+echo serialize($invoice) . PHP_EOL;
+
+
+
+
+
+
+VAI PRINTAR ISTO:
+
+
+
+
+
+
+"App\Invoice": 1:{s:15:"*id";s:21:"invoice_512124124das";}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> COMO PODE PERCEBER,
+    FICAMOS COM 
+
+    '*id'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE DEIXAMOS COMO 'public',
+
+NADA É PREFIXADO,
+
+
+
+
+FICA TIPO ASSIM:
+
+
+
+0:11:"App\Invoice": 1:{s:15:"id";s:21:"invoice_512124124das";}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS ENTÃO FAZER UNSERIALIZE DIRETO 
+
+DESSE VALUE,
+
+
+com 1 código como este:
+
+
+
+
+
+var_dump(unserialize('0:11:"App\Invoice": 1:{s:15:"id";s:21:"invoice_512124124das";}'))
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+var_dump(unserialize('0:11:"App\Invoice": 1:{s:15:"id";s:21:"invoice_512124124das";}'));
+
+
+
+
+
+
+
+
+
+-->  TENTEI RODAR ISSO AÍ, MAS FIQUEI COM 1 ERROR...
+
+
+
+PHP Notice:  unserialize(): Error at offset 0 of 62 bytes in D:\PROJETO20-PHP-FROM-THE-GROUND-UP\MODULE-2\project\src\serialize-objects-and-serialize-magic-methods\index.php on line 
+31
+
+Notice: unserialize(): Error at offset 0 of 62 bytes in D:\PROJETO20-PHP-FROM-THE-GROUND-UP\MODULE-2\project\src\serialize-objects-and-serialize-magic-methods\index.php on line 31   
+bool(false)

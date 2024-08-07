@@ -28,11 +28,18 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
         'A' => 
         array (
             'App\\' => 4,
+            'App9\\' => 5,
+            'App8\\' => 5,
+            'App7\\' => 5,
             'App6\\' => 5,
             'App5\\' => 5,
             'App4\\' => 5,
             'App3\\' => 5,
             'App2\\' => 5,
+            'App13\\' => 6,
+            'App12\\' => 6,
+            'App11\\' => 6,
+            'App10\\' => 6,
         ),
     );
 
@@ -57,6 +64,18 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
         array (
             0 => __DIR__ . '/../..' . '/coding-autoloading-and-composer-example/app',
         ),
+        'App9\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/traits-example-3',
+        ),
+        'App8\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/traits-example-2',
+        ),
+        'App7\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/traits-example',
+        ),
         'App6\\' => 
         array (
             0 => __DIR__ . '/../..' . '/traits-how-they-work-and-drawbacks',
@@ -77,9 +96,27 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
         array (
             0 => __DIR__ . '/../..' . '/inheritance-example',
         ),
+        'App13\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/serialize-objects-and-serialize-magic-methods',
+        ),
+        'App12\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/object-cloning-and-clone-magic-method-2',
+        ),
+        'App11\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/object-cloning-and-clone-magic-method',
+        ),
+        'App10\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/traits-example-4',
+        ),
     );
 
     public static $classMap = array (
+        'App11\\Invoice' => __DIR__ . '/../..' . '/object-cloning-and-clone-magic-method/Invoice.php',
+        'App13\\Invoice' => __DIR__ . '/../..' . '/serialize-objects-and-serialize-magic-methods/Invoice.php',
         'App2\\FancyOven' => __DIR__ . '/../..' . '/inheritance-example/FancyOven.php',
         'App2\\Toaster' => __DIR__ . '/../..' . '/inheritance-example/Toaster.php',
         'App2\\ToasterPro' => __DIR__ . '/../..' . '/inheritance-example/ToasterPro.php',
@@ -94,8 +131,11 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
         'App5\\ClassA' => __DIR__ . '/../..' . '/late-static-binding-example/ClassA.php',
         'App5\\ClassB' => __DIR__ . '/../..' . '/late-static-binding-example/ClassB.php',
         'App6\\AllInOneCoffeeMaker' => __DIR__ . '/../..' . '/traits-how-they-work-and-drawbacks/AllInOneCoffeeMaker.php',
+        'App6\\CappuccinoMaker' => __DIR__ . '/../..' . '/traits-how-they-work-and-drawbacks/CappuccinoMaker.php',
+        'App6\\CappuccinoTrait' => __DIR__ . '/../..' . '/traits-how-they-work-and-drawbacks/CappuccinoTrait.php',
         'App6\\CoffeeMaker' => __DIR__ . '/../..' . '/traits-how-they-work-and-drawbacks/CoffeeMaker.php',
         'App6\\LatteMaker' => __DIR__ . '/../..' . '/traits-how-they-work-and-drawbacks/LatteMaker.php',
+        'App6\\LatteTrait' => __DIR__ . '/../..' . '/traits-how-they-work-and-drawbacks/LatteTrait.php',
         'App\\PaymentGateway\\Paddle\\Transaction' => __DIR__ . '/../..' . '/coding-autoloading-and-composer-example/app/PaymentGateway/Paddle/Transaction.php',
         'App\\PaymentGateway\\Stripe\\Transaction' => __DIR__ . '/../..' . '/coding-autoloading-and-composer-example/app/PaymentGateway/Stripe/Transaction.php',
         'Brick\\Math\\BigDecimal' => __DIR__ . '/..' . '/brick/math/src/BigDecimal.php',

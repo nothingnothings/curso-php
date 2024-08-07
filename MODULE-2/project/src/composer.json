@@ -9,7 +9,14 @@
       "App3\\": "interfaces-and-polymorphism-example/",
       "App4\\": "magic-methods-example/",
       "App5\\": "late-static-binding-example/",
-      "App6\\": "traits-how-they-work-and-drawbacks/"
+      "App6\\": "traits-how-they-work-and-drawbacks/",
+      "App7\\": "traits-example/",
+      "App8\\": "traits-example-2/",
+      "App9\\": "traits-example-3/",
+      "App10\\": "traits-example-4/",
+      "App11\\": "object-cloning-and-clone-magic-method/",
+      "App12\\": "object-cloning-and-clone-magic-method-2/",
+      "App13\\": "serialize-objects-and-serialize-magic-methods/"
     }
   }
 }
