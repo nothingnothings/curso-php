@@ -1,0 +1,1933 @@
+
+
+
+
+
+
+
+
+
+
+
+-> OK...
+
+
+
+
+
+
+
+
+-> AGORA O TÓPICO É 
+
+
+''HOW CAN WE COMPARE TWO OBJECTS FOR EQUALITY, IN PHP?''
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VAMOS EXPLORAR COMO É FEITA A COMPARISON ENTRE OBJECTS, NO PHP...
+
+
+
+
+--> PARA ISSO, TEMOS ESTE CÓDIGO:
+
+
+
+
+<?php
+
+
+
+
+use App\Invoice;
+
+
+require_once '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+$invoice1 = new Invoice(25, 'My Invoice 1');
+$invoice2 = new Invoice(100, 'My Invoice 2');
+
+
+
+echo 'invoice1 == invoice2' . PHP_EOL;
+var_dump($invoice1 == $invoice2);
+
+echo 'invoice1 === invoice2' . PHP_EOL;
+var_dump($invoice1 === $invoice2);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TEMOS 2 OBJECTS,
+
+
+OS 2 USANDO A CLASS DE 'Invoice'...
+
+
+
+
+
+
+
+
+
+--> PROVAVELMENTE É O MESMO TIPO DE COISA VISTO NO JAVASCRIPT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O COMPARISON OPERATOR É '=='...
+
+
+
+
+LOOSE COMPARISON...
+
+
+
+
+
+
+
+
+
+
+
+-> com o comparison operator,
+
+    esses 2 objects serão 'equal' 
+
+
+    APENAS SE 
+
+
+    __ ELES SÃO INSTANCES DA MESMA CLASS,
+
+     
+     E APENAS SE TIVEREM AS MESMAS PROPERTIES E VALUES...
+
+
+
+
+
+
+
+
+
+
+--> NO CASO DE '===', no entanto,
+
+
+2 objects serão equal 
+
+
+SOMENTE __ SE ELES APONTAREM PARA A MESMA INSTANCE, DA MESMA CLASS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> NO EXEMPLO ATUAL,
+
+
+OS 2 CHECKS DEVEM RETORNAR 'FALSE',
+
+
+
+PQ:
+
+
+ 
+
+
+
+1) OS VALUES DAS PROPERTIES SÃO DIFERENTES (falhou o primeiro check)
+
+
+
+2) OS 2 OBJECTS NÃO SAO O MESMO OBJECT (NAO APONTAM PARA O MESMO LUGAR, NA MEMORIA DO PHP)...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+use App\Invoice;
+
+
+require_once '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+$invoice1 = new Invoice(25, 'My Invoice 1');
+$invoice2 = new Invoice(100, 'My Invoice 2');
+
+
+
+echo 'invoice1 == invoice2' . PHP_EOL;
+var_dump($invoice1 == $invoice2); //false 
+
+echo 'invoice1 === invoice2' . PHP_EOL;
+var_dump($invoice1 === $invoice2); //false 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> UMA COISA QUE VC DEVE SABER,
+
+
+
+
+ACERCA DO '==',
+
+
+É QUE 
+
+
+
+
+
+'''IT DOES THE COMPARISON OF THE PROPERTY VALUES 
+    USING LOOSE COMPARISON AS WELL''..
+
+
+
+
+
+
+
+
+
+
+
+
+
+iSSO SIGNIFICA QUE, SE ESCREVESSEMOS ASSIM:
+
+
+
+
+
+
+
+
+$invoice1 = new Invoice(1, 'My Invoice');
+$invoice2 = new Invoice(true, 'My Invoice');
+
+
+
+
+
+var_dump($invoice1 == $invoice2); // TRUE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE ESCREVERMOS '1' E 'true',
+
+
+
+
+A COMPARISON VAI DAR TRUE,
+
+
+
+ISSO SE TIVERMOS DEIXADO STRICT TYPES DESATIVADO...
+
+
+
+
+
+(ou seja,
+
+
+não escrevemos 
+
+'declare(strict_types=1)'
+
+
+
+
+)
+
+
+
+
+
+
+
+
+
+
+
+--> BASICAMENTE, O PHP FAZ SEU PRÓPRIO TYPE CASTING,
+    E AÍ FAZ '1' virar true...
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE 
+
+    VAMOS RECEBER TRUE 
+
+
+
+
+    COM ESSA COMPARISON,
+
+
+    MESMO QUE 
+
+
+    '1' e 'true'
+
+
+    NÃO SEJAM 
+
+
+    EXATAMENTE A MESMA COISA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK...
+
+
+
+
+
+
+
+
+
+--> DEPOIS DISSO, O PROFESSOR FORMATA ASSIM:
+
+
+
+
+
+$invoice1 = new Invoice(25, 'My Invoice');
+$invoice2 = new Invoice(25, 'My Invoice');
+
+
+
+
+
+var_dump($invoice1 == $invoice2); // TRUE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, TEMOS 2 OBJECTS,
+
+
+
+
+COM MESMOS VALUES...
+
+
+
+
+
+
+
+
+
+-- COM ISSO, FICAREMOS COM 
+
+
+
+'TRUE' PARA A PRIMEIRA COMPARISON,
+
+
+
+E 'FALSE'
+
+
+PARA A SEGUNDA (com '==='),
+
+
+
+
+PQ 
+
+
+
+O STRICT COMPARISON
+
+
+
+
+ESTÁ CHECANDO 
+
+
+SE OS 2 OBJECTS 
+
+
+
+SÃO O MESMO OBJECT IN THE MEMORY....
+
+
+
+
+
+
+
+
+
+
+
+--> COMO ELES NÃO SÃO O MESMO OBJECT,
+FICAMOS COM 'FALSE'....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+se o object for o mesmo,
+
+VAMOS RECEBER TRUE...
+
+
+
+
+
+
+PARA CONSEGUIR TRUE COM ESSE CHECK, PODEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+
+
+$invoice1 = new Invoice(25, 'My Invoice');
+
+
+
+$invoice3 = $invoice1;
+
+
+
+
+
+
+
+
+
+var_dump($invoice1===$invoice3);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'invoice1 e invoice3',
+
+essas variables,
+
+são simplesmente 
+
+POINTERS, QUE APONTAM A ALGUM LUGAR NA MEMORY QUE 
+
+CONTÉM ESSE OBJEC.T..
+
+
+
+
+
+
+
+
+
+--> QUANDO ESTAMOS ASSIGNANDO 'invoice1'
+    dentro de 'invoice3',
+
+
+    ESTAMOS BASICAMENTE 
+
+
+    CRIANDO 1 CÓPIA DE 1 POINTER,
+
+
+    QUE VAI APONTAR PARA 
+
+
+
+    O MESMO LUGAR, NA MEMÓRIA,
+
+    QUE CONTÉM 
+
+    ESSE OBJECT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> HÁ UM MONTE DE MAIS DETAILS SOBRE ISSO TUDO,
+    E VEREMOS ELES NESSA LESSON...
+
+
+
+
+
+
+
+
+
+-> ''MAS É UM POUCO COMPLICADO... HOW VARIABLES 
+    STORE OBJECT REFERENCES, BEHIND THE SCENES, IN PHP''...
+
+
+
+
+
+
+--> É POR ISSO QUE O PROFESSOR N VAI ENTRAR EM MTOS DETALHES SOBRE ISSO,
+    NESSA LESSON...
+
+
+
+
+
+
+
+
+--> MAS O PROFESSOR TEM 1 VIDEO SEPARADO, SOBRE:
+
+    - MEMORY MANAGEMENT 
+
+    - GARBAGE COLLECTION 
+
+    - REFERENCES 
+
+    - VARIABLES 
+
+    - HOW THEY ARE STORED 
+
+    -  ETC...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK, MAS AGORA VEREMOS:
+
+
+
+
+
+
+
+
+
+''''WHAT HAPPENS, IN PHP, WHEN YOU CREATE 
+VARIABLES LIKE THIS:
+
+$invoice1 = new Invoice(25, 'My Invoice');
+
+
+
+
+AND WHAT HAPPENS WHEN YOU ASSIGN A VARIABLE TO/AS 
+ANOTHER VARIABLE,
+
+LIKE THIS:
+
+$invoice3 = $invoice1;
+
+'''''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+BEM... QUANDO UMA VARIABLE É CRIADA NO PHP,
+
+O PHP VAI 
+
+ACTUALLY 
+
+
+
+
+'''STORE THE ACTUAL VARIABLE NAME''''
+
+
+
+
+DE _ FORMA __ SEPARADA__ DO ACTUAL _ VALUE DA VARIABLE....
+
+
+
+
+
+
+
+
+                                    EX:
+
+
+
+
+
+            {  $invoice1 = new Invoice();  }
+
+
+
+
+
+
+
+
+--> O NAME DA VARIABLE É 
+
+    BASICAMENTE ARMAZENADO EM ALGO CHAMADO DE 'SYMBOLS TABLE'...
+
+
+
+
+
+
+
+--> BASICAMENTE, CADA VARIABLE É APENAS 1 'SYMBOL'....
+    E CADA VARIABLE TEM 
+
+    UMA _'ENTRY' NA TABLE DE SYMBOLS...
+
+
+
+
+
+
+
+
+--> E CADA 'entry' na TABLE DE SYMBOLS 
+    __APONTA_  A ALGUM TIPO DE CONTAINER/DATA STRUCTURE 
+
+    _ QUE CONTÉM O VALUE DA VARIABLE....
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+                {  $invoice1 = new Invoice();  }
+
+
+
+
+$invoice1 --------> [ Variable Content ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VC PODE BASICAMENTE PENSAR NA VARIABLE 
+
+'AS JUST A POINTER, THAT POINTS TO 
+SOME SORT OF DATA STRUCTURE''...
+
+
+
+
+
+
+
+
+
+
+
+--> ESSE CONTAINER/DATA STRUCTURE ONDE A DATA É ARMAZENADA 
+    É CHAMADO DE 'zval' (ou ZEND VALUE)
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+                {  $invoice1 = new Invoice();  }
+
+
+
+                            "zend value (zval)"
+$invoice1 --------> [ Variable value (simple/primitive); Variable type ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESSE 'ZEND VALUE' 
+
+    é uma ESTRUTURA DA LINGUAGEM C (C LANGUAGE STRUCTURE)...
+
+
+
+
+
+
+--> O ZEND VALUE   __ARMAZENA_ 
+
+
+                __ INFORMATION SOBRE A VARIABLE...
+
+
+                INFORMATION COMO 
+
+                O 'TYPE' E O 'VALUE' EM SI...
+
+
+
+
+
+
+--> VEREMOS O ZEND VALUE EM MAIS DETALHES EM 1 VÍDEO SEPARADO...
+
+
+
+
+
+
+
+
+
+--> A MANEIRA PELA QUAL _ OBJECTS__ SÃO ARMAZENADOS,
+    DENTRO DESSES 'zval' containers,
+
+    É _ UM __ POUCO _ DIFERENTE DA MANEIRA PELA QUAL 
+    OUTROS SIMPLE TYPES (como integers, primitive types)
+
+    SÃO ARMAZENADOS...
+
+
+
+
+
+
+--> VALUES DE SIMPLE TYPES, COMO 'INTEGERS',
+    SÃO ARMAZENADOS DIRETAMENTE NESSES ZVAL CONTAINERS...
+
+
+
+
+
+
+
+
+
+--> MAS QUANDO FALAMOS EM VALUES ESPECIAIS/COMPOUND,
+    COMO 'OBJECTS', O QUE ACABA ARMAZENADO É __ APENAS 
+
+    UM ''OBJECT IDENTIFIER''... --> ESSE ''''OBJECT IDENTIFIER''',
+
+    NO FINAL DAS CONTAS, É APENAS 1 __ POINTER__ À OUTRA _ DATA STRUCTURE 
+    COMPLEXA, que 
+
+    É O __ ACTUAL__ OBJECT...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+                {  $invoice1 = new Invoice();  }
+
+
+
+                            "zend value (zval)"
+$invoice1 --------> [ Variable value (OBJECT IDENTIFIER/POINTER); Some Other Info... ]
+                                                I 
+                                                I 
+                                                I
+                                                I 
+                                                I 
+                                                I
+                                                I 
+                                                I 
+                                                I ------->    [ THE ACTUAL OBJECT ]
+                                                             (complex data structure)
+
+
+
+
+
+
+
+
+
+
+--> ESSA COMPLEX DATA STRUCTURE, OU 'OBJECT STORE',
+
+É O QUE ACTUALLY CONTÉM O OBJECT EM SI...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO.... AGORA, QUANDO 
+
+ASSIGNAMOS '$invoice3 = $invoice1'; ',
+
+
+
+
+ESTAMOS BASICAMENTE 
+
+
+CRIANDO 1 NOVA 
+
+ENTRY NA TABLE DE SYMBOLS,
+
+
+
+DE NOME 
+
+
+
+'$invoice3'... 
+
+
+
+
+
+
+
+
+
+
+--> AÍ, O QUE ACABA SENDO COPIADO,
+    NÃO É O 'ACTUAL OBJECT',
+
+    E SIM 
+
+    É APENAS O ZEND VALUE,
+
+
+    QUE É O VALUE QUE CONTÉM O __ POINTER_ QUE 
+    APONTA 
+
+
+    AO ACTUAL OBJECT, QUE CONTINUA SENDO O MESMO:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                {  $invoice1 = new Invoice();  }
+
+
+
+                            "zend value (zval)"
+$invoice1 --------> [ Variable value (OBJECT IDENTIFIER/POINTER); Some Other Info... ]
+                                                I 
+                                                I 
+                                                I
+                                                I 
+                                                I 
+                                                I
+                                                I 
+                                                I 
+                                                I ------->    [ THE ACTUAL OBJECT ]
+                                                --------> (complex data structure)
+                                                   I 
+                                                   I 
+                                                   I
+                            "zend value (zval)"    I 
+$invoice3 --------> [ Variable value (OBJECT IDENTIFIER/POINTER); Some Other Info... ]
+                                       
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AMBOS ZVAL CONTAINERS APONTAM PARA 
+
+A MESMA LOCATION ONDE 
+
+O ACTUAL OBJECT ESTÁ ARMAZENADO...
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE 
+
+
+
+'$invoice3 === $invoice1',
+
+
+
+
+MESMO 
+
+ESSAS SENDO 2 DIFERENTES VARIABLES...
+
+
+É PQ 
+
+
+O ACTUAL OBJECT NÃO DEIXA DE SER O MESMO.... É EXATAMENTE 
+
+
+
+O MESMO 
+
+
+OBJECT, NA MEMORY...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... É O MESMO COMPORTAMENTO DO JAVASCRIPT...
+
+
+
+
+
+
+
+
+
+
+É POR ISSO QUE àS VEZES 
+
+
+
+
+AS PESSOAS DIZEM/ACREDITAM QUE 
+
+
+
+'''OBJECTS ARE PASSED __ BY REFERENCE''', no php...
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+--> O PROFESSOR ESCLARECE QUE ISSO É _ _aCTUALLY__ 
+    NOT TRUE...
+
+
+
+
+
+
+
+--> NÃO É VERDADEIRO PQ OBJECTS, BY DEFAULT,
+    ARE 'PASSED, RETURNED AND ASSIGNED __ BY _ VALUE''...
+
+
+
+
+
+--> veremos a razão disso em 1 aula separada...
+
+    
+
+
+    de qualquer forma, parece que não é correto 
+    dizer que 
+
+    'objects are referential values'...
+
+
+
+
+
+
+
+
+
+
+
+
+-> NÃO DEVEMOS NOS IMPORTAR COM O 'ZEND VALUE'
+POR ENQUANTO...
+
+
+
+
+
+
+
+
+--> O PROFESSOR SÓ QUERIA NOS INTRODUZIR A ESSE TÓPICO...
+
+
+
+
+-----------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DE VOLTA AO CÓDIGO, O PROFESSOR VAI CRIAR 1 CLASS CHAMADA DE 'customInvoice',
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php
+
+
+
+class CustomInvoice extends Invoice
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... ESSA CLASS TERÁ TODAS AS PROPERTIES E METHODS DA CLASS 'Invoice'...
+
+
+
+
+
+
+
+
+
+
+
+
+E INVOICE É ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+
+
+class Invoice
+{
+    public int $amount;
+
+    public function __construct(int $amount)
+    {
+        $this->amount = $amount;
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+LÁ EM INDEX.PHP, ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+use App9\Invoice;
+
+
+require_once '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+$invoice1 = new Invoice(25);
+$invoice2 = new CustomInvoice(100);
+
+
+echo 'invoice1 == invoice2' . PHP_EOL;
+var_dump($invoice1 == $invoice2);
+
+echo 'invoice1 === invoice2' . PHP_EOL;
+var_dump($invoice1 === $invoice2);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK...
+
+
+
+
+
+
+
+AÍ TENTAMOS COMPARAR 
+
+
+
+COM '==' 
+
+E '===',
+
+TIPO ASSIM:
+
+
+
+
+
+
+echo 'invoice1 == invoice2' . PHP_EOL;
+var_dump($invoice1 == $invoice2);
+
+echo 'invoice1 === invoice2' . PHP_EOL;
+var_dump($invoice1 === $invoice2);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... MAS COM ESSAS 2 COMPARISONS, EM AMBOS CASES/COMPARISONS,
+
+
+FICAMOS 
+
+
+
+COM 'FALSE'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO FAZ SENTIDO,
+    PQ SÃO 2 OBJECTS COMPLETAMENTE DIFERENTES...
+
+
+
+
+
+
+
+--> O PRIMEIRO CHECK FALHA PQ 
+
+'''THEY ARE NOT OF THE SAME INSTANCE'''
+
+
+
+(invoice1 é uma instance de 'Invoice', e 'invoice2' é uma instance de 'CustomInvoice')...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NO CASO DO SEGUNDO CHECK, COM '===',
+
+FALHA PQ 
+
+ESSES 2 OBJECTS SÃO COMPLETAMENTE DIFERENTES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK..
+
+
+
+
+
+
+
+
+--> ALÉM DISSO, 
+
+    PERCEBA QUE 
+
+
+    ''IF YOUR CLASS 
+      _ CONTAINS A PROPERTY THAT IS AN OBJECT OF ANOTHER 
+      CLASS,
+
+      THEN _COMPARISON IS DONE IN A _rECURSIVE MANNER''...
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO ASSIM?
+
+
+
+
+
+
+
+
+
+
+
+
+-> BEM, DIGAMOS QUE 'Invoice' tem 1 property de 'Customer',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+
+namespace App9;
+
+class Invoice
+{
+
+    public function __construct(public Customer $customer, public int $amount)
+    {
+
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ CRIAMOS ESSA CLASS,
+
+COM APENAS 1 PROPERTY, 'name':
+
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace App9;
+
+class Customer
+{
+
+    public function __construct(public string $name)
+    {
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, EM INDEX.PHP,
+
+
+
+
+CRIAMOS OS INVOICE OBJECT COM ESTES PARAMETERS:
+
+
+
+
+
+
+
+
+$invoice1 = new Invoice(\App9\Customer('Charles'), 25);
+$invoice2 = new CustomInvoice(\App9\Customer('Charles'), 25);
+
+
+echo 'invoice1 == invoice2' . PHP_EOL;
+var_dump($invoice1 == $invoice2);
+
+echo 'invoice1 === invoice2' . PHP_EOL;
+var_dump($invoice1 === $invoice2);
+
+
+
+
+
+
+
+
+
+
+
+
+AO FAZERMOS ISSO E RODARMOS O CÓDIGO,
+
+
+
+
+PERCEBEMOS QUE  A PRIMEIRA COMPARISON 
+
+
+RETORNOU 'TRUE',
+
+
+e a segunda retornou 'FALSE'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ELE RETORNOU 'TRUE' PARA 
+    A PRIMEIRA COMPARISON PQ TODOS OS PROPERTY VALUES SÃO OS MESMOS....
+
+
+
+
+
+
+--> MAS SE OS VALUES INTERNOS, DA CLASS INTERNA/OBJECT INTERNO 
+
+FOR DIFERENTE,
+
+
+FICAREMOS COM FALSE,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+$invoice1 = new Invoice(\App9\Customer('Charles'), 25);
+$invoice2 = new CustomInvoice(\App9\Customer('Xavier'), 25);
+
+
+echo 'invoice1 == invoice2' . PHP_EOL;
+var_dump($invoice1 == $invoice2);
+
+echo 'invoice1 === invoice2' . PHP_EOL;
+var_dump($invoice1 === $invoice2);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+OUTRA COISA QUE VC DEVE SABER:
+
+
+
+
+
+
+''''SINCE IT DOES A RECURSIVE COMPARISON,
+    IF YOU HAVE CIRCULAR RELATIONS, YOU 
+    __ CAN CAUSE FATAL ERRORS...'''''
+
+
+
+
+
+EX: DIGAMOS QUE 
+    QUEREMOS 
+    TER 
+    1 PROPERTY DENTRO DA CLASS DE 'INVOICE'
+
+    QUE SEGURA 
+    
+
+    __ OUTRA__ INVOICE OBJECT,
+
+    TUDO PARA CRIAR 1 LINKING BETWEEN OBJECTS....
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+
+namespace App9;
+
+class Invoice
+{
+    public int $amount;
+
+    public ?Invoice $linkedInvoice = null;
+
+    public function __construct(int $amount)
+    {
+        $this->amount = $amount;
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, EM 'index.php',
+
+ESCREVERÍAMOS ASSIM:
+
+
+
+
+
+
+$invoice1 = new Invoice(\App9\Customer('Charles'), 25);
+$invoice2 = new CustomInvoice(\App9\Customer('Xavier'), 25);
+
+
+$invoice1->linkedInvoice = $invoice2;
+$invoice2->linkedInvoice=$invoice1;
+
+
+
+
+
+
+
+
+
+
+--> COMO VC PODE VER, ESTAMOS CRIANDO 1 CIRCULAR RELATIONSHIP,
+    AÍ..
+
+
+
+
+
+
+
+
+--> AÍ, QUANDO RODAMOS A COMPARISON (==)
+    ENTRE ESSAS 2 CLASSES,
+
+    FICAMOS COM ESTE FATAL ERROR:
+
+
+
+
+    ''Fatal error: Nesting level too deep - recursive dependency?''
+
+    
