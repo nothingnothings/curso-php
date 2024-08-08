@@ -16,7 +16,10 @@
       "App10\\": "traits-example-4/",
       "App11\\": "object-cloning-and-clone-magic-method/",
       "App12\\": "object-cloning-and-clone-magic-method-2/",
-      "App13\\": "serialize-objects-and-serialize-magic-methods/"
+      "App13\\": "serialize-objects-and-serialize-magic-methods/",
+      "App14\\": "serialize-objects-and-serialize-magic-methods-2/",
+      "App15\\": "serialize-objects-and-serialize-magic-methods-3/",
+      "App16\\": "OOP-error-handling-in-php-exceptions-and-try-catch-blocks/"
     }
   }
 }

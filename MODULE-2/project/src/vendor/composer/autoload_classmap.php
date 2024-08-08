@@ -8,6 +8,8 @@ $baseDir = dirname($vendorDir);
 return array(
     'App11\\Invoice' => $baseDir . '/object-cloning-and-clone-magic-method/Invoice.php',
     'App13\\Invoice' => $baseDir . '/serialize-objects-and-serialize-magic-methods/Invoice.php',
+    'App16\\Customer' => $baseDir . '/OOP-error-handling-in-php-exceptions-and-try-catch-blocks/Customer.php',
+    'App16\\Invoice' => $baseDir . '/OOP-error-handling-in-php-exceptions-and-try-catch-blocks/Invoice.php',
     'App2\\FancyOven' => $baseDir . '/inheritance-example/FancyOven.php',
     'App2\\Toaster' => $baseDir . '/inheritance-example/Toaster.php',
     'App2\\ToasterPro' => $baseDir . '/inheritance-example/ToasterPro.php',

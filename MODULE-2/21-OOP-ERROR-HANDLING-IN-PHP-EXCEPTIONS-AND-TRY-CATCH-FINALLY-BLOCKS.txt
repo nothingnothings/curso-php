@@ -1,0 +1,3740 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+-->  JÁ COBRIMOS OS BASICS SOBRE ERROR HANDLING 
+    NA LESSON 1.28...
+
+
+
+
+
+
+
+
+
+
+
+
+--> NESSA LESSON, EXPANDIREMOS NOSSOS CONHECIMENTOS...
+
+
+
+
+
+-> FALAREMOS SOBRE 'EXCEPTIONS',
+
+QUE SÃO BASICAMENTE A MANEIRA 'OOP' DE HANDLAR ERRORS,
+NO PHP...
+
+
+
+
+
+
+
+
+
+--> MAS O QUE É UMA EXCEPTION?
+
+
+
+
+
+
+
+
+
+
+--> UMA EXCEPTION É SIMPLESMENTE UM OBJECT,
+
+    DE CLASS 'Exception',
+
+
+
+    QUE _ DESCREVE 1 ERROR....
+
+
+
+
+
+
+
+
+-> SEU PROPÓSITO É 'DISRUPT THE NORMAL FLOW OF CODE EXECUTION'...
+
+
+
+
+
+
+
+
+
+--> exceptions em PHP PODEM SER THROWN 
+
+    MANUALMENTE,
+
+
+    COM A KEYWORD DE 'throw',
+
+
+    OU, ENTÃO,
+
+
+
+    __ PODEM SER O RESOLVE DE ALGUM TIPO DE ERRO 
+
+    NO PHP (
+        pode vir de built-in php functions,
+        classes ou até mesmo de seu código...
+    )
+
+
+
+
+
+
+
+
+--> '''YOU CAN ONLY THROW EXCEPTIONS IF THE 
+    INSTANCE OF THE ___THROWN __ OBJECT_ _ IS 
+    EITHER OF THE 'EXCEPTION' CLASS OR _ OF THE 
+    'THROWABLE' INTERFACE... 
+
+
+
+
+
+
+
+
+
+
+Exception e Throwable...
+
+
+
+
+
+
+
+
+
+--> PARA O EXEMPLO, TEMOS ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+use App16\Customer;
+use App16\Invoice;
+
+
+
+
+require_once '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+
+
+$invoice = new Invoice(new Customer());
+
+
+
+$invoice->process();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TEMOS ESSE CÓDIGO AÍ....
+
+
+
+
+
+
+AÍ, PARA O 'Invoice', temos esta estrutura de class:
+
+
+
+
+
+
+<?php
+
+
+
+
+namespace App16;
+
+class Invoice
+{
+
+    public function __construct(public Customer $customer)
+    {
+
+    }
+
+    public function process(float $amount): void
+    {
+        echo 'Processing $' . $amount . ' invoice - ';
+
+        sleep(1);
+
+        echo 'OK ' . PHP_EOL;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+ELA SIMULA O PROCESSAMENTO DE 1 'invoice'..
+
+
+
+
+
+
+
+
+A CLASS DE CUSTOMER, EM SI,
+
+
+
+TEM ESTA ESTRUTURA:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É 1 ÚNICA PROPERTY, 'billingInfo',
+
+
+e aí 1 único getter method, de 'getBillingInfo()'....
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+namespace App16;
+
+class Customer
+{
+    public function __construct(private array $billingInfo = [])
+    {
+
+    }
+
+    /**
+     * getBillingInfo is the GETTER
+     * @return array
+     */
+    public function getBillingInfo(): array
+    {
+        return $this->billingInfo;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+mas digamos que 
+
+
+
+
+
+'''WE DON'T WANT INVOICES TO BE PROCESSED 
+    IF THE GIVEN AMOUNT WAS LESS THAN OR EQUAL TO 0...''
+
+
+
+
+
+''WE ALSO DON'T WANT INVOICES TO BE PROCESSED 
+    IF THE CUSTOMER WAS MISSING BILLING INFORMATION ,
+
+    LIKE BILLING  ADDRESS OR BILLING NAME'''
+
+
+
+
+
+
+
+--> É AÍ, NESSES CASOS,
+    QUE O THROW DE EXCEPTIONS PODE 'COME IN HANDY'...
+
+
+
+
+
+
+
+
+--> AINDA QUE SEJA POSSÍVEL 
+    ADICIONAR ESSA VALIDATION MAIS PARA CIMA NO SEU CÓDIGO,
+
+    COMO EM 1 CONTROLLER,
+
+
+
+    SEMPRE É UMA BOA IDEIA TER ISSO 
+
+    NO 'LOW-LEVEL',
+
+
+
+    DIRETAMENTE NOS OBJECTS DE SEUS MODELS.... PQ SE VC FAZ ISSO,
+
+
+    VC GARANTE QUE, INDEPENDENTEMENTE DO LOCAL ONDE SEU 
+
+    METHOD DE 'process()' for chamado,
+
+
+    __ELE __ VAI DAR THROW DESSAS EXCEPTIONS, PARA BLOQUEAR 
+
+    ALGUNS TIPOS DE INVOICES, SE CERTAS CONDITIONS NÃO FOREM SATISFEITAS...
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE O PROFESSOR ESCREVE ASSIM:
+
+
+
+
+
+<?php
+
+
+
+
+namespace App16;
+
+class Invoice
+{
+
+    public function __construct(public Customer $customer)
+    {
+
+    }
+
+    public function process(float $amount): void
+    {
+
+        if ($amount <= 0) {
+            throw new \InvalidArgumentException("");
+        }
+
+
+        echo 'Processing $' . $amount . ' invoice - ';
+
+        sleep(1);
+
+        echo 'OK ' . PHP_EOL;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+ASSIM:
+
+
+
+
+
+
+'''             throw new \InvalidArgumentException("");   ''''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS, BASICAMENTE, FAZER THROW DE ALGUMA DAS 
+VÁRIAS 
+
+BUILT-IN EXCEPTIONS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> A CLASS 'BASE' DE EXCEPTION 
+    é 
+
+
+    'Exception',
+
+    por isso escrevemos assim:
+
+
+
+
+            // If amount is equal or less than zero, throw an exception
+        if ($amount <= 0) {
+            throw new \Exception();
+        }
+
+
+
+
+
+
+
+
+
+
+-> ISSO FARÁ O THROW DE UMA EXCEPTION GENÉRICA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS COLOCAR 1 MESSAGE GENÉRICA,
+
+
+COMO 
+
+'Invalid invoice amount'...
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+        // If amount is equal or less than zero, throw an exception
+        if ($amount <= 0) {
+            throw new \Exception('Invalid invoice amount'); // This is the BASE exception class
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---> É CLARO QUE 'FLOATS'
+    NÃO DEVEM SER USADOS COM COMPARISONS DE EQUALITY DIRETAMENTE,
+
+    por conta de IMPRECISION...
+
+
+
+
+
+
+
+-> MAS, COM ESSE EXEMPLO, O PROFESSOR VAI MANTER AS COISAS SIMPLES....    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE VC QUER COMPARAR FLOATS DIRETAMENTE COM O EQUALITY OPERATOR, FAÇA ASSIM:
+
+
+
+$a = 0.1 + 0.2;
+$b = 0.3;
+
+// Define a small epsilon value
+$epsilon = 0.00001;
+
+if (abs($a - $b) < $epsilon) {
+    echo "The values are considered equal.";
+} else {
+    echo "The values are not equal.";
+}
+
+
+
+
+
+
+
+
+
+-> MAS ESSA SOLUTION TAMBÉM É RUIM....
+
+
+
+
+--> ESSA SOLUTION NÃO FUNCIONA PARA '>=' e '<='...
+
+
+
+
+
+
+
+
+There is no general solution for comparing floating-point numbers that contain errors from previous operations. The code that must be used is application-specific. So, to get a proper answer, you must describe your situation more specifically. For example, if you are sorting numbers in a list or other data structure, you should not use any tolerance for comparison.
+
+Usually, if your program needs to compare two numbers for order but cannot do so because it has only approximations of those numbers, then you should redesign the program rather than try to allow numbers to be ordered incorrectly.
+
+The underlying problem is that performing a correct computation using incorrect data is in general impossible. If you want to compute some function of two exact mathematical values x and y but the only data you have is some incorrectly computed values x and y, it is generally impossible to compute the exactly correct result. For example, suppose you want to know what the sum, x+y, is, but you only know x is 3 and y is 4, but you do not know what the true, exact x and y are. Then you cannot compute x+y.
+
+
+
+
+The common bad advice is to compare with a “tolerance”. This method trades false negatives (incorrect rejections of numbers that would satisfy the comparison if the true mathematical values were compared) for false positives (incorrect acceptance of numbers that would not satisfy the comparison).
+
+-------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Well, my advice is never use floats to calculate / compare money. Ever. It will seem to work when you test it, until you find a corner case or an amount big enough where it doesn't.
+
+When I was still a PHP developer more than 6 years ago, I used to the BCMath PHP extension to do money calculations and I highly recommend it: https://www.php.net/manual/en/book.bc.php
+
+
+
+
+Having suffered the absolute living hell that is maintaining a billing system that uses floats,
+ I can say with absolute certainty that you should never, under any circumstances, ever
+  use floats for any type of monetary calculation.
+
+
+
+
+
+
+
+
+
+'BCMath'... essa é a extension do php indicado para fazer esse tipo de cálculo....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AÍ PASSAMOS 25 COMO AMOUNT...
+
+
+
+
+NÃO FICAMOS COM 1 ERROR,
+
+
+pq isso é maior do que 0, e não é igual a 0...
+
+
+
+
+
+
+
+
+
+
+
+--> mas se passamos -25,
+
+FICAMOS COM A NOSSA EXCEPTION... 
+
+EX:
+
+
+
+
+
+
+Fatal error: Uncaught Exception: Invalid invoice amount in D:\PROJETO20-PHP-FROM-THE-GROUND-UP\MODULE-2\project\src\OOP-error-handling-in-php-exceptions-and-try-catch-blocks\Invoice.php:21
+Stack trace:
+#0 D:\PROJETO20-PHP-FROM-THE-GROUND-UP\MODULE-2\project\src\OOP-error-handling-in-php-exceptions-and-try-catch-blocks\index.php(23): App16\Invoice->process(-25)
+#1 {main}
+  thrown in D:\PROJETO20-PHP-FROM-THE-GROUND-UP\MODULE-2\project\src\OOP-error-handling-in-php-exceptions-and-try-catch-blocks\Invoice.php on line 21 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  OK...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS O PROBLEMA, AQUI, É QUE 
+
+ESSA CLASS DE 
+'Exception',
+
+
+
+
+É __ SUUUPER GENÉRICA...
+
+
+
+
+
+
+
+
+
+
+
+-> POR SER MT GENÉRICA,
+    NAO AJUDA MT COISA..
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS SER MAIS ESPECÍFICOS SOBRE NOSSA EXCEPTION...
+
+
+
+
+
+
+
+
+
+--> ANTES DE FAZERMOS ISSO, PORÉM,
+    DEVEMOS ANALISAR O QUE A CLASS DE 'Exception' 
+
+    OFERECE...
+
+
+
+
+
+    ABRIMOS O CÓDIGO DE 'Core_c.php':
+
+
+
+
+
+
+/**
+ * Exception is the base class for all user exceptions.
+ */
+class Exception implements Stringable, Throwable
+{
+	#region Properties
+
+	/**
+	 * @var int
+	 */
+	protected $code;
+
+	/**
+	 * @var string
+	 */
+	protected $file = "";
+
+	/**
+	 * @var int
+	 */
+	protected $line;
+
+	/**
+	 * @var string
+	 */
+	protected $message = "";
+
+	/**
+	 * @var ?Throwable
+	 */
+	private $previous = null;
+
+	/**
+	 * @var string
+	 */
+	private $string = "";
+
+	/**
+	 * @var array
+	 */
+	private $trace = [];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+$message -> é a message de erro 
+
+
+
+
+$code --> é o error code 
+
+
+
+$file --> é a file onde o erro ocorreu
+
+
+$line --> o número da line em que aconteceu...
+
+
+
+
+
+
+
+
+
+
+-> O METHOD DE '__clone()'
+
+
+TEM ESTE FORMATO:
+
+
+
+	final private function __clone(): void { /* function body is hidden */ }
+
+
+
+
+
+
+
+
+
+--> ISSO QUER DIZER QUE 
+    _ NÃO PODEMOS CLONE/OVERRIDE 
+
+    EXCEPTION OBJECTS (por isso o 'final')...
+
+
+
+
+
+
+
+
+
+
+
+
+--> TEMOS O CONSTRUCTOR, TAMBÉM:
+
+
+
+
+
+	function __construct(string $message = "", int $code = 0, Throwable $previous = null) { /* function body is hidden */ }
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE VER, ELE ACEITA A MESSAGE,
+
+
+O CODE NUMBER,
+
+
+
+ E TAMBÉM '$previous',
+
+ que é de type 'Throwable',
+
+
+
+
+
+QUE NOS PERMITE __ PASSAR A 'PREVIOUS EXCEPTION'... ISSO É USADO 
+
+PARA 'LINK EXCEPTIONS TOGETHER'...
+
+
+
+
+
+
+
+
+
+MAIS PARA O FINAL, TEMOS ALGUNS METHODS COM 'final',
+
+O QUE QUER DIZER QUE 
+
+
+VC NAO PODE OVERRIDE ESSES METHODS,
+
+QUANDO VC FAZ 'EXTEND' DE ESSA CLASS DE  'Exception'..
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+	/**
+	 * Gets the Exception code
+	 * Returns the Exception code.
+	 * @return int Returns the exception code as `int` in Exception but possibly as other type in Exception descendants (for example as `string` in PDOException).
+	 */
+	final function getCode() { /* function body is hidden */ }
+
+	/**
+	 * Gets the file in which the exception was created
+	 * Get the name of the file in which the exception was created.
+	 * @return string Returns the filename in which the exception was created.
+	 */
+	final function getFile(): string { /* function body is hidden */ }
+
+	/**
+	 * Get line number where the exception was created.
+	 * @return int Returns the line number where the exception was created.
+	 */
+	final function getLine(): int { /* function body is hidden */ }
+
+	/**
+	 * Returns the Exception message.
+	 * @return string Returns the Exception message as a string.
+	 */
+	final function getMessage(): string { /* function body is hidden */ }
+
+	/**
+	 * Returns previous Throwable (which had been passed as the third parameter of Exception::__construct()).
+	 * @return Throwable|null Returns the previous Throwable if available or `null` otherwise.
+	 */
+	final function getPrevious(): Throwable { /* function body is hidden */ }
+
+	/**
+	 * Gets the stack trace
+	 * Returns the Exception stack trace.
+	 * @return array Returns the Exception stack trace as an `array`.
+	 */
+	final function getTrace(): array { /* function body is hidden */ }
+
+	/**
+	 * Gets the stack trace as a string
+	 * Returns the Exception stack trace as a string.
+	 * @return string Returns the Exception stack trace as a string.
+	 */
+	final function getTraceAsString(): string { /* function body is hidden */ }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE SCROLLAMOS BEM PARA BAIXO,
+    ENCONTRAMOS A CLASS 
+
+    'Error', que implementa a inteface de 'Throwable'...
+
+
+
+
+
+
+EX:
+
+
+
+
+https://www.php.net/manual/en/exception.construct.php
+
+
+
+https://www.php.net/manual/en/class.error.php
+
+
+
+
+
+
+
+ESSA CLASS DE ERROR IMPLEMENTA 'THROWABLE', assim como 'Exception' o faz...
+
+
+
+
+
+class Error implements Throwable {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO, ISSO QUER DIZER QUE 
+
+
+
+
+    TANTO 
+
+
+    'EXCEPTION' E 'ERROR'
+
+    SÃO CLASSES, E TIPOS DE EXCEPTION 
+
+
+    QUE IMPLEMENTAM A INTERFACE DE 'Throwable'...
+
+
+
+
+
+
+
+
+QUAL A DIFERENÇA ENTRE AS 2?
+
+
+
+
+
+
+
+'Exception' class -->  É 
+                        A __ BASE CLASS_ PARA 
+
+                        TODAS AS EXCEPTIONS, INCLUSIVE 
+
+                        AS 'USER-DEFINED EXCEPTIONS'..
+
+
+
+
+
+'Error' class -->  É A BASE CLASS PARA 
+                    OS INTERNAL ERROR EXCEPTIONS DO PHP,
+                    DESDE O PHP 7....
+
+
+
+
+
+
+
+-> TANTO A CLASS DE 'EXCEPTION' COMO A CLASS DE 'ERROR'
+
+
+    IMPLEMENTAM ESSA INTERFACE DE 'THROWABLE',
+
+
+    QUE É 1 INTERFACE 
+    QUE 
+
+    NOS DEIXA  
+
+
+
+    ''CATCH''
+
+
+    TANTO EXCEPTIONS, COMO ERRORS,
+
+
+    USANDO A INTERFACE DE 'THROWABLE'....
+
+
+
+
+
+
+
+
+
+
+--> LOGO FALAREMOS MAIS SOBRE O CATCH DE ERRORS (com try-catch)..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... MAS COMO O PROFESSOR MENCIONOU,
+    O PHP TEM ALGUMAS BUILT-IN EXCEPTIONS 
+    QUE SÃO MAIS ESPECÍFICAS 
+
+
+    DO QUE 
+
+    'Exception'...
+
+
+
+
+
+
+
+
+--> POR EXEMPLO,
+
+
+    O QUE ESTAMOS TENTANDO FAZER, AQUI:
+
+
+
+
+
+        // If amount is equal or less than zero, throw an exception
+        if ($amount <= 0) {
+            throw new \Exception('Invalid invoice amount'); // This is the BASE exception class
+        }
+
+
+
+
+
+
+
+
+
+ESTAMOS TENTANDO FAZER O THROW DE 1 EXCEPTION PQ 
+
+
+O 
+GIVEN ARGUMENT É INVÁLIDO...
+
+
+
+
+--> PARA CASOS COMO ESTE,
+
+
+VC DEVE USAR A 
+
+EXCEPTION DE 
+
+
+'InvalidArgumentException()',
+
+
+
+
+PQ É EXATAMENTE O QUE ACONTECEU..
+
+
+
+
+
+ 
+
+
+
+
+
+ COM ISSO, QUANDO ACONTECER A EXCEPTION,
+
+
+
+ VC FICARÁ COM 1 MESSAGE 1 POUCO DIFERENTE:
+
+
+
+
+
+
+
+        // If amount is equal or less than zero, throw an exception
+        if ($amount <= 0) {
+            // throw new \Exception('Invalid invoice amount'); // This is the BASE exception class
+            throw new \InvalidArgumentException("Invalid invoice amount: $amount");
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE ABRIMOS O CÓDIGO DE 
+
+'InvalidArgumentException',
+
+
+
+FICAMOS COM ISTO:
+
+
+
+
+
+
+class InvalidArgumentException extends LogicException implements Stringable, Throwable
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> E SE CLICAMOS EM 'LogicException',
+
+
+    CONSTATAMOS QUE É APENAS OUTRA CLASS,
+
+    QUE FAZ O EXTEND DE 'Exception':
+
+
+
+
+    class LogicException extends Exception 
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSENCIALMENTE, TODAS AS EXCEPTIONS 
+    UTILIZAM A CLASS DE 'Exception' como base,
+
+    A NÃO SER QUE 
+
+
+    __ ELAS SEJAM __ OS INTERNAL ERRORS DO PHP...
+
+
+
+
+
+
+
+
+
+
+
+
+-_> PODEMOS ADICIONAR OUTRO CASE,
+
+PARA 'MISSING BILLING INFORMATION'....
+
+
+
+
+
+EX:
+
+
+
+
+
+
+        if (empty($this->customer->getBillingInfo())) {
+            throw new \InvalidArgumentException("Missing billing information");
+        }
+
+
+
+
+
+
+
+
+
+
+MAS O PROBLEMA, AQUI,
+
+
+É QUE 
+
+O USO DE 'InvalidArgumentException'
+
+NÃO FAZ SENTIDO,
+PARA ESSE CASO...
+
+
+
+
+
+
+
+
+
+
+
+N FAZ SENTIDO PQ O '$amount'
+
+que foi providenciado 
+
+é valid,
+
+
+
+e o que foi o verdadeiro problema 
+
+foi o
+
+
+
+OBJECT 'CUSTOMER',
+
+e seus conteúdos...
+
+
+
+
+
+
+
+
+
+---> PARA TENTAR EXPLICAR MELHOR O QUE CAUSOU 
+
+A EXCEPTION,
+
+
+PODEMOS TENTAR USAR 1 DAS AVAILABLE EXCEPTIONS,
+
+QUE A LIBRARY STANDARD DO PHP OFERECE...
+
+
+
+
+
+
+
+
+SÃO ELAS:
+
+
+
+
+
+
+
+
+
+- BadFunctionCallException 
+
+- BadMethodCallException 
+
+- DomainException 
+
+- InvalidArgumentException 
+
+- LengthException 
+
+- LogicException
+
+- OutOfBoundsException 
+
+- OutOfRangeException 
+
+- OverflowException 
+
+- RangeException 
+
+- RuntimeException 
+
+- UnderflowException 
+
+- UnexpectedValueException
+
+
+
+
+
+
+
+
+
+-> MAS SE NÃO CONSEGUIMOS ENCONTRAR 
+    NENHUMA EXCEPTION ADEQUADA,
+
+
+    PODEMOS 
+    SIMPLESMENTE FAZER 
+    O THROW 
+
+    DA 
+    'BASE EXCEPTION CLASS',
+
+
+    OU, ENTÃO,
+
+
+    DA 'LogicException', que é meio genérica...
+
+
+
+
+
+
+--> MAS ISSO NÃO NOS DIZ MT SOBRE A EXCEPTION...
+
+
+
+
+
+
+-> E SE FAZEMOS O THROW DA BASE EXCEPTION,
+    FICAMOS SÓ COM A ERROR MESSAGE GENÉRICA...
+
+
+
+
+
+
+
+->  É MELHOR SERMOS ESPECÍFICOS...
+
+
+
+
+
+
+-> SE VC NÃO CONSEGUE USAR OUTRA EXCEPTION,
+    NÃO TEM USE-CASE PARA OUTRO TIPO DE EXCEPTION,
+
+    VC SEMPRE PODE CRIAR 
+
+
+    UMA _ CUSTOM_ EXCEPTION,
+
+
+    E AÍ FAZER EXTEND DA FUNCTIONALITY
+     
+
+     DE OU A 'BASE EXCEPTION CLASS',
+
+     OU DE ALGUMA DAS EXTENDED EXCEPTION CLASSES...
+
+
+
+
+
+
+
+
+
+
+-> AQUI, PODEMOS CRIAR UMA CUSTOM EXCEPTION...
+
+
+
+
+
+
+
+
+
+-> PODEMOS CHAMAR NOSSA CUSTOM EXCEPTION DE 'MissingBillingInfoException'..
+
+
+
+
+
+
+
+
+
+
+--> BASTA CRIAR ESSA CUSTOM EXCEPTION E ENTÃO FAZER 'EXTENDS'
+    DA BASE EXCEPTION CLASS ('Exception').
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+namespace App16;
+
+
+// Custom Exception, created by us. Needs to extend the base Exception class to be throwable.
+class MissingBillingInfoException extends \Exception
+{
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO SERÁ USADO O CONSTRUCTOR DA 'Exception' class
+BASE,
+
+
+deixamos essa class sem constructor mesmo...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ, LÁ NA PARTE DO CÓDIGO EM QUE TÍNHAMOS O IF,
+
+ESCREVEMOS ASSIM:
+
+
+
+
+    public function process(float $amount): void
+    {
+
+        // If amount is equal or less than zero, throw an exception
+        if ($amount <= 0) {
+            // throw new \Exception('Invalid invoice amount'); // This is the BASE exception class
+            throw new \InvalidArgumentException("Invalid invoice amount: $amount"); // This is a exception class that extends the base class.
+        }
+
+
+        if (empty($this->customer->getBillingInfo())) {
+            // throw new \InvalidArgumentException("Missing billing information"); // * This is not suited for this specific use-case, so we create a new exception class.
+            throw new MissingBillingInfoException("Missing billing information"); // * This is our custom exception class.
+        }
+
+
+        echo 'Processing $' . $amount . ' invoice - ';
+
+        sleep(1);
+
+        echo 'OK ' . PHP_EOL;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS, AQUI,
+FICAMOS COM 1 PROBLEMA..
+
+
+
+
+
+
+
+SE GOSTARÍAMOS DE FAZER THROW DE ESSA EXCEPTION EM OUTROS 
+LUGARES DE NOSSO CÓDIGO,
+
+PRECISARÍAMOS REPETIR ESSA ERROR MESSAGE 
+
+500 vezes de novo....
+
+
+
+
+--> COMO TEMOS ESSA CUSTOM EXCEPTION CLASS,
+    PODEMOS MOVER ESSA ERROR MESSAGE 
+    AÍ, PADRONIZADA,
+
+    PARA DENTRO 
+
+    DA CUSTOM CLASS,
+
+    TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+namespace App16;
+
+
+// Custom Exception, created by us. Needs to extend the base Exception class to be throwable.
+class MissingBillingInfoException extends \Exception
+{
+    // Custom exception message
+    protected $message = "Missing billing information"; // this will be set as the exception message
+
+}
+
+
+
+
+
+
+
+
+
+COM ISSO, EVITAMOS A DUPLICATION DE CÓDIGO...
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO...
+
+
+
+
+
+
+
+MAS O QUE ACONTECE, QUANDO TEMOS 1 EXCEPTION 
+
+ATIRADA, DENTRO DO CÓDIGO?
+
+
+
+
+
+
+
+-> ''WHEN AN EXCEPTION IS THROWN AND THERE IS NO CATCH BLOCK,
+    THE EXCEPTION WILL 'BUBBLE-UP' THE CALL STACK,
+    TO THE ORIGINAL CALLING FUNCTION, UNTIL IT FINDS THE MATCHING 
+    CATCH BLOCK... IF NO CATCH BLOCK IS FOUND, IT WILL LOOK FOR THE 
+    GLOBAL EXCEPTION HANDLER... IF THE GLOBAL EXCEPTION HANDLER 
+    IS NOT SET, IT WILL SIMPLY STOP THE EXECUTION, WITH 
+
+    __ A FATAL_ ERROR...''
+
+
+
+
+
+
+--> FALAREMOS SOBRE O 'CATCH BLOCK'
+
+
+E o 
+
+
+'GLOBAL EXCEPTION HANDLER'....
+
+
+
+
+
+
+
+
+---> FALAREMOS SOBRE OS 2...
+
+
+
+
+
+
+
+
+
+
+
+-> MAS O IMPORTANTE, AQUI, É A MENSAGEM DE EXCEPTION/ERROR:
+
+
+
+
+
+
+''Fatal error: Uncaught MissingBillingInfoException: Missing 
+                                                    billing information 
+                                                    in ...''
+
+
+
+
+
+--> temos esse 'Uncaught',
+
+    o que significa que podemos usar um 
+
+    TRY CATCH BLOCK 
+
+    PARA CAPTURAR ESSE ERRO..
+
+
+
+
+
+
+--> PARA ADICIONAR 1 TRY CATCH BLOCK,
+
+    PODEMOS ESCREVER TIPO ASSIM:
+
+
+
+
+
+
+
+
+    try {
+
+    } catch() {
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+-> NO CASO, O 'catch()' 
+
+PRECISA ACEITAR O PARÂMETRO '$e',
+
+que 
+
+
+vai ser basicamente o error...
+
+
+
+
+
+
+
+
+--> PODEMOS ESCREVER TIPO ASSIM,
+
+EM VOLTA DO CALL DE '$invoice->process(25)':
+
+
+
+
+
+
+
+
+
+
+
+
+
+try {
+    $invoice->process(25); // No Exception 
+} catch (\App16\MissingBillingInfoException $e) {
+
+    echo 'Entered Catch Block';
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> um try block SEMPRE DEVE 
+
+TER OU:
+
+
+
+1) UM CATCH BLOCK 
+
+
+
+
+2) UM 'FINALLY' BLOCK...
+
+
+
+
+
+
+
+
+
+
+--> o finally block sempre é executado,
+    sem depender do enter no block de 'catch()'..
+
+
+
+
+
+
+
+--> O CATCH BLOCK É O QUE TE DEIXA 
+
+    FAZER COM QUE SEU SCRIPT CONTINUE 
+    FUNCIONANDO,
+
+    A NÃO SER QUE 
+
+    UMA EXCEPTION SEJA 
+
+    __tHROWN DE DENTRO 
+
+    DO CATCH BLOCK EM SI...
+
+
+
+
+
+
+-------> VC PODE GRACEFULLY HANDLE 
+        A EXCEPTION 
+
+
+        NO CATCH BLOCK,
+
+        POR MEIO 
+
+        DE AÇÕES COMO 
+
+        'LOGGING THE EXCEPTION SOMEWHERE' (sem crashar o app),
+
+         AO MESMO TEMPO QUE DEIXA O SCRIPT CONTINUAR COM 
+
+         SUA EXECUÇÃO....
+
+
+
+
+
+--> VC TAMBÉM PODE, EM VEZ DISSO, 
+    LOGGAR A EXCEPTION E FAZER RE-THROW DA MESMA EXCEPTION 
+    (vai parar a script execution )
+
+
+
+
+
+-> OU, ENTÃO, FAZER THROW DE UM TIPO DIFERENTE DE EXCEPTION,
+    DE DENTRO DO CATCH BLOCK....
+
+
+
+
+
+
+
+
+-> COMO VC PODE PERCEBER, NÓS RECEBEMOS 
+
+O OBJECT DE '$e',
+
+
+QUE SERÁ O EXCEPTION OBJECT...
+
+
+
+
+
+
+
+
+ESSE EXCEPTION OBJECT PODE SER USADO 
+PARA 
+
+OBTER 
+
+INFO SOBRE O ERROR...
+
+
+
+
+
+
+
+
+-> ALGUNS DOS METHODS, DENTRO DO ERROR OBJECT, SÃO:
+
+
+
+
+1) 'getMessage()' --> é o mais utilizado...
+
+
+
+
+
+2) getFile() 
+
+
+
+
+
+3) getLine() 
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+try {
+    $invoice->process(25); // No Exception 
+} catch (\App16\MissingBillingInfoException $e) { // We enter this if we get an exception.
+
+    echo 'Entered Catch Block';
+
+    $e->getMessage() . PHP_EOL; // 'getMessage()' is the most used method of the exception/error object.
+    $e->getFile() . PHP_EOL;
+    $e->getLine() . PHP_EOL;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok... 
+
+
+
+
+1 coisa a saber,
+
+sobre o catch block,
+
+é que 
+
+
+
+
+
+'$e' 
+
+
+
+
+
+ERA UMA VARIABLE QUE ERA 'REQUIRED'
+ 
+
+ ATÉ O PHP8....  MAS DEPOIS DO 
+
+
+ PHP8,
+
+
+ VC NÃO FICA COM 1 ERRO COM A AUSÊNCIA DESSA VARIABLE...
+
+
+
+
+ ELA É TOTALMENTE OPCIONAL...
+
+
+
+
+
+
+
+
+
+
+
+
+ -> VC SÓ PRECISA OBRIGATORIAMENTE ESCREVER ESSE '$e' 
+
+ NAS VERSÕES ANTERIORES AO PHP8....
+
+
+
+
+
+
+
+
+
+
+
+--> VC TAMBÉM PODE TER MÚLTIPLOS CATCH BLOCKS,
+NO SEU CÓDIGO...
+
+
+
+
+
+VC PODE USAR MÚLTIPLOS CATCH BLOCKS PARA 
+
+CONSEGUIR FAZER CATCH DE DIFERENTES TIPOS DE EXCEPTIONS,
+
+PARA AS HANDLAR DIFERENTEMENTE...
+
+
+
+
+
+
+
+
+
+PARA FAZER ISSO, PARA FAZER CATCH DE DIFERENTES TIPOS DE EXCEPTION,
+
+BASTA PASSAR 
+
+
+CADA TIPO DE EXCEPTION COMO PARAMETER DO CATCH,
+
+TIPO ASSIM:
+
+
+
+
+
+
+try {
+    $invoice->process(25); // No Exception 
+} catch (\App16\MissingBillingInfoException $e) { // We enter this if we get this kind of exception.
+
+    echo 'Entered Catch Block';
+
+    $e->getMessage() . PHP_EOL; // 'getMessage()' is the most used method of the exception/error object.
+    $e->getFile() . PHP_EOL;
+    $e->getLine() . PHP_EOL;
+} catch (\InvalidArgumentException) { // We enter this error block if we get this specific type of exception...
+    echo 'Invalid Argument exception';
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+UMA COISA QUE VC DEVE SABER, SOBRE 'MULTIPLE CATCH BLOCKS',
+
+É QUE 
+
+A CODE EXECUTION VAI CONTINUAR DEPOIS DO PRIMEIRO CATCH 
+
+
+BLOCK QUE É EXECUTADO, A NÃO SER QUE O CATCH BLOCK ITSELF 
+
+FAÇA O THROW DE 1 EXCEPTION...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:  
+
+
+
+'''IF WE THREW AN InvalidArgumentException
+    FROM INSIDE THE MissingBillingInfoException
+    catch block,
+
+    YOU COULD THINK THAT THE SECOND CATCH BLOCK WOULD 
+    CATCH THIS NEW THROWN EXCEPTION... 
+
+
+    _HOWEVER__, IT WILL __ NOT _ CATCH THIS 
+    NEW 'InvalidArgumentException', thrown from this 
+    previous MissingBillingInfoException error block...
+
+
+    IT WON'T CATCH IT BECAUSE, AS SOON AS THE FIRST 
+    CATCH BLOCK IS EXECUTED, PHP WILL SIMPLY 
+    __cONTINUE THE CODE EXECUTION ___OR____, IF 
+    AN EXCEPTION IS THROWN FROM INSIDE THE 
+    'MissingBillingInfoException' error block,
+
+    IT WILL SIMPLY BUBBLE UP IN THE STACK... then you 
+    would to add another catch block, higher up in the 
+    hierarchy, or then simply let this exception result 
+    in a Fatal Error...''
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO, MAS O QUE ACONTECE SE VC QUER 
+HANDLAR 
+
+2 EXCEPTION TYPES DA MESMA FORMA?
+
+
+
+
+
+
+--> BEM, AÍ BASTA ESCREVER ALGO ASSIM:
+
+
+try {
+    $invoice->process(25); // No Exception 
+} catch (\App16\MissingBillingInfoException | InvalidArgumentException) { // We enter this if we get this kind of exception.
+
+    echo 'Generic Catch Block entered';
+
+} 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE VC QUER CAPTURAR _ TODOS OS TIPOS DE EXCEPTION 
+
+EM 1 MESMO CATCH BLOCK,
+
+
+
+BASTA ESCREVER ASSIM (com a class genérica, que vai capturar tudo,
+                        pq todas as exception classes fazem EXTEND de essa class aí):
+
+
+
+try {
+    $invoice->process(25); // No Exception 
+} catch (\Exception) { // This will catch all type of exceptions... even custom ones....
+
+    echo 'Generic Catch Block entered';
+
+} 
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE VC QUER RODAR 1 CÓDIGO SEMPRE,
+    INDEPENDENTEMENTE DO ENTER OU NÃO 
+
+
+    NO BLOCK DE 'catch',
+
+
+    VC 
+
+
+    PODE USAR O 'finally' block,
+
+
+    TIPO ASSIM:
+
+
+
+
+    try {
+    $invoice->process(25); // No Exception 
+} catch (\Exception) { // This will catch all type of exceptions... even custom ones....
+
+    echo 'Generic Catch Block entered';
+
+} finally {
+        echo 'Finally block' . PHP_EOL;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ ESSE BLOCK SEMPRE SERÁ EXECUTADO,
+MESMO EM CASES DE SUCCESS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> UMA COISA A PERCEBER, SOBRE ESSE BLOCK,
+
+    É QUE SE VC 
+
+    TIVER __ 1 RETURN STATEMENT __ DENTRO 
+
+
+    DO 
+
+
+    'try' ou 'catch' blocks,
+
+
+
+    ESSE RETURN VAI 
+
+    RETORNAR __ O VALUE APENAS __ APÓS __ 
+
+
+    O FINALLY BLOCK SER EXECUTADO...
+
+
+
+
+
+
+-> ENTRETANTO, SE VC TEM O RETURN STATEMENT DENTRO 
+    DO 'FINALLY' BLOCK,
+
+    AÍ __ AMBOS RETURNS SERÃO EXECUTADOS,
+
+    MAS O 
+    VALUE VAI SER RETORNADO APENAS DO 
+
+    block de 'finally'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> DEVEMOS VER 1 EXEMPLO..
+
+
+
+
+
+
+
+
+-> O PROFESSOR 
+    PEGA TODO O CÓDIGO DE TRY-catch-finally 
+
+
+    DENTRO 
+
+
+    DE 1 FUNCTION CHAMADA DE 'process',
+
+
+    em Invoice:
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+ 
+
+
+
+ function process() {
+        try {
+            $invoice->process(25);
+        } catch (\Exception $e) {
+            echo $e->getMessage() . PHP_EOL;
+        } finally {
+            echo 'Finally block' . PHP_EOL;
+        }
+ }  
+
+
+
+
+
+
+
+
+
+
+
+
+ --> AÍ FAZEMOS O RETURN DE 'true' 
+    NO TRY BLOCK... (indicando que o invoice foi successfully processed)
+
+
+
+
+-> AÍ FAZEMOS O RETURN DE 'false' 
+
+    no catch block,
+    para indicar 
+    que tudo deu errado...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+ function process() {
+        try {
+            $invoice->process(25);
+
+            return true;
+
+        } catch (\Exception $e) {
+            echo $e->getMessage() . PHP_EOL;
+
+            return false; 
+        } finally {
+            echo 'Finally block' . PHP_EOL;
+        }
+ }  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO... AÍ EXECUTAMOS ESSE CÓDIGO:
+
+
+
+
+var_dump(process());
+
+
+
+ function process() {
+        try {
+            $invoice->process(25);
+
+            return true;
+
+        } catch (\Exception $e) {
+            echo $e->getMessage() . PHP_EOL;
+
+            return false; 
+        } finally {
+            echo 'Finally block' . PHP_EOL;
+        }
+ }  
+
+
+
+
+
+
+
+
+
+
+
+
+-> COM ISSO, 
+
+
+O PRINT FICA TIPO ASSIM:
+
+
+
+
+
+Processing $25 invoice - OK 
+Finally block 
+bool(true)
+
+
+
+
+
+
+
+
+
+--> QUER DIZER, ENTÃO, 
+    QUE O FINALLY BLOCK 
+
+    FOI EXECUTADO __ ANTES_,
+
+
+    E QUE 
+
+    ELE AINDA É EXECUTADO ANTES DO RETURN FINAL,
+
+    DO BLOCK DE 'try'...
+
+
+
+
+
+
+
+
+-> AGORA VAMOS TRIGGAR 1 EXCEPTION, PARA QUE 
+    O RETURN STATEMENT 
+
+
+    DO CATCH BLOCK SEJA EXECUTADO, EM VEZ DO RETURN DO 'TRY'
+    STATEMENT..
+
+
+
+
+
+para triggar essa exception, basta 
+
+colocar o value de '$invoice->process()' como -25...
+
+
+
+
+
+EX:
+
+
+
+
+
+
+var_dump(process());
+
+
+
+ function process() {
+        try {
+            $invoice->process(-25); // AQUI...
+
+            return true;
+
+        } catch (\Exception $e) {
+            echo $e->getMessage() . PHP_EOL;
+
+            return false; 
+        } finally {
+            echo 'Finally block' . PHP_EOL;
+        }
+ }  
+
+
+
+
+
+
+
+
+
+
+
+O RESULTADO DISSO É QUASE O EXATO MESMO DE ANTES (com a diferença apenas no bool value):
+
+
+
+
+
+Processing $25 invoice - OK 
+Finally block 
+bool(false)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+AGORA DEVEMOS ADICIONAR O RETURN STATEMENT NO FINALLY BLOCK...
+
+
+
+
+
+--> VAMOS RETORNAR 1 VALUE DE '-1',
+
+LÁ NO FINALLY BLOCK...
+
+
+
+
+
+tipo assim:
+
+
+
+var_dump(process());
+
+
+
+ function process() {
+        try {
+            $invoice->process(-25); // AQUI...
+
+            return true;
+
+        } catch (\Exception $e) {
+            echo $e->getMessage() . PHP_EOL;
+
+            return false; 
+        } finally {
+            echo 'Finally block' . PHP_EOL;
+
+            return -1;
+        }
+ }  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ --> COM ISSO, FICAREMOS COM ESTE PRINT:
+
+
+
+Invalid invoice amount
+Finally block 
+int(-1)
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+
+
+FICAREMOS APENAS COM O PRINT DE 'return -1',
+
+
+
+MESMO QUE O CATCH BLOCK TENHA SIDO TAMBÉM EXECUTADO...
+
+
+
+
+
+
+--> O CATCH BLOCK FOI EXECUTADO,
+    MAS O VALUE RETORNADO PELO CATCH BLOCK NÃO 
+    FOI RETORNADO...
+
+
+    (ISSO ACONTECE SE VC TEM 1 RETURN STATEMENT 
+    NO FINALLY BLOCK... o value do finally block 
+
+    VAI SER RETORNADO EM VEZ DOS RETURN VALUES 
+
+
+    DE TRY/CATCH...
+     )
+
+
+
+
+
+
+
+
+
+
+--> O CÓDIGO DENTRO DO CATCH AINDA É EXECUTADO, 
+    MAS O RETURN VALUE 
+
+    NÃO É RETORNADO...
+
+
+
+
+
+
+
+RESUMINDO:
+
+
+
+
+
+
+
+
+'''WHAT HAPPENS WHEN AN EXCEPTION IS THROWN IS:
+    IT WILL BUBBLE UP THE CALL STACK UNTIL IT FINDS 
+    THE MATCHING CATCH BLOCK... IT WILL EXECUTE 
+    ALL THE 'finally' blocks ALONG THE WAY, AND 
+    IF AN EXCEPTION IS NOT CAUGHT, IT WILL EXECUTE 
+    THE GLOBAL EXCEPTION HANDLER, IF IT IS SET...
+
+    IF IT IS NOT SET, IT WILL SIMPLY RESULT IN A 
+    FATAL ERROR''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... AGORA FALAREMOS SOBRE O SET DO GLOBAL 
+    EXCEPTION HANDLER....
+
+
+
+
+
+
+
+
+--> PARA SETTAR UM 'GLOBAL EXCEPTION HANDLER',
+
+
+VC DEVE ESCREVER ASSIM:
+
+
+
+
+
+
+
+
+
+// * This is how you can set a global exception handler:
+set_exception_handler(function (\Throwable $e) { // We can also set a global exception handler.
+    echo 'Entered Global Exception Handler';
+});
+
+
+
+
+
+
+
+
+
+
+
+É ESSA FUNCTION DE 'set_exception_handler'...
+
+
+
+
+
+-> ELA ACEITA 1 ÚNICO ARGUMENTO,
+QUE É ESSA CALLBACK FUNCTION...
+
+
+
+
+
+--> ESSA FUNCTION RECEBE 1 ÚNICO ARGUMENT, QUE É 
+    '$e',
+
+    QUE É 
+
+    O OBJECT/EXCEPTION 
+
+    QUE ESTÁ SENDO THROWN...
+
+
+
+
+
+---> E NÓS FAZEMOS TYPE HINTING DISSO, COM A INTERFACE DE 'Throwable'..
+
+
+
+
+
+
+--> A RAZÃO PARA ISSO É QUE 
+
+        ___ NEM __ TODAS EXCEPTIONS FAZEM EXTEND DA CLASS BASE 
+
+        DE EXCEPTION, 'Exception'...
+
+
+
+
+
+
+--> ISSO PQ EXCEPTIONS EXISTEM NO PHP DESDE A VERSÃO 5,
+    MAS AS EXCEPTIONS DO PHP5 ERAM BEM WEAK,
+
+    E O PHP ESTAVA GERANDO SEUS PRÓPRIOS INTERNAL ERRORS,
+    SEM USAR EXCEPTIONS...
+
+
+
+
+
+--> ISSO QUER DIZER QUE VC NÃO ERA CAPAZ DE CAPTURAR ESSE TIPO DE ERRORS
+    COMO VC CONSEGUIA FAZER CATCH DE EXCEPTIONS... VC ERA OBRIGADO 
+        A DEFINIR CUSTOM ERROR HANDLERS...
+
+
+
+
+---> MAS O PHP7 E 8 MUDARAM A MANEIRA PELA QUAL ERRORS SÃO REPORTED...
+
+
+
+
+
+--> A MAIOR PARTE DOS ERRORS AGORA SÃO REPORTED POR MEIO 
+    DO THROW DAS EXCEPTIONS DE 'Error'...
+
+
+
+
+
+--> É POR ISSO QUE ATUALMENTE TEMOS 2 TIPOS DE EXCEPTIONS:
+
+
+
+
+1) THE REGULAR EXCEPTIONS, WHICH CAN BE USER-DEFINED OR ARE ALREADY 
+    BUILT-IN PHP EXCEPTIONS 
+
+
+
+
+
+2) ERROR EXCEPTIONS...
+
+
+
+
+
+
+
+
+---> ANTES DE CONTINUARMOS COM O GLOBAL EXCEPTION HANDLER,
+    DEVEMOS VER A HIERARQUIA 
+
+    DE EXCEPTIONS NO PHP:
+
+
+
+
+    https://www.php.net/manual/en/language.errors.php7.php
+
+
+
+
+
+
+A HIERARQUIA É BASICAMENTE ASSIM:
+
+
+
+
+
+
+Throwable 
+    Error 
+        ArithmeticError 
+            DivisionByZeroError 
+        
+        AssertionError
+        CompileError
+                ParseError 
+            
+        TypeError
+            ArgumentCountError 
+    
+        ValueError
+        UnhandledMatchError
+        FiberError 
+
+    Exception
+        ...
+
+
+
+
+
+
+
+
+
+You can catch both exceptions and errors by catching(Throwable)
+
+
+
+
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE TODOS ELES USAM A INTERFACE DE 'Throwable'...
+
+
+
+
+You can catch both exceptions and errors by catching(Throwable)
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AS EXCEPTIONS QUE CRIAMOS TAMBÉM SÃO CAPTURADAS 
+    POR 'Throwable'....
+
+
+
+
+--> E É EXATAMENTE POR ISSO QUE 
+    TEMOS QUE USAR O 'Throwable'
+
+    LÁ NO GLOBAL EXCEPTION HANDLER...
+
+
+
+
+
+
+
+--> SE NÓS FAZEMOS TYPEHINT DA CLASS 
+
+DE 'Exception' no global error handler,
+
+CONSEGUIREMOS FAZER CATCH 
+APENAS 
+
+
+DAS EXCEPTIONS, E NÃO DOS ERRORS...
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE DEFINIMOS COMO 'Throwable'...
+
+
+
+
+
+SE VC ESTIVER NO PHP 7 OU ANTERIOR,
+
+
+A MANEIRA CORRETA É COM 
+
+
+''''
+
+// * This is how you can set a global exception handler:
+set_exception_handler(function (\Exception $e) { // We can also set a global exception handler.
+    echo 'Entered Global Exception Handler';
+});
+
+
+''''
+
+
+
+
+
+
+MAS FORA ISSO,
+
+VC SEMPRE DEVE USAR '\Throwable`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VC VAI VER PESSOAS FAZENDO CATCH DE TODOS OS ERRORS,
+
+COM ALGO COMO 
+
+
+
+
+catch(\Throwable $e) {
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+A EXCEPTION HANDLER FUNCTION É BEM ÚTIL 
+
+SE VC QUER PROVIDENCIAR ALGUM TIPO DE 'GLOBAL EXCEPTION HANDLING'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+---> VC TBM TEM QUE SABER QUE 
+    O PHP8 MUDOU A MANEIRA PELA QUAL ALGUNS 
+    DOS ERRORS SÃO REPORTADOS 
+    NO PHP...
+
+
+
+
+
+
+
+
+
+--> UM MONTE DAS INTERNAL WARNINGS E ERRORS 
+    ANTIGOS DO PHP, ANTES DO PHP8,
+
+    AGORA TRIGGAM EXCEPTIONS...
+
+
+
+
+
+
+
+
+--> ISSO É UMA BOA COISA, PQ 
+    NAS VERSÕES ANTERIORES DO PHP, 
+    VC NÃO PODIA FAZER CATCH DE ESSES ERRORS 
+
+    FAZENDO TRY-CATCH BLOCKS,
+    E AGORA VC PODE...
+
+
+
+
+
+
+
+
+
+    ---> VC PODE ESTAR SE PERGUNTANDO:
+
+
+
+    ''VC NÃO PODE FAZER RETURN DE ALGUNS DEFAULT VALUES, EM VEZ 
+        DE FAZER THROW DE EXCEPTIONS???''
+
+    
+
+
+
+
+    tipo fazer 'return;'
+
+
+
+
+    PARA IMPEDIR A EXECUÇÃO,
+
+    E, ANTES DISSO, FAZER O LOG EM ALGUM TIPO DE STORAGE,
+
+    TIPO ASSIM:
+
+
+
+
+
+    if ($amount <= 0) {
+        log('some error');
+
+        return;
+    }
+
+
+
+
+
+
+
+
+
+
+
+--> VC N PODERIA FAZER ISSO?
+
+
+
+
+
+
+
+-> A RESPOSA É SIM, VC PODERIA FAZER ISSO,
+    SE ESSES CASES SÃO KINDOF EXPECTED...
+
+
+
+
+
+--> SE VC ESPERA QUE SEJA OK TER 1 VALUE IGUAL OU MENOR DO QUE 0,
+    É CLARO QUE VC PODE TER ESSE RETURN STATEMENT COM O LOG ANTERIOR AO RETURN..
+
+
+
+
+    --> AÍ, NESSE CASO, VC PODERIA FAZER O HANDLING DE EXCEPTION 
+    EM ALGUM OUTRO LUGAR DO CÓDIGO...
+
+
+
+
+
+
+
+    --> MAS SE ESSE FOR REALMENTE UM EXCEPTIONAL BEHAVIOR,
+    E VC N DEVE CONTINUAR COM A CODE EXECUTION, SE O VALUE FOR INVÁLIDO,
+
+    AÍ ESSA EXCEPTION DEVE REALMENTE SER THROWN...
+
+
+
+
+    --> VC DEVE PENSAR SE 'THE EXCEPTION SHOULD BE THROWN OR NOT'...
+
+
+
+
+
+    ** SE É UM EXCEPTIONAL BEHAVIOR --> A EXCEPTION DEVE SER THROWN...
+
+
+    ** SE É ALGO QUE É ALLOWED E EXPECTED --> VC PODE USAR 1 RETURN STATEMENT, OU FAZER OUTRA COISA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ANTES DE TERMINARMOS, O PROFESSOR QUER MOSTRAR OUTRO 
+    EXEMPLO DE EXCEPTIONS QUE PODEMOS ENCONTRAR EM ALGUNS FRAMEWORKS/CODEBASES...
+
+
+
+
+
+
+
+
+
+
+''YOU CAN EVENTUALLY COME ACROSS 
+    SOME CUSTOM EXCEPTIONS, IN SOME CODEBASES AND FRAMEWORKS,
+    THAT LOOK LIKE THIS:''
+
+
+
+
+
+
+
+
+'''CUSTOM EXCEPTION CLASSES WITH STATIC METHODS 
+    THAT _ ACT__ LIKE __ FACTORIES (KINDOF), TO CREATE 
+    OBJECTS OF EXCEPTIONS...''
+
+
+
+
+
+
+TIPO ALGO ASSIM:
+
+
+
+
+if (empty($this->customer->getBillingInfo())) {
+    throw CustomException::missingBillingInfo();
+}
+
+
+
+
+
+
+
+
+
+
+-> e isso é uma practice BEM COMMON...
+
+
+
+
+
+
+
+--> 1 RAZÃO DE ISSO SER ÚTIL É CASES EM QUE 
+
+
+''''YOU DON'T WANNA BE TOO SPECIFIC 
+    ABOUT YOUR CUSTOM EXCEPTIONS'''...
+
+
+
+
+
+
+PQ É CLARO QUE 
+
+ISTO AQUI:
+
+
+
+''     throw CustomException::missingBillingInfo(); '''
+
+
+
+É MENOS ESPECÍFICO 
+
+
+DO QUE 
+
+
+UMA EXCEPTION CLASS/OBJECT COMO ESTE:
+
+
+
+
+
+ ''''' throw new MissingBillingInfoException(); '''''
+
+
+
+
+
+
+
+
+
+ ISSO É SUPER ESPECÍFICO, AINDA MAIS 
+
+ PQ 
+
+ FICAMOS COM A MESSAGE DE error HARDCODADA dentro da class...
+
+
+
+
+
+
+--> EM ALGUNS CASES, 
+ISSO É FINE,
+
+MAS EM ALGUNS CASOS, VC VAI QUERER TER 1 GENERIC EXCEPTION 
+
+QUE É 
+
+RELACIONADA COM SEU DOMAIN/INVOICES...
+
+
+
+
+
+--> POR EXEMPLO,
+
+
+PODERÍAMOS 
+
+USAR/CRIAR 1 EXCEPTION ESPECÍFICA PARA INVOICES,
+
+MAS AÍ COM VÁRIOS TIPOS DE EXCEPTION CREATION CLASSES DIFERENTES,
+
+DENTRO DESSA CUSTOM EXCEPTION CLASS..
+
+
+TIPO ASSIM:
+
+ 
+
+
+
+if (empty($this->customer->getBillingInfo())) {
+    throw InvoiceException::missingBillingInfo();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, COM ISSO, PODEMOS CRIAR ESSA CLASS TIPO ASSIM: 
+
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace App16;
+
+class InvoiceException extends \Exception
+{
+
+    // STATIC METHOD
+    public static function missingBillingInfo(): static
+    {
+        return new static('Missing Billing Info');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+AÍ, AO FAZERMOS ISSO, TUDO VAI CONTINUAR COMO ANTES,
+
+
+
+MAS TEREMOS ESSE tipo de throw de exception, bem específica,
+
+dentro de uma exception class menos específica...
+
+
+
+
+
+
+
+
+
+
+E PODEMOS COLOCAR MAIS TIPOS DE EXCEPTIONS ESPECÍFICAS,
+
+DENTRO DE 'InvoiceException',
+
+tipo assim:
+
+
+
+
+
+<?php
+
+namespace App16;
+
+class InvoiceException extends \Exception
+{
+
+    // STATIC METHOD
+    public static function missingBillingInfo(): static
+    {
+        return new static('Missing Billing Info');
+    }
+
+
+    public static function invalidAmount(): static
+    {
+        return new static('Invalid Amount');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, DEPOIS, CHAMARÍAMOS ESSA EXCEPTION, ASSIM:
+
+
+
+if ($amount =< 0) {
+    throw InvoiceException::invalidAmount();
+}
+
+
+if (empty($this->customer->getBillingInfo())) {
+    throw InvoiceException::missingBillingInfo();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+QUALQUER APPROACH É FINE...
+
+
+
+
+SE VC QUER SER MAIS ESPECÍFICO, VC PODE 
+
+DEFINIR CUSTOM EXCEPTIONS, 1 PARA CADA TIPO DE ERROR/EXCEPTION,
+
+OU 
+
+
+
+ENTÃO CRIAR 1 CLASS GENERAL DE EXCEPTION,
+
+
+EM QUE VC TERÁ CADA EXCEPTION ESPECÍFICA...
+

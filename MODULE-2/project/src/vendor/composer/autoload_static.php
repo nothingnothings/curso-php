@@ -36,6 +36,9 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
             'App4\\' => 5,
             'App3\\' => 5,
             'App2\\' => 5,
+            'App16\\' => 6,
+            'App15\\' => 6,
+            'App14\\' => 6,
             'App13\\' => 6,
             'App12\\' => 6,
             'App11\\' => 6,
@@ -96,6 +99,18 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
         array (
             0 => __DIR__ . '/../..' . '/inheritance-example',
         ),
+        'App16\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/OOP-error-handling-in-php-exceptions-and-try-catch-blocks',
+        ),
+        'App15\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/serialize-objects-and-serialize-magic-methods-3',
+        ),
+        'App14\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/serialize-objects-and-serialize-magic-methods-2',
+        ),
         'App13\\' => 
         array (
             0 => __DIR__ . '/../..' . '/serialize-objects-and-serialize-magic-methods',
@@ -117,6 +132,8 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
     public static $classMap = array (
         'App11\\Invoice' => __DIR__ . '/../..' . '/object-cloning-and-clone-magic-method/Invoice.php',
         'App13\\Invoice' => __DIR__ . '/../..' . '/serialize-objects-and-serialize-magic-methods/Invoice.php',
+        'App16\\Customer' => __DIR__ . '/../..' . '/OOP-error-handling-in-php-exceptions-and-try-catch-blocks/Customer.php',
+        'App16\\Invoice' => __DIR__ . '/../..' . '/OOP-error-handling-in-php-exceptions-and-try-catch-blocks/Invoice.php',
         'App2\\FancyOven' => __DIR__ . '/../..' . '/inheritance-example/FancyOven.php',
         'App2\\Toaster' => __DIR__ . '/../..' . '/inheritance-example/Toaster.php',
         'App2\\ToasterPro' => __DIR__ . '/../..' . '/inheritance-example/ToasterPro.php',
