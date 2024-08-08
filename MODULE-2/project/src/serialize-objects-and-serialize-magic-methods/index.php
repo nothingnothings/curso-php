@@ -9,7 +9,10 @@ namespace App13;
 require_once '../../src/vendor/autoload.php'; // imports the composer's autoloader
 
 
-$invoice = new Invoice('example');
+use App13\Invoice;
+
+
+$invoice = new Invoice('example', 23.3, 'Invoice 1', '123456789');
 
 
 echo serialize(true) . PHP_EOL;
@@ -23,9 +26,27 @@ var_dump(unserialize(serialize(['a' => 1, 'b' => 2]))); // We can also unseriali
 
 
 
-echo serialize($invoice) . PHP_EOL;
+
+
+$serializedInvoice = serialize($invoice);
+
+echo $serializedInvoice . PHP_EOL . 'EXAMPLE2222';
+
+
+var_dump(unserialize($serializedInvoice));
 
 
 
 
-var_dump(unserialize('0:11:"App\Invoice": 1:{s:15:"id";s:21:"invoice_512124124das";}'));
+
+
+
+
+$str = serialize($invoice);
+
+$invoice2 = unserialize($str);
+
+var_dump($invoice, $invoice2, $invoice === $invoice2); // comparison will return false, always, because the objects are not the same, they point to different objects in memory.
+
+
+

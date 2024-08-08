@@ -582,3 +582,2004 @@ PHP Notice:  unserialize(): Error at offset 0 of 62 bytes in D:\PROJETO20-PHP-FR
 
 Notice: unserialize(): Error at offset 0 of 62 bytes in D:\PROJETO20-PHP-FROM-THE-GROUND-UP\MODULE-2\project\src\serialize-objects-and-serialize-magic-methods\index.php on line 31   
 bool(false)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CONSERTEI O PROBLEMA, COM ESSA VERSÃO MAIS LIMPA DO CÓDIGO:
+
+
+
+
+
+
+
+
+<?php
+
+
+
+namespace App13;
+
+
+
+require_once '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+use App13\Invoice;
+
+
+$invoice = new Invoice('example');
+
+
+echo serialize(true) . PHP_EOL;
+echo serialize(1) . PHP_EOL;
+echo serialize(2.5) . PHP_EOL;
+echo serialize('hello world') . PHP_EOL;
+echo serialize([1, 2, 3]) . PHP_EOL;
+echo serialize(['a' => 1, 'b' => 2]) . PHP_EOL;
+var_dump(unserialize(serialize(['a' => 1, 'b' => 2]))); // We can also unserialize the serialized array
+
+
+
+
+
+
+$serializedInvoice = serialize($invoice);
+
+
+echo serialize($serializedInvoice) . PHP_EOL;
+
+
+var_dump(unserialize($serializedInvoice));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-->  COM ISSO, COM ESSE CALL DE 'unserialize' nessa string,
+    ficamos com o object de volta,
+
+    como percebemos com este print:
+
+
+
+
+
+s:48:"O:13:"App13\Invoice":1:{s:2:"id";s:7:"example";}";
+object(App13\Invoice)#4 (1) {
+  ["id"]=>
+  string(7) "example"
+}
+
+
+
+
+
+
+
+
+
+
+
+
+--> CONSEGUIMOS O OBJECT DE VOLTA, COM O ID CORRETO....
+
+
+
+
+
+
+
+
+-> MAS 1 COISA QUE VC TEM QUE ENTENDER É QUE,
+ QUANDO VC FAZ 
+
+
+
+ 'UNSERIALIZE' DE 1 OBJECT,
+
+
+ O OBJECT RESULTANTE É ACTUALLY 
+
+
+ __ UM NOVO __ OBJECT...
+
+
+
+
+
+ ISSO QUER DIZER, EM OUTRAS PALAVRAS,
+
+ QUE ESSE OBJECT __ NÃO VAI APONTAR PARA A MESMA LOCATION, NA MEMORY, 
+
+ QUE O ORIGINAL OBJECT APONTAVA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA DEMONSTRAR ISSO,
+
+
+
+
+
+
+
+
+O PROFESSOR FAZ OUTRO SERIALIZE de '$invoice',
+
+
+
+
+e aí roda comparações com o '===' (strict comparison operator, identity operator):
+
+
+
+
+
+
+
+
+
+$str = serialize($invoice);
+
+$invoice2 = unserialize($str);
+
+var_dump($invoice, $invoice2, $invoice === $invoice2);
+
+
+
+
+
+
+
+
+
+É CLARO QUE A COMPARISON VAI 
+
+DAR 'FALSE',
+
+
+
+MESMO QUE OS 2 OBJECTS TENHAM OS MESMOS VALUES...
+
+
+PQ ELES REALMENTE __ NÃO SERÃO OS MESMOS OBJECTS....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+o que  foi printado foi isto:
+
+
+
+
+
+
+
+object(App13\Invoice)#2 (1) {
+  ["id"]=>
+  string(7) "example"
+}
+object(App13\Invoice)#4 (1) {
+  ["id"]=>
+  string(7) "example"
+}
+bool(false)
+
+
+
+
+
+
+
+
+
+
+
+
+MAS SE USÁSSEMOS SÓ '==',
+
+
+loose comparison,
+
+
+ficaríamos com true (pq os objects possuem os mesmos values )
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> com isso, DESCOBRIMOS OUTRO APPROACH 
+
+PARA CRIAR/CLONAR 1 NOVO OBJECT,
+
+ALÉM DE 
+
+'clone'...
+
+
+
+
+
+
+
+
+
+
+-> MAS QUAL A DIFERENÇA ENTRE 
+
+
+COPIAR OBJECTS COM 'clone'
+
+
+e 
+
+
+
+CRIAR/COPIAR OBJECTS COM 'SERIALIZE' e 'UNSERIALIZE'?
+
+
+
+
+
+
+
+
+SERIALIZE/UNSERIALIZE 
+
+
+VS 
+
+CLONE 
+
+
+
+
+
+
+
+
+
+
+CLONE ->  COM 'clone', a keyword de 'clone',
+
+            O COPYING QUE É FEITO É  'SHALLOW COPYING'...
+
+
+
+
+
+SERIALIZE/UNSERIALIZE --> É UTILIZADO PARA FAZER 
+                            ''DEEP COPYING''...
+
+
+
+
+
+
+
+
+
+
+
+
+QUER DIZER QUE SERIALIZE E UNSERIALIZE SÃO USADAS 
+PARA FAZER 
+
+DEEP CLONING DE OBJECTS...
+
+(
+    MAS NÃO É TÃO COMUM...
+)
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR VAI MOSTRAR SHALLOW E DEEP COPYING EM OUTRA LESSON... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------> OUTRO DETALHE:
+
+
+
+
+
+'''YOU SHOULD __ NEVER_ EVER__ PASS __ UNTRUSTED DATA 
+    INTO 'unserialize()' functions...+.''
+
+
+
+
+
+
+VC NÃO DEVE FAZER ISSO PQ ISSO __ PODE SER EXPLOITADO,
+
+
+E AÍ PODE FAZER COM QUE _ CÓDIGO UNINTENDED SEJA EXECUTADO E LOADED,
+
+
+NO MOMENTO QUE O OBJECT É 'REINITIALIZED', DURANTE A UNSERIALIZATION....
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE, POR QUALQUER RAZÃO, NÃO FOR POSSÍVEL 
+    FAZER O UNSERIALIZE DA STRING,
+
+
+    O METHOD VAI RETORNAR 'false',
+
+    E, AO MESMO TEMPO,
+
+
+    DAR THROW DE UM  'NOTICE ERROR'...
+
+
+
+
+
+
+
+
+
+
+
+-> FICA TIPO 
+
+
+''Error at offset 60 of 60 bytes in....'''
+
+
+
+
+
+
+
+depois disso,
+
+
+ficamos com 'bool(false)',
+
+
+para esse mesmo failure...
+
+
+
+
+
+
+
+
+
+
+--> VC TAMBÉM PODE ENCONTRAR ALGUNS PROBLEMAS QUANDO 
+
+
+FAZ O 'unserialize' do value 'false',
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+$invoice = new Invoice();
+
+
+$str = serialize(false);
+
+
+var_dump(unserialize($str));
+
+
+
+
+
+
+
+ISSO VAI PRINTAR 'bool(false)'...
+
+
+
+
+COMO VC FICOU COM 'bool(false)',
+
+VC NÃO VAI 
+
+TER 
+
+CERTEZA 
+
+
+
+SE ISSO SIGNIFICA QUE 
+
+
+'''THE SERIALIZATION HAS FAILED''
+
+
+OU SE 
+A
+
+
+
+UNSERIALIZATION DEU CERTO E O 
+
+RESULTADO RETORNADO REALMENT FOI 'bool(false)'...
+
+
+
+
+
+
+
+
+
+
+COMO RESOLVER ESSA DÚVIDA?
+
+
+
+
+
+
+
+--> BASTA COMPARAR O VALUE DE '$str' 
+    COM O VALUE DE 'serialize(false)'...
+
+
+
+    SE AMBOS FOREM IGUAIS, 'EVERYTHING IS FINE' (não houve 
+    problemas com a serialization)
+
+
+
+
+
+
+
+-> OUTRA MANEIRA DE RESOLVER ISSO 
+
+    É COM O USO DE ERROR HANDLING, PARA ENTÃO 
+
+
+    FAZER 'CATCH' DO 'NOTICE ERROR',
+
+
+    E PARA ENTÃO HANDLAR ISSO DE UMA MANEIRA DIFERENTE....
+
+
+
+
+
+--------------------------------------
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+AGORA DEVEMOS PROSSEGUIR E 
+
+
+ESTUDAR 
+
+
+
+
+''SERIALIZATION-RELATED MAGIC METHODS''...
+
+
+
+
+
+
+
+
+
+
+MAGIC METHODS RELACIONADOS COM SERIALIZATION..
+
+
+
+
+
+
+
+
+
+--> TEMOS '__serialize()'
+
+
+
+
+e 
+
+
+'__unserialize()'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> DIGAMOS QUE QUEREMOS MUDAR A MANEIRA PELA QUAL 
+    OBJECTS SÃO SERIALIZED E UNSERIALIZED...
+    
+
+
+
+
+
+
+--> POR EXEMPLO, DIGAMOS QUE EM 'Invoice'
+
+temos 
+
+mais properties,
+
+
+como 
+
+
+'description', 'amount', 'creditCardNumber'...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+<?php
+
+namespace App13;
+
+class Invoice
+{
+    public string $id;
+    public float $amount;
+    public string $description;
+    public string $creditCardNumber;
+
+    public function __construct($id)
+    {
+        $this->id = $id;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, 
+TEMOS UMA QUESTÃO PARECIDA COM O '__clone()'
+
+magic method que vimos anteriormente..
+
+
+
+
+
+
+--> NO CASO, QUEREMOS QUE O METHOD DE 'serialize',
+
+    QUANDO CHAMADO NESSE NOSSO OBJECT,
+
+    FAÇA COM QUE APENAS ALGUMAS DE NOSSAS PROPERTIES 
+
+    APAREÇAM 
+
+
+    NO VALUE SERIALIZADO FINAL,
+
+
+    E NÃO TODAS ELAS... (queremos que 'creditCardNumber' não apareça, por exemplo)..
+
+
+
+
+
+
+
+
+
+
+-> PODERÍAMOS IMPLEMENTAR ISSO DE DIVERSAS MANEIRAS, É CLARO...
+
+
+
+
+
+
+
+
+
+
+-> UMA MANEIRA POSSÍVEL
+    SERIA O SIMPLES 
+
+    IMPLEMENT 
+
+    DA INTERFACE DE '\Serialize',
+
+
+    PARA ENTÃO 
+
+    IMPLEMENTARMOS OS MAGIC METHODS 
+
+
+    DE 
+
+    '__serialize()'
+
+
+    e 
+
+    '__unserialize()'..
+
+
+
+
+
+
+
+
+
+
+--> NO ENTANTO,
+    ESSA INTERFACE DE 'Serializable'
+
+    VAI SER DEPRECADA NO PHP 8.1,
+
+
+
+    E VAI SER REMOVIDA NO PHP 9...
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE O PROFESSOR NÃO 
+    VAI FALAR MT SOBRE 'SERIALIZABLE'..
+
+
+
+
+
+--> é por isso que o 
+    professor quer nos mostrar 
+
+
+    os magic methods de '__serialize()"
+
+
+    e '__unserialize()',
+
+    QUE 
+
+
+    BASICAMENTE FAZEM 
+
+    EXATAMENTE O QUE ESSA INTERFACE DE 'Serializable'
+
+    FAZ...
+
+
+
+
+
+
+
+
+
+
+
+
+--> REMOVEMOS AS PROPERTIES DE 
+
+
+'$amount', '$description' e '$creditCardNumber',
+
+
+
+PARA QUE 
+
+
+NÓS CONSIGAMOS AS PASSAR, COMO ARGUMENTS, AO CONSTRUCTOR DE 'Invoice'...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace App13;
+
+class Invoice
+{
+    public function __construct(
+        public string $id,
+        public float $amount,
+        public string $description,
+        public string $creditCardNumber
+    ) {
+        $this->id = $id;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+certo..
+
+
+
+
+
+
+
+NA VERDADE, TEMOS _ QUATRO__ MAGIC METHODS RELACIONADOS 
+
+A SERIALIZATION...
+
+
+
+
+
+
+
+
+
+
+
+--> OS MAGIC METHODS SÃO:
+
+
+
+
+1) __sleep() 
+
+
+
+
+
+2) __wakeup()
+
+
+
+
+3) __serialize()
+
+
+
+
+
+
+
+
+
+4) __unserialize()..
+
+
+
+
+
+
+
+
+
+
+
+-> FALAREMOS SOBRE 'SLEEP' E 'WAKEUP' ANTES...
+
+
+
+
+
+
+
+
+
+QUANDO SÃO CHAMADOS?
+
+
+
+
+
+
+
+
+
+
+
+'SLEEP' --> É CHAMADO _ ANTES__ DA SERIALIZATION ACONTECER...
+
+
+
+
+
+
+
+'WAKEUP' -> É CHAMADO __ DEPOIS __ DO OBJECT TER SIDO 
+                                    'UNSERIALIZED'....
+
+
+
+
+
+
+
+
+-> ISSO QUER DIZER QUE O MAGIC METHOD  DE 'sleep'
+
+    PODE SER USADO PARA __ HOOKAR 
+
+
+    NO 
+
+    'PRE-SERIALIZATION EVENT',
+
+
+    PARA ENTÃO TE DEIXAR 
+
+    ESCOLHER EXATAMENTE __ qUAIS PROPERTIES 
+
+
+    VC QUER SERIALIZE...
+
+
+
+
+
+
+--> PARA ISSO, O __sleep() magic method 
+
+    RETORNA UM __ ARRAY __ CONTENDO 
+
+    OS NOMES DAS __ PROPERTIES_ QUE 
+    VC QUER 
+
+    SERIALIZE...
+
+
+
+
+
+    EX: SE VC QUER SERIALIZAR APENAS 'id' e 'amount', 
+        ESCREVERÍAMOS O ARRAY ASSIM:
+        
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace App13;
+
+class Invoice
+{
+    public function __construct(
+        public string $id,
+        public float $amount,
+        public string $description,
+        public string $creditCardNumber
+    ) {
+    }
+
+
+    // This is the 'sleep()' magic method. It is related to serialization. It works/is called as a 'pre-serialization' hook... 
+    public function __sleep(): array
+    {
+        return ["id", "amount"]; // You choose which properties to serialize/return in the serialized format. The rest of the propertise won't be serialized/shown in the final result.
+        // description and creditCardNumber won't be serialized because they are not listed in the __sleep() method.
+
+
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CONFORME MENCIONADO ANTERIORMENTE,
+
+
+
+QUANDO VC FAZ SERIALIZE DE 1 OBJECT,
+
+
+
+VC NAO VAI CONSEGUIR SERIALIZAR TUDO... 
+
+
+ALGUMAS COISAS,
+
+COMO 'RESOURCES' E 'DATABASE CONNECTIONS'...
+
+
+
+
+
+
+
+
+
+
+
+
+OU, ENTÃO, VC PODE TER 1 OBJECT COMPLEXO,
+COM 1 MONTE DE DEPENDENCIES....
+
+
+
+
+
+
+
+-> NESSE CASO, O MAGIC METHOD DE '__wakeup()'
+    pode ser usado 
+
+
+    PARA 'RESTORE THOSE CONNECTIONS, RESTORE THOSE RESOURCES,
+          RESTORE THOSE DEPENDENCIES',
+
+
+            NO MOMENTO EM QUE 
+            O OBJECT É 
+
+            'UNSERIALIZED'...
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+    // This is the 'wakeup()' magic method. It is related to serialization. It works/is called as a 'post-unserialization' hook (called after the 'unserialize()' method is called using this object as argument)
+    public function __wakeup(): void
+    {
+
+    }
+
+
+
+
+
+
+
+
+
+
+ISSO TE AJUDA A RECUPERAR RESOURCES/COISAS QUE FORAM/SÃO PERDIDAS 
+
+DURANTE A SERIALIZATION..
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR QUER TESTAR ISSO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VOLTAMOS AO 'index.php'
+
+
+E O PROFESSOR 
+
+
+
+PASSA ALGUNS VALUES AO CONSTRUCTOR DE 'invoice',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+$invoice = new Invoice('example', 23.3, 'Invoice 1', '123456789');
+
+
+
+$serializedInvoice = serialize($invoice);
+
+echo $serializedInvoice . PHP_EOL . 'EXAMPLE2222';
+
+
+
+
+
+
+
+
+COMO RESULTADO DISSO,
+
+
+
+
+VEMOS 1 OUTPUT COMO ESTE:
+
+
+
+
+
+
+O:13:"App13\Invoice":2:{s:2:"id";s:7:"example";s:6:"amount";d:23.3;}
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE VER,
+
+
+
+
+APENAS AS PROPERTIES QUE FORAM PERMITIDAS ('id' e 'amount'),
+
+NO MAGIC METHOD DE '__sleep()',
+
+
+
+APARECERAM NESSE OUTPUT DE SERIALIZE FINAL...
+
+
+
+
+
+
+
+
+
+QUER DIZER QUE NOSSO MAGIC METHOD FUNCIONOU...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS AGORA 
+
+DEVEMOS VER OS OUTROS MAGIC METHODS,
+
+
+
+
+
+OS MAGIC METHODS DE 
+
+
+
+'__serialize()'
+
+
+e 
+
+'__unserialize()',
+
+
+
+QUE 
+
+
+SÃO 
+
+MAGIC METHODS ADICIONADOS 
+
+
+
+
+
+NO PHP 7.4...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+__SERIALIZE() E __UNSERIALIZE() 
+
+
+
+FORAM CRIADOS PARA 
+
+SOLUCIONAR 
+
+
+AS LIMITATIONS/PROBLEMS
+
+
+
+EXISTENTES 
+
+
+
+NOS MAGIC METHODS DE '__sleep()' e '__wakeup()',
+
+
+
+E TAMBÉM 
+
+
+
+LIMITATIONS  DA INTERFACE DE 'Serializable'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR DIZ QUE PODEMOS PENSAR NOS METHODS 
+
+
+
+DE '__serialize()' e '__unserialize()'
+
+
+
+COMO 1 COMBINAÇÃO 
+
+
+
+
+
+ENTRE 
+
+
+
+'SLEEP' E 'WAKEUP'
+
+
+E 
+
+_ A PRÓPRIA INTERFACE DE 'Serializable'...
+
+
+
+
+
+---------------------------------
+
+
+
+
+
+
+
+
+
+
+
+'__serialize()' --> TAMBÉM É CHAMADO 
+                    POUCO ANTES 
+
+                    DA ACTUAL SERIALIZATION DO OBJECT,
+
+                    EXATAMENTE COMO O MAGIC METHOD DE '__sleep()'..
+
+
+
+                    --> ELE TAMBÉM RETORNA 1 'ARRAY'...
+
+
+
+
+
+
+
+
+                   --> a diferença entre '__sleep()'
+                      e '__serialize()'
+
+
+
+
+                      é que:
+
+
+
+
+
+                      ''THE SLEEP METHOD MUST __ RETURN THE NAME OF 
+                      THE PROPERTIES THAT __MUST_ BE SERIALIZED''....
+
+
+
+
+
+
+                      JÁ O magic METHOD DE __serialize()
+
+                      FAZ ALGO DIFERENTE,
+
+
+
+                      E PRECISA ''RETURN 
+                                    AN ARRAY THAT 
+                                    REPRESENTS THE _OBJECT...''
+
+
+
+
+
+
+
+
+                -> NO CASO, 
+                    O ARRAY QUE É RETORNADO __ PODE SER 
+
+                    UM 'ASSOCIATIVE ARRAY',
+
+
+                    COM KEY-VALUE PAIRS,
+
+                    QUE PODERÁ CONTER 
+
+
+                    INFO ADICIONAL,
+
+
+
+                    ALÉM DAS CURRENT PROPERTIES 
+
+
+                    (
+
+                        QUER DIZER QUE TEMOS MAIS PODER/FLEXIBILIDADE,
+                        PQ 
+
+                        NÃO FICAMOS RESTRITOS APENAS 
+
+                        AO RETURN DE VALUES DENTRO DE 1 ARRAY,
+
+
+                        COMO ACONTECE COM o magic method de '__sleep()'...
+
+                    )
+
+
+
+
+
+ 
+
+                    -> ISSO TE DÁ MAIS CONTROLE SOBRE 'HOW YOUR OBJECT 
+                    GETS SERIALIZED'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+                --> ok... agora queremos, em '__serialize()',
+                DEFINIR 
+
+                QUAIS 
+
+                PROPERTIES DEVEM SER RETORNADAS...
+
+
+
+
+
+
+
+
+
+            -> PARA ISSO, BASTA ESCREVER ASSIM:
+
+
+
+
+    
+
+        public function __serialize(): array
+    {
+        return [
+            "id" => $this->id,
+            "amount" => $this->amount,
+            "description" => $this->description,
+            "creditCardNumber" => base64_encode($this->creditCardNumber),
+        ];
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    --> é claro que esse 'base64_encode'
+    É APENAS USADO PARA TESTS... EM PROJETOS GRANDES,
+
+    USAMOS OUTRAS COISAS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO... ALÉM DISSO,
+    ALÉM DAS PROPERTIES,
+
+    VC 
+
+    PODE SERIALIZE 
+
+    ALGUNS VALUES ADICIONAIS...
+
+
+
+
+
+
+
+
+
+    TIPO 
+
+    'foo' => 'bar';
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+    public function __serialize(): array
+    {
+        return [
+            "id" => $this->id,
+            "amount" => $this->amount,
+            "description" => $this->description,
+            "creditCardNumber" => base64_encode($this->creditCardNumber),
+            'foo' => 'bar'
+        ];
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... COM ISSO, AO RODARMOS '__serialize()',
+
+
+FICAMOS 
+
+COM ESSE EXATO RETURN AÍ,
+
+
+dos values de 'id' , 'amount', 'description, 'creditCardNumber' e 'foo',
+
+
+
+SEM PROBLEMA ALGUM...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS O INTERESSANTE, AQUI, É QUE O PROFESSOR 
+
+    NEM MESMO DELETOU O METHOD DE '__sleep()'...
+
+
+    ELE DEIXOU '__sleep()' e '__serialize()'
+
+
+    COEXISTINDO 
+
+    EM 1 MESMA CLASS...
+
+
+
+
+
+
+
+
+-_> COM ISSO, O MAGIC METHOD DE '__sleep()'
+
+NÃO FOI CALLED,
+
+
+
+MAS '__serialize()"
+ 
+ FOI CHAMADO...
+
+
+
+
+ 
+ -_> ISSO ACONTECEU PQ,
+    QUANDO 
+
+    VC TEM '__sleep()"
+
+
+    e 
+
+    '__serialize()' 
+
+
+    EM 1 MESMA CLASS,
+
+
+
+    O '__serialize()'
+
+    terá 
+    a preferencia,
+    e será executado...
+
+
+
+
+
+
+
+--> O MESMO SE APLICA 
+
+
+PARA O METHOD DE '__wakeup()'
+
+e 
+
+
+'
+__unserialize()'..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO QUER DIZER, EM OUTRAS PALAVRSA,
+
+    QUE OS MAGIC METHODS DE '__sleep()'
+
+    e 
+    '__wakeup'
+
+    SÃO REDUNDANTES,
+
+    E PODEMOS NOS LIVRAR DELES...
+
+
+
+
+
+
+------------------------
+
+
+
+
+
+
+
+
+O MAGIC METHOD DE '__unserialize()'
+
+
+É CHAMADO 
+
+SOMENTE DEPOIS DO OBJECT TER SIDO UNSERIALIZED...
+
+
+
+
+
+
+
+
+
+
+WAKEUP 
+
+
+VS 
+
+
+
+
+UNSERIALIZE ...
+
+
+
+
+
+
+
+
+
+
+--> A DIFERENÇA ENTRE OS 2 É 
+
+
+QUE 
+
+
+'__unserialize()'
+
+
+
+ RECEBE _ A DATA__ QUE FOI 'SERIALIZED'
+
+
+
+ COMO PARAMETRO DELA... ----->  QUER DIZER QUE 
+
+
+ PODEMOS 'RESTORE THE STATE OF OUR OBJECT',
+
+
+ USANDO ESSA DATA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+ PARA ISSO, ESCREVEMOS ASSIM:
+
+
+
+
+ <?php
+
+namespace App13;
+
+class Invoice
+{
+    public function __construct(
+        public string $id,
+        public float $amount,
+        public string $description,
+        public string $creditCardNumber
+    ) {
+    }
+
+
+    // This is the 'sleep()' magic method. It is related to serialization. It works/is called as a 'pre-serialization' hook... 
+    public function __sleep(): array
+    {
+        return ["id", "amount"]; // You choose which properties to serialize/return in the serialized format. The rest of the propertise won't be serialized/shown in the final result.
+        // description and creditCardNumber won't be serialized because they are not listed in the __sleep() method.
+
+
+    }
+
+    // This is the 'wakeup()' magic method. It is related to serialization. It works/is called as a 'post-unserialization' hook (called after the 'unserialize()' method is called using this object as argument)
+    public function __wakeup(): void
+    {
+
+    }
+
+
+
+    // * 'SERIALIZE()' and 'UNSERIALIZE()'  are better/more used than 'SLEEP()' and 'WAKEUP()', because they are more flexible and can be used for more things.
+
+    // This is the 'serialize()' magic method. It is related to serialization.
+    public function __serialize(): array
+    {
+        return [
+            "id" => $this->id,
+            "amount" => $this->amount,
+            "description" => $this->description,
+            "creditCardNumber" => base64_encode($this->creditCardNumber),
+            'foo' => 'bar'
+        ];
+    }
+
+
+    // This is the 'unserialize()' magic method. It is related to serialization.
+    public function __unserialize(array $data): void
+    {
+        $this->id = $data['id'];
+        $this->amount = $data['amount'];
+        $this->description = $data['description'];
+
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> DENTRO DE 'unserialize()',
+
+
+
+O PROFESSOR QUER FAZER UNSERIALIZE... 
+
+ANTES, NO ENTANTO,
+
+ELE VAI GET ACCESS à DATA QUE FOI SERIALIZED ANTERIORMENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+    // This is the 'unserialize()' magic method. It is related to serialization.
+    public function __unserialize(array $data): void
+    {
+        // * Basically restores the object's state from the data that was serialized.
+        var_dump($data);
+        $this->id = $data['id'];
+        $this->amount = $data['amount'];
+        $this->description = $data['description'];
+        $this->creditCardNumber = base64_decode($data['creditCardNumber']);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+AÍ, COM ISSO, PODEMOS FAZER QUALQUER COISA QUE QUISERMOS,
+
+DENTRO DE 'unserialize()",
+
+
+PARA 
+
+
+
+
+
+MANIPULAR A DATA DO JEITO QUE QUISERMOS...
+
