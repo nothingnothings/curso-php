@@ -1384,4 +1384,1588 @@ depois, temos 'key':
 
 
 
-3) 'KEY(o)'
+3) 'KEY()'
+
+
+
+
+
+
+
+--> ESSE METHOD DEVE SIMPLSEMENTE 
+
+    'RETURN THE KEY OF THE CURRENT ELEMENT 
+    OF AN ARRAY'...
+
+
+
+
+--> PARA ISSO, ESCREVEMOS TIPO ASSIM:
+
+
+"return key($this->invoice);"
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+    public function key(): mixed {
+        return key($this->invoices);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS TEMOS 'valid':
+
+
+
+
+
+
+
+
+
+
+
+
+4) 'VALID()'
+
+
+---> esse method 
+
+        'CHECKS IF THE CURRENT POSITION IS VALID.
+            IF THIS METHOD RETURNS FALSE, THE 
+            FOREACH LOOP WILL END...''
+
+    
+    --> HÁ VÁRIAS MANEIRAS DE REALIZAR ESSE CHECK,
+        MAS UMA MANEIRA BEM COMUM 
+
+        É 
+        USAR 'current()',
+
+        PARA FICAR COM O CURRENT ELEMENT DO ARRAY... SE ISSO 
+        RETORNA 'false', 
+
+        O ELEMENTO É 'NO LONGER VALID',
+         O QUE FAZ O LOOP ACABAR...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+    public function valid(): bool {
+        return current($this->invoices) !== false; // CHECKS IF THE CURRENT POSITION IS VALID. IF THIS METHOD RETURNS FALSE, THE FOREACH LOOP WILL END
+        
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+POR FIM, O ÚLTIMO METHOD QUE 
+PRECISA SER IMPLEMENTADO 
+
+
+
+
+É O METHOD DE 'rewind()':
+
+
+
+
+
+
+
+
+
+
+5) 'REWIND()':
+
+
+
+    --> ''THIS GETS CALLED AT THE BEGINNING 
+            OF THE FOREACH LOOP. IT RESETS THE 
+            __ 'ARRAY POINTER' BACK TO THE BEGINNING OF IT...''
+
+
+        --> para isso, PODEMOS USAR A BUILT-IN FUNCTION DO 
+        PHP, 'reset()', PARA RESETTAR ESSE ARRAY...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NA SUA FORMA COMPLETA, NOSSA CLASS FICA ASSIM:
+
+
+
+
+
+
+
+<?php
+
+
+
+
+namespace App17;
+
+
+
+
+// If we want to iterate over some of the properties of this object, we need to implement the Iterator/IteratorAggregate interfaces
+class InvoiceCollection implements \Iterator
+{
+    public function __construct(public array $invoices)
+    {
+
+    }
+
+
+    public function current(): mixed {
+        
+        echo __METHOD__ . PHP_EOL; // this will print the current method's name
+        return current($this->invoices); // RETURN THE _ CURRENT ELEMENT/INVOICE, FROM THE '$invoices' list/array....
+    } 
+
+    public function next(): void {
+        echo __METHOD__ . PHP_EOL;
+        next($this->invoices); // BRINGS THE INTERNAL POINTER TO THE __ NEXT ELEMENT
+    }
+    
+    public function key(): mixed {
+        echo __METHOD__ . PHP_EOL;
+        return key($this->invoices); // RETURNS THE KEY OF THE CURRENT ELEMENT OF AN ARRAY
+    }
+    
+    public function valid(): bool {
+        echo __METHOD__ . PHP_EOL;
+        return current($this->invoices) !== false; // CHECKS IF THE CURRENT POSITION IS VALID. IF THIS METHOD RETURNS FALSE, THE FOREACH LOOP WILL END
+        
+    }
+    
+    public function rewind(): void {
+        echo __METHOD__ . PHP_EOL;
+        reset($this->invoices); // THIS GETS CALLED AT THE BEGINNING OF THE FOREACH LOOP. IT RESETS THE  __ 'ARRAY POINTER' BACK TO THE BEGINNING OF IT
+    }       
+}
+
+
+
+
+
+
+
+
+
+
+RODAMOS NOSSO CÓDIGO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+foreach ($invoiceCollection as $invoice) {
+
+    echo $invoice->id . ' - ' . $invoice->amount . PHP_EOL;
+}
+
+
+
+
+
+
+FIQUEI COM ESTE PRINT:
+
+
+
+
+App17\InvoiceCollection::rewind
+App17\InvoiceCollection::valid 
+App17\InvoiceCollection::current
+836667 - 15
+App17\InvoiceCollection::next   
+App17\InvoiceCollection::valid  
+App17\InvoiceCollection::current
+142205 - 25
+App17\InvoiceCollection::next
+App17\InvoiceCollection::valid
+App17\InvoiceCollection::current
+746642 - 50
+App17\InvoiceCollection::next
+App17\InvoiceCollection::valid
+
+
+
+
+
+
+
+
+
+
+
+--> COMO VC PODE OBSERVAR, ACONTECE:
+
+
+
+
+1) O CALL DE 'rewind()' (resetta o pointer do array)
+
+
+
+
+2) O CALL DE 'valid()' (significa que o loop vai continuar)
+
+
+
+3) O CALL DE 'current()'  (significa que o loop vai retornar o current object)
+
+
+
+4) O VALUE DO ACTUAL ID DO OBJECT, COM O AMOUNT (6801951 - 15) 
+
+
+
+5) O CALL DE 'next()'  (significa que PULA-SE para o PRÓXIMO ITEM DO ARRAY)...
+
+
+
+6) O CALL DE 'valid()' (significa que o loop vai continuar)
+
+
+
+
+7) O CALL DE 'current()' (significa que o loop vai retornar o current object)..
+
+
+
+...
+
+rewind
+valid 
+current
+
+
+next 
+valid 
+current 
+
+next 
+valid
+current 
+
+next 
+valid 
+current
+
+
+...
+
+next  (retorna false, no final)
+valid (Retorna false, no final)
+
+
+
+
+
+
+--> como 'next()' e 'valid()' retornam false,
+    ao final,
+
+    o LOOP FINALMENTE PARA...
+
+
+
+
+
+
+
+
+
+
+
+--> COMO VC PODE VER,
+    ACABAMOS DE IMPLEMENTAR 
+
+    UM 
+
+    'CUSTOM ITERATOR',
+
+
+
+    POR MEIO DE UMA 'CUSTOM INVOICE COLLECTION' (class),
+
+
+    EM QUE 
+
+    FICAMOS CAPAZES DE 
+
+
+    'ITERATE OVER OUR INVOICE COLLECTION',
+
+
+    TUDO USANDO O FOREACH LOOP, PARA ACESSAR 
+
+    ESSES 'INVOICE OBJECTS'...
+
+
+
+
+
+
+
+
+
+
+-> MAS É CLARO QUE 
+    PRECISARÍAMOS 
+
+
+    FAZER BUILD DE MAIS ALGUNS METHODS 
+
+
+
+    NA CLASS DE 'InvoiceCollection' para torná-la 
+
+    mais útil,
+
+
+
+    COMO 'is_empty()',
+
+
+
+    'count()',
+
+
+    'sorting()',
+
+
+    etc...
+
+
+
+
+
+-> MAS PERCEBA QUE TAMBÉM PODERÍAMOS TER USADO UM 'index' 
+    ou uma position property, em vez de ter usado 
+
+    as built-in functions do php (
+        em vez de usar 
+        'current', 'next', 'key' e 'reset'...
+    )
+
+
+
+
+
+
+
+
+--> OU SEJA, PODERÍAMOS TER CRIADO 
+    1 PROPRIEDADE 
+
+
+    de 'private int $pointer',
+
+
+
+    algo assim,
+
+
+    E AÍ 
+
+
+
+    _PODERÍAMOS 
+
+
+    RODAR 
+
+
+
+    OS METHODS COM 1 ESCRITA DIFERENTE, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+// If we want to iterate over some of the properties of this object, we need to implement the Iterator/IteratorAggregate interfaces
+class InvoiceCollection implements \Iterator
+{
+
+
+    private int $pointer;
+
+
+
+    public function __construct(public array $invoices)
+    {
+
+    }
+
+
+    public function current(): mixed {
+        
+        echo __METHOD__ . PHP_EOL; 
+        return current($this->invoices[$this->key]); 
+    } 
+
+    public function next(): void {
+        echo __METHOD__ . PHP_EOL;
+        ++this->key;
+    }
+    
+    public function key(): mixed {
+        echo __METHOD__ . PHP_EOL;
+        return $this->key
+    }
+    
+    public function valid(): bool {
+        echo __METHOD__ . PHP_EOL;
+        return isset($this->invoices[$this->key])
+        
+    }
+    
+    public function rewind(): void {
+        echo __METHOD__ . PHP_EOL;
+        $this->key = 0;
+        }       
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE RECARREGARMOS O CÓDIGO, TUDO VAI FUNCIONAR 
+
+EXATAMENTE COMO ANTES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''IF YOU ARE ITERATING OVER SIMPLE ARRAYS LIKE THIS,
+    THEN IMPLEMENTING __ __ITERATORS, LIKE THIS ONE,
+    MIGHT __ BE OVERKILL___...''''
+
+
+
+
+
+
+
+
+--> ISSO PQ O PHP TEM 
+    1 PUNHADO 
+
+    DE BUILT-IN ITERATORS QUE 
+
+    PODERÍAMOS 
+    USAR,
+
+    NO LUGAR DISSO...
+
+
+
+
+
+
+
+
+
+--> A LISTA DE ITERATORS FICA AQUI:
+
+
+
+https://www.php.net/manual/en/spl.iterators.php
+
+
+
+
+
+
+
+
+
+
+
+ENCONTRAMOS UM MONTE DE ITERATORS, NESSA LISTA...
+
+
+
+
+
+
+SÃO ELES:
+
+
+
+
+
+
+
+
+AppendIterator
+ArrayIterator
+CachingIterator
+CallbackFilterIterator
+DirectoryIterator
+EmptyIterator
+FilesystemIterator
+FilterIterator
+GlobIterator
+InfiniteIterator
+IteratorIterator
+LimitIterator
+MultipleIterator
+NoRewindIterator
+ParentIterator
+RecursiveArrayIterator
+RecursiveCachingIterator
+RecursiveCallbackFilterIterator
+RecursiveDirectoryIterator
+RecursiveFilterIterator
+RecursiveIteratorIterator
+RecursiveRegexIterator
+RecursiveTreeIterator
+RegexIterator
+SPL provides a set of it
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OS MAIS IMPORTANTES SÃO:
+
+
+
+
+
+
+
+1) ArrayIterator 
+
+
+
+
+
+
+
+2) FilesystemIterator 
+
+
+
+
+
+
+
+3) DirectoryIterator
+
+
+
+
+
+
+
+4) RecursiveDirectoryIterator
+
+
+
+
+
+
+
+
+
+
+
+e assim por diante...
+
+
+
+
+
+
+
+
+----> o 'ArrayIterator'
+        será o tipo de 
+
+        ITERATOR USADO, PARA NOSSO CASE...
+
+
+
+
+
+
+
+
+
+
+-> NÓS ESSENCIALMENTE PODEMOS 
+
+USAR 'ArrayIterator'
+
+
+
+
+PARA SUBSTITUIR 
+
+
+
+TODO O NOSSO CÓDIGO ATUAL...
+
+
+
+
+
+
+
+
+
+
+
+--> A MANEIRA PELA QUAL PODEMOS FAZER ISSO 
+    É COM A INTERFACE 
+
+    DE 
+
+
+    'IteratorAggregate', mencionada anteriormente...
+
+
+
+
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+
+
+class InvoiceCollection implements \IteratorAggregate
+{
+    public function __construct(public array $invoices)
+    {
+
+    }
+
+    public function getIterator(): \Traversable {
+        return new \ArrayIterator($this->invoices);
+    }
+
+    public function count(): int {
+        return count($this->invoices);
+    } 
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESSA INTERFACE FAZ O ENFORCE 
+
+
+DE 1 ÚNICO METHOD,
+
+chamado de 'getIterator',
+
+
+QUE __ 
+
+
+VAI FAZER O RETURN DE 1 ÚNICO VALUE,
+
+QUE SERÁ 
+
+
+UM OBJECT DE TIPO 'Traversable'....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> COM ISSO, FINALMENTE PODEMOS USAR 
+
+UM DOS 'BUILT-IN SPL (Standard PHP Library)' ITERATORS,
+
+
+ou, então, USAR O NOSSO PRÓPRIO CUSTOM ITERATOR (que poderíamos ter 
+ABSTRACTED em 1 class diferente)....
+
+
+
+
+
+--> MAS SPL ITERATORS, vistos naquela lista,
+
+    SÃO SUFICIENTES PARA A GRANDE MAIORIA DOS CASOS...
+
+
+
+
+
+
+
+-> PARA ISSO, PARA FAZER ESSE METHOD DE 'getIterator'
+    funcionar,
+
+
+    vamos 
+
+    FAZER 1 RETURN DE 
+
+    'return new ArrayIterator',
+
+
+
+    TIPO ASSIM:
+
+
+
+
+
+    public function getIterator(): \Traversable {
+        return new \ArrayIterator($this->invoices);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+COM ISSO, COM ESSE CÓDIGO,
+
+
+SE REEXECUTARMOS O CÓDIGO DE 'index.php':
+
+
+
+
+
+
+
+
+
+
+
+foreach ($invoiceCollection as $invoice) {
+    echo $invoice->id . ' - ' . $invoice->amount . PHP_EOL;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+FICAMOS COM ESTE PRINT, NOVAMENTE:
+
+
+
+
+
+
+
+
+
+php index.php
+118997 - 15
+374077 - 25
+165969 - 50
+
+
+
+
+
+
+
+
+
+É EXATAMENTE O MESMO RESULTADO DE ANTES....
+
+
+
+
+
+
+
+RESUMO:
+
+
+
+
+
+
+
+'''BASICALLY, IF YOU ARE WORKING WITH SIMPLE ARRAYS 
+    AND YOU NEED THE ABILITY TO __ ITERATE__ OVER 
+    OBJECTS THAT DO CONTAIN A PROPERTY WITH AN 'ARRAY' VALUE,
+     THE 'IteratorAggregate' interface and its 'getIterator()'
+     METHOD MIGHT BE BETTER, SINCE YOU ONLY NEED TO WRITE 
+     AND IMPLEMENT A SINGLE METHOD (getIterator)....
+
+     BUT IF YOU NEED MORE CONTROL, AND YOU ARE NOT ITERATING OVER 
+     SIMPLE ARRAYS, YOU __ PROBABLY _ WILL NEED TO MAKE USE OF THE 
+     'Iterator' interface, instead...''''
+
+
+
+
+
+
+
+UM EXEMPLO DISSO É:
+
+
+
+
+'''IF YOU GO BACK TO THE DatePeriod class,
+    IF YOU HAD A SIMILAR CLASS, WITH SOME CUSTOM LOGIC 
+    ON IT, AND IF YOU WANTED IT TO BE ITERABLE, YOU WOULD 
+    PROBABLY WANT TO IMPLEMENT THAT 'Iterator' INTERFACE,
+    AND THEN WOULD WANT TO PROVIDE THE PROPER IMPLEMENTATIONS 
+    FOR THOSE METHODS...'''
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS E SE TIVÉSSEMOS OUTRA CLASS DE 'COLLECTION',
+COMO 'CustomerCollection',
+
+ou 
+
+    'PaymentProfileCollection', ou algo do gênero..
+
+
+
+
+
+
+SE ESSE FOSSE O CASO, VC CONCORDA QUE 
+
+TERÍAMOS DE DUPLICAR 
+
+
+ESTA PARTE DO CÓDIGO AQUI:
+
+
+
+
+'''''
+    public function getIterator(): \Traversable {
+        return new \ArrayIterator($this->invoices);
+    }
+
+'''
+
+
+
+
+
+
+
+MAS PARA EVITAR ISSO, PODERÍAMOS SIMPLESMENTE __ _EXTRAIR __ ESSA 
+PARTE DO CÓDIGO,
+
+PARA FORA DESSA CLASS,
+
+E ENTÃO 
+
+COLOCÁ-LA 
+
+
+
+
+EM 1 'BASE COLLECTION CLASS',
+
+
+
+
+
+uma class base de collection, que tenha esse method...
+
+
+
+(aqui faz mais sentido usar INHERITANCE e extends, em vez de traits,
+pq uma 'InvoiceCollection' __É__ uma COLLECTION...)
+
+
+
+
+
+
+
+
+
+
+
+tipo assim:
+
+
+ 
+
+
+
+
+
+ // TODO - SAME AS ABOVE, BUT WITH 'extends' and inheritance, to avoid duplication of code (the 'getIterator' method):
+class InvoiceCollection extends Collection
+{
+    public function __construct(public array $invoices)
+    {
+        parent::__construct($invoices);
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+E, NA BASE CLASS, ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php 
+
+
+
+
+namespace App17;
+
+class Collection implements \IteratorAggregate
+{
+    public function __construct(public array $items)
+    {
+        
+    }
+    
+    public function getIterator(): \Traversable {
+        return new \ArrayIterator($this->items);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+RENOMEAMOS 'invoices' para 'items',
+
+
+pq é mais genérico,
+
+pq será uma 
+BASE CLASS...
+
+
+
+
+
+
+
+
+-> também podemos nos livrar do constructor de 'InvoiceCollection',
+
+
+pq o argumento de 'invoices' (os items) já será passado, automaticamente,
+
+à parent class...
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+
+// TODO - SAME AS ABOVE, BUT WITH 'extends' and inheritance, to avoid duplication of code (the 'getIterator' method):
+class InvoiceCollection extends Collection
+{
+    // ! This, the constructor, is implicitly inherited from the 'Collection' class, so we don't need to define it again.
+    // public function __construct(public array $invoices)
+    // {
+    //     parent::__construct($invoices);
+    // }
+
+
+
+    // * Outsourced to the 'Collection' class, to avoid duplication of code:
+    // public function getIterator(): \Traversable {
+    //     return new \ArrayIterator($this->invoices);
+    // }
+}
+
+
+
+
+
+
+
+
+
+
+
+MAS ANTES DE TERMINARMOS ESTE VÍDEO, DEVEMOS FALAR SOBRE __ TYPE HINTING...
+
+
+
+
+
+
+
+
+
+'''LET'S SAY THAT  
+    WE HAD A FUNCTION/METHOD THAT 
+    EXPECTED AN ARGUMENT 
+
+    THAT IS EITHER AN ARRAY/COLLECTION 
+
+    OR ANY TYPE THAT CAN BE ITERATED OVER...''''
+
+
+
+
+
+
+
+
+POR EXEMPLO,
+
+uma function como esta:
+
+
+
+
+
+
+
+
+function foo($iterable) {
+
+    foreach($iterable as $item) {
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK, MAS COMO PODEMOS 'TYPEHINT'
+
+    ISSO AÍ?
+
+
+
+
+
+
+
+
+-> se tentamos fazer typehint como array:
+
+
+
+
+
+function foo(array $iterable) {
+
+    foreach($iterable as $item) {
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE DEIXAMOS ISSO COMO 'ARRAY'
+ 
+    E TENTAMOS FAZER O PASS DE 1 COLLECTION,
+
+
+    COMO 'Collection' ou 'InvoiceCollection',
+
+
+
+
+ISSO VAI FALHAR... (pq SÃO OBJECTs, e não ARRAYS)
+
+
+
+
+
+
+
+
+
+
+
+-> MAS SE FIZERMOS TYPEHINT DE ISSO COMO 'Collection' 
+
+    E PASSARMOS 1 ARRAY, 
+
+    ISSO VAI FALHAR TAMBÉM (pq arrays não são iguais aos objects da class
+     'Collection' customizada, que criamos anteriormente)
+
+
+
+
+
+
+
+
+
+--> GRAÇAS AO PHP8,
+    PODEMOS SOLUCIONAR ESSE PROBLEMA,
+
+    COM O 
+
+    USO DO 'UNION TYPES',
+
+
+
+    COM O PIPE OPERATOR, TIPO ASSIM:
+
+
+
+
+
+function foo(Collection|array $iterable) {
+
+    foreach($iterable as $item) {
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO FUNCIONARIA, SIM...
+
+
+MAS O PROBLEMA É 
+
+''WHAT IF YOU HAD OTHER TYPES OF ITERATORS,
+    THAT ARE __NOT __ of type 'Collection' or OF TYPE 
+    'array...??''
+
+
+
+
+
+-> VC SERIA FORÇADO A DEFINIR 1 MONTE DE PIPES ALI,
+    PARA DEFINIR MAIS TYPES...
+
+
+
+
+
+
+
+
+--> PARA RESOLVER ISSO,
+
+O PHP 7.1 INTRODUZIU UM NOVO PSEUDO TYPE,
+
+
+CHAMADO 
+
+
+DE 
+
+'iterable',
+
+
+QUE VC PODE USAR PARA 'TYPEHINT' 
+
+ 
+
+ TODOS OS ITERABLE TYPES...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+function foo(iterable $iterable) {
+
+    foreach($iterable as $item) {
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+function foo(iterable $iterable) { // Example of typehinting arrays/Collection/InvoiceCollection and ANY OTHER ITERABLE OBJECT TYPES... (and arrays, also)....
+
+    foreach($iterable as $i => $item) {
+
+        echo 'PRINTED' . $i . PHP_EOL;
+    }
+}
+
+
+
+foo($invoiceCollection);  
+foo([1, 2, 3, 4, 5]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E ESSE PRINT FICA TIPO ASSIM:
+
+
+
+
+
+
+
+PRINTED0
+PRINTED1
+PRINTED2
+PRINTED0
+PRINTED1
+PRINTED2
+PRINTED3
+PRINTED4
+
+
+
+
+
+
+
+
+
+
+
+--> E ISSO REALMENTE FUNCIONA, APLICA O TYPEHINTING PARA TODO TIPO DE COISA 
+    QUE É 'LOOPED OVER'...
+
+
+
+
+
+
+
+
+
+-> PRONTO...
+
+
+
+
+
+
+
+ACABAMOS COM ESSE VÍDEO...
+
+
+
+
+
+
+
+
+
+A MAIOR VANTAGEM DE ITERATORS 
+
+É QUE 
+
+ELES PERMITEM 'LAZY-LOADING',
+
+
+E, COM ISSO ,
+
+
+REDUZEM MEMORY USAGE....
+
+
+
+
+VEREMOS ISSO MAIS TARDE NO CURSO,
+
+QUANDO ESTUDARMOS O TÓPICO DE 'Generators',
+
+com a keyword de 'yield'...
+
+
+
+
+
