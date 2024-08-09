@@ -1,0 +1,1387 @@
+
+
+
+
+
+
+
+
+
+
+TEMOS ESTE CÓDIGO INICIAL:
+
+
+
+
+
+
+
+
+
+<?php
+
+require_once '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+foreach (['a', 'b', 'c', 'd', 'e'] as $key => $value) {
+    echo '' . $key . '' . $value . '' . PHP_EOL;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COMO VC SABE, PODEMOS 
+
+
+
+
+
+rodar o for each loop para loopar 
+
+por dentro desse array e printar todos os values dele...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> E É CLARO QUE O 'forEach', NO PHP,
+    FUNCIONA TAMBÉM COM OBJECTS...
+
+
+    --> COM OBJECTS, O FOREACH ITERATES OVER  
+        ALL VISIBLE/ACCESSIBLE PROPERTIES OF THE 
+        OBJECT...
+
+
+
+
+
+
+
+
+PARA TESTAR ISSO, TEMOS A CLASS DE 'Invoice',
+TIPO ASSIM:
+
+
+
+
+<?php
+
+
+
+
+namespace App17;
+
+
+class Invoice
+{
+    public string $id;
+
+
+    public function __construct(public float $amount)
+    {
+        $this->id = random_int(1000, 999999);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TEMOS 2 PUBLIC PROPERTIES...
+
+
+
+
+
+
+
+-> A PRIMEIRA É UM 'GENERATED ID',
+
+E A SEGUNDA É UM 'AMOUNT',
+
+
+
+QUE DEVE SER PASSADO, COMO ARGUMENTO, DESSE OBJECT...
+
+
+
+
+
+
+
+
+
+
+-> AÍ, LÁ NO CÓDIGO DE index.php,
+PODEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+
+// * Usage of foreach to loop over an object's PUBLIC properties:
+$invoice = new \App17\Invoice(100.00);
+
+foreach ($invoice as $key => $value) {
+    echo '' . $key . ' = ' . $value . '' . PHP_EOL;
+}
+
+
+
+
+
+
+
+
+
+FICAMOS COM 1 PRINT ASSIM:
+
+
+
+
+
+id = 26713
+amount = 100
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, CONSEGUIMOS ACESSAR AS KEYS E VALUES 
+
+
+DENTRO DESSE OBJECT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS SE VC TIVER PROPERTIES COMO 'protected', isso não funciona...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+namespace App17;
+
+
+class Invoice
+{
+    public string $id;
+
+    protected string $propertyThatWontBeIteratedOver;
+
+
+    public function __construct(public float $amount)
+    {
+        $this->id = random_int(1000, 999999);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO AÍ, NO CASO,
+    NÃO É MT ÚTIL, E TBM NÃO É MT PERFORMANT...
+
+
+
+
+
+
+
+
+
+
+
+
+OK.... MAS ''WHAT IF WE COULD ITERATE OVER OBJECTS  
+                IN A SPECIFIC WAY, MAYBE ITERATE OVER 
+                AN ARRAY PROPERTY, WHICH IS INSIDE OF THIS 
+                OBJECT, OR HAVE A WAY TO __DEFINE __ HOW 
+                THIS OBJECT SHOULD BE ITERATED OVER...''
+            
+
+
+
+
+
+
+---> E ISSO É BEM POSSÍVEL NO PHP...
+
+
+
+
+
+
+
+
+
+
+--> E NÓS VIMOS UM EXEMPLO DISSO NA AULA ANTERIOR,
+    QUANDO FALAMOS SOBRE A CLASS DE 'DatePeriod'...
+
+
+
+
+
+
+COM ESTE CÓDIGO AQUI:
+
+
+
+
+foreach($period as $date) {
+    echo $date->format('m/d/Y') . PHP_EOL;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NO CASO, SOMOS/FOMOS CAPAZES  
+
+
+DE 'ITERATE OVER  DatePeriod objects'...
+
+
+
+
+
+E AÍ, AO FAZERMOS ITERATE EM CIMA DESSES OBJECTS AÍ,
+
+ESTÁVAMOS CONSEGUINDO 'EACH INDIVIDUAL DATE'
+como 
+
+value,
+
+tipo assim:
+
+
+
+
+PRINT:
+
+
+
+
+
+05/04/2021
+05/07/2021
+05/10/2021
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE ABRIMOS A DEFINTION DA CLASS DE 'DatePeriod',
+    PERCEBEMOS QUE ELA _ IMPLEMENTA A INTERFACE 
+
+    DE 
+
+    ''Traversable'',
+
+    TIPO ASSIM:
+
+
+
+
+'''
+
+
+class DatePeriod implements IteratorAggregate {
+
+    '''
+
+
+
+
+
+
+
+
+
+
+
+(esse 'IteratorAggregate' é tipo o 'Traversable'...)
+
+
+
+
+DatePeriod implements IteratorAggregate now. Previously, Traversable was implemented instead.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ''Traversable'' --> É SIMPLESMENTE UMA INTERFACE INTERNA DO PHP,
+                            ''THAT IS JUST A BASIC INTERFACE,
+                            THAT LETS CLASSES BE TRAVERSABLE, USING 
+                            THE FOREACH LOOP'''....
+
+
+
+
+
+
+
+
+
+
+
+
+
+    -> A INTERFACE É TIPO ASSIM:
+
+
+
+
+    Traversable {
+
+
+    }
+
+
+
+
+
+
+--> É UMA EMPTY INTERFACE, BASICAMENTE...
+
+
+
+
+
+
+
+''This interface has no methods, its only purpose is to be the base interface 
+for all traversable classes''...
+
+
+
+
+
+
+
+
+
+
+--> É APENAS UMA BASE INTERFACE QUE OUTRAS 2 INTERFACES,
+    CHAMADAS DE 'IteratorAggregate' e 'Iterator' 
+    USAM PARA FAZER 'EXTEND'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ANTERIORMENTE, 'DatePeriod' usava 'Traversable',
+
+    MAS AGORA USA 'IteratorAggregate'....
+
+
+
+
+
+
+
+
+
+
+--> E O PROFESSOR NOS EXPLICA QUE PODEMOS 
+
+
+
+
+USAR 'Iterator' ou 'IteratorAggregate'
+
+
+PARA DEFINIR 'HOW OBJECTS OF CLASSES SHOULD BE ITERATED'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> DIGAMOS QUE 
+
+
+
+''''WE WANT TO HAVE A CLASS TO REPRESENT THE LIST OF 
+    INVOICE OBJECTS... AND THEN MAYBE HAVE SOME METHODS THAT 
+    WORK ON THOSE OBJECTS, AND SO ON....''''
+
+
+
+
+
+
+
+
+
+
+
+--> PARA CRIAR ESSA CLASS,
+PODEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+$invoiceList = new InvoiceList();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE VC JÁ USOU UM FRAMEWORK COMO 'LARAVEL',
+
+O USO DA ESCRITA DE 'invoiceList'
+
+
+TE SERÁ FAMILIAR...
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR MUDA O NOME, PARA 'InvoiceCollection'..
+
+
+
+
+EX:
+
+
+
+
+
+
+$invoiceCollection = new InvoiceCollection();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+ESSA COLLECTION CLASS 
+
+
+
+VAI ACEITAR __ 1 LISTA DE INVOICES NO CONSTRUCTOR,
+
+POR ISSO 
+
+
+PODEMOS 
+
+
+
+CRIAR 1 ARRAY TIPO ASSIM:
+
+
+
+
+<?php
+
+require_once '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+use App17\Invoice;
+
+
+
+
+$invoiceCollection = new $invoiceCollection([new Invoice(15.0), new Invoice(25.0), new Invoice(50)]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+AÍ CRIAMOS ESSA CLASS de 'InvoiceCollection',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+namespace App17;
+
+
+
+
+
+class InvoiceCollection
+{
+    public function __construct(public array $invoices)
+    {
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... FICAMOS COM 1 PROPERTY 'public',
+
+DE NOME 'invoices'... que é 
+
+
+preenchida quando instanciamos 'InvoiceCollection'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... AGORA QUEREMOS FAZER 'LOOP OVER'
+    ESSA PROPERTY DE '$invoices',
+
+    EXATAMENTE COMO ESTÁ AGORA..
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+$invoiceCollection = new InvoiceCollection([new Invoice(15.0), new Invoice(25.0), new Invoice(50)]);
+
+
+
+foreach ($invoiceCollection as $invoice) {
+    echo '' . $key . ' = ' . $value->amount . '' . PHP_EOL;
+}
+
+
+
+
+
+
+
+
+
+
+OK... EXECUTO ISSO AÍ...
+
+
+
+
+
+
+
+
+
+
+
+MAS ISSO ME DÁ UM ERROR...
+
+
+
+
+OS ERRORS SÃO ESTES:
+
+
+
+
+
+
+
+PHP Warning:  Attempt to read property "amount" on float in D:\PROJETO20-PHP-FROM-THE-GROUND-UP\MODULE-2\project\src\php-iterables-and-iterable-type-iterate-over-objects\index.php on line 32
+
+Warning: Attempt to read property "amount" on float in D:\PROJETO20-PHP-FROM-THE-GROUND-UP\MODULE-2\project\src\php-iterables-and-iterable-type-iterate-over-objects\index.php on line 32
+amount =
+
+
+
+
+
+
+
+
+
+
+
+
+-> NO caso, ele está tentando acessar a property de 'amount' em 1 data type 
+de float.... é isso que está causando o error...
+
+
+
+
+
+
+
+
+
+
+
+
+-. O QUE O 'foreach'  ESTÁ TENTANDO FAZER É 'ITERATE OVER ALL VISIBLE PROPERTIES 
+OF THE 'invoiceCollection'...
+
+
+
+
+------> E O 'InvoiceCollection' tem apenas 1 única property pública,
+        '$invoices'....
+
+
+
+
+
+
+
+
+
+
+
+
+
+mas podemos var_dumpar com isto:
+
+
+
+
+
+
+
+
+
+
+foreach ($invoiceCollection as $invoice) {
+    var_dump($invoice);
+
+    echo '' . $key . ' = ' . $value->amount . '' . PHP_EOL;
+}
+
+
+
+
+
+
+
+
+
+
+
+E  O PRINT FICA ASSIM:
+
+
+
+
+
+
+
+
+array(3) {
+  [0]=>
+  object(App17\Invoice)#5 (2) {
+    ["id"]=>
+    string(6) "582806"
+    ["propertyThatWontBeIteratedOver":protected]=>
+    uninitialized(string)
+    ["amount"]=>
+    float(15)
+  }
+  [1]=>
+  object(App17\Invoice)#6 (2) {
+    ["id"]=>
+    string(6) "108700"
+    ["propertyThatWontBeIteratedOver":protected]=>
+    uninitialized(string)
+    ["amount"]=>
+    float(25)
+  }
+  [2]=>
+  object(App17\Invoice)#7 (2) {
+    ["id"]=>
+    string(6) "495240"
+    ["propertyThatWontBeIteratedOver":protected]=>
+    uninitialized(string)
+    ["amount"]=>
+    float(50)
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OU SEJA, NÃO É ISSO QUE QUEREMOS FAZER....
+
+
+
+
+
+
+
+
+
+-> EM VEZ DISSO,
+
+    QUEREMOS FAZER 'ITERATE'
+
+    ADEQUADAMENTE POR CIMA 
+
+    DA PROPERTY DE '$invoices',
+
+    que temos dentro 
+
+    do object '$invoiceCollection'...
+
+     
+
+
+
+
+
+
+--> CERTO... COMO PODEMOS FAZER ISSO?
+
+
+
+
+
+
+
+
+
+--> PODEMOS FAZER ISSO POR MEIO DE OU:
+
+
+
+
+
+1) O IMPLEMENT, na class de 'InvoiceCollection', da interface 'Iterator' 
+
+
+
+2) O IMPLEMENT, na class de 'InvoiceCollection', da interface 'IteratorAggregate'...
+
+
+
+
+
+VAMOS ESTUDAR AMBAS INTERFACES,
+
+
+MAS COMEÇAREMOS PELO ESTUDO DA INTERFACE 
+
+DE 'Iterator'...
+
+
+
+
+
+
+PODEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+
+namespace App17;
+
+
+
+
+// If we want to iterate over some of the properties of this object, we need to implement the Iterator/IteratorAggregate interfaces
+class InvoiceCollection implements \Iterator
+{
+    public function __construct(public array $invoices)
+    {
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK...
+
+
+
+
+
+
+
+ISSO NOS PROVIDENCIA ESSA INTERFACE...
+
+
+
+
+
+
+
+
+
+
+-> MAS, COM ISSO, PRECISAMOS PROVIDENCIAR __ TODOS OS METHODS QUE 
+ DEVEM SER DEFINIDOS, QUE SÃO ENFORCED, POR ESSA INTERFACE...
+
+
+
+
+
+ E SÃO BASTANTES METHODS...
+
+
+
+
+
+
+ tipo assim:
+
+
+
+
+
+
+
+
+
+
+
+
+// If we want to iterate over some of the properties of this object, we need to implement the Iterator/IteratorAggregate interfaces
+class InvoiceCollection implements \Iterator
+{
+    public function __construct(public array $invoices)
+    {
+
+    }
+
+
+    public function current() {
+
+    }
+
+    public function next() {
+        
+    }
+    
+    public function key() {
+        
+    }
+    
+    public function valid() {
+        
+    }
+    
+    public function rewind() {
+        
+    }       
+}
+
+
+
+
+
+
+
+
+
+
+
+-> ELE PRECISA DE 'current, next, key, valid, rewind'...
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ AGORA DEVEMOS REVISAR ESSES METHODS, E 'FILL THEM IN'...
+
+
+
+
+
+
+
+
+
+
+
+
+1) 'CURRENT()':
+
+
+--> ESSE METHOD IS SUPPOSED 
+    TO __ RETURN THE _ CURRENT ELEMENT/INVOICE,
+
+    FROM THE '$invoices' list/array....
+
+
+
+--> É POR ISSO QUE DEVEMOS ESCREVER TIPO ASSIM:
+
+
+
+
+return current($this->invoices);
+
+
+
+
+
+
+
+
+
+
+
+FICA TIPO ASSIM:
+
+
+
+
+
+
+
+    public function __construct(public array $invoices)
+    {
+
+    }
+
+
+    public function current(): mixed {
+        return current($this->invoices);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> DEPOIS DISSO, O PROFESSOR USA A MAGIC CONSTANT 
+DE 
+
+'__METHOD__',
+
+para que consigamos ver o METHOD NAME 
+
+de esse method...
+
+
+
+TIPO ASSIM:
+
+
+
+ 
+
+
+
+
+// If we want to iterate over some of the properties of this object, we need to implement the Iterator/IteratorAggregate interfaces
+class InvoiceCollection implements \Iterator
+{
+    public function __construct(public array $invoices)
+    {
+
+    }
+
+
+    public function current(): mixed {
+        
+        echo __METHOD__ . PHP_EOL; // this will print the current method's name
+        return current($this->invoices);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, TEMOS 'next'...
+
+
+
+
+
+
+
+
+
+2) 'NEXT()' 
+
+
+
+
+
+
+--> o 'next()'  '''SHOULD BRING THE INTERNAL POINTER 
+                    TO THE __ NEXT ELEMENT__...''
+
+
+
+
+
+
+--> para fazer isso, podemos usar 
+    a function do php chamada de 'next()',
+
+    para fazer exatamente isso..
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+    public function current(): mixed {
+        
+        echo __METHOD__ . PHP_EOL; // this will print the current method's name
+        return current($this->invoices); // RETURN THE _ CURRENT ELEMENT/INVOICE, FROM THE '$invoices' list/array....
+    } 
+
+    public function next(): void {
+        echo __METHOD__ . PHP_EOL;
+
+        return next($this->invoices); // BRINGS THE INTERNAL POINTER TO THE __ NEXT ELEMENT
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+depois, temos 'key':
+
+
+
+
+
+
+
+
+
+
+3) 'KEY(o)'

@@ -36,6 +36,7 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
             'App4\\' => 5,
             'App3\\' => 5,
             'App2\\' => 5,
+            'App17\\' => 6,
             'App16\\' => 6,
             'App15\\' => 6,
             'App14\\' => 6,
@@ -99,6 +100,10 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
         array (
             0 => __DIR__ . '/../..' . '/inheritance-example',
         ),
+        'App17\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/php-iterables-and-iterable-type-iterate-over-objects',
+        ),
         'App16\\' => 
         array (
             0 => __DIR__ . '/../..' . '/OOP-error-handling-in-php-exceptions-and-try-catch-blocks',
@@ -134,6 +139,9 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
         'App13\\Invoice' => __DIR__ . '/../..' . '/serialize-objects-and-serialize-magic-methods/Invoice.php',
         'App16\\Customer' => __DIR__ . '/../..' . '/OOP-error-handling-in-php-exceptions-and-try-catch-blocks/Customer.php',
         'App16\\Invoice' => __DIR__ . '/../..' . '/OOP-error-handling-in-php-exceptions-and-try-catch-blocks/Invoice.php',
+        'App16\\InvoiceException' => __DIR__ . '/../..' . '/OOP-error-handling-in-php-exceptions-and-try-catch-blocks/InvoiceException.php',
+        'App16\\MissingBillingInfoException' => __DIR__ . '/../..' . '/OOP-error-handling-in-php-exceptions-and-try-catch-blocks/MissingBillingInfoException.php',
+        'App17\\Invoice' => __DIR__ . '/../..' . '/php-iterables-and-iterable-type-iterate-over-objects/Invoice.php',
         'App2\\FancyOven' => __DIR__ . '/../..' . '/inheritance-example/FancyOven.php',
         'App2\\Toaster' => __DIR__ . '/../..' . '/inheritance-example/Toaster.php',
         'App2\\ToasterPro' => __DIR__ . '/../..' . '/inheritance-example/ToasterPro.php',

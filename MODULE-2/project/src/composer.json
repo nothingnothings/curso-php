@@ -19,7 +19,8 @@
       "App13\\": "serialize-objects-and-serialize-magic-methods/",
       "App14\\": "serialize-objects-and-serialize-magic-methods-2/",
       "App15\\": "serialize-objects-and-serialize-magic-methods-3/",
-      "App16\\": "OOP-error-handling-in-php-exceptions-and-try-catch-blocks/"
+      "App16\\": "OOP-error-handling-in-php-exceptions-and-try-catch-blocks/",
+      "App17\\": "php-iterables-and-iterable-type-iterate-over-objects/"
     }
   }
 }
