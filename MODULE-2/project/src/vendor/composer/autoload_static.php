@@ -36,6 +36,8 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
             'App4\\' => 5,
             'App3\\' => 5,
             'App2\\' => 5,
+            'App19\\' => 6,
+            'App18\\' => 6,
             'App17\\' => 6,
             'App16\\' => 6,
             'App15\\' => 6,
@@ -100,6 +102,14 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
         array (
             0 => __DIR__ . '/../..' . '/inheritance-example',
         ),
+        'App19\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/app',
+        ),
+        'App18\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/superglobals-basic-routing-using-the-server-info',
+        ),
         'App17\\' => 
         array (
             0 => __DIR__ . '/../..' . '/php-iterables-and-iterable-type-iterate-over-objects',
@@ -141,7 +151,11 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
         'App16\\Invoice' => __DIR__ . '/../..' . '/OOP-error-handling-in-php-exceptions-and-try-catch-blocks/Invoice.php',
         'App16\\InvoiceException' => __DIR__ . '/../..' . '/OOP-error-handling-in-php-exceptions-and-try-catch-blocks/InvoiceException.php',
         'App16\\MissingBillingInfoException' => __DIR__ . '/../..' . '/OOP-error-handling-in-php-exceptions-and-try-catch-blocks/MissingBillingInfoException.php',
+        'App17\\Collection' => __DIR__ . '/../..' . '/php-iterables-and-iterable-type-iterate-over-objects/Collection.php',
         'App17\\Invoice' => __DIR__ . '/../..' . '/php-iterables-and-iterable-type-iterate-over-objects/Invoice.php',
+        'App17\\InvoiceCollection' => __DIR__ . '/../..' . '/php-iterables-and-iterable-type-iterate-over-objects/InvoiceCollection.php',
+        'App18\\Router' => __DIR__ . '/../..' . '/superglobals-basic-routing-using-the-server-info/Router.php',
+        'App19\\Router' => __DIR__ . '/../..' . '/app/Router.php',
         'App2\\FancyOven' => __DIR__ . '/../..' . '/inheritance-example/FancyOven.php',
         'App2\\Toaster' => __DIR__ . '/../..' . '/inheritance-example/Toaster.php',
         'App2\\ToasterPro' => __DIR__ . '/../..' . '/inheritance-example/ToasterPro.php',

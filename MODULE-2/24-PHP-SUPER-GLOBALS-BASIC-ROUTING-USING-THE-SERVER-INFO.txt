@@ -1,0 +1,3360 @@
+
+
+
+
+OK... 
+
+
+FINALMENTE CHEGOU A HORA DE FALAR SOBRE SUPERGLOBALS...
+
+
+
+
+
+
+
+
+-> COMECAMOS COM ESTE CÓDIGO:
+
+
+
+
+
+<?php 
+
+
+
+require_once '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+
+
+
+
+
+
+
+echo '<pre>';
+print_r($_SERVER);
+echo '</pre>';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SUPERGLOBALS --> SÃO ESSENCIAIS AOS APPS DO PHP...
+
+
+
+
+
+
+
+
+--> sao essenciais pq, NA MAIOR PARTE DOS APPS PHP,
+
+
+VC VAI QUERER:
+
+
+
+
+
+''ACCEPT INPUT FROM THE FORMS AND FROM THE USERS''
+
+
+
+
+
+''PERSIST SESSIONS AND WORKS WITH COOKIES''
+
+
+
+''UPLOAD FILES''
+
+
+
+
+''LOOK INTO REQUESTS''
+
+
+
+
+E ASSIM POR DIANTE... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+SUPERGLOBALS:
+
+
+
+
+
+
+
+
+
+''''THEY ARE BASICALLY BUILT-IN VARIABLES,
+    WHICH ARE ALWAYS AVAILABLE, ON ALL SCOPES,
+    THROUGHOUT ALL YOUR PHP CODE'''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+VAMOS COBRIR OS SEGUINTES SUPERGLOBALS:
+
+
+
+
+
+
+
+1) $_SERVER 
+
+
+
+
+2) $_GET 
+
+
+
+
+
+3) $_POST 
+
+
+
+
+4) $_FILES 
+
+
+
+
+5) $_COOKIE 
+
+
+
+
+6) $_SESSION 
+
+
+
+7) $_REQUEST 
+
+
+
+
+8) $_ENV 
+
+
+
+
+
+
+
+
+
+
+
+
+-> FALAREMOS SOBRE  O SUPERGLOBAL DE '$_ENV' 
+    ASSIM QUE CHEGARMOS à AULA DE 'ENVIRONMENT VARIABLES E CONFIG'
+
+
+
+
+
+
+-----------------------------------------
+
+
+
+
+
+
+
+
+
+
+O PRIMEIRO SUPERGLOBAL QUE DISCUTIREMOS É O '$_SERVER'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1) $_SERVER:
+
+
+
+
+
+
+
+
+
+'''É O SUPERGLOBAL QUE CONTÉM A INFO SOBRE 
+    O SERVER __ E O EXECUTION ENVIRONMENT...'''
+
+
+
+
+
+
+''__ THE CONTENT OF THE $_SERVER SUPERGLOBAL WILL VARY,
+    FROM SERVER TO SERVER, DEPENDING ON YOUR SERVER'S CONFIGURATION...''
+
+
+
+
+''ALGUNS $_SERVER VÃO CONTER MAIS INFO, OUTROS VÃO CONTER MENOS 
+    TUDO A DEPENDER DA CONFIG DO SERVER...''
+
+
+
+
+
+
+
+
+
+
+
+-> devemos revisar algumas das infos printadas com '$_SERVER'...
+
+
+
+
+
+
+
+
+
+
+
+
+SÃO ELAS:
+
+
+
+
+
+
+
+
+
+    [PATHEXT] => .COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC;.PY;.PYW;.CPL
+    [PROCESSOR_ARCHITECTURE] => AMD64
+    [PROCESSOR_IDENTIFIER] => AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD
+    [PROCESSOR_LEVEL] => 25
+    [PROCESSOR_REVISION] => 2100
+    [ProgramData] => C:\ProgramData
+    [ProgramFiles] => C:\Program Files
+    [ProgramFiles(x86)] => C:\Program Files (x86)
+    [ProgramW6432] => C:\Program Files
+    [PSModulePath] => C:\Users\Usuario\Documents\WindowsPowerShell\Modules;C:\Program Files\WindowsPowerShell\Modules;C:\Windows\system32\WindowsPowerShell\v1.0\Modules
+    [PUBLIC] => C:\Users\Public
+    [RlsSvcPort] => 22112
+    [SESSIONNAME] => Console
+    [SystemDrive] => C:
+    [SystemRoot] => C:\Windows
+    [TEMP] => C:\Users\Usuario\AppData\Local\Temp
+    [TMP] => C:\Users\Usuario\AppData\Local\Temp
+    [USERDOMAIN] => DESKTOP-S1M32O5
+    [USERDOMAIN_ROAMINGPROFILE] => DESKTOP-S1M32O5
+    [USERNAME] => Usuario
+    [USERPROFILE] => C:\Users\Usuario
+    [windir] => C:\Windows
+    [yt-dlp] => C:\yt-dlp.exe
+    [TERM_PROGRAM] => vscode
+    [TERM_PROGRAM_VERSION] => 1.91.1
+    [LANG] => en_US.UTF-8
+    [COLORTERM] => truecolor
+    [GIT_ASKPASS] => c:\Users\Usuario\AppData\Local\Programs\VSCodium\resources\app\extensions\git\dist\askpass.sh
+    [VSCODE_GIT_ASKPASS_NODE] => C:\Users\Usuario\AppData\Local\Programs\VSCodium\VSCodium.exe
+    [VSCODE_GIT_ASKPASS_EXTRA_ARGS] =>
+    [VSCODE_GIT_ASKPASS_MAIN] => c:\Users\Usuario\AppData\Local\Programs\VSCodium\resources\app\extensions\git\dist\askpass-main.js
+    [VSCODE_GIT_IPC_HANDLE] => \\.\pipe\vscode-git-3aebabbcf2-sock        
+    [VSCODE_INJECTION] => 1
+    [PHP_SELF] => index.php
+    [SCRIPT_NAME] => index.php
+    [SCRIPT_FILENAME] => index.php
+    [PATH_TRANSLATED] => index.php
+    [DOCUMENT_ROOT] =>
+    [REQUEST_TIME_FLOAT] => 1723226830.9735
+    [REQUEST_TIME] => 1723226830
+    [argv] => Array
+        (
+            [0] => index.php
+        )
+
+    [argc] => 1
+)
+</pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> esse output eu encontrei 
+
+
+NO MEU TERMINAL...
+
+
+
+
+
+
+MAS É CLARO QUE ISSO SERÁ DIFERENTE, SE EU EXECUTAR ESSE SCRIPT 
+
+NO MEU SERVER COM O DOCKER...
+
+
+
+
+
+
+
+
+
+Ex:
+
+
+
+
+
+
+
+
+
+
+
+
+
+Array
+(
+    [PHP_EXTRA_CONFIGURE_ARGS] => --enable-fpm --with-fpm-user=www-data --with-fpm-group=www-data --disable-cgi
+    [HOSTNAME] => 247e8eaacdfc
+    [PHP_INI_DIR] => /usr/local/etc/php
+    [HOME] => /var/www
+    [PHP_LDFLAGS] => -Wl,-O1 -pie
+    [PHP_CFLAGS] => -fstack-protector-strong -fpic -fpie -O2 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+    [PHP_VERSION] => 8.0.2
+    [GPG_KEYS] => 1729F83938DA44E27BA0F4D3DBDB397470D12172 BFDDD28642824F8118EF77909B67A5C12229118F
+    [PHP_CPPFLAGS] => -fstack-protector-strong -fpic -fpie -O2 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+    [PHP_ASC_URL] => https://www.php.net/distributions/php-8.0.2.tar.xz.asc?a=1
+    [PHP_URL] => https://www.php.net/distributions/php-8.0.2.tar.xz?a=1
+    [PATH] => /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    [PHPIZE_DEPS] => autoconf 		dpkg-dev 		file 		g++ 		gcc 		libc-dev 		make 		pkg-config 		re2c
+    [PWD] => /var/www
+    [PHP_SHA256] => 84dd6e36f48c3a71ff5dceba375c1f6b34b71d4fa9e06b720780127176468ccc
+    [USER] => www-data
+    [HTTP_ACCEPT_LANGUAGE] => pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7
+    [HTTP_ACCEPT_ENCODING] => gzip, deflate, br, zstd
+    [HTTP_SEC_FETCH_DEST] => document
+    [HTTP_SEC_FETCH_USER] => ?1
+    [HTTP_SEC_FETCH_MODE] => navigate
+    [HTTP_SEC_FETCH_SITE] => none
+    [HTTP_ACCEPT] => text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+    [HTTP_USER_AGENT] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36
+    [HTTP_UPGRADE_INSECURE_REQUESTS] => 1
+    [HTTP_SEC_CH_UA_PLATFORM] => "Windows"
+    [HTTP_SEC_CH_UA_MOBILE] => ?0
+    [HTTP_SEC_CH_UA] => "Not)A;Brand";v="99", "Google Chrome";v="127", "Chromium";v="127"
+    [HTTP_CACHE_CONTROL] => max-age=0
+    [HTTP_CONNECTION] => keep-alive
+    [HTTP_HOST] => localhost:8000
+    [SCRIPT_FILENAME] => /var/www/public/index.php
+    [REDIRECT_STATUS] => 200
+    [SERVER_NAME] => 
+    [SERVER_PORT] => 80
+    [SERVER_ADDR] => 172.18.0.2
+    [REMOTE_PORT] => 43690
+    [REMOTE_ADDR] => 172.18.0.1
+    [SERVER_SOFTWARE] => nginx/1.19.10
+    [GATEWAY_INTERFACE] => CGI/1.1
+    [REQUEST_SCHEME] => http
+    [SERVER_PROTOCOL] => HTTP/1.1
+    [DOCUMENT_ROOT] => /var/www/public
+    [DOCUMENT_URI] => /index.php
+    [REQUEST_URI] => /
+    [SCRIPT_NAME] => /index.php
+    [CONTENT_LENGTH] => 
+    [CONTENT_TYPE] => 
+    [REQUEST_METHOD] => GET
+    [QUERY_STRING] => 
+    [FCGI_ROLE] => RESPONDER
+    [PHP_SELF] => /index.php
+    [REQUEST_TIME_FLOAT] => 1723227014.3618
+    [REQUEST_TIME] => 1723227014
+    [argv] => Array
+        (
+        )
+
+    [argc] => 0
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+
+
+
+
+
+
+
+QUAIS SÃO AS IMPORTANTES?
+
+
+
+
+
+
+
+
+
+
+
+
+
+'HOME' -> APONTA PARA O 'HOME DIRECTORY' do nosso server... /var/www
+
+
+
+
+
+'HTTP_HOST'--> aponta para o endereço do server.... (localhost:8000)
+
+
+
+
+
+'SCRIPT_FILENAME' -> contém o NOME DO SCRIPT... ('var/www/public/index.php');
+
+
+
+
+
+
+
+'SERVER_PORT' -> 80 
+
+
+
+
+
+'SERVER_ADDRESS' -> 172.18.0.2
+
+
+
+
+
+'DOCUMENT_ROOT' -> aponta para o directory de 'public'...
+
+
+
+
+
+
+'REQUEST_URI' -> está como '/', mas se visitarmos uma page diferente,
+
+                                    tipo 
+
+
+                                    'localhost:8000/bar',
+
+
+                                    ficaremos com 
+
+                                    '/bar'...
+
+
+
+
+
+
+
+
+'REQUEST_METHOD' -> está como 'GET', mas falaremos 
+
+                                    SOBRE GET VS POST NA PRÓXIMA LESSON...
+
+
+
+
+
+
+
+
+'QUERY_STRING' --> está settada como NADA (empty), 
+
+
+
+                    mas se colocarmos um query parameter na url,
+
+                    tipo assim:
+
+
+
+
+
+localhost:8000/foo/bar?test=1 
+
+
+
+
+
+
+
+    --> FICAREMOS COM UM VALUE DE ''test=1'', nesse 'QUERY_STRING'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+'REMOTE_ADDR' -> contém o ''IP ADDRESS FROM WHICH THE USER 
+                            IS VIEWING THE CURRENT PAGE'..
+
+
+
+                    
+
+
+
+''REMOTE_HOST'' -> É O REMOTE HOST, É 'JUST THE 
+                                        HOSTNAME WHERE THE USER IS VIEWING 
+                                        THE CURRENT PAGE...'
+
+
+
+
+
+OUTROS:
+
+
+
+
+
+REMOTE_PORT 
+
+
+REMOTE_USER 
+
+
+
+HTTP_REFER 
+
+
+
+
+HTTP_USER_AGENT  --> te dá clientside info, sobre o browser...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS VC NAO VAI USAR A MAIORIA DESSES...
+
+
+
+
+
+
+
+
+
+
+
+--> QUANDO ELES FOREM NECESSÁRIOS, VC VAI LER OS DOCS NO GOOGLE/DOCS DO PHP,
+
+e vai aprender...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS QUANDO DIABOS USAREMOS O SUPERGLOBAL DE '$_SERVER'?
+
+
+
+
+
+
+
+
+
+
+
+-> HÁ, ACTUALLY, 
+    MTOS USE CASES 
+
+    PARA ESSA VARIABLE... E TUDO DEPENDE DAS NECESSIDADES 
+    DO SEU APP...
+
+
+
+
+
+
+
+--> UMA UTILIZAÇÃO COMUM PARA ESSE SUPERGLOBAL É 
+    PARA O BUILD __ DE _ BASIC ROUTING...
+
+
+
+
+
+
+
+
+--> ISSO PQ, ATÉ AGORA,
+
+    TODAS NOSSAS ROUTES (paths)
+
+    SEMPRE 
+
+    ACABAM CAINDO NA MESMA PAGE, QUE É 'index.php',
+
+
+    dentro de 'public'...
+
+
+
+
+
+
+
+
+--> E ISSO É BOM, CLARO,
+    PQ 'index.php'
+
+    É A __ '''ENTRANCE''' DO NOSSO APP...
+
+
+ 
+
+    -> E, A PARTIR DESSE 'index.php',
+        PODEMOS DECIDIR 
+
+        QUAL SCRIPT VAMOS RODAR, 
+
+        COM BASE NA 'REQUESTED URL'..
+
+
+
+
+    --> E É ISSO QUE É O ROUTING, BASICAMENTE...
+
+
+
+
+
+
+
+
+    ROUTING --> '''ALLOWS US TO STRUCTURE OUR APP
+                    IN A BETTER WAY, AND IN ANY WAY WE WANT...''
+
+
+
+
+
+
+
+
+
+
+--> FALAREMOS MAIS SOBRE ROUTING QUANDO FALARMOS SOBRE 
+O 'MVC PATTERN',
+
+
+
+MAS AGORA DEVEMOS CONSTRUIR 1 ROUTING BEM SIMPLES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+''THE GOAL, HERE, IS THAT __WHEN WE VISIT _ 
+A PAGE LIKE 'localhost:8000/invoices', 
+WE 
+    MAY WANT TO EXECUTE A 'INDEX' METHOD,
+
+    INSIDE OF THE CLASS 'Invoice.php'...''
+
+
+
+
+
+
+
+
+--> JÁ SE VISITARMOS ALGO COMO 'localhost:8000/customers',
+    VAMOS QUERER RODAR O METHOD DE 'index'
+
+
+    NA CLASS DE 'Customer', em vez disso...
+
+
+
+
+
+
+
+
+
+
+--> SE VISITARMOS ALGO COMO 
+
+
+
+localhost:8000/invoices/create,
+
+
+
+
+
+
+
+TALVEZ QUEIRAMOS RODAR O METHOD de 'create' 
+
+
+
+dentro do 'invoice.php',
+
+
+E ASSIM POR DIANTE...
+
+
+
+
+
+
+
+
+
+
+
+
+-> É CLARO QUE EXISTEM MUUUITAS MANEIRAS DIFERENTES 
+    DE IMPLEMENTAR ROUTING E ROUTING EM GERAL...
+
+
+
+
+
+
+
+--> VC PODE 'GO FULL DYNAMIC'
+    PARA AÍ FAZER O PHP
+    
+    CARREGAR PAGES DINAMICAMENTE...
+
+
+
+
+
+    OU, ENTÃO, USAR 
+
+    'ROUTES MAPPING',
+
+    EM QUE VC 
+
+    VAI LÁ 
+ 
+    E PRÉ-DEFINE TODAS 
+
+    AS ROUTES 
+
+    DISPONÍVEIS NO SEU APP, 
+
+
+    AOS CORRESPONDING ACTION CLASSES AND METHODS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> HÁ TAMBÉM PACKAGES QUE VC PODE INSTALAR, VIA COMPOSER,
+    QUE DEIXAM TUDO ISSO MAIS FÁCIL,
+
+    PARA QUE VC NÃO TENHA QUE 'MAKE EVERYTHING FROM SCRATCH'...
+
+
+
+
+
+
+-> OU, ALTERNATIVAMENTE, VC PODE USAR 1 FRAMEWORK, COMO O LARAVEL...
+
+
+
+
+
+
+
+--> PARA ESSA AULA, NO ENTANTO,
+    O PROFESSOR VAI CONSTRUIR 
+
+
+    1 ROUTER BEM SIMPLES,
+
+    USANDO 'MAPPED ROUTES'...
+
+
+
+
+
+
+
+--> ELE INSISTE QUE NÃO UTILIZEMOS 
+    ISTO EM QUALQUER APP EM PRODUCTION...
+
+
+
+    ESSE ROUTER DEVE SER USADO APENAS PARA APRENDERMOS 
+
+    'HOW ROUTING WORKS', no php...
+
+
+
+
+
+
+--> APRENDEREMOS ROUTING COM MAIOR PROFUNDIDADE QUANDO 
+    ESTUDARMOS O MVC PATTERN...
+
+
+
+
+
+
+-> POR ENQUANTO, NÃO DEVEMOS NOS PREOCUPAR TANTO COM ISSO...
+
+
+
+--> O PROFESSOR SÓ QUER MOSTRAR OS BASICS...
+
+
+
+
+--> E VAMOS USAR ESSE BASIC ROUTING PARA AS PRÓXIMAS LESSONS,
+
+    APENAS PARA DEMONSTRAR MELHOR COMO OS OUTROS SUPERGLOBALS FUNCIONAM,
+
+    E COMO VC OS UTILIZARIA EM UM APP VERDADE...
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... PARA COMEÇAR, A PRIMEIRA COISA DE QUE PRECISAMOS É:
+
+
+
+
+''''A 'Router' class, with a METHOD TO __ __REGISTER__ THE ROUTES'''...
+
+
+
+
+
+
+
+
+-> PARA ISSO,
+
+
+COMEÇAMOS A ESCREVER ASSIM, NO INDEX.PHP (entrypoint de nosso app):
+
+
+
+
+
+
+
+
+
+
+
+
+<?php 
+
+
+namespace App18;
+
+
+require_once '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+// All of the following code must be put inside of the 'index.php' file, of the public folder of your php app.
+echo '<pre>';
+print_r($_SERVER);
+echo '</pre>';
+
+
+
+$router = new Router();
+
+
+
+
+
+
+
+
+
+
+
+
+
+LÁ NO ARQUIVO DE 'Router.php',
+
+
+ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+<?php 
+
+
+namespace App18;
+
+
+class Router {
+    public function __construct() {
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS TIRAMOS ESSE CONSTRUCTOR,
+
+E DEIXAMOS APENAS 1 METHOD,
+
+
+DE 'register()'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+''THE REGISTER METHOD 
+
+
+___ SHOULD RECEIVE ___the given ROUTE, and the given ACTION''...
+
+
+
+
+
+
+por isso os parameters serão:
+
+
+
+1) $route 
+
+
+
+
+2) $action 
+
+
+
+
+
+
+
+
+
+
+
+A 'ACTION' -->  PODERÁ SER 
+                OU 1 'callable',
+
+                ou 1 ARRAY CONTENDO 
+
+                UMA CLASS COM 1 METHOD...
+
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS COMEÇAR ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php 
+
+
+namespace App18;
+
+
+class Router {
+
+
+    public function register(string $route, callable $action) {
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+DEPOIS DISSO, ENABLAMOS OS STRICT TYPES, PARA TER TYPING...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+<?php 
+
+declare(strict_types= 1);
+
+
+namespace App18;
+
+
+class Router {
+
+
+    public function register(string $route, callable $action) {
+        
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+depois disso,
+ 
+
+
+ COLOCAMOS 1 RETURN TYPE DE 'self',
+
+
+
+ PQ ELE VAI RETORNAR O PRÓPRIO OBJECT DE 'Router'...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+<?php 
+
+declare(strict_types= 1);
+
+
+namespace App18;
+
+
+class Router {
+
+
+    public function register(string $route, callable $action): self {
+        
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... A PRÓXIMA COISA DE QUE PRECISAMOS 
+
+
+É UMA 
+
+
+PROPERTY para _ _ ARMAZENAR __ ESSAS ROUTES...
+
+
+
+
+
+
+
+-> NO CASO, PODEMOS DEFINIR/ASSIGNAR 1 PROPERTY DE 'routes',
+
+
+
+
+que será um ARRAY CONTENDO NOSSAS ROUTES...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php 
+
+declare(strict_types= 1);
+
+
+namespace App18;
+
+
+class Router {
+
+    private array $routes = [];
+
+    public function register(string $route, callable $action): self {
+        $this->routes[$route] = $action;
+
+        return $this;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+COM ISSO, toda vez que for chamado 'register',
+
+
+
+uma key COM O NOME DA ROUTE (talvez o path) 
+
+
+VAI SER REGISTRADO NAQUELE ARRAY,
+
+
+E TERÁ 
+
+1 VALUE DE '$action'....
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+ --> LÁ EM 'index.php',
+
+
+ PODEMOS FAZER REGISTER DE ALGUMAS ROUTES,
+
+
+ COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+ <?php 
+
+declare(strict_types= 1);
+
+namespace App18;
+
+
+require_once '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+// All of the following code must be put inside of the 'index.php' file, of the public folder of your php app.
+echo '<pre>';
+print_r($_SERVER);
+echo '</pre>';
+
+
+
+$router = new Router();
+
+
+$router->register('/', function () {
+    echo 'Home';
+});
+
+
+$router->register('/invoices', function () {
+    echo 'Home';
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FIQUEI COM 1 CÓDIGO TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+declare(strict_types=1);
+
+
+namespace App19;
+
+
+// 'SUPERGLOBALS' lesson:
+// echo '<pre>';
+// print_r($_SERVER);
+// echo '</pre>';
+
+
+require_once __DIR__ . "/../vendor/autoload.php"; // imports the composer's autoloader
+
+
+$router = new Router();
+
+
+$router->register('/', function () {
+    echo '<h1>Home</h1>';
+});
+
+
+$router->register('/invoices', function () {
+    echo '<h1>Invoices</h1>';
+});
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS O PROBLEMA, AQUI,
+
+
+É QUE ESSAS ROUTES NÃO ESTÃO ___ aCTUALLY__ SENDO 
+REGISTRADAS...
+
+
+
+
+
+--> elas estão sendo armazenadas dentro da propriedade '$actions',
+dentro 
+
+
+do Object de 'Router',
+
+
+MAS ISSO NÃO ESTÁ APLICANDO EFEITO ALGUM NO NOSSO CÓDIGO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+''THIS IS NOT WORKING BECAUSE__ WE STILL DON'T HAVE __ 
+A WAY__ TO RESOLVE THIS...'''
+
+
+
+
+
+
+
+-> NÓS APENAS REGISTRAMOS AQUILO,
+
+MAS AINDA NÃO FIZEMOS RESOLVE DE COISA ALGUMA..
+
+
+
+
+
+
+
+
+
+--> PARA FAZER O ACTUAL 'RESOLVING' DESSAS
+    ROUTES,
+
+
+    PRECISAMOS DE UM OUTRO METHOD,
+
+    CHAMADO DE 'resolve()',
+
+
+
+    TIPO ASSIM:
+
+
+
+
+
+<?php 
+
+declare(strict_types= 1);
+
+
+namespace App19;
+
+
+class Router {
+
+    private array $routes = [];
+
+    // * Call it like '$router->register('GET /foo', function() { ... });'
+    public function register(string $route, callable $action): self {
+        $this->routes[$route] = $action;
+
+        return $this;
+    }
+
+    public function resolve() {
+        
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+esse method,
+
+'resolve',
+
+
+
+vai exigir:
+
+
+
+
+
+
+
+1) THE REQUESTED URL 
+
+
+
+
+
+
+--> AÍ PARSEAREMOS ESSA REQUESTED URL,
+
+    PARA SABERMOS 'WHICH METHOD TO RUN'...
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, PARA OBTERMOS O VALUE DA 'REQUESTED URL',
+
+
+
+PODEMOS USAR 
+
+
+
+'REQUEST_URI',
+
+
+aquela entry NO INTERIOR DO SUPERGLOBAL DE 
+
+
+
+'$_SERVER'...
+
+
+
+
+
+
+e podemos acessá-la com 
+
+
+'$_SERVER['REQUEST_URI']';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+
+MAS ANTES DE USAR ISSO, VC PRECISA FAZER 1 POUCO DE PARSING..
+
+
+
+
+
+
+ISSO PQ SEUS 'REQUEST_URI'
+
+
+às vezes podem conter QUERY PARAMETERS,
+
+
+tipo assim:
+
+
+
+
+
+'/invoices?foo=bar'
+
+
+
+
+
+
+--> NÃO PRECISAMOS de '?foo=bar',
+
+
+
+
+
+
+POR ISSO PRECISAMOS PARSEAR...
+
+
+
+
+
+
+
+
+
+-> ESCREVEMOS TIPO ASSIM:
+
+
+
+
+
+
+
+public function resove(string $requestUri) {
+
+
+}
+
+
+
+
+
+
+
+PARA PARSEAR ISSO,
+
+
+
+'''WE CAN USE THE __EXPLODE__ FUNCTION 
+    to explode this string, using the '?' AS 
+    DELIMITER, AND USING ONLY THE FIRST ELEMENT OF THE 
+    RESULTING ARRAY AS OUR ROUTE...''
+
+
+
+
+
+EX:
+
+
+
+
+<?php 
+
+declare(strict_types= 1);
+
+
+namespace App19;
+
+
+class Router {
+
+    private array $routes = [];
+
+    // * Call it like '$router->register('GET /foo', function() { ... });'
+    public function register(string $route, callable $action): self {
+        $this->routes[$route] = $action;
+
+        return $this;
+    }
+
+    public function resolve(string $requestUri) {
+
+    // * The first part of the request URI is the route (the second part is the query string/parametrs)
+        $route = explode('?', $requestUri)[0];
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> A SEGUNDA COISA QUE PRECISAMOS FAZER, AQUI,
+
+
+É 
+
+
+'GET THE RELATED ACTION',
+
+
+com base naquela route....
+
+
+
+
+
+
+
+-> PARA ISSO, PODEMOS PROVAVELMENTE USAR 'array_search',
+
+ou algo assim,
+
+
+PARA 
+PROCURAR 
+
+QUAL ELEMENTO,
+
+
+DENTRO DE '$routes',
+
+
+possui 
+
+o identifier equivalente à '$requestUri'...
+
+
+
+
+
+-> NA VERDADE, PODEMOS ESCREVER ISSO DE FORMA MT MAIS SIMPLES,
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+
+       $action = $this->routes[$route] ?? null;
+
+
+
+
+
+
+
+(caso essa route não esteja definida, definimos a action como 'null')...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... E SE A ACTION ESTIVER COMO 'NULL',
+
+PODEMOS 
+
+
+ADICIONAR 1 TIPO DE HANDLING...
+
+
+
+
+
+
+
+
+
+--> PODEMOS FAZER O THROW DE 1 EXCEPTION,
+    MOSTRAR 1 PAGE 404,
+
+
+    OU ALGO DO GÊNERO...
+
+
+
+
+
+    ---> O QUE O PROFESSOR FARÁ, AQUI,
+
+    É O THROW DE 1 EXCEPTION.... MAIS TARDE, VAMOS 
+    FAZER 'CATCH' DE ESSA EXCEPTION 
+
+
+    EM ALGUM LUGAR DE NOSSO CÓDIGO,
+
+    E ENTÃO RENDERIZAR 1 PAGE DE ERRO 404...
+
+
+
+
+
+
+
+
+
+
+    --> TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+    public function resolve(string $requestUri) {
+
+    // * The first part of the request URI is the route (the second part is the query string/parametrs)
+        $route = explode('?', $requestUri)[0];
+
+        // * Find the action for the route, in the routes array.
+        $action = $this->routes[$route] ?? null;
+
+        if (!$action) {
+            throw new RouteNotFoundException();
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+<?php 
+
+declare(strict_types= 1);
+
+
+namespace App19;
+
+
+class RouteNotFoundException extends \Exception {
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+POR ENQUANTO, TUDO ESTÁ NO NAMESPACE DE 'App19',
+
+
+MAS 
+
+
+A PROPER WAY SERIA 
+
+COLOCAR ISSO NA NAMESPACE DE EXCEPTION,
+
+TIPO ASSIM:
+
+
+
+
+
+namespace App19\Exceptions;
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ, LÁ NO RESOLVE, ESCREVEMOS ASSIM:
+
+
+
+
+
+<?php 
+
+declare(strict_types= 1);
+
+
+namespace App19;
+
+
+class Router {
+
+    private array $routes = [];
+
+    // * Call it like '$router->register('GET /foo', function() { ... });'
+    public function register(string $route, callable $action): self {
+        $this->routes[$route] = $action;
+
+        return $this;
+    }
+
+    public function resolve(string $requestUri) {
+
+    // * The first part of the request URI is the route (the second part is the query string/parametrs)
+        $route = explode('?', $requestUri)[0];
+
+        // * Find the action for the route, in the routes array.
+        $action = $this->routes[$route] ?? null;
+
+        if (!$action) {
+            // Throw custom exception.
+            throw new \App19\Exceptions\RouteNotFoundException();
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+A OUTRA COISA QUE PRECISAMOS FAZER, AQUI NA EXCEPTION CUSTOMIZADA,
+
+
+É FAZER OVERRIDE 
+
+DA PROPERTY 
+
+
+de 
+
+'$message',
+
+COM ESTE CÓDIGO:
+
+
+
+
+
+
+<?php 
+
+declare(strict_types= 1);
+
+
+namespace App19\Exceptions;
+
+
+class RouteNotFoundException extends \Exception {
+
+    protected $message = '404 not found';
+}
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+CONTINUAMOS...
+
+
+
+
+
+
+
+
+
+
+A PRÓXIMA COISA QUE PRECISAMOS FAZER É:
+
+
+
+
+
+
+
+
+
+
+'''WE KNOW, HERE, THAT THE actions are of 
+'callable' type... they are functions...''
+
+
+
+
+''AS THEY ARE OF 'callable' type,
+    we can call them DIRECTLY 
+
+
+    with '$action()'...'
+
+
+
+
+
+
+
+ALTERNATIVAMENTE, PODEMOS USAR A FUNCTION BUILT-IN 
+
+DO PHP,
+
+
+'call_user_func()',
+
+PARA CHAMAR ESSAS FUNCTIONS...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+    public function resolve(string $requestUri) {
+
+    // * The first part of the request URI is the route (the second part is the query string/parametrs)
+        $route = explode('?', $requestUri)[0];
+
+        // * Find the action for the route, in the routes array.
+        $action = $this->routes[$route] ?? null;
+
+        if (!$action) {
+            // Throw custom exception.
+            throw new \App19\Exceptions\RouteNotFoundException();
+        }
+
+        call_user_func($action, $route);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+POR FIM, FAZEMOS RETURN DESSA CALL,,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php 
+
+declare(strict_types= 1);
+
+
+namespace App19;
+
+
+class Router {
+
+    private array $routes = [];
+
+    // * Call it like '$router->register('GET /foo', function() { ... });'
+    public function register(string $route, callable $action): self {
+        $this->routes[$route] = $action;
+
+        return $this;
+    }
+
+    public function resolve(string $requestUri): callable {
+
+    // * The first part of the request URI is the route (the second part is the query string/parametrs)
+        $route = explode('?', $requestUri)[0];
+
+        // * Find the action for the route, in the routes array.
+        $action = $this->routes[$route] ?? null;
+
+        if (!$action) {
+            // Throw custom exception.
+            throw new \App19\Exceptions\RouteNotFoundException();
+        }
+
+       return call_user_func($action, $route);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+MAS MESMO COM TUDO ISSO, AINDA NÃO TEMOS ROUTING...
+
+
+
+
+
+
+
+
+
+-> PRECISAMOS 
+
+AINDA FAZER O CALL DO METHOD DE 'resolve()', lá em 'index.php',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+declare(strict_types=1);
+
+
+namespace App19;
+
+
+// 'SUPERGLOBALS' lesson:
+// echo '<pre>';
+// print_r($_SERVER);
+// echo '</pre>';
+
+
+require_once __DIR__ . "/../vendor/autoload.php"; // imports the composer's autoloader
+
+
+$router = new Router();
+
+
+$router->register('/', function () {
+    echo '<h1>Home</h1>';
+});
+
+
+$router->register('/invoices', function () {
+    echo '<h1>Invoices</h1>';
+});
+
+
+
+echo $router->resolve($_SERVER['REQUEST_URI']);
+
+
+
+
+
+
+
+
+
+
+
+
+como resultado disso,
+
+
+
+
+FINALMENTE FICAMOS COM UMA IMPLEMENTAÇÃO EXTREMAMENTE SIMPLES DE ROUTING...
+
+
+
+
+
+
+
+
+
+
+
+
+-> QUANDO ENTRO Em 'localhost:8000',
+
+
+fico com 
+
+'Home'...
+
+
+
+
+
+
+
+
+--> QUANDO ENTRO EM 'localhost:8000/invoices',
+
+
+
+FICO COM AQUELA EXCEPTION QUE EU HAVIA CRIADO ANTES,
+
+
+
+
+
+COM ESTA MESSAGE DE ERROR:
+
+
+
+
+
+Fatal error: Uncaught Error: Class "App19\Exceptions\RouteNotFoundException" not found in /var/www/app/Router.php:30 Stack trace: #0 /var/www/public/index.php(58): App19\Router->resolve('/invoicessa') #1 {main} thrown in /var/www/app/Router.php on line 30
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TUDO ESTÁ FUNCIONANDO OK, ATÉ AGORA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> É CLARO QUE VC '''WOULDN'T LIKE TO PUT ALL YOUR 
+                        LOGIC INSIDE 
+                        OF CALLBACK FUNCTIONS LIKE THIS....''
+
+
+                    
+
+
+
+
+--> VC PROVAVELMENTE (quase 100%) 
+
+    UTILIZARIA CONTROLLERS, OS QUAIS ESTUDAREMOS MAIS TARDE...
+
+
+
+
+
+--> MAS, NESSE CASO, 
+    TALVEZ 
+
+
+    ""WE WOULD LIKE TO RUN SOME METHOD, ON SOME KIND OF CLASS''...
+
+
+
+
+
+
+
+-> POR EXEMPLO, FAZER O PASS DE 1 ARRAY, 
+
+ARRAY COM 'CLASSNAME -> METHODNAME'...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+$router->register(
+    '/',
+    []
+);
+
+
+
+
+
+
+
+
+
+
+--> FARÍAMOS ISSO PARA QUE, QUANDO FOSSE ATINGIDA 
+
+A 'index.php', a HOME PAGE, 
+
+
+FOSSE EXECUTADO UM METHOD DE 'index'
+
+
+DENTRO 
+
+
+
+DA CLASS de 'home', ou algo assim....
+
+
+
+
+
+AÍ ESCREVERÍAMOS ALGO ASSIM:
+
+
+
+
+
+
+$router->register(
+    '/',
+    [App\Classes\Home::class, 'index']
+);
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, TERÍAMOS ESSE METHOD DE 'index,'
+    dentro da class de 'Home'...
+
+
+
+
+
+
+
+
+
+
+TIPO ALGO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php 
+
+declare(strict_types= 1);
+
+
+namespace App19\Classes\Home;
+
+
+class Home {
+
+    public function index() {
+
+        return 'Home';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+AÍ, LÁ EM 'index.php':
+
+
+
+require_once __DIR__ . "/../vendor/autoload.php"; // imports the composer's autoloader
+
+
+$router = new Router();
+
+
+$router->register('/', [\App19\Classes\Home::class, 'index']);
+
+
+
+$router->register('/invoices', function () {
+    echo '<h1>Invoices</h1>';
+});
+
+
+
+echo $router->resolve($_SERVER['REQUEST_URI']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+DENTRO DESSA CLASS, ESCREVEMOS ASSIM:
+
+
+
+
+<?php 
+
+declare(strict_types= 1);
+
+
+namespace App19\Classes;
+
+
+class Home {
+
+    public function index() {
+
+        return 'Home';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+''BECAUSE THE register() METHOD 
+    RETURNS _ THE _ 'self' object,
+    WE CAN SIMPLY __ CHAIN _ 
+    'register()' calls, just like this:''
+
+
+
+
+
+
+
+
+
+$router->register('/', [\App19\Classes\Home::class, 'index'])
+        ->register('/invoices', [\App19\Classes\Invoices::class, 'index']);    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ CRIAMOS ESSA CLASS DE 'Invoices' também,
+
+
+com o method de 'index',
+
+que vai retornar 'Invoices' também:
+
+
+
+
+
+
+<?php 
+
+declare(strict_types= 1);
+
+
+namespace App19\Classes;
+
+
+class Invoices {
+
+    public function index() {
+
+        return 'Invoices';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> podemos, ainda, criar mais uma route,
+
+a route de 
+
+
+
+
+'/invoices/create'...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+$router->register('/', [\App19\Classes\Home::class, 'index'])
+        ->register('/invoices', [\App19\Classes\Invoices::class, 'index'])
+        ->register('/invoices/create', [\App19\Classes\Invoices::class, 'create']);
+
+
+
+
+
+
+
+
+
+
+
+
+PRECISAMOS DE MAIS 1 METHOD, DE 'create':
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php 
+
+declare(strict_types= 1);
+
+
+namespace App19\Classes;
+
+
+class Invoices {
+
+    public function index() {
+
+        return 'Invoices';
+    }
+
+    public function create() {
+        return 'Create Invoice';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+É CLARO QUE, EM VEZ DE RETORNAR STRINGS,
+
+
+VC RETORNARIA VIEWS INTEIRAS...
+
+
+
+
+
+
+
+
+
+
+--> MAS NÓS AINDA NÃO ESTUDAMOS 
+    VIEWS,
+
+
+    MAS LOGO FALAREMOS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO..
+
+
+
+
+
+
+
+
+-> AÍ TENTAMOS RODAR TUDO ISSO...
+
+
+
+
+
+
+
+
+
+
+--> MAS AO TENTAR ENTRAR EM ALGUMA ROUTE,
+
+FICAMOS COM 1 FATAL ERROR:
+
+
+
+
+
+Fatal error: Uncaught TypeError: App19\Router::register(): 
+Argument #2 ($action) must be of type callable, 
+array given, called in /var/www/public/index.php on line 52 and defined
+ in /var/www/app/Router.php:14 Stack trace: #0 /var/www/public/index.php(52):
+  App19\Router->register('/', Array) #1 {main} thrown in /var/www/app/Router.php on line 14
+
+
+
+
+
+
+
+
+
+
+
+O NEGÓCIO QUERIA 'CALLABLE',
+
+MAS NÓS ACABAMOS ENTREGANDO ARRAY,
+
+
+COM AQUELE CALL DE 'register' aqui:
+
+
+
+$router->register('/', [\App19\Classes\Home::class, 'index'])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO SIGNIFICA QUE PRECISAMOS __ AJUSTAr_ O NOSSO METHOD 
+
+DE 
+'register'...
+
+
+
+
+
+
+
+--> ALÉM DE FAZER 'EXPECT' do type de 'callable',
+
+queremos que ele também aceite 
+
+
+O
+ TYPE DE 
+
+ 'array'...
+
+ TIPO ASSIM:
+
+
+
+
+
+     // * Call it like '$router->register('GET /foo', function() { ... });'
+    public function register(string $route, callable|array $action): self {
+        $this->routes[$route] = $action;
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS AÍ RECEBEMOS OUTRO FATAL ERROR AO ENTRAR NA HOME PAGE,
+
+
+ESTE ERROR AQUI:
+
+
+
+
+'''
+
+
+Fatal error: Uncaught TypeError: call_user_func(): Argument #1 ($callback)
+ must be a valid callback, class "App19\Classes\Invoices" not
+  found in /var/www/app/Router.php:33 Stack trace: #0 /var/www/app/Router.php(33): call_user_func(Array, '/invoices') #1 /var/www/public/index.php(64): App19\Router->resolve('/invoices') #2 {main} thrown in /var/www/app/Router.php on line 33
+
+
+
+''''
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESTÁ ESPERANDO 1 VALID CALLBACK, 
+    MAS 
+
+    ESTAMOS DANDO 1 ARRAY... ---> ISSO É FINE,
+                                    
+                                    MAS O method 'index()"
+
+                                    NÃO É STATIC...
+
+
+
+
+                                --> para que isso funcione,
+                                    PRECISAMOS DAR 
+
+                                    O 'object' COMO PRIMEIRO ELEMENTO 
+                                    DO ARRAY,
+
+                                    E O METHOD NAME COMO SEGUNDO ELEMENTO 
+                                    DO ARRAY...
+
+
+
+                                
+                                --> PARA ISSO, EM 'resolve()',
+                                PRECISAMOS 
+
+                                FAZER 'check'
+
+
+                                SE A 'action'
+
+                                É CALLABLE OU NÃO...
+
+
+
+
+                                SE ELA FOR CALLABLE,
+
+                                VAMOS CHAMAR ESSA ACTION DIRETAMENTE..
+
+
+
+                                SE ELA NÃO FOR CALLABLE,
+                                VAMOS QUERER CRIAR O OBJECT DA CLASS...
+
+
+
+
+
+
+                    TIPO ASSIM:
+
+
+
+
+    
+
+
+
+    public function resolve(string $requestUri){
+
+    // * The first part of the request URI is the route (the second part is the query string/parametrs)
+        $route = explode('?', $requestUri)[0];
+
+        // * Find the action for the route, in the routes array.
+        $action = $this->routes[$route] ?? null;
+
+        if (!$action) {
+            // Throw custom exception.
+            throw new \App19\Exceptions\RouteNotFoundException();
+        }
+
+
+        if (is_callable($action)) {
+            return call_user_func($action, $route);
+        }
+
+        // * If it is not callable, it must be an array:
+        if(is_array($action)) {
+            [$class, $method] = $action;
+
+            if (class_exists($class)) {
+                $class = new $class;
+                
+                if (method_exists($class, $method)) {
+                    return call_user_func_array([$class, $method],[]);
+                }
+            
+            }
+
+
+        }
+
+        throw new RouteNotFoundException(); 
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+nossa... essa function ficou horrível...
+
+
+
+
+
+A parte do final é bem ruim, esta aqui:
+
+
+
+
+                    return call_user_func_array([$class, $method],[]);
+
+
+
+
+
+--> o primeiro parameter deveria ser 'callable'...
+    e realmente, '[string1, string2]' pode ser interpretado como callable,
+    pelo php...
+
+
+
+
+
+
+EXPLICAÇÃO:
+
+
+
+Array Structure: When PHP encounters an array with exactly 
+two elements where the first element is a class name 
+(or an object) and the second is a method name, it interprets
+ this as a special case. The array is treated as a "class method" callable.
+
+
+
+
+
+
+
+
+
+
+
+ Why PHP Allows This
+Despite the potential for confusion, PHP supports this pattern because it’s a very flexible way to pass around method references, especially in a language that often prioritizes practicality and flexibility over strict typing and structure.
+
+Balancing Complexity with Flexibility
+Ultimately, whether to use this feature depends on your team's coding style and familiarity with PHP. If readability and maintainability are key concerns, you might want to avoid or limit the use of callable arrays and prefer more explicit approaches. However, if you're working in a PHP ecosystem where this pattern is well-understood, it can be a powerful tool for dynamic and flexible code.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK, MAS PQ O PROFESSOR QUER USAR 'call_user_func_array',
+
+aqui?
+
+
+
+
+
+
+
+
+É PQ, SE ELE QUER ESPECIFICAR 'X' QUANTIDADE DE ARGUMENTS 
+A ESSES METHODS,
+
+
+
+O SPECIFY DESSES PARAMETERS, DESSA FORMA, É BEM MELHOR/MAIS LIMPO...
+
+
+
+
+
+
+
+
+
+-> OK... AGORA NOSSAS ROUTES ESTÃO FUNCIONANDO NOVAMENTE...
+
+
+
+
+
+
+
+
+quer dizer que o código apropriado está sendo executado,
+
+tudo com base nas routes que registramos em 'index.php'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CÓDIGO DO 'index.php':
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+declare(strict_types=1);
+
+
+namespace App19;
+
+
+
+require_once __DIR__ . "/../vendor/autoload.php"; // imports the composer's autoloader
+
+
+$router = new Router();
+
+
+
+
+$router->register('/', [\App19\Classes\Home::class, 'index'])
+        ->register('/invoices', [\App19\Classes\Invoices::class, 'index'])
+        ->register('/invoices/create', [\App19\Classes\Invoices::class, 'create']);
+
+
+
+
+echo $router->resolve($_SERVER['REQUEST_URI']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA, CONSEGUIMOS IMPLEMENTAR 1 ROUTING BEM SIMPLES...
+
+
+
+
+
+
+
+
+-> ISSO NOS MOSTRA 1 POUCO DE COMO ROUTING FUNCIONA,
+    E VAI DEIXAR MAIS FÁCIL A COMPREENSÃO 
+
+    DE ROUTING EM FRAMEWORKS VARIADOS...
+
+
+
+
+
+
+    -> E VAMOS REFATORAR ESSE CÓDIGO NA PRÓXIMA AULA...
+
+
+
+
+    -> ISSO PQ, ATUALMENTE, TODAS AS ROUTES SÃO 'ASSUMED TO BE' 
+
+    GET REQUESTS,  
+
+
+
+    MAS IMAGINE QUE ESTAMOS FAZENDO PUT/DELETE/POST REQUEST... 
+
+
+
+    AÍ PRECISAREMOS CONSIDERAR 
+
+    O METHOD DE CADA REQUEST, TAMBÉM...

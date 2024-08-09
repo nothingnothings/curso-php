@@ -20,7 +20,9 @@
       "App14\\": "serialize-objects-and-serialize-magic-methods-2/",
       "App15\\": "serialize-objects-and-serialize-magic-methods-3/",
       "App16\\": "OOP-error-handling-in-php-exceptions-and-try-catch-blocks/",
-      "App17\\": "php-iterables-and-iterable-type-iterate-over-objects/"
+      "App17\\": "php-iterables-and-iterable-type-iterate-over-objects/",
+      "App18\\": "superglobals-basic-routing-using-the-server-info/",
+      "App19\\": "app/"
     }
   }
 }
