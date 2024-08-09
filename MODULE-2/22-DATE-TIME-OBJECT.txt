@@ -1,0 +1,4604 @@
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+COBRIMOS AS DATE E TIME FUNCTIONS  
+
+
+NA PRIMEIRA SECTION DO CURSO, NA LIÇÃO 1.25....
+
+
+
+
+
+
+
+
+
+
+--> AGORA VEREMOS COMO TRABALHAR COM:
+
+
+
+1) DATES E TIMES 
+
+
+2) TIMEZONES 
+
+
+
+
+
+--> USANDO O OBJECT 'DateTime()' do PHP...
+
+
+
+
+
+
+
+--> PODEMOS CRIAR DATE TIME OBJECTS 
+
+USANDO 
+
+
+A CLASS DE 'DateTime()'...
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+$dateTime = new DateTime(); // create a new DateTime object. First argument is the date/time, second argument is the timezone
+
+
+
+
+
+
+
+
+
+
+
+--> TODOS OS ARGUMENTS DE DATETIME SÃO OPCIONAIS....
+
+
+
+
+O PRIMEIRO ARGUMENT 
+
+É 
+
+__UMA STRING...
+
+
+
+
+
+
+
+é uma string 'datetime'...
+
+
+
+
+
+O SEGUNDO ARGUMENT É A TIMEZONE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OS FORMATOS VÁLIDOS PARA A STRING DE 'datetime'
+
+são tipo:
+
+
+
+
+
+'tomorrow'
+
+
+
+'next tuesday' 
+
+
+'last day of month' 
+
+
+'tomorrow noon' 
+
+
+
+'10/10/2021 7:00'
+
+
+
+
+
+
+
+
+
+
+
+
+NO CASO, SÃO OS MESMOS VALUES DA FUNCTION DE 
+
+
+
+'strtotime()',
+
+QUE VIMOS ANTERIORMENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+--> TODOS ESSES VALUES, USADOS COM 'strtotime()',
+
+    podem ser 
+    USADOS COM ESSA FUNCTION....
+
+
+
+
+
+
+
+
+
+
+
+--> BEM, NÓS EXECUTAMOS ESTE CÓDIGO:
+
+
+
+
+
+
+<?php
+
+
+
+require '../../vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+$dateTime = new DateTime(); // create a new DateTime object. First argument is the date/time, second argument is the timezone
+
+
+
+var_dump($dateTime);
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> E ISSO NOS DÁ ESTE OBJECT:
+
+
+
+
+
+
+object(DateTime)#2 (3) {
+  ["date"]=>
+  string(26) "2024-08-08 20:57:13.225951"
+  ["timezone_type"]=>
+  int(3)
+  ["timezone"]=>
+  string(13) "Europe/Berlin"
+}
+
+
+
+
+
+
+
+
+
+
+
+-> NO CASO, É UM ARRAY COM 
+
+
+
+['2024-08-08 20:57:13.225951', int, 'Europe/Berlin']
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> FIQUEI COM ISSO AÍ...
+
+
+
+
+
+
+
+
+--> ATUALMENTE, MEU PHP ESTÁ USANDO A TIMEZONE DE 'Europe/Berlin'...
+
+
+
+
+
+
+-> A VERSÃO DO PROFESSOR ESTÁ USANDO 'UTC'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS ISSO PODE SER ALTERADO, 
+    MEXENDO NO php.ini...
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS PASSAR, POR EXEMPLO, 1 PARAMETER ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+require '../../vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+$dateTime = new DateTime('tomorrow'); // create a new DateTime object. First argument is the date/time, second argument is the timezone
+
+
+
+var_dump($dateTime);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+
+
+require '../../vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+$dateTime = new DateTime('yesterday noon'); // create a new DateTime object. First argument is the date/time, second argument is the timezone
+
+
+
+var_dump($dateTime);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+require '../../vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+$dateTime = new DateTime('05/12/2021 3:30PM'); // create a new DateTime object. First argument is the date/time, second argument is the timezone
+
+
+
+var_dump($dateTime);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---> o segundo parameter que pode ser passado é 
+
+o TIMEZONE OBJECT...
+
+
+
+
+
+
+
+
+
+
+
+--> TIPO ASSIM:
+
+
+
+
+$dateTime = new DateTime('05/12/2021 3:30PM', new DateTimeZone());
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OS SUPPORTED TIMEZONE NAMES PODEM SER ENCONTRADOS 
+    NA DOCUMENTATION DO PHP...
+
+
+
+
+https://www.php.net/manual/en/timezones.php
+
+
+
+
+
+
+
+
+
+Europe/Amsterdam	
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ O AMSTERDAM VAI SER TROCADO PARA 'AMSTERDAM',
+
+claro,
+
+
+
+MAS O TIMEZONE NÃO TERÁ SIDO ALTERADO...
+
+
+
+
+
+
+
+--> ISSO ACONTECEU PQ ESTAMOS SENDO EXPLÍCITOS 
+
+COM A STRING,
+
+
+
+PQ 
+
+ESTAMOS ESCREVENDO 
+
+
+
+'05/12/2021 3:30PM'...
+
+
+
+
+-> NÓS AINDA ESTAMOS RECEBENDO '3:30PM',
+
+
+
+MAS ESTAMOS RECEBENDO ESSAS 3:30PM 
+
+
+CONSIDERANDO A TIMEZONE DE EUROPE/AMSTERDAM...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+$dateTime = new DateTime('05/12/2021 3:30PM', new DateTimeZone('Europe/Amsterdam')); // create a new DateTime object. First argument is the date/time, second argument is the timezone
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> se quisermos REALMENTE MUDAR O TIMEZONE 
+'ON THE FLY',
+
+
+
+PODEMOS 
+
+
+USAR O METHOD DE 
+
+
+
+'date_default_timezone_set()',
+
+
+
+
+E ISSO REALMENTE AJUSTARIA 
+
+
+A TIMEZONE...
+
+
+
+
+
+
+
+
+
+
+
+--> MAS TAMBÉM EXISTE OUTRO METHOD,
+
+
+'setTimezone()',
+
+
+QUE PODE 
+SER CHAMADO 
+
+
+DENTRO 
+
+
+DO OBJECT 'DateTime()',
+
+
+PARA ENTÃO 
+
+
+
+ATUALIZAR/MUDAR O TIMEZONE 
+
+DE ESSE VALUE/OBJECT,
+
+
+ON THE FLY,
+
+
+IMEDIATAMENTE (e apenas nesse value, sem mudar o timezone interno do seu php)..
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+$dateTime = new DateTime('05/12/2021 3:30PM', new DateTimeZone('Europe/Amsterdam')); // create a new DateTime object. First argument is the date/time, second argument is the timezone
+
+var_dump($dateTime);
+
+$dateTime->setTimezone(new DateTimeZone('Europe/Amsterdam'));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+<?php
+
+
+
+require '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+$dateTime = new DateTime(); // create a new DateTime object. First argument is the date/time, second argument is the timezone
+
+
+var_dump($dateTime);
+
+
+$dateTime->setTimezone(new DateTimeZone('Europe/Amsterdam')); // set the timezone, inside of the dateTime object/value.
+
+
+var_dump($dateTime);
+
+
+
+
+
+
+
+
+
+E ISSO VAI PRINTAR ASSIM:
+
+
+
+
+
+
+
+
+
+
+object(DateTime)#2 (3) {
+  ["date"]=>
+  string(26) "2024-08-08 21:15:13.721564"
+  ["timezone_type"]=>
+  int(3)
+  ["timezone"]=>
+  string(13) "Europe/Berlin"
+}
+object(DateTime)#2 (3) {
+  ["date"]=>
+  string(26) "2024-08-08 21:15:13.721564"
+  ["timezone_type"]=>
+  int(3)
+  ["timezone"]=>
+  string(16) "Europe/Amsterdam"
+}
+
+
+
+
+
+
+EM VEZ DE FAZER VAR_DUMP 
+
+
+DOS DATETIME OBJECTS,
+
+
+
+PODEMOS SIMPLESMENTE FAZER FORMAT 
+
+DOS DAYS USANDO  
+
+O METHOD DE 'format()'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+method 'format()':
+
+
+
+
+ACEITA O FORMATO 
+
+
+A SER APLICADO NA SUA DATE...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php
+
+
+
+require '../../src/vendor/autoload.php'; // imports the composer's autoloader
+
+
+
+$dateTime = new DateTime('05/12/2021 3:30PM'); // create a new DateTime object. First argument is the date/time, second argument is the timezone
+
+
+
+echo $dateTime->format('m/d/Y g:i A') . PHP_EOL;
+
+
+
+$dateTime->setTimezone(new DateTimeZone('Europe/Amsterdam')); // set the timezone, inside of the dateTime object/value.
+
+
+
+echo $dateTime->format('m/d/Y g:i A') . PHP_EOL;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+PODERÍAMOS TAMBÉM USAR O METHOD DE 
+
+
+'.getTimezone()',
+
+
+
+PARA __ CONSEGUIR O 'TIMEZONE OBJECT',
+
+
+E ENTÃO 
+
+
+USAR O METHOD '.getName()'
+
+
+NESSE TIMEZONE OBJECT, 
+
+PARA CONSEGUIR O NAME DO TIMEZONE,
+
+
+TUDO PARA GARANTIR QUE ESTAMOS NA TIMEZONE CORRETA...
+
+
+
+
+
+
+
+
+-> TIPO ASSIM:
+
+
+
+
+
+
+
+
+echo $dateTime->getTimezone()->getName();
+
+
+
+
+
+
+
+
+
+
+-> VAMOS OBTER 1 PRINT COMO 
+
+
+ 'UTC'
+
+ e 
+
+ 'Europe/Amsterdam'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TAMBÉM PODEMOS MUDAR O DATE E TIME 
+
+
+NO GIVEN DateTime OBJECT _ON THE FLY,
+
+
+A QUALQUER MOMENTO,
+
+
+USANDO _ OS METHODS DE 
+
+
+
+'->setDate()'
+
+
+
+e 
+
+
+
+'->setTime()'...
+
+
+
+
+
+
+
+
+
+
+
+BASTA ESCREVER ASSIM:
+
+
+
+
+
+ 
+
+
+
+
+$dateTime->setDate(2021, 4, 21);
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+// Set the date of the DateTime object, on the fly, during runtime. Then, set the time of the DateTime object, on the fly, during runtime (set it to 12:35:20 AM)
+$dateTime->setDate(2021, 4, 21)->setTime(12, 35, 20);
+
+
+// Format the DateTime object, and return it as string
+echo $dateTime->format('m/d/Y g:i A') . PHP_EOL;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... É POSSÍVEL CHAINAR 
+
+'setDate()'
+
+e 'setTime()'
+
+
+
+pq o próprio return type 
+
+desses methods é 'DateTime'...
+
+
+É POR ISSO QUE SÃO COMPATÍVEIS... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VC TAMBÉM DEVE PERCEBER QUE 
+
+ESTAMOS MUDANDO 
+
+O TIME ____ DEPOIS __ DA MUDANÇA DA TIMEZONE, COM 'setTimezone()'...
+
+
+
+
+
+
+
+
+
+--> ENTRETANTO,
+    SE FOSSEMOS MUDAR O DATE E TIME __ ANTES__ 
+
+    __ DE SETTAR A TIMEZONE,
+
+    AÍ, ANTES DE MUDAR A TIMEZONE,
+
+
+    VC MUDARIA O DATE E O TIME...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+$dateTime->setDate(2021, 4, 21)->setTime(2, 15);
+$dateTime->setTimezone(new DateTimeZone('Europe/Amsterdam')); // set the timezone, inside of the dateTime object/value.
+
+echo $dateTime->getTimezone()->getName() . ' - ' . $dateTime->format('m/d/Y g:i A') . PHP_EOL;
+
+
+
+
+
+
+O PRINT FICARÁ TIPO ASSIM:
+
+
+
+'Europe/Amsterdam - 04/21/2021 4:15 AM' 
+
+
+
+
+
+ISSO ACONTECE PQ, AO DEFINIRMOS ESSE TIMEZONE,
+
+
+O TIMEZONE ORIGINAL DE 'UTC'
+
+É OVERWRITTEN,
+
+
+O QUE FAZ COM QUE 
+
+ O TIMEZONE FIQUE COMO 'Europe/Amsterdam',
+
+
+
+QUE REALMENTE TEM 1 FUSO DIFERENTE DE 'UTC'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VC TAMBÉM PODERIA 
+    MUDAR O DATE E TIME 
+
+    COM O METHOD DE 
+
+
+    '->setTimestamp()',
+
+
+
+
+MAS O PROFESSOR NÃO VAI MOSTRAR TODOS OS AVAILABLE METHODS 
+
+NO OBJECT DE 'DateTime()"...
+
+
+
+
+
+
+
+-> OS METHODS EXISTEM NA DOCUMENTATION...
+
+
+
+
+
+
+
+
+ 
+
+--> EX:
+
+
+
+
+
+
+
+
+public __construct(string $datetime = "now", ?DateTimeZone $timezone = null)
+public add(DateInterval $interval): DateTime
+public static createFromFormat(string $format, string $datetime, ?DateTimeZone $timezone = null): DateTime|false
+public static createFromImmutable(DateTimeImmutable $object): static
+public static createFromInterface(DateTimeInterface $object): DateTime
+public modify(string $modifier): DateTime|false
+public static __set_state(array $array): DateTime
+public setDate(int $year, int $month, int $day): DateTime
+public setISODate(int $year, int $week, int $dayOfWeek = 1): DateTime
+public setTime(
+    int $hour,
+    int $minute,
+    int $second = 0,
+    int $microsecond = 0
+): DateTime
+public setTimestamp(int $timestamp): DateTime
+public setTimezone(DateTimeZone $timezone): DateTime
+public sub(DateInterval $interval): DateTime
+public diff(DateTimeInterface $targetObject, bool $absolute = false): DateInterval
+public format(string $format): string
+public getOffset(): int
+public getTimestamp(): int
+public getTimezone(): DateTimeZone|false
+public __wakeup(): void
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO....
+
+
+
+
+
+
+
+
+
+
+
+
+APESAR DE QUE NÃO VAMOS COBRIR TODOS ESSES METHODS,
+
+O PROFESSOR QUER NOS MOSTRAR ALGUNS DELES, OS MAIS IMPORTANTES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK, MAS QUAIS SÃO ALGUNS DOS MAIS IMPORTANTES?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1o method importante--> o method '->createFromFormat()',
+
+    QUE TE DEIXA 
+
+    CRIAR DATETIME OBJECTS __ 
+
+
+    A PARTIR DE FORMATOS ESPECÍFICOS...
+
+
+
+
+
+
+
+
+
+BASTA VER A CLASS DE 'DateTime',
+
+E ENCONTRAR ESSE METHOD:
+
+
+
+
+	/**
+	 * Parses a time string according to a specified format
+	 * Returns a new DateTime object representing the date and time specified by the `datetime` string, which was formatted in the given `format`.
+	 *
+	 * @param string $format
+	 * @param string $datetime
+	 * @param DateTimeZone|null $timezone
+	 * @return bool|DateTime Returns a new DateTime instance or `false` on failure.
+	 */
+	static function createFromFormat(string $format, string $datetime, DateTimeZone $timezone = null) { /* function body is hidden */ }
+
+
+
+
+
+
+
+
+
+
+
+
+O ARGUMENT DE 'TIMEZONE' é opcional... (default = null)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PRIMEIRO ARGUMENTO É O FORMATO
+
+
+
+
+
+-> O SEGUNDO ARGUMENTO É O VALUE, QUE SERÁ 1 STRING...
+
+
+
+
+
+
+
+
+
+
+
+
+--> É CLARO QUE HÁ MTOS USE-CASES 
+    PARA ESSE METHOD... PQ ELE TE DÁ 
+
+    O PODER DE CRIAR 
+    DATETIME OBJECTS 
+
+    A PARTIR 
+
+    DE FORMATS ESPECÍFICOS...
+
+
+
+
+
+
+
+
+--> AQUI TEMOS 1 USE CASE QUE É BEM ÚTIL, POR EXEMPLO:
+
+
+
+
+
+
+
+
+
+
+
+''''AS YOU KNOW, IN EUROPE THE DAY 
+    FORMAT IS day/month/year. In the US,
+    the format is different,
+    it is month/day/year''''...
+
+
+
+
+
+
+
+// day/month/year - europe 
+// month/day/year - U.S 
+
+
+
+
+
+
+
+--> quando CRIAMOS 1 DATETIME OBJECT POR MEIO DO 
+    PASS DA DATE NO CONSTRUCTOR,
+
+    USANDO ALGO 
+
+    como isto:
+
+
+
+
+$dateTime = new DateTime('05/12/2021 3:30PM');
+
+
+
+
+
+A DATE QUE SERÁ CRIADA,
+
+COM ISSO,
+
+
+
+SERÁ 
+
+
+'twelfth of may',
+
+e  não 
+
+
+5 de dezembro...
+
+
+
+
+
+
+
+
+
+-> mas isso poderia ser 1 problema, se, por exemplo,
+    sua date fosse expected 
+
+    no FORMATO EUROPEU...
+
+
+
+
+
+    EX: 
+
+
+    IMAGINE QUE ESSE VALUE, ESSA DATA, ESTÁ VINDO 
+    DE ALGUM USER INPUT, DE ALGUMA API, OU DE ALGUM OUTRO LUGAR,
+
+    ALGUM LUGAR QUE NÃO TE DÁ OPÇÕES SOBRE COMO ESSES DATE VALUES 
+
+    SERÃO ENTREGUES A VOCÊ...
+
+
+
+
+
+--> AÍ, NESSES CASOS, VC VAI PRECISAR DESSE METHOD DE '->createFromFormat()'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ALTERNATIVAMENTE, VC PODE USAR '-' ou '.' 
+
+EM VEZ DE '/' nas suas dates....
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+$date = '30.05.2021 3:30PM';
+
+$dateTime = new DateTime($date);
+
+
+
+
+
+
+
+
+
+
+
+Ex:
+
+
+
+
+
+
+
+// This is totally different from using '/' as a delimiter, because it will not consider the US date format (which is 'm/d/Y')
+$date2 = '30.05.2021 3:30PM';
+
+$dateTime2 = new DateTime($date2);
+
+var_dump($dateTime2);
+
+
+
+
+
+
+
+
+
+
+
+
+
+PQ QUANDO O PHP ENCONTRA '.' ou '-' 
+
+EM VEZ DE '/' (slashes),
+
+
+
+O
+ 
+
+PHP 
+
+
+SEMPRE VAI USAR 
+
+'EUROPEAN FORMAT',
+
+
+EM VEZ DO AMERICAN FORMAT...
+
+
+
+
+
+
+
+
+
+
+PARA FICAR COM '.' em vez de 
+
+
+'/'
+
+
+em 1 value que já está pronto,
+
+podemos rodar 
+
+
+
+um str_replace() no value,
+
+
+tipo algo assim:
+
+
+
+
+
+
+
+$date2 = '30/05/2021 3:30PM';
+
+$dateTime2 = new DateTime(str_replace('/', '-', $date2)); // EIS O CÓDIGO EM QUESTÃO.
+
+var_dump($dateTime2);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESSA É UMA BOA SOLUTION, SIM,
+
+
+MAS ELA PODE NEM SEMPRE SER IDEAL...
+
+
+
+
+
+
+
+
+--> PODE N SER SEMPRE IDEAL PQ 
+
+
+ESSES 
+
+
+VALUES PODEM ESTAR VINDO DE 1 FILE/API,
+
+
+e aí vc nao vai querer 
+
+
+ter de rodar 'str_replace()'
+
+
+FOR EVERY SINGLE DATE... 
+
+
+
+
+
+
+
+
+e, se as dates ficassem em 1 format diferente,
+
+vc ficaria imediatamente com errors... VC TERIA, ENTÃO,
+
+DE TER LÓGICA ESPECÍFICA PARA FAZER REPLACE DE OUTROS CARACTERES,
+
+E ASSIM POR DIANTE... OU SEJA, NADA IDEAL...
+
+
+
+
+
+
+
+--> é aqui, portanto, que o method de 'createFromFormat'
+
+    PODE SER USADO, COMO UMA SOLUÇÃO MELHOR...
+
+
+
+
+
+
+
+-> PARA ISSO, DEVEMOS USAR O METHOD DE '::createFromFormat()',
+
+
+
+
+
+
+
+
+
+
+
+--> esse é um STATIC METHOD,
+
+POR ISSO DEVEMOS CHAMÁ-LO DESTA FORMA:
+
+
+
+
+
+
+
+
+
+
+$dateTime = DateTime::createFromFormat();
+
+
+
+
+
+
+
+
+
+
+
+DENTRO DISSO, 
+
+COLOCAMOS O FORMAT QUE ESTAMOS 'EXPECTING'...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+$date '15/05/2021 3:30PM';
+
+
+$dateTime = DateTime::createFromFormat('d/m/Y g:mA', $date);
+
+
+var_dump($dateTime);
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+
+// This is better than using '.' and '-', it's safer (with this ::createFromFormat() method)
+$date3 = '30-05-2021 3:30PM';
+$dateTime3 = DateTime::createFromFormat('d-m-Y H:iP', $date3);
+var_dump($dateTime3);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+E ISSO NOS DÁ O CORRECT DATE AND TIME...
+
+
+
+
+
+
+
+
+
+
+
+
+MAS HÁ MAIS UMA COISA QUE O PROFESSOR QUER NOS MOSTRAR...
+
+
+
+
+
+
+
+
+
+
+DIGAMOS QUE NÃO TEMOS A PARTE DE 'TIME', dentro dessa string (a parte de '3:30PM')..
+
+
+
+
+ISSO FEITO, TAMBÉM REMOVEMOS ISSO DO FORMAT, LÁ PARA BAIXO...
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+// This is better than using '.' and '-', it's safer (with this ::createFromFormat() method)
+$date3 = '30-05-2021';
+$dateTime3 = DateTime::createFromFormat('d-m-Y', $date3);
+var_dump($dateTime3);
+
+
+
+
+
+
+
+
+
+
+
+
+--> AO RODARMOS ISSO, 
+
+
+VEREMOS QUE 
+
+O PRINT 
+
+SERÁ 
+
+
+
+TIPO ASSIM:
+
+
+
+
+'2021-05-15 22:25:01.00000''
+
+
+
+
+
+
+
+
+
+
+
+PERCEBEMOS QUE ELE ESTÁ USANDO O ''CURRENT TIME'',
+
+mas o current time usando a 'utc' timezone...
+
+
+
+
+
+
+
+--> CERTO... MAS ISSO É DIFERENTE DE, POR EXEMPLO,
+    CRIAR DATES COM 
+
+
+    'new DateTime()'...
+
+
+
+
+PQ, COM 'new DateTime('15-05-2021')',
+
+
+
+
+O TIME SEMPRE ERA SETTADO COMO '00:00:00.00000',
+
+ou seja,
+
+MEIA-NOITE...
+
+
+
+
+
+
+
+--> ENTRETANTO, 
+
+    '''WHEN YOU CREATE A DATETIME OBJECT 
+        USING _ THE 'createFromFormat()' method 
+        AND YOU DON'T  SPECIFY __ THE _ EXACT TIME,
+        THE 
+        ACTUAL  TIME THAT WILL BE USED WILL BE THE 'CURRENT TIME'...''
+
+
+
+    
+    isso é um detalhe importante, portanto...
+
+
+
+
+    ''''IF YOU WANT TO USE THE MIDNIGHT, ONE SOLUTION IS TO SPECIFY 
+    THE TIME AS 00:00:00.00000''''
+
+    
+
+    '''ANOTHER SOLUTION IS TO CALL '->setTime(0,0)' on top 
+    of the previous call,
+    like this:''
+
+
+
+
+
+
+
+// This is better than using '.' and '-', it's safer (with this ::createFromFormat() method)
+$date3 = '30-05-2021 3:30PM';
+$dateTime3 = DateTime::createFromFormat('d-m-Y H:iP', $date3)->setTime(0, 0); //set the time as midnight
+var_dump($dateTime3);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VC TAMBÉM DEVE SABER QUE 
+
+
+
+'''MOST OF THE METHODS OFFERED BY THE DateTime objects 
+    HAVE _ CORRESPONDING PROCEDURAL FUNCTIONS THAT 
+    CAN BE USED 
+    INSTEAD''...
+
+
+
+
+
+
+
+
+
+ISSO É BEM ÓBVIO, 
+
+MAS PODEMOS EXPLICAR ASSIM:
+
+
+
+
+
+
+
+
+date_create() -----> É A MESMA COISA QUE 'new DateTime()'...
+
+
+
+
+
+
+date_create_from_format() --> É A MESMA COISA QUE 'DateTime::createFromFormat()'...
+
+
+
+
+
+date_timezone_set() -->  É A MESMA COISA QUE DateTime()->setTimezone()
+
+
+date_timezone_get() --> é a mesma coisa que DateTime()->getTimezone()
+
+
+
+
+
+
+
+E ASSIM POR DIANTE...
+
+
+
+
+
+---------------------------
+
+
+
+
+
+
+
+
+MAS O PROFESSOR SEMPRE PREFERE TRABALHAR DIRETAMENTE COM OS
+
+
+DATETIME OBJECTS, EM VEZ DAS PROCEDURAL TIME FUNCTIONS,
+
+
+
+PQ _ ISSO DEIXA MAIS FÁCIL O TEST E MAINTAIN 
+
+DESSES VALUES, DOWN THE ROAD...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+> OK .... AGORA 
+
+    DEVEMOS VER O TÓPICO DO 'COMPARING DATES'...
+
+
+
+
+
+
+
+
+
+-->  DateTime objects podem ser comparados 
+
+usando o COMPARISON OPERATOR...
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+// Comparisons with DateTime objects:
+$dateTime1 = new DateTime('05/25/2021 9:15 AM');
+$dateTime2 = new DateTime('05/25/2021 9:14 AM');
+
+var_dump($dateTime1 < $dateTime2);
+var_dump($dateTime1 > $dateTime2);
+var_dump($dateTime1 == $dateTime2);
+var_dump($dateTime1 <=> $dateTime2);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OS PRINTS FICAM ASSIM:
+
+
+
+
+
+
+bool(false)
+bool(true)
+bool(false)
+int(1)
+
+
+
+
+
+
+
+
+
+OS TIMES MAIS POSTERIORES SÃO 'MAIORES' DO QUE 
+
+OS ANTERIORES...
+
+
+
+
+
+
+
+
+--> o comparison operator também funciona...
+
+
+
+
+
+
+
+--> O '==' SÓ VAI SER TRUE 
+
+SE 
+OS 2 REALMENTE FOREM EQUAL...
+
+
+
+
+
+
+O ÚLTIMO VALUE é de 1 
+
+pq é o spaceship operator 
+
+
+(returns 1 if first value is greater than the second, 0 if they are equal, -1 if the second is greater)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+''YOU CAN ALSO SIMPLY COMPARE TIMESTAMPS OF THE TWO DATES''...
+
+
+
+
+
+''YOU JUST NEED TO USE ->getTimestamp() on both... because 
+    TIMESTAMPS ARE JUST INTEGERS...''
+
+
+
+''OR YOU CAN USE strtotime() to CONVERT DATE STRINGS INTO TIMESTAMPS,
+AND THEN COMPARE THOSE TIMESTAMPS INSTEAD...''
+
+
+
+
+
+
+
+
+
+
+''''WE CAN ALSO CALCULATE DIFFERENCES BETWEEN  
+    TWO DATETIME OBJECTS USING THE 'diff()' method''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+''DIFF() METHOD:''
+
+
+
+
+
+-- ELE RETORNA UM 'DateInterval' OBJECT...
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, PARA TESTAR O 'DIFF()' METHOD, ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Comparisons with DateTime objects:
+$dateTime1 = new DateTime('05/25/2021 9:15 AM');
+$dateTime2 = new DateTime('05/25/2021 3:25 AM');
+
+var_dump($dateTime1->diff($dateTime2));
+
+
+
+
+
+
+
+
+
+
+
+ISSO NOS PRINTA 1 OBJECT COM BASTANTES KEYS:
+
+
+
+
+
+
+object(DateInterval)#8 (16) {
+  ["y"]=>
+  int(0)
+  ["m"]=>
+  int(2)
+  ["d"]=>
+  int(10)
+  ["h"]=>
+  int(5)
+  ["i"]=>
+  int(50)
+  ["s"]=>
+  int(0)
+  ["f"]=>
+  float(0)
+  ["weekday"]=>
+  int(0)
+  ["weekday_behavior"]=>
+  int(0)
+  ["first_last_day_of"]=>
+  int(0)
+  ["invert"]=>
+  int(1)
+  ["days"]=>
+  int(71)
+  ["special_type"]=>
+  int(0)
+  ["special_amount"]=>
+  int(0)
+  ["have_weekday_relative"]=>
+  int(0)
+  ["have_special_relative"]=>
+  int(0)
+}
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+
+É UM OBJECT 
+
+
+COM 
+
+
+
+
+
+
+A DIFERENÇA PRECISA 
+
+
+ENTRE 
+
+
+
+TIPOS DE COISAS (dates, months, years, etc )
+
+
+
+
+
+
+
+
+
+
+
+
+--> HÁ UMA PROPERTY 
+    DE 'invert',
+
+    QUE ESTÁ SETTADA, AQUI, COMO '1'...
+
+
+
+
+
+--> O VALUE DISSO FICA COMO '1'
+
+    SEMPRE QUE 
+
+    O INTERVAL 
+    É 
+
+    'NEGATIVE TIMEPERIOD'
+
+    (caso contrário, fica settado como 0)...
+
+
+
+
+
+
+
+
+
+    mas o que isso significa?
+
+
+
+
+
+
+
+
+SIGNIFICA ISTO:
+
+
+
+
+
+'''WHEN WE COMPUTE THE DIFFERENCE USING THE
+    'DIFF()' METHOD, WHAT HAPPENS IS THAT IT IS GOING 
+    TO SUBSTRACT 
+
+    THE 'dateTime1' object FROM THE 'dateTime2' object...''''
+
+
+    ''AND, IN THIS CASE,
+    THE dateTime2 object IS _ LESS THAN THE dateTime1 object,
+    AND THAT'S WHY IT GETS RESOLVED AS A NEGATIVE NUMBER...''
+
+
+
+
+
+
+--> isso quer dizer, em outras palavras, que a difference seria de 
+
+'-71' days, por exemplo... MAS, EM VEZ DE USAR O VALUE SECO DE '-71' 
+para os days,
+
+
+o que o php faz é USAR AQUELA PROPERTY DE 'invert' settada como '1',
+
+que significa TRUE...
+
+
+
+
+
+
+
+
+
+
+-> 'invert' como 1 --> significa ''NEGATIVE TIMEPERIOD''...
+
+
+
+
+
+
+
+--> SE ESCREVESSEMOS O CONTRÁRIO,
+
+
+com dateTime2->diff($dateTime1),
+
+
+
+O _ 'dateTime2'
+
+
+
+SERIA _ SUBTRAÍDO 
+
+DO 'dateTime1'...
+
+
+
+
+
+
+
+E, COMO  'dateTime1'
+
+É __ MAIOR__ DO QUE 
+
+
+'dateTime2',
+
+
+
+QUANDO 
+
+
+
+RODARMOS ISTO:
+
+
+
+
+
+
+
+
+
+
+
+
+// Comparisons with DateTime objects:
+$dateTime1 = new DateTime('05/25/2021 9:15 AM');
+$dateTime2 = new DateTime('05/25/2021 3:25 AM');
+
+var_dump($dateTime2->diff($dateTime1));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O VALUE DA KEY DE 'invert'
+
+
+
+FICARÁ COMO '0',
+
+
+e não como '1'...
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+ISSO FEITO,
+
+O PROFESSOR 
+
+
+
+
+
+ABRE O METHOD DE 'diff',
+
+
+para ver seus details...
+
+
+
+
+
+	/**
+	 * Returns the difference between two DateTimeInterface objects.
+	 *
+	 * @param DateTimeInterface $targetObject
+	 * @param bool $absolute Should the interval be forced to be positive?
+	 * @return DateInterval The DateInterval object represents the difference between the two dates.
+	 *                      The return value more specifically represents the clock-time interval to apply to the original object (`$this` or `$originObject`) to arrive at the `$targetObject`. This process is not always reversible.
+	 *                      The method is aware of DST changeovers, and hence can return an interval of `24 hours and 30 minutes`, as per one of the examples. If you want to calculate with absolute time, you need to convert both the `$this`/ `$baseObject`, and `$targetObject` to UTC first.
+	 */
+	function diff(DateTimeInterface $targetObject, bool $absolute = false) { /* function body is hidden */ }
+
+
+
+
+
+
+
+--> AÍ ELE ABRE A CLASS DE DateInterval, que é o return type 
+    desse method...
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+class DateInterval
+{
+	#region Properties
+
+	/**
+	 * @var int
+	 */
+	public $d;
+
+	/**
+	 * @var string
+	 */
+	public $date_string;
+
+	public $days;
+
+	/**
+	 * @var float
+	 */
+	public $f;
+
+	/**
+	 * @var bool
+	 */
+	public $from_string;
+
+	/**
+	 * @var int
+	 */
+	public $h;
+
+	/**
+	 * @var int
+	 */
+	public $i;
+
+	/**
+	 * @var int
+	 */
+	public $invert;
+
+	/**
+	 * @var int
+	 */
+	public $m;
+
+	/**
+	 * @var int
+	 */
+	public $s;
+
+	/**
+	 * @var int
+	 */
+	public $y;
+
+	#endregion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESSA CLASS, NO CASO,
+ 
+ TEM TODAS ESSAS PROPERTIES,
+
+ 
+
+ QUE SÃO DEFINIDAS COMO PUBLIC....
+
+
+
+
+
+
+
+
+
+
+
+
+ -> QUER DIZER QUE PODEMOS PRINTAR QUALQUER COISA DESSA CLASS/OBJECT DESSA CLASS,
+    COM ALGO COMO ISTO:
+
+
+
+
+// Comparisons with DateTime objects:
+$dateTime1 = new DateTime('05/25/2021 9:15 AM');
+$dateTime2 = new DateTime('05/25/2021 3:25 AM');
+
+var_dump($dateTime2->diff($dateTime1))->days;
+
+
+
+
+
+
+
+
+
+
+
+
+'->days;' 
+
+
+
+
+ISSO NOS MOSTRA A DIFERENÇA DE DIAS 
+
+ENTRE 
+
+
+
+OS 2 VALUES DE DATETIME COMPARADOS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE ABRIMOS A CLASS DE DateInterval
+
+MAIS UMA VEZ,
+
+
+
+PERCEBEMOS QUE 
+
+ELA TEM TAMBÉM UM METHOD DE '->class()',
+
+QUE 
+
+
+NOS PERMITE FORMATAR 
+
+
+ESSE RETURN DE 'DateInterval'
+
+
+
+DE UMA MANEIRA MAIS READABLE...
+
+
+
+
+
+
+
+
+
+--> PARA ISSO,
+
+    PODEMOS, EM VEZ DE RODAR '->days',
+
+
+
+    RODAR O METHOD DE '->format()',
+
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+// Comparisons with DateTime objects:
+$dateTime1 = new DateTime('05/25/2021 9:15 AM');
+$dateTime2 = new DateTime('05/25/2021 3:25 AM');
+
+var_dump($dateTime2->diff($dateTime1))->format();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM 'format()',
+
+DEVEMOS CHECAR OS DOCS DO PHP,
+
+PARA VER QUAIS SÃO OS FORMATS VÁLIDOS 
+
+
+
+
+
+
+DE OUTPUT, PARA ESSA CLASS DE 'DateInterval'....
+
+
+
+
+
+
+
+
+
+
+
+OS FORMATS SÃO MTOS...
+
+
+
+
+
+
+
+
+
+
+--> CADA CARACTER PRECISA SER PREFIXADO COM '%'..
+
+
+
+
+
+
+tipo 
+
+'%Y',
+
+
+'%d',
+
+etc....
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+// Comparisons with DateTime objects:
+$dateTime1 = new DateTime('05/25/2021 9:15 AM');
+$dateTime2 = new DateTime('05/25/2021 3:25 AM');
+
+var_dump($dateTime2->diff($dateTime1))->format('%d') . PHP_EOL; 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK...
+
+
+
+
+
+COM ISSO, FICAMOS COM 1 PRINT DE '10'...
+
+
+
+
+
+-> ISSO NOS MOSTRA QUE NÓS CONSEGUIMOS OBTER A DIFERENÇA 
+DE DAYS 
+
+
+ENTRE 
+
+
+'05/25/2021' 
+
+
+e 
+
+'03/15/2021'...
+
+
+
+
+
+
+
+
+
+ 
+
+ PODEMOS USAR DIFERENTES FORMATOS, COMO ESTE:
+
+
+
+
+
+
+
+ // Comparisons with DateTime objects:
+$dateTime1 = new DateTime('05/25/2021 9:15 AM');
+$dateTime2 = new DateTime('05/25/2021 3:25 AM');
+
+var_dump($dateTime2->diff($dateTime1))->format('%Y years, %m months, %d days') . PHP_EOL; 
+
+
+
+
+
+
+
+
+
+
+ISSO NOS PRINTA ALGO COMO 
+
+
+'00 years, 2 months, 10 days'...
+
+
+
+
+
+
+
+
+
+
+
+--> TAMBÉM PODEMOS ESPECIFICAR HOURS, MINUTES E SECONDS, COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+ // Comparisons with DateTime objects:
+$dateTime1 = new DateTime('05/25/2021 9:15 AM');
+$dateTime2 = new DateTime('05/25/2021 3:25 AM');
+
+var_dump($dateTime2->diff($dateTime1))->format('%Y years, %m months, %d days, %H, %i, %s') . PHP_EOL; 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE VC QUER GET 'THE TOTAL AMOUNT OF DAYS',
+
+
+vc 
+
+
+
+PODE usar '%a',
+
+
+
+
+QUE VAI TE DAR A ACTUAL DIFFERENCE ENTRE DAYS:
+
+
+
+
+
+
+
+
+ // Comparisons with DateTime objects:
+$dateTime1 = new DateTime('05/25/2021 9:15 AM');
+$dateTime2 = new DateTime('05/25/2021 3:25 AM');
+
+var_dump($dateTime2->diff($dateTime1))->format('%a') . PHP_EOL; 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO PRINTA '71'...
+
+
+
+
+
+
+
+
+
+
+--> JÁ SE VC QUER 
+    TER O ACTUAL 'SIGN' (SE É POSITIVO OU NEGATIVO),
+
+
+VC PODE 
+
+USAR 
+
+
+
+O MARKER DE 
+
+'%R',
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+ // Comparisons with DateTime objects:
+$dateTime1 = new DateTime('05/25/2021 9:15 AM');
+$dateTime2 = new DateTime('05/25/2021 3:25 AM');
+
+var_dump($dateTime2->diff($dateTime1))->format('%R%a') . PHP_EOL; 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+ISSO VAI PRINTAR 
+
+TIPO 
+
+
+'+71'
+
+
+OU 
+
+
+'-71'...
+
+
+
+
+
+
+-----------------------------
+
+
+
+
+
+
+
+
+
+E VC TAMBÉM PODE ACTUALLY CRIAR OBJECTS DA CLASS 'DateInterval'
+
+
+DIRETAMENTE, E ENTÃO USAR ESSES INTERVAL OBJECTS PARA 
+
+
+FAZER ALGUMAS CALCULATIONS COM ESSA DATE....
+
+
+
+
+
+
+
+
+
+
+--> TIPO ASSIM:
+
+
+
+
+
+
+
+
+$interval = new DateInterval();
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... ESSE OBJECT EXPECTS UM ARGUMENT...
+
+
+
+
+
+
+
+
+1o argument --> A DURATION...
+
+
+
+
+
+
+
+
+
+-> para os formats válidos para a duration,
+temos que checar os docs do php sobre a class de 'DateInterval'...
+
+
+
+
+TEMOS ISTO:
+
+
+
+
+
+
+An interval specification.
+
+The format starts with the letter P, for period. 
+Each duration period is represented by an integer value
+ followed by a period designator. If the duration contains
+  time elements, that portion of the specification is 
+  preceded by the letter T.
+
+
+
+
+
+
+
+
+
+
+
+
+POR EXEMPLO,
+PODEMOS 
+
+
+ESCREVER 
+
+
+
+'P2D',
+
+
+
+
+que isso significaria 'TWO DAYS OF INTERVAL'...
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+$interval = new DateInterval('P2D');
+
+
+
+var_dump($interval);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+// Creating a DateInterval object:
+$interval = new DateInterval('P2D'); // Interval of 2 days
+$interval2 = new DateInterval('PT1H30M'); // Interval of 1 hour and 30 minutes
+
+
+var_dump($interval);
+var_dump($interval2);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VC PODE, ENTÃO,
+
+
+USAR ESSE 'DateInterval' OBJECT PARA 
+RODAR ALGUMAS CALCULATIONS,
+
+USANDO 
+
+
+OS METHODS DE '->sub()' e '->add()'
+
+
+EXISTENTES NOS DateTime objects,
+
+
+
+QUE PODEM ENTÃO 
+
+
+
+ADD/SUBTRACT  DateTime intervals...
+
+
+
+
+
+
+
+
+
+POR EXEMPLO, DIGAMOS QUE TEMOS ESTE OBJECT:
+
+
+
+$dateTime = new DateTime('05/25/2021 9:15 AM');
+
+
+
+
+
+
+
+
+
+
+
+AÍ QUEREMOS ADICIONAR 3 MONTHS E 2 DAYS A ESSE DATETIME...
+
+
+
+
+
+
+--> PARA ISSO,
+    ESCREVERÍAMOS ASSIM:
+
+
+
+
+
+$dateTime = new DateTime('05/25/2021 9:15 AM');
+$interval = new DateInterval('P3M2D');
+
+
+$dateTime->add($interval);
+
+
+echo $dateTime->format('m/d/Y g:iA') . PHP_EOL;
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+// How to use DateInterval to add a time to a DateTime object:
+$dateTime = new DateTime('05/25/2021 9:15 AM');
+$intervalNew = new DateInterval('P3M2D');
+
+
+$dateTime->add($intervalNew);
+
+
+echo $dateTime->format('m/d/Y g:iA') . PHP_EOL;
+
+
+
+
+
+
+
+
+
+
+COMO RESULTADO DISSO, COMO ESPERADO,
+
+FICAMOS COM 
+
+
+''08/27/2021 9:15AM'' 
+
+
+
+
+
+
+
+
+
+
+
+-> TAMBÉM PODEMOS FAZER SUBTRACT DA DATE,
+
+COM 'sub()',
+
+
+
+tipo ASSIM:
+
+
+
+
+
+
+
+
+
+// How to use DateInterval to add a time to a DateTime object:
+$dateTime = new DateTime('05/25/2021 9:15 AM');
+$intervalNew = new DateInterval('P3M2D');
+
+// add method, in DateTime object, uses dateInterval object as argument
+$dateTime->add($intervalNew);
+
+
+echo $dateTime->format('m/d/Y g:iA') . PHP_EOL;
+
+
+// sub method, in DateTime object, uses dateInterval object as argument, and subtracts the time from the DateTime object
+$dateTime->sub($intervalNew);
+
+echo $dateTime->format('m/d/Y g:iA') . PHP_EOL;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+uma coisa que devemos ter em mente, aqui,
+
+
+é que 
+
+
+se 
+
+
+nós fizermos FLIP 
+
+
+
+
+DA FLAG DE 
+
+
+'invert',
+
+
+no 'DateInterval' OBJECT
+
+
+
+e _ tentarmos _ fazer ADD __ desse value a uma date,
+
+
+
+
+NÓS _ ACTUALLY __ FAREMOS O __ SUBTRACT DE ESSA DATE...
+
+
+
+
+
+
+
+
+
+--> TIPO ASSIM:
+
+
+
+
+// How to use DateInterval to add a time to a DateTime object:
+$dateTime = new DateTime('05/25/2021 9:15 AM');
+$intervalNew = new DateInterval('P3M2D');
+
+
+$interval->invert = 1;
+
+// add method, in DateTime object, uses dateInterval object as argument
+$dateTime->add($intervalNew);
+
+
+
+
+
+
+
+
+
+
+-> OU SEJA,
+
+
+ISSO É ALGO EM QUE VC DEVE PRESTAR ATENÇÃO,
+QUANDO ESTÁ TRABALHANDO COM 
+
+O ADD E SUBTRACT DE DateInterval... --> vc tem que saber COMO 
+                                        ESTÁ SETTADA  
+
+
+                                        A flag de 'invert',
+
+                                        se está como '1' (negative) 
+
+                                        ou 
+
+
+                                        '0' (positive), 
+
+
+                                        PARA ENTÃO 
+                                        SABER QUAL METHOD,
+
+                                        add ou sub,
+
+                                        será o adequado....
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+
+
+
+-> TAMBÉM PERCEBA QUE, QUANDO
+    MODIFICAMOS O OBJECT 'DateTime'
+    
+    USANDO o 'add()' ou 'sub()',
+
+
+    O 
+    OBJECT 'DateTime'
+
+    ORIGINAL É QUE ESTARÁ SENDO MODIFICADO...
+
+
+
+
+
+
+    --> A REFERENCIA ORIGINAL ESTARÁ SENDO MODIFICADA...
+
+
+
+
+
+
+--> ISSO É IMPORTANTE, E PODE ACABAR CAUSANDO PROBLEMAS NO SEU APP...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA DEMONSTRAR ISSO, 
+
+    O PROFESSOR 
+
+    CRIA 1 EXEMPLO...
+
+
+
+
+
+
+
+
+
+
+--> DIGAMOS QUE TEMOS 2 DATES,
+
+'FROM' E 'TO'...
+
+
+
+
+
+
+
+
+
+
+FROM -> É A 'CURRENT DATE'
+
+
+
+
+TO --> É 'ONE MONTH FROM THE CURRENT DATE'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+PARA ISSO, PODEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+
+
+$from = new DateTime();
+$to = (new DateTime())->add(new DateInterval('P1M'));
+
+
+echo $from->format('m/d/Y') ' - ' . $to->format('m/d/Y') . PHP_EOL;
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+// 'from' is current Date, and 'to' is the date one month from the current date.
+$from = new DateTime();
+$to = (new DateTime())->add(new DateInterval('P1M'));
+
+
+echo $from->format('m/d/Y') . ' - ' . $to->format('m/d/Y') . PHP_EOL;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO PARECE FUNCIONAR, CERTO...?
+
+
+
+
+
+
+
+
+
+
+MAS ISSO NÃO 
+
+
+_ VAI SEMPRE SER ACCURATE...
+
+
+
+
+
+
+
+
+
+--> ISSO PQ A 'from' date 
+
+    PODE SER DIFERENTE... ELA NEM SEMPRE VAI 
+    SER A 'currentDate',
+
+
+    e nós nem sempre vamos querer RECRIAR 
+
+
+    O MESMO OBJECT QUE CRIAMOS EM 'from'...
+
+
+
+
+
+
+--> QUEREMOS, NO CASO, 
+
+    SIMPLESMENTE ADICIONAR 
+
+
+
+    1 MONTH AO 
+
+
+    DateTime de '$from'...
+
+
+
+
+
+
+
+
+
+
+--> e é claro que isso aqui não funciona/não vai funcionar:
+
+
+
+
+
+
+
+
+
+
+
+
+
+// 'from' is current Date, and 'to' is the date one month from the current date.
+$from = new DateTime();
+$to = $from->add(new DateInterval('P1M'));
+
+
+echo $from->format('m/d/Y') . ' - ' . $to->format('m/d/Y') . PHP_EOL;
+
+
+
+
+
+
+
+
+ 
+
+
+
+--> ISSO NÃO VAI FUNCIONAR..
+
+
+
+
+
+
+FICAMOS COM 
+
+
+'07/06/2021 - 07/06/2021'...
+
+
+
+
+
+
+
+
+
+--> FICAMOS COM 2 VALUES IGUAIS...
+
+
+
+ISSO PQ TODAS AS CHANGES QUE FAZEMOS COM '->add()',
+nesse 
+
+DateTime() OBJECT,
+
+VÃO AFETAR O OBJECT ORIGINAL.... ( vao afetar '$from')
+
+
+
+
+
+
+
+
+
+
+ISSO ACONTECE POR CONTA DOS REFERENTIAL VALUES... 
+
+
+ZVAL CONTAINER, ETC...
+
+
+
+
+
+BASICAMENTE, TODAS AS CHANGES com '$from->xxx'
+
+
+vao afetar o object original,
+
+MESMO 
+
+QUANDO 
+
+
+TENTAMOS ASSIGNAR ISSO 
+
+A 1 NOVA VARIABLE, DE '$to'......
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... QUER DIZER QUE VAMOS PRECISAR CRIAR 1 NOVO OBJECT,
+    COM MESMO VALUE DE '$from',
+
+    MAS QUE EXISTA INDEPENDENTEMENTE...
+
+
+
+
+--> PARA ISSO, PODEMOS USAR 'clone'...
+
+
+
+
+
+
+
+
+
+
+
+--> 1 SOLUTION É USAR A KEYWORD DE 'clone',
+
+TIPO ASSIM:
+
+
+
+
+
+
+// 'from' is current Date, and 'to' is the date one month from the current date.
+$from = new DateTime();
+$to = (clone $from)->add(new DateInterval('P1M'));
+
+echo $from->format('m/d/Y') . ' - ' . $to->format('m/d/Y') . PHP_EOL;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE RODAMOS O CÓDIGO,
+
+PERCEBEMOS QUE DEU CERTO,
+
+FICOU TIPO ASSIM:
+
+
+
+
+ 
+
+
+
+06/06/2021 - 07/06/2021 
+
+
+
+
+
+
+
+
+
+
+--> ficamos com o segundo value 1 mes depois do primeiro...
+
+
+
+
+
+
+--> ISSO FUNCIONOU PQ FICAMOS COM 2 DIFERENTES OBJECTS,
+
+    QUE É O QUE QUERÍAMOS....
+
+
+
+
+
+
+
+
+
+-->  ISSO VAI TE SALVAR MT DOR DE CABEÇA QUANDO 
+    ESTIVER PASSING AROUND DateTime objects around 
+    nas suas functions...
+
+        PQ SE VC PASSAR 
+
+        ESSE DateTime 
+
+        object como 
+
+
+        ARGUMENT NOS SEUS PARAMETERS E FUNCTIONS,
+
+
+        E NÃO USAR CLONE,
+
+        VC VAI ACABAR 
+
+        AFETANDO O OBJECT ORIGINAL QUE 
+        ESTAVA SENDO PASSADO, COMO ARGUMENT...
+
+
+
+
+
+
+
+
+--> A OUTRA SOLUÇÃO É USAR 
+
+'IMMUTABLE DateTime objects'...
+
+
+
+
+
+
+
+
+
+-> COM ESSES OBJECTS, ELES SÃO IMMUTABLE..
+
+
+
+
+--> UMA VEZ QUE SÃO DEFINIDOS,
+
+É IMPOSSÍVEL OS ALTERAR...
+
+
+
+
+
+
+
+--> EM VEZ DISSO, CADA VEZ QUE VC TENTA 
+    REALIZAR 1 CHANGE EM 1 Immutable DateTime object,
+
+
+    ELE VAI ACTUALLY CRIAR 1 NOVO Immutable DateTime object,
+    sem afetar o object original...
+
+
+
+    E ISSO É BEM ÚTIL,
+
+    PQ 
+
+    CONSERTA ESSE PROBLEMA,
+
+    E AÍ NEM MESMO PRECISAMOS USAR A KEYWORD de 'clone'...
+
+
+
+
+
+--> TBM É ÚTIL PQ àS VEZES VC REALMENTE QUER QUE OS SEUS 
+    DAYS/DATES NÃO SEJAM CHANGEABLE... --> CASES EM QUE 
+    VC NÃO QUER QUE ELES SEJAM CHANGED EM QUALQUER LUGAR DO CÓDIGO,
+
+    MESMO QUANDO ESSES OBJECTS SÃO PASSADOS COMO ARGUMENTS EM FUNCTIONS...
+
+
+
+
+
+
+
+--> PODEMOS FAZER ISSO TIPO ASSIM:
+
+
+
+
+
+
+
+// * ALTERNATIVE (and more consise) WAY TO DO THE SAME THING (with DateTimeImmutable objects, instead of clone):
+$from = new DateTimeImmutable();
+$to = $from->add(new DateInterval('P1M'));
+
+echo $from->format('m/d/Y') . ' - ' . $to->format('m/d/Y') . PHP_EOL;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... ISSO VAI FUNCIONAR..
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS TAMBÉM HÁ ALGO QUE VC DEVE SABER,
+
+QUANDO ESTÁ USANDO 
+
+
+'DateTimeImmutable' objects...
+
+
+
+
+
+
+
+
+
+
+-> QUANDOO VC USA OBJECTS COMO ESSES, VC PERDE A CAPACIDADE 
+DE FAZER COISAS COMO ISTO:
+
+
+$from = new DateTimeImmutable();
+$to = $from->add(new DateInterval('P1M'));
+
+
+
+$to-> add(new DateInterval('P1Y')); //// THIS WON'T WORK...
+
+
+
+
+
+
+
+
+
+
+
+
+NÃO VAI FUNCIONAR PQ 
+
+
+
+o segundo '->add()' 
+
+
+VAI RETORNAR 1 NOVO OBJECT,
+
+E NÃO VAI MUDAR O 
+
+
+ORIGINAL OBJECT... 
+
+
+
+
+
+
+
+
+--> PARA FAZER ISSO FUNCIONAR,
+
+TERÍAMOS DE ESCREVER ASSIM:
+
+
+
+
+
+
+$from = new DateTimeImmutable();
+$to = $from->add(new DateInterval('P1M'));
+
+
+
+$to = $to-> add(new DateInterval('P1Y')); //// THIS WON'T WORK...
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------------------------
+
+
+
+
+
+
+
+
+àS VEZES, VC VAI QUERER 'ITERATE' 
+
+
+OVER __ TODAS AS DATES DISPONÍVEIS DENTRO DE 1 GIVEN PERIOD...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, O PHP TEM 1 CLASS CHAMADA DE 
+
+'DatePeriod',
+
+QUE PODE SER USADA PARA ISSO...
+
+
+
+
+
+
+
+
+
+
+
+--> VC PODE CRIAR 'DatePeriod'
+
+DE DIFERENTES MANEIRAS...
+
+
+
+
+
+
+ 
+
+ tipo:
+
+
+
+ new DatePeriod()
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VC PODE COLOCAR 1 START DATE ('$start') E UMA END DATE ('$end'),
+
+PARA TER TODOS OS DATES 
+
+
+
+DENTRO 
+
+
+DESSE TIME PERIOD...
+
+
+
+
+
+
+
+
+
+
+--> TANTO 'MUTABLE' COMO 'IMMUTABLE' DATETIME OBJECTS 
+
+PODEM SER PASSADOS COMO ARGUMENTS DE 'START' E 'END'...
+
+
+
+
+
+
+
+
+
+PODEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+
+
+$period = new DatePeriod(new DateTime('05/01/2021'), new DateInterval('P1D'), new DateTime('05/31/2021'));
+
+
+foreach($period as $date) {
+    echo $date->format('m/d/Y') . PHP_EOL;
+}
+
+
+
+
+
+
+
+
+
+
+COMO RESULTADO DISSO, FICAMOS COM ESTE PRINT:
+
+
+
+
+
+05/01/2021
+05/02/2021
+05/03/2021
+05/04/2021
+05/05/2021
+05/06/2021
+05/07/2021
+05/08/2021
+05/09/2021
+05/10/2021
+05/11/2021
+05/12/2021
+05/13/2021
+05/14/2021
+05/15/2021
+05/16/2021
+05/17/2021
+05/18/2021
+05/19/2021
+05/20/2021
+05/21/2021
+05/22/2021
+05/23/2021
+05/24/2021
+05/25/2021
+05/26/2021
+05/27/2021
+05/28/2021
+05/29/2021
+05/30/2021
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE VC QUER ADICIONAR 1 DATE AO FINAL,
+
+
+VC ESCREVERIA ASSIM:
+
+
+
+
+
+$period = new DatePeriod(new DateTime('05/01/2021'), new DateInterval('P1D'), new DateTime('05/31/2021')->modify('+1 day'));
+
+
+foreach($period as $date) {
+    echo $date->format('m/d/Y') . PHP_EOL;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS MUDAR O INTERVAL,
+FAZER COM QUE ELE FAÇA 'JUMP 3 days by 3 days',
+
+
+
+POR MEIO DO ALTER DO SEGUNDO PARAMETER,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+$period = new DatePeriod(new DateTime('05/01/2021'), new DateInterval('P3D'), new DateTime('05/31/2021')->modify('+1 day'));
+
+
+foreach($period as $date) {
+    echo $date->format('m/d/Y') . PHP_EOL;
+}
+
+
+
+
+
+05/01/2021
+05/04/2021
+05/07/2021
+05/10/2021
+05/13/2021
+05/16/2021
+05/19/2021
+05/22/2021
+05/25/2021
+05/28/2021
+
+
+
+
+
+
+
+
+
+JÁ SE VC QUER TER APENAS 'RECURRENCES',
+
+
+BASTA USAR O TERCEIRO PARAMETER COM 1 VALUE COMO UMA 'INT',
+TIPO ASSIM:
+
+
+ 
+
+
+
+
+
+
+
+$period = new DatePeriod(new DateTime('05/01/2021'), new DateInterval('P3D'), 3);
+
+
+foreach($period as $date) {
+    echo $date->format('m/d/Y') . PHP_EOL;
+}
+
+
+
+
+
+
+
+PRINTA ISTO:
+
+
+
+
+
+
+
+
+05/01/2021
+05/04/2021
+05/07/2021
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO....
+
+
+
+
+
+
+
+
+POR FIM,
+
+SE VC QUER EXCLUIR A START DATE,
+
+VC PODE PASSAR 
+
+A OPTION DE 
+
+
+
+'DatePeriod::EXCLUDE_START_DATE',
+
+
+TIPO ASSIM:
+
+
+
+
+
+$period = new DatePeriod(new DateTime('05/01/2021'), new DateInterval('P3D'), 3, DatePeriod::EXCLUDE_START_DATE);
+
+
+foreach($period as $date) {
+    echo $date->format('m/d/Y') . PHP_EOL;
+}
+
+
+
+
+
+
+
+
+
+PRINT:
+
+
+
+
+
+05/04/2021
+05/07/2021
+05/10/2021
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR APONTA, TAMBÉM,
+
+
+QUE 
+
+
+HÁ 
+
+
+UMA 
+
+LIBRARY CHAMADA DE 'CARBON',
+
+QUE É UM 
+
+
+
+WRAPPER BEM LEGAL AO REDOR DO OBJECT DE 'Date'..
+
+
+
+
+
+
+
+
+
+--> TE DÁ UM MONTE DE HELPFUL METHODS, 
+    QUE OTHERWISE VC TERIA DE CONSTRUIR VC MESMO...
+
+
+
+
+
+
+
+--> O LARAVEL USA A LIBRARY DE 'CARBON' POR DEFAULT... 
+
+
+
+--> O PROFESSOR USOU CARBON EM TODOS OS PROJECTS DELE,ATÉ MESMO 
+    AQUELES QUE NÃO USAM LARAVEL...
+
+
+
+
+--> DEVEMOS CHECAR O CARBON SE QUEREMOS 1 ROBUST SOLUTION 
+PARA DATE TIME OBJECTS...
+
+
+
+
+
+
+--> O PROFESSOR VAI MOSTRAR COMO USÁ-LO EM AULAS SEPARADAS...
+
+
+
+
