@@ -1,0 +1,2102 @@
+
+
+
+
+
+
+
+
+
+COMEÇAMOS COM O CÓDIGO DA AULA ANTERIOR, ESTE AQUI:
+
+
+
+
+
+
+
+
+declare(strict_types=1);
+
+
+namespace App19;
+
+
+
+require_once __DIR__ . "/../vendor/autoload.php"; // imports the composer's autoloader
+
+
+$router = new Router();
+
+
+
+$router->register('/', [\App19\Classes\Home::class, 'index'])
+        ->register('/invoices', [\App19\Classes\Invoices::class, 'index'])
+        ->register('/invoices/create', [\App19\Classes\Invoices::class, 'create']);
+
+
+
+echo $router->resolve($_SERVER['REQUEST_URI']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS CHEGARÁ 1 PONTO EM QUE VC VAI PRECISAR TRABALHAR COM 'FORMS'
+
+NO PHP... OU, ENTÃO, TRABALHAR 
+
+
+COM ALGUM OUTRO TIPO DE REQUEST AO SEU APP...
+
+
+
+
+
+
+
+
+
+--> ESSES REQUESTS PODEM VIR:
+
+
+
+
+
+
+
+
+1) DE FRONTEND (JAVASCRIPT)
+
+
+
+2) THIRD-PARTY APIs 
+
+
+3) MOBILE APPS 
+
+
+4) FORMS...
+
+
+
+
+
+
+
+
+
+
+AGORA, COM BASE NA ROUTING QUE IMPLEMENTAMOS NA ÚLTIMA AULA,
+
+
+
+TECNICAMENTE SÓ SUPORTAMOS GET REQUESTS...
+
+
+
+
+
+
+
+
+
+
+
+CERTO, MAS E SE QUISERMOS 
+
+
+FAZER 1 'POST' REQUEST 
+
+
+E ENTÃO ACESSAR A DATA QUE É PASSADA POR DENTRO DO REQUEST BODY?
+
+
+
+
+
+
+
+
+
+
+
+
+-> VC PROVAVELMENTE 
+    JÁ SABE O QUE SÃO GET E POST REQUESTS...
+
+
+
+
+
+
+
+
+-> QUANDO VC ENTRA EM 1 PAGE NORMAL, 
+
+
+VC FAZ 1 GET REQUEST...
+
+
+
+
+
+--> A DATA QUE É PASSADA, NOS GET REQUESTS,
+
+É APPENDED NA URL,
+
+
+COMO 
+
+
+
+'QUERY_STRING'...
+
+
+
+
+
+
+--> QUANDO VC FAZ 1 SEARCH NO GOOGLE, POR EXEMPLO,
+
+
+    VC TEM A QUERY STRING ASSIM:
+
+
+
+
+
+
+https://www.google.com/search?q=exemplo&rlz=1C1CHZN_pt-BRBR1078BR1078&oq=exemplo&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIHCAEQABiPAjIHCAIQABiPAtIBBzczOGowajeoAgCwAgA&sourceid=chrome&ie=UTF-8
+
+
+
+
+
+
+
+
+
+
+
+
+
+a query string é tudo 
+
+
+depois de 
+
+'?'...
+
+
+
+
+
+é 'q=exemplo...''
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE ESSA QUERY STRING PODE SER ALTERADA,,
+
+
+VC PODE 'ADD' OU 'REMOVE' DATA DELA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TIPO ALGO ASSIM:
+
+
+
+
+
+localhost:8000/?foo=bar 
+
+
+
+
+
+
+
+
+
+
+-> COM ISSO, A KEY É 'foo',
+
+e o value é 'bar'...
+
+
+
+
+
+PODEMOS COLOCAR MAIS DE 1 QUERY PARAMETER,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+localhost:8000/?foo=bar&example=xxxxx
+
+
+
+
+
+
+
+AÍ, COM ISSO,
+
+FICARÍAMOS COM 
+
+
+
+foo=bar 
+example=xxxxx
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''WHEN SHOULD WE USE THE GET REQUEST???''
+
+
+
+
+
+'' __ WHENEVER__ 
+    YOU ARE RETRIEVING THE DATA,
+    OR WHENEVER YOU ARE __ VIEWING SOMETHING''...
+
+
+
+
+
+
+
+--> QUER DIZER que 
+    É MAINLY USADA PARA _DATA FETCHING...
+
+
+
+
+
+
+
+
+--> ENTRETANTO, 
+    SE VC PRECISA STORE DATA OU FAZER CHANGES 
+    A SUA DATA,
+
+
+    O 'GET' não deve ser utilizado...
+
+
+
+
+
+    EM VEZ DISSO, VC USARIA 
+
+
+    REQUESTS DE TIPO 'POST...
+
+
+
+
+
+
+
+
+
+
+--> no caso dos POST requests,
+    a data NÃO É APPENDED NA QUERY STRING,
+
+    E SIM 
+
+    É SUBMITTADA 
+
+    NO _ BODY__ DO HTTP REQUEST...
+
+
+
+
+
+
+
+--> QUER DIZER QUE ESSA DATA É 'HIDDEN' FROM THE URL,
+    MAS AINDA PODE SER ACESSADA QUANDO VC INSPECIONA O REQUEST...
+
+
+
+
+
+
+
+
+
+
+--> POR EXEMPLO, SE VC ESTIVER SUBMITTANDO 1 FORM
+    QUE FAZ ALGUM TIPO DE SEARCHING/SORTING,
+    PARA FETCHEAR ALGUMA DATA,
+
+    VC _ VAI USAR __ UM _GET REQUEST...
+
+
+
+
+
+
+-->  O USER TAMBÉM PODE 
+    'bookmark' a url,
+
+    para que ela possa ser REVISITADA MAIS TARDE,
+
+
+    E AÍ OS SEARCH E SORT FIELDS, dessa url,
+
+    ainda seriam/são aplicados...
+
+
+
+
+
+
+--> ''IF YOU WERE TO RETRIEVE USER INFO BY USERID,
+
+    OR INVOICE INFO BY INVOICEID,
+
+
+    THEN YOU WOULD PROBABLY USE GET REQUESTS, AS WELL''...
+
+
+
+
+
+
+
+
+
+
+POR OUTRO LADO,
+
+''IF YOU WERE MAKING A REQUEST TO __ LOG_ THE USER IN,
+    OR TO __CHARGE__ THE USER'S CREDIT CARD (to make a purchase),
+     THEN YOU WOULD USE THE POST REQUEST, INSTEAD OF THE GET REQUEST''...
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS COMO PODEMOS ACESSAR A DATA PASSADA:
+
+
+
+
+
+
+
+
+1) DENTRO DA QUERY_STRING (GET)
+
+
+
+2) DENTRO DO REQUEST BODY... (POST)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ACESSAR ESSA DATA, NO PHP,
+    PODEMOS USAR 
+
+
+    OS SUPERGLOBALS 
+
+
+
+    '$_GET' 
+
+
+    e 
+
+
+    '$_POST'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> para testar, vamos até a class de 'Home',
+
+e aí, em 'index()',
+
+
+
+
+FAZEMOS VAR_DUMP
+
+
+DOS 2 SUPERGLOBALS:
+
+
+
+
+
+
+array(0) { } array(0) { }
+
+
+
+
+
+
+
+
+
+COM ISSO, FIQUEI COM ESSE DUMP AÍ...
+
+
+
+
+
+2 ARRAYS, COMPLETAMENTE VAZIOS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS PQ ESTÃO VAZIOS?
+
+
+
+
+
+
+
+
+
+--> ESTÃO VAZIOS PQ:
+
+
+
+
+1) ESTAMOS FAZENDO UM __ GET__ REQUEST__ 
+ao nosso server php....
+
+
+
+
+--> como estamos fazendo 1 get request, o superglobal de 'POST'
+
+vai ficar vazio...
+
+
+
+
+
+
+2) COMO ESTAMOS FAZENDO O GET REQUEST SEM NADA 
+    NA 'query_string', sem nenhum query param,
+
+    A SUPERGLOBAL DE 'GET' fica vazia, também...
+
+
+
+
+
+
+--> MAS SE COLOCO 1 QUERY PARAM,
+
+TIPO ESTE:
+
+
+
+
+
+
+
+array(2) { ["foo"]=> string(3) "bar" ["example"]=> string(5) "xxxxx" } 
+
+
+
+
+array(0) { } 
+
+
+
+
+
+
+
+
+
+
+
+--> OK.. OU SEJA,  
+    FICAMOS COM 1 ASSOCIATIVE ARRAY,
+
+    COM TODAS AS KEYS E VALUES 
+
+    DENTRO DAS KEYS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA DEVEMOS CRIAR 1 FORM SIMPLES E FAZER 1 POST REQUEST,
+
+PARA CONSEGUIRMOS DATA 
+
+DENTRO 
+
+
+DESSE SUPERGLOBAL DE 'POST'...
+
+
+
+
+
+
+
+
+
+---> PARA ISSO, PODEMOS RETORNAR 
+
+1 
+
+FORM 
+
+NO 'index',
+
+
+tipo assim:
+
+
+
+
+
+
+<?php 
+
+declare(strict_types= 1);
+
+
+namespace App19\Classes;
+
+
+class Home {
+
+    public function index() {
+        // From the 'GET and POST superglobals' lesson: 
+        var_dump($_GET); // We can use  this to get the QUERY_STRING, and other parameters
+        var_dump($_POST); // We can use  this to get the POST data, in the body.
+        // return 'Home';
+
+
+        return '<form action="/" method="post"><label for="amount">Amount:</label><input type="number" name="amount" id="amount" value="100"><input type="submit"></form>';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, FICAMOS 
+
+COM 1 PRINT TIPO ASSIM, NO '$_POST' SUPERGLOBAL:
+
+
+
+
+
+
+
+
+
+
+array(1) { ["amount"]=> string(3) "100" }
+
+
+
+
+
+
+
+
+CERTO... E O GET FICA VAZIO...
+
+
+
+
+
+
+
+
+--> MAS MESMO QUE ESTEJAMOS ENVIANDO 
+1 POST REQUEST AQUI, 
+
+AINDA PODEMOS TER GET PARAMETERS, 
+
+OU SEJA,
+
+DATA 
+
+
+NA QUERY STRING..
+
+
+
+
+
+
+
+
+--> BASTA ESCREVER ALGO ASSIM:
+
+
+
+
+<?php 
+
+declare(strict_types= 1);
+
+
+namespace App19\Classes;
+
+
+class Home {
+
+    public function index() {
+        // From the 'GET and POST superglobals' lesson: 
+        var_dump($_GET); // We can use  this to get the QUERY_STRING, and other parameters
+        var_dump($_POST); // We can use  this to get the POST data, in the body.
+        // return 'Home';
+
+
+        return '<form action="/?foo=bar" method="post"><label for="amount">Amount:</label><input type="number" name="amount" id="amount" value="100"><input type="submit"></form>';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ISTO, PORTANTO:
+
+
+
+
+
+
+        return '<form action="/?foo=bar" method="post"><label for="amount">Amount:</label><input type="number" name="amount" id="amount" value="100"><input type="submit"></form>';
+
+
+
+
+
+
+
+
+
+
+
+
+
+E ISSO REALMENTE FUNCIONA,
+
+FICAMOS COM TANTO O GET COMO O POST SUPERGLOBALS
+PREENCHIDO COM DATA...
+
+
+
+
+
+
+ex:
+
+
+array(1) { ["foo"]=> string(3) "bar" } array(1) { ["amount"]=> string(4) "1002" }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+OK.. MAS AGORA O PROFESSOR QUER MOSTRAR 
+
+OUTRAS COISAS...
+
+
+
+
+
+
+
+
+
+---> DIGAMOS QUE QUEREMOS COLOCAR 1 VALUE PARA 
+O 'amount' na query string, também..
+
+
+
+
+
+
+EX:
+
+
+
+
+
+ return '<form action="/?foo=bar&amount=250" method="post"><label for="amount">Amount:</label><input type="number" name="amount" id="amount" value="100"><input type="submit"></form>';
+
+
+
+
+
+
+
+
+
+
+
+
+AO FAZERMOS ISSO,
+
+
+
+o 'amount' 
+
+vai aparecer no GET request também...
+
+
+
+
+
+(e também é submitido no POST REQUEST...)
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO AÍ, NO CASO, NÃO É UM PROBLEMA,
+    pq o field de 'amount'
+
+    EXISTE EM TANTO O 'GET' como o 'POST'...
+
+
+
+
+
+    mas em 1 app de verdade, vc provavelmente usaria o value 
+
+    do POST REQUEST...
+
+
+
+
+
+
+
+-> mas os 2 não conflitam, aqui, e é isso que importa...
+
+
+
+
+
+
+
+
+
+
+
+
+--> ENTRETANTO, EXISTE  UM TERCEIRO TIPO DE SUPERGLOBAL,
+    QUE É O 
+
+    '$_REQUEST',
+
+
+    QUE _ CONTÉM 
+
+
+
+    ''''ALL THE DATA FROM $_GET, $_POST __ AND FROM 
+    THE $_COOKIE SUPERGLOBALS''''
+
+
+
+    (e veremos esse superglobal de '$_COOKIE' mais tarde no curso)...
+
+
+
+
+
+
+
+--> PARA VER SEU VALUE,
+
+BASTA ESCREVER O VAR_DUMP ASSIM:
+
+
+
+class Home {
+
+    public function index() {
+        // From the 'GET and POST superglobals' lesson: 
+        var_dump($_GET); // We can use  this to get the QUERY_STRING, and other parameters
+        var_dump($_POST); // We can use  this to get the POST data, in the body.
+        var_dump($_REQUEST); // Contains both GET and POST data + Data from cookies ($_COOKIE)
+        // return 'Home';
+
+
+        return '<form action="/?foo=bar" method="post"><label for="amount">Amount:</label><input type="number" name="amount" id="amount" value="100"><input type="submit"></form>';
+    }
+}
+
+
+
+
+
+
+
+
+
+E O PRINT FICA ASSIM:
+
+
+
+array(2) { ["foo"]=> string(3) "bar" ["amount"]=> string(4) "1003" } 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS O PROBLEMA, AQUI,
+
+
+É QUE SE VC ESTIVESSE USANDO O '$_REQUEST'
+
+
+PARA ACESSAR 
+
+O FIELD DE 'amount',
+
+
+
+que existe 
+
+
+TANTO NO 'GET' COMO NO 'POST',
+
+
+NESSE EXEMPLO,
+
+
+
+
+
+
+
+VC ACABARIA COM O ACESSO AO VALUE DO 'POST REQUEST',
+
+
+DA POST DATA,
+
+E NÃO 
+
+
+
+DO GET REQUEST... FICARIA COM O VALUE DO 'amount' do POST,
+
+e não do GET...
+
+
+
+
+
+
+
+
+
+
+
+
+RESUMINDO:
+
+
+SE AS KEYS SÃO AS MESMAS EM TANTO POST COMO NO GET,
+SE VC USA '$_REQUEST',
+
+A DATA DO POST VAI TER PRECEDENCE SOBRE A DATA 
+
+
+DO GET, NESSE SUPERGLOBAL DO '$_REQUEST'...
+
+
+
+
+------------------------------------
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+além disso, 
+perceba que 
+
+
+
+
+
+''THE ORDER OF THE VARIABLES,
+  AS WELL AS THE PRESENCE OF THEM, IN THE 
+  $_REQUEST SUPERGLOBAL ARRAY, 
+
+  IS BASED ON A COUPLE OF PHP'S  CONFIGURATION 
+  DIRECTIVES...''
+
+
+  NO CASO, ESSAS DIRECTIVES SÃO 
+
+
+  'request_order'
+   
+   e 
+
+
+   'variables_order'..
+
+
+
+
+
+
+
+-> JÁ COBRIMOS DIRECTIVES NA PRIMEIRA SECTION DO COURSE,
+    QUANDO ESTUDAMOS A CONFIGURATION DO PHP (php.ini)...
+
+
+
+
+
+-> ''ALSO, NOTE THAT THE COOKIES MIGHT NOT BE INCLUDED, BY DEFAULT,
+    IN THE $_REQUEST SUPERGLOBAL, DUE TO SECURITY''...
+
+
+
+
+
+
+
+
+    -> MAS VC PROVAVELMENTE NÃO DEVE SE IMPORTAR COM ISSO,
+
+    PQ VC PROVAVELMENTE NUNCA USARÁ O SUPERGLOBAL DE '$_REQUEST',
+
+    E SEMPRE USARÁ 
+
+
+    OS SUPERGLOBALS 
+
+    DE '$_GET' 
+
+    E '$_POST'...
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR RECOMENDA EVITAR O USO DE '$_REQUEST'
+
+    SUPERGLOBAL, A NÃO SER QUE TENHAMOS UM USE CASE MT BOM PARA ELE...
+
+
+
+
+
+
+
+
+
+CERTO... AGORA QUE SABEMOS O QUE ESSES SUPERGLOBALS SÃO,
+
+E COMO ACESSAR A DATA DOS REQUESTS,
+
+
+
+DEVEMOS MELHORAR NOSSO ROUTING...
+
+
+
+
+
+
+ISSO PQ, ATUALMENTE,
+
+NOSSO ROUTING SUPORTA SOMENTE OS REQUESTS DE TIPO 'GET'.....
+
+
+
+
+
+
+
+
+
+
+COMO VISTO NESTE TRECHO:
+
+
+
+
+
+
+
+
+$router->register('/', [\App19\Classes\Home::class, 'index'])
+        ->register('/invoices', [\App19\Classes\Invoices::class, 'index'])
+        ->register('/invoices/create', [\App19\Classes\Invoices::class, 'create']);
+
+
+
+// $router->register('/invoices', function () {
+//     echo '<h1>Invoices</h1>';
+// });
+
+
+
+echo $router->resolve($_SERVER['REQUEST_URI']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+AGORA QUEREMOS QUE POST REQUESTS TAMBÉM SEJAM 
+
+SUPORTADOS...
+
+
+
+
+
+
+
+
+-> AGORA, NO MOMENTO, SE 
+    ENVIAMOS 1 POST REQUEST à ROUTE DE 
+
+
+'/invoices/create',
+
+
+
+
+
+ELA VAI SER TRIGGADA, E ISSO NÃO É IDEAL...
+
+
+
+
+
+
+
+NÃO É IDEAL PQ A CLASS DE 'Invoice'
+
+PROVAVELMENTE VAI QUERER RENDERIZAR 1 HTML 
+FORM OU ALGO ASSIM,
+
+
+COM ESSE METHOD DE 'create()'...
+
+
+
+
+
+
+
+
+
+
+-> NESSA MESMA CLASS, O METHOD QUE QUEREMOS QUE SEJA ATRIBUÍDO 
+    AO 'POST'
+
+
+    será algo como 'store()',
+
+    que vai REALMENTE ARMAZENAR A DATA VINDA DO REQUEST....
+
+
+
+
+
+
+
+-> A PRIMEIRA COISA QUE PRECISAMOS FAZER,
+
+    NO CASO,
+
+
+    É  RETORNAR ALGUM TIPO DE 'FORM',
+
+
+    COM O METHOD DE 'create' na Invoice,
+
+    PARA QUE 
+
+    O USER 
+
+
+    TENHA 1 FORM PARA ENVIAR SEU POST REQUEST...
+
+
+
+
+
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php 
+
+declare(strict_types= 1);
+
+
+namespace App19\Classes;
+
+
+class Invoices {
+
+    public function index() {
+
+        return 'Invoices';
+    }
+
+    public function create() {
+        return '<form action="/invoices/create" method="post"><label for="amount">Amount:</label><input type="number" name="amount" id="amount" value="100"><input type="submit"></form>';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ISSO FUNCIONOU... AGORA, DEPOIS DISSO, 
+O QUE QUEREMOS FAZER É HANDLAR ESSE POST REQUEST,
+
+
+
+com algo como 'invoices/store',
+
+
+ou algo do gênero...
+
+
+
+
+
+
+
+
+
+
+-> CERTO...
+
+
+
+
+
+
+
+
+COMEÇAMOS TIPO ASSIM:
+
+
+
+
+
+<?php 
+
+declare(strict_types= 1);
+
+
+namespace App19\Classes;
+
+
+class Invoices {
+
+    public function index() {
+
+        return 'Invoices';
+    }
+
+    public function create() {
+        return '<form action="/invoices/create" method="post"><label for="amount">Amount:</label><input type="number" name="amount" id="amount" value="100"><input type="submit"></form>';
+    }
+
+    public function store() {
+        $amount = $_POST['amount'];
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+AÍ, DE VOLTA NO INDEX,
+
+em vez 
+
+
+DE CHAMARMOS O NOSSO METHOD com 'register()',
+
+
+seria melhor se esse register tivesse um NOME SEPARADO,
+
+COMO 'get()' (pq ele será responsável apenas pelo register das GET routes)...
+
+
+
+
+
+
+
+
+TAMBÉM PODEMOS CRIAR 1 METHOD DE 'post()',
+
+para registrar as POST ROUTES....
+
+
+
+
+
+
+EX:
+
+
+
+
+
+$router->get('/', [\App19\Classes\Home::class, 'index'])
+        ->get('/invoices', [\App19\Classes\Invoices::class, 'index'])
+        ->get('/invoices/create', [\App19\Classes\Invoices::class, 'create'])
+        ->post('invoices/store', [\App19\Classes\Invoices::class, 'store'])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESCREVEMOS TIPO ALGO ASSIM:
+
+
+
+
+
+
+
+class Router {
+
+    private array $routes = [];
+
+    // * Call it like '$router->register('GET /foo', function() { ... });'
+    private function register(string $requestMethod,string $route, callable|array $action): self {
+        $this->routes[$requestMethod][$route] = $action;
+
+        return $this;
+    }
+
+    // * Same as 'register', but with registering 'get' routes:
+    public function get(string $route, callable|array $action): self {
+ 
+        return $this->register('get', $route, $action);
+    }
+
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+
+
+
+
+
+class Router {
+
+    private array $routes = [];
+
+    // * Call it like '$router->register('GET /foo', function() { ... });'
+    private function register(string $requestMethod,string $route, callable|array $action): self {
+        $this->routes[$requestMethod][$route] = $action;
+
+        return $this;
+    }
+
+    // * This is used to call the 'register' method for the 'get' request method routes:
+    public function get(string $route, callable|array $action): self {
+ 
+        return $this->register('get', $route, $action);
+    }
+
+    public function post(string $route, callable|array $action): self {
+        return $this->register('post', $route, $action);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+QUER DIZER QUE AGORA 
+
+
+TEREMOS:
+
+
+
+
+
+
+
+
+
+
+ROUTES --> GET  -----> ROUTE1, ROUTE2, ROUTE3 
+
+        --> POST ---> ROUTE1, ROUTE2 
+
+
+
+
+
+
+TUDO ISSO DENTRO DA PROPERTY PRIVADA '$routes', de tipo ARRAY..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... ENTÃO,
+    LÁ EMBAIXO,
+
+    O PROFESSOR ESCREVE 1 METHOD QUE RETORNA TODAS AS ROUTES,
+
+
+
+    TIPO ASSIM:
+
+    
+
+
+
+
+
+
+
+
+
+class Router {
+
+    private array $routes = [];
+
+    // * Call it like '$router->register('GET /foo', function() { ... });'
+    private function register(string $requestMethod,string $route, callable|array $action): self {
+        $this->routes[$requestMethod][$route] = $action;
+
+        return $this;
+    }
+
+    // * This is used to call the 'register' method for the 'get' request method routes:
+    public function get(string $route, callable|array $action): self {
+ 
+        return $this->register('get', $route, $action);
+    }
+
+    public function post(string $route, callable|array $action): self {
+        return $this->register('post', $route, $action);
+    }
+
+    public function routes(): array {
+        return $this->routes;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS, AO EXECUTARMOS ISSO,
+
+FICAMOS COM 1 ERROR 
+
+
+DE 
+
+
+
+'404 not found'..
+
+
+
+
+
+
+
+
+
+ISSO ACONTECEU POR CONTA DO METHOD DE RESOLVE,
+
+QUE ESTÁ COM ESTA LÓGICA:
+
+
+
+
+
+
+
+
+
+
+
+
+        // * Find the action for the route, in the routes array.
+        $action = $this->routes[$route] ?? null;
+
+
+
+
+
+
+
+
+
+
+--> ESSA LINHA ESTÁ TENTANDO 
+
+'''GET THE ROUTE''' USANDO A ROUTE COMO KEY...
+
+
+
+
+
+--> O PROBLEMA É QUE ELE NÃO ESTÁ CONSIDERANDO O 'LEVEL' 
+
+
+    DE 'POST' e 'GET'
+
+    que recém adicionamos a esse value da property 'routes'...
+
+
+
+
+
+
+-> PARA QUE ISSO, O METHOD DE 'resolve()', funcione,
+
+    PRECISAMOS DEFINIR MAIS 1 PARAMETER 
+
+    PARA ESSE METHOD ,
+
+
+    QUE _ SERÁ __ 
+
+
+    'string $requestedMethod'..
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+    public function resolve(string $requestUri, string $requestedMethod){
+
+    // * The first part of the request URI is the route (the second part is the query string/parametrs)
+        $route = explode('?', $requestUri)[0];
+
+        // * Find the action for the route, in the routes array.
+        $action = $this->routes[$route] ?? null;
+
+        if (!$action) {
+            // Throw custom exception.
+            throw new RouteNotFoundException();
+        }
+
+
+        if (is_callable($action)) {
+            return call_user_func($action, $route);
+        }
+
+        // * If it is not callable, it must be an array:
+        if(is_array($action)) {
+            [$class, $method] = $action;
+            if (class_exists($class)) {
+            
+                $class = new $class;
+                
+                if (method_exists($class, $method)) {
+                    return call_user_func_array([$class, $method],[]);
+                }
+            
+            }
+
+
+        }
+
+        throw new RouteNotFoundException();
+    
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    OK.... 
+
+
+
+    MAS COMO PODEMOS OBTER A STRING RELATIVA A ESSE 
+    'request method',
+
+
+    EM CADA REQUEST?
+
+
+
+
+
+
+-->  BEM, BASTA PASSAR '$_SERVER['REQUEST_METHOD']' 
+
+
+
+
+como segundo parameter de 'resolve()',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+$router->get('/', [\App19\Classes\Home::class, 'index'])
+        ->get('/invoices', [\App19\Classes\Invoices::class, 'index'])
+        ->get('/invoices/create', [\App19\Classes\Invoices::class, 'create'])
+        ->post('invoices/store', [\App19\Classes\Invoices::class, 'store']);
+
+
+
+
+echo $router->resolve($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS, MESMO ASSIM,
+
+ESTAMOS COM 1 ERROR DE '404 NOT FOUND'...
+
+
+
+
+
+
+
+
+
+ISSO ACONTECEU/ESTÁ ACONTECENDO PQ 
+
+
+
+O 'REQUEST_METHOD' É 
+
+
+
+
+SEMPRE 1 VALUE EM __ cAPS LOCK,
+
+
+
+
+E, NO CASO, 
+
+ESTAMOS ARMAZENANDO essas keys de 'get' e 'post'
+
+
+
+COMO LOWERCASE, lá na property de 'routes'...
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE VAMOS AS CONVERTER,
+    USANDO 
+
+    a BUILT-IN FUNCTION 
+
+
+    'strtolower()',
+
+
+    PARA DEIXAR TODAS AS LETTERS LOWERCASE...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+echo $router->resolve($_SERVER['REQUEST_URI'], strtolower($_SERVER['REQUEST_METHOD']));
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, NOSSO CÓDIGO FINALMENTE FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+AÍ MUDAMOS O METHOD DO 'post request' em '/invoices/create' 
+
+
+
+PARA 'store',
+
+TIPO ASSIM:
+
+
+
+
+
+
+$router->get('/', [\App19\Classes\Home::class, 'index'])
+        ->get('/invoices', [\App19\Classes\Invoices::class, 'index'])
+        ->get('/invoices/create', [\App19\Classes\Invoices::class, 'create'])
+        ->post('invoices/create', [\App19\Classes\Invoices::class, 'store']);
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... ISSO FUNCIONOU...
+
+
+
+
+
+
+
+COM ISSO, 
+MELHORAMOS NOSSO ROUTING,
+
+
+
+DE UM JEITO QUE AGORA SÃO SUPORTADAS ROUTES DE 'GET' E 'DE 'POST'...
+
+
+
+
+
+
+
+
+
+
+
+-> SE VC TEM OUTROS TIPOS DE ROUTE, COMO PUT, DELETE OU PATCH,
+    VC AS IMPLEMENTARIA DA MESMA FORMA,
+
+    SÓ ESCREVERIA DE FORMA DIFERENTE 
+
+    NA CLASS DE 'Router'...
+
+
+
+
+
+
+
+
+
+--. É CLARO QUE ISSO NAÕ DEVE SER USADO EM PRODUCTION,
+    FOI APENAS UM DEMO DE COMO ISSO FUNCIONA..
+
+
+
+
+
+
+
+
+
+
+--> ESTAMOS NOS APROXIMANDO DO MVC PATTERN..
+
+
+
+
+
+
+
+
+-> AQUI, NO CASO ,
+
+
+
+'WE RENDERED AND RETURNED HTML DIRECTLY FROM THE CLASSES'...
+
+
+
+
+E ISSO, É CLARO,
+
+'IS NOT THE PROPER WAY TO DO IT'...
+
+
+
+
+
+
+
+
+--> A PROPER WAY É FAZER O RENDER/RETURN DE ALGUMAS __ VIEWS...
+
+    E É ISSO QUE VEREMOS, NA 3a parte do curso...

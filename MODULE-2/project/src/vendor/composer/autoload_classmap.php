@@ -16,6 +16,8 @@ return array(
     'App17\\Invoice' => $baseDir . '/php-iterables-and-iterable-type-iterate-over-objects/Invoice.php',
     'App17\\InvoiceCollection' => $baseDir . '/php-iterables-and-iterable-type-iterate-over-objects/InvoiceCollection.php',
     'App18\\Router' => $baseDir . '/superglobals-basic-routing-using-the-server-info/Router.php',
+    'App19\\Classes\\Home' => $baseDir . '/app/Home.php',
+    'App19\\Classes\\Invoices' => $baseDir . '/app/Invoices.php',
     'App19\\Router' => $baseDir . '/app/Router.php',
     'App2\\FancyOven' => $baseDir . '/inheritance-example/FancyOven.php',
     'App2\\Toaster' => $baseDir . '/inheritance-example/Toaster.php',

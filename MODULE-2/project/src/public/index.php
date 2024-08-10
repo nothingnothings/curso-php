@@ -49,9 +49,15 @@ $router = new Router();
 // });
 
 
-$router->register('/', [\App19\Classes\Home::class, 'index'])
-        ->register('/invoices', [\App19\Classes\Invoices::class, 'index'])
-        ->register('/invoices/create', [\App19\Classes\Invoices::class, 'create']);
+// $router->register('/', [\App19\Classes\Home::class, 'index'])
+//         ->register('/invoices', [\App19\Classes\Invoices::class, 'index'])
+//         ->register('/invoices/create', [\App19\Classes\Invoices::class, 'create']);
+
+
+$router->get('/', [\App19\Classes\Home::class, 'index'])
+        ->get('/invoices', [\App19\Classes\Invoices::class, 'index'])
+        ->get('/invoices/create', [\App19\Classes\Invoices::class, 'create'])
+        ->post('invoices/create', [\App19\Classes\Invoices::class, 'store']);
 
 
 
@@ -61,4 +67,4 @@ $router->register('/', [\App19\Classes\Home::class, 'index'])
 
 
 
-echo $router->resolve($_SERVER['REQUEST_URI']);
+echo $router->resolve($_SERVER['REQUEST_URI'], strtolower($_SERVER['REQUEST_METHOD']));

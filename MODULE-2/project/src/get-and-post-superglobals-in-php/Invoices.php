@@ -3,7 +3,7 @@
 declare(strict_types= 1);
 
 
-namespace App19\Classes;
+namespace App20\Classes;
 
 
 class Invoices {

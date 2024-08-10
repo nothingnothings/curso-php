@@ -36,6 +36,7 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
             'App4\\' => 5,
             'App3\\' => 5,
             'App2\\' => 5,
+            'App19\\Classes\\' => 14,
             'App19\\' => 6,
             'App18\\' => 6,
             'App17\\' => 6,
@@ -102,6 +103,10 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
         array (
             0 => __DIR__ . '/../..' . '/inheritance-example',
         ),
+        'App19\\Classes\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/app',
+        ),
         'App19\\' => 
         array (
             0 => __DIR__ . '/../..' . '/app',
@@ -155,6 +160,8 @@ class ComposerStaticInit7422faf8f33d1f1cdfca8767e0ffc0f4
         'App17\\Invoice' => __DIR__ . '/../..' . '/php-iterables-and-iterable-type-iterate-over-objects/Invoice.php',
         'App17\\InvoiceCollection' => __DIR__ . '/../..' . '/php-iterables-and-iterable-type-iterate-over-objects/InvoiceCollection.php',
         'App18\\Router' => __DIR__ . '/../..' . '/superglobals-basic-routing-using-the-server-info/Router.php',
+        'App19\\Classes\\Home' => __DIR__ . '/../..' . '/app/Home.php',
+        'App19\\Classes\\Invoices' => __DIR__ . '/../..' . '/app/Invoices.php',
         'App19\\Router' => __DIR__ . '/../..' . '/app/Router.php',
         'App2\\FancyOven' => __DIR__ . '/../..' . '/inheritance-example/FancyOven.php',
         'App2\\Toaster' => __DIR__ . '/../..' . '/inheritance-example/Toaster.php',

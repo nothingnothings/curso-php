@@ -3,9 +3,8 @@
 declare(strict_types= 1);
 
 
-namespace App19;
+namespace App20;
 
-use App19\Exceptions\RouteNotFoundException;
 
 class Router {
 
@@ -33,7 +32,6 @@ class Router {
     }
 
 
-
     public function resolve(string $requestUri, string $requestedMethod){
 
     // * The first part of the request URI is the route (the second part is the query string/parametrs)
@@ -44,7 +42,7 @@ class Router {
 
         if (!$action) {
             // Throw custom exception.
-            throw new RouteNotFoundException();
+            throw new \App19\Exceptions\RouteNotFoundException();
         }
 
 
@@ -55,8 +53,8 @@ class Router {
         // * If it is not callable, it must be an array:
         if(is_array($action)) {
             [$class, $method] = $action;
+
             if (class_exists($class)) {
-            
                 $class = new $class;
                 
                 if (method_exists($class, $method)) {
@@ -68,8 +66,7 @@ class Router {
 
         }
 
-        throw new RouteNotFoundException();
-    
+        throw new \App19\Exceptions\RouteNotFoundException();
     }
 }
 

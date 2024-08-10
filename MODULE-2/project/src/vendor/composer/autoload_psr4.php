@@ -19,6 +19,7 @@ return array(
     'App4\\' => array($baseDir . '/magic-methods-example'),
     'App3\\' => array($baseDir . '/interfaces-and-polymorphism-example'),
     'App2\\' => array($baseDir . '/inheritance-example'),
+    'App19\\Classes\\' => array($baseDir . '/app'),
     'App19\\' => array($baseDir . '/app'),
     'App18\\' => array($baseDir . '/superglobals-basic-routing-using-the-server-info'),
     'App17\\' => array($baseDir . '/php-iterables-and-iterable-type-iterate-over-objects'),
