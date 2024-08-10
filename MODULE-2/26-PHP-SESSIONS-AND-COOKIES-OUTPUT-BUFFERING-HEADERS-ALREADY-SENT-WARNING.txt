@@ -1,0 +1,427 @@
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK.... SESSIONS E COOKIES SÃO GERALMENTE USADOS PARA 
+
+
+'''STORE INFORMATION''',
+
+
+INFO QUE VAI 'PERSIST' AO LONGO DE VÁRIOS REQUESTS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NOSSO CÓDIGO INICIAL É ESTE (index.php):
+
+
+
+
+require_once __DIR__ . "/../vendor/autoload.php"; // imports the composer's autoloader
+
+
+$router = new Router();
+
+
+$router->get('/', [\App19\Classes\Home::class, 'index'])
+        ->get('/invoices', [\App19\Classes\Invoices::class, 'index'])
+        ->get('/invoices/create', [\App19\Classes\Invoices::class, 'create'])
+        ->post('invoices/create', [\App19\Classes\Invoices::class, 'store']);
+
+
+
+echo $router->resolve($_SERVER['REQUEST_URI'], strtolower($_SERVER['REQUEST_METHOD']));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+COMO VC SABE,
+
+'requests', NO PHP,
+
+SÃO 'STATELESS',
+
+
+MAS SESSIONS E COOKIES 
+
+PODEM SER USADOS COM OUTRAS COISAS,
+
+
+COMO 
+
+'databases', 'caches', 'files' e etc,
+
+PARA 
+
+MANTER O STATE DO APP...
+
+
+-------------
+
+
+
+
+
+
+
+
+
+
+
+--> O QUE VC TEM QUE SABER/SE LEMBRAR,
+
+
+É A DIFERENÇA ENTRE COOKIES E SESSIONS:
+
+
+
+
+
+
+
+1) COOKIES --> SÃO ARMAZENADOS NO 'CLIENTSIDE', NO BROWSER DO USER. ..
+
+
+
+
+
+
+
+
+2) SESSIONS -> SÃO ARMAZENADAS NO SERVER...
+
+
+
+
+
+
+
+
+
+--> TAMBÉM, POR DEFAULT,
+    SESSIONS __ SÃO DESTRUÍDAS _ 
+
+    NO MOMENTO 
+
+    EM QUE _OS BROWSERS SÃO FECHADOS....
+
+
+
+
+
+
+
+--> COOKIES, POR OUTRO LADO, 
+    VÃO CONTINUAR EXISTINDO,
+    DESDE QUE 
+
+    A 'EXPIRATION DATE'
+
+    NÃO SEJA ATINGIDA... OU, ALTERNATIVAMENTE,
+
+
+    ATÉ O COOKIE SER _DELETADO_...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA COMEÇAR 1 SESSION,
+
+    PODEMOS USAR A FUNCTION DE 'session_start()',
+
+    TIPO ASSIM:
+
+
+
+    
+
+
+require_once __DIR__ . "/../vendor/autoload.php"; // imports the composer's autoloader
+
+
+$router = new Router();
+
+
+$router->get('/', [\App19\Classes\Home::class, 'index'])
+        ->get('/invoices', [\App19\Classes\Invoices::class, 'index'])
+        ->get('/invoices/create', [\App19\Classes\Invoices::class, 'create'])
+        ->post('invoices/create', [\App19\Classes\Invoices::class, 'store']);
+
+
+
+echo $router->resolve($_SERVER['REQUEST_URI'], strtolower($_SERVER['REQUEST_METHOD']));
+
+
+session_start();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO, MAS O PROFESSOR APONTA 1 DETALHE:
+
+
+
+
+''NOTE THAT SESSIONS MUST BE STARTED__ BEFORE 
+    ANY OUTPUT, OTHERWISE YOU WILL FACE 
+    SOME ISSUES (like 'session cannot be started after headers have already being sent' warning)
+
+
+
+
+
+
+
+
+
+
+
+--> OK... NESSE EXEMPLO DO PROFESSOR,
+        ESTAMOS RODANDO 'session_start()'
+
+
+    SOMENTE DEPOIS 
+
+    __ DE _ TER FEITO 'ECHO' 
+
+    DE ALGO AO BROWSER,
+
+
+    COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+$router->get('/', [\App19\Classes\Home::class, 'index'])
+        ->get('/invoices', [\App19\Classes\Invoices::class, 'index'])
+        ->get('/invoices/create', [\App19\Classes\Invoices::class, 'create'])
+        ->post('invoices/create', [\App19\Classes\Invoices::class, 'store']);
+
+
+
+
+echo $router->resolve(
+    $_SERVER['REQUEST_URI'],
+    strtolower($_SERVER['REQUEST_METHOD])
+);
+
+
+
+
+
+
+session_start();
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... ISSO SIGNIFICA QUE 
+
+'echo $router->resolve()"
+
+
+vai ACTUALLY SER EXECUTADO ANTES,
+
+E SÓ DEPOIS TEREMOS 
+
+
+O RUN DE 'session_start()'....
+
+
+
+
+
+
+
+-> ESSA AUSÊNCIA DO 'session_start' bem no início 
+
+    do runtime 
+
+
+    VAI CAUSAR UM WARNING, UM AVISO DE ERRO....
+
+
+
+
+
+
+
+
+--> VAMOS TESTAR ISSO, AO RECARREGAR A PÁGINA,..
+
+
+
+
+
+
+
+
+--> AO RECARREGAR A PÁGINA,
+    FICAMOS COM 1 PAGE TOTALMENTE BRANCA,
+
+    E NÃO GANHAMOS WARNING ALGUM.... PQ ISSO?
+
+
+
+
+
+
+
+-> PQ NÃO ESTAMOS GANHANDO UM 'ERROR' OU 'WARNING'?
+
+
+
+
+
+
+
+
+-> A RAZÃO PARA ISSO 
+
+    É UMA __ SETTING __ NA CONFIG DO 'php.ini'..
+
+
+
+
+
+--> A setting É 
+
+    'output_buffering'...
+
+
+
+
+
+
+
+
+
+
+-> PARA CHECARMOS ESSA INFO,
+
+BASTA 
+
+RODAR 'phpinfo()' no index.php....
+
+
+
+
+
+
+
+
+
+
+--> EM 'output_buffering',
+
+
+    temos 1 value igual a '4096 KB' (kilobytes)...
+
+
+
+
+
+
+    QUER DIZER QUE O 'output_buffering'
+
+    É UM MECANISMO EM QEU 
+
+
+
+
+    'INSTEAD OF SENDING A RESPONSE TO THE BROWSER IMMEDIATELY,
+     IT WILL BE BUFFER IT IN SOME PLACE, LIKE A VARIABLE,
+
+     TO THEN 
