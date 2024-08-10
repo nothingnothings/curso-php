@@ -44,6 +44,8 @@ require_once __DIR__ . "/../vendor/autoload.php"; // imports the composer's auto
 // * This must be called BEFORE any output/return of content, by the server. This will modify the headers in the response sent to the client, in the return of the content.
 session_start();
 
+define('STORAGE_PATH', __DIR__ . '/../storage');
+
 $router = new Router();
 
 
@@ -58,6 +60,7 @@ $router = new Router();
 
 
 $router->get('/', [\App19\Classes\Home::class, 'index'])
+        ->post('/upload', [\App19\Classes\Home::class, 'upload'])
         ->get('/invoices', [\App19\Classes\Invoices::class, 'index'])
         ->get('/invoices/create', [\App19\Classes\Invoices::class, 'create'])
         ->post('invoices/create', [\App19\Classes\Invoices::class, 'store']);
@@ -74,7 +77,7 @@ echo $router->resolve($_SERVER['REQUEST_URI'], strtolower($_SERVER['REQUEST_METH
 
 // var_dump($_SESSION);
 
-var_dump($_COOKIE);
+// var_dump($_COOKIE);
 
 // echo 1;
 

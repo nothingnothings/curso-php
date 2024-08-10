@@ -1,0 +1,1547 @@
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+
+
+
+
+
+
+O UPLOAD DE FILES, NO PHP, É ACTUALLY PRETTY SIMPLE...
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, O PROFESSOR PREPAROU UMA FORM BÁSICA, 
+
+DENTRO DA CLASS DE 'Home'...
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+class Home
+{
+
+    public function index()
+    {
+
+
+        $_SESSION['count'] = ($_SESSION['count'] ?? 0) + 1;
+
+
+        // return View::make('index', $_GET)->render();
+
+
+
+        return <<<HTML
+        <form action="/upload" method="post">
+            <label for="amount">File:</label>
+            <input type="file" name="receipt">
+            <button type="submit">upload</button>
+        </form>
+HTML;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... 
+
+AÍ, DEPOIS DISSO, TEMOS 1 METHOD, de 'upload()'...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+class Home
+{
+
+    public function index()
+    {
+
+
+        $_SESSION['count'] = ($_SESSION['count'] ?? 0) + 1;
+
+
+        // return View::make('index', $_GET)->render();
+
+
+        // File Uploads lesson:
+        return <<<HTML
+        <form action="/upload" method="post">
+            <label for="amount">File:</label>
+            <input type="file" name="receipt">
+            <button type="submit">upload</button>
+        </form>
+HTML;
+    }
+
+
+    public function upload(): void
+    {
+
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+NO CASO, AQUI ESTAMOS FAZENDO RETURN DE HTML 
+
+
+POR MEIO DE 1 METHOD,
+
+O QUE NÃO É IDEAL...
+
+
+
+
+
+A MANEIRA IDEAL SERIA FAZER O RENDER/RETURN DE 1 VIEW...
+
+
+
+
+
+
+
+
+
+--> MAS VEREMOS O RETURN DE VIEWS MAIS TARDE...
+
+
+
+
+
+
+
+
+
+--> A ACTION ESTÁ COMO '/upload',
+
+
+e o method é 'POST'...
+
+
+
+
+
+
+
+
+-> O PROFESSOR TAMBÉM REGISTROU UMA ROUTE PARA 
+
+ESSE METHOD,
+
+LÁ EM 'index.php',
+
+TIPO ASSIM:
+
+
+
+
+
+
+$router->get('/', [\App19\Classes\Home::class, 'index'])
+        ->post('/upload', [\App19\Classes\Home::class, 'upload'])
+        ->get('/invoices', [\App19\Classes\Invoices::class, 'index'])
+        ->get('/invoices/create', [\App19\Classes\Invoices::class, 'create'])
+        ->post('invoices/create', [\App19\Classes\Invoices::class, 'store']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+-----> CERTO... MAS PARA ACESSAR A INFO SOBRE 
+        AS FILES UPLOADADAS,
+
+
+        PODEMOS USAR A SUPERGLOBAL DE '$_FILES',
+
+        
+
+        QUE É UM ASSOCIATIVE ARRAY...
+
+
+
+
+
+
+
+        -> PODEMOS FAZER 1 DUMP ASSIM:
+
+
+
+
+    public function upload(): void
+    {
+        var_dump($_FILES);
+    }
+
+
+
+
+
+
+
+
+
+
+array(0) { }
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... FIZ O UPLOAD DA MINHA FILE,
+
+
+
+
+MAS FIQUEI COM ESSE DUMP AÍ,
+
+
+DUMP DE 1 ARRAY VAZIO..
+
+
+
+
+
+
+
+
+
+MAS PQ ISSO ACONTECEU?
+
+
+
+
+
+
+
+
+
+'''IT'S BECAUSE __ THE __ PROPER__ ENCODING TYPE __ IS __MISSING...'''
+
+
+
+
+
+''''THE ENCODING TYPE CAN BE SET WITH THE 'enctype' ATTRIBUTE,
+    ON THE FORM...'''
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+    public function upload(): void
+    {
+        echo '<pre>';
+        echo var_dump($_FILES);   // Will dump an array with objects with the keys 'receipt', 'name', 'type', 'tmp_name', 'error', 'size'.
+        echo '</pre>';
+    }
+
+
+
+
+
+
+
+    e isso é required,
+
+    para QUE FILE UPLOADS FUNCIONEM...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... SELECIONAMOS NOSSO ARQUIVO,
+
+E AÍ 
+ENVIAMOS...
+
+
+
+
+
+
+
+
+
+COM ISSO, A SUPERGLOBAL DE '$_FILES'
+
+passa a conter alguma data...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+array(1) {
+    
+     ["receipt"]=> array(5) {
+         ["name"]=> string(0) "CONTATO.txt" 
+         ["type"]=> string(10) "text/plain"
+         ["tmp_name"]=> string(14) "/tmp/phpiqz4kP"
+         ["error"]=> int(0) 
+         ["size"]=> int(32) }
+          }
+
+
+
+
+
+
+
+
+
+
+
+
+    OK...
+
+
+
+
+
+
+
+
+
+COM ISSO, VC PODE VER QUE O SUPERGLOBAL 
+
+
+DE '$_FILES' 
+
+
+
+CONTÉM 
+
+
+INFO SOBRE AS UPLOADED FILES....
+
+
+
+
+
+
+
+
+
+-->  CONTÉM 
+
+
+o 'tmp_name',
+
+
+e o local 
+
+
+EM QUE ESSA TEMPORARY FILE É ARMAZENADA, NO SERVER...
+
+
+
+
+
+
+O ERROR ESTÁ COMO '0',
+
+
+
+MAS SE TIVÉSSEMOS ALGUM ERROR,
+
+SERIA ALGUM NUMBER DIFERENTE...
+
+
+
+
+
+OS NUMBERS SÃO:
+
+
+
+
+
+
+
+
+UPLOAD_ERR_OK = 0 
+
+UPLOAD_ERR_INI_SIZE = 1 
+
+UPLOAD_ERR_FORM_SIZE = 2 
+
+UPLOAD_ERR_PARTIAL = 3 
+
+UPLOAD_ERR_NO_FILE = 4 
+
+UPLOAD_ERR_NO_TMP_DIR = 6 
+
+UPLOAD_ERR_CANT_WRITE = 7 
+
+UPLOAD_ERR_EXTENSION = 8
+
+
+
+
+
+
+
+
+
+
+OK... COISA BEM BÁSICA...
+
+
+
+
+
+
+--> O ÚLTIMO VALUE É O SIZE 
+    DA FILE, EM BYTES...
+
+
+
+
+
+
+-> MAS VC NUNCA DEVE CONFIAR 
+    NO INPUT DE USERS,
+
+
+    NEM DE 'GET' NEM DE 'POST',
+
+
+
+    EM NENHUM DOS SUPERGLOBALS DE '$_GET' E '$_POST',
+
+
+
+    OU ATÉ MESMO 
+
+
+    NO SUPERGLOBAL 
+    DE 
+
+    '$_FILES'...
+
+
+
+
+
+
+
+
+--> VC SEMPRE DEVE SE PREPARAR PARA O PIOR,
+    E SEMPRE DEVE GARANTIR A SERVERSIDE VALIDATION...
+
+
+
+
+
+--> POR EXEMPLO, SE VC ESTÁ DEIXANDO O USER 
+    FAZER UPLOAD DE AVATARES OU PROFILE IMAGES,
+
+
+    VC NÃO DEVE ACEITAR QUALQUER TIPO DE FILE QUE 
+    NÃO SEJA EM 1 FORMATO DE IMG...
+
+
+
+
+
+--> NESSE CASO, ESTAMOS FAZENDO UPLOAD 
+    DE RECEIPTS...
+
+
+
+
+
+
+    --> E RECEIPTS PODEM SER:
+
+
+    1) IMAGES 
+
+
+    2) PDF 
+
+
+    3) .RTF DOCUMENTS (word, etc)..
+
+
+
+
+
+
+--> PARA GARANTIR ESSE TIPO DE UPLOAD,
+    PODEMOS ADICIONAR SERVERSIDE VALIDATION,
+
+    PARA QUE 
+
+    SÓ ESSE TIPO DE FILE POSSA SER UPLOADADA...
+
+
+
+
+
+--> VC TAMBÉM DEVE ADICIONAR VALIDATION PARA NÃO DEIXAR 
+    USERS UPLOADAREM FILES COM MTOS GB DE TAMANHO...
+
+
+
+
+
+
+
+--> E TEMOS ESSA INFO DISPONÍVEL, 
+PARA BUILDAR VALIDATION,
+
+DIRETAMENTE 
+
+
+NESSE SUPERGLOBAL DE '$_FILES'...
+
+
+
+
+
+
+
+
+
+--> NÓS TAMBÉM PODEMOS USAR 
+    AS BUILT-IN FUNCTIONS DO PHP,
+
+    COMO 'pathinfo()',
+
+    PARA CONSEGUIR MAIS INFO SOBRE A FILE,
+
+    TIPO ASSIM:
+
+
+
+
+
+    public function upload(): void
+    {
+        echo '<pre>';
+        echo var_dump($_FILES);   // Will dump an array with objects with the keys 'receipt', 'name', 'type', 'tmp_name', 'error', 'size'.
+        echo '</pre>';
+
+
+        var_dump(pathinfo($_FILES['receipt']['tmp_name']));
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> COM ISSO, FICAMOS COM 1 OUTPUT ESTRANHO, DIZ O PROFESSOR....
+
+
+
+
+
+
+
+O OUTPUT FICOU ASSIM:
+
+
+
+
+
+array(3) { 
+    ["dirname"]=> string(4) "/tmp" 
+    ["basename"]=> string(9) "phpCwHm3Y" 
+    ["filename"]=> string(9) "phpCwHm3Y" 
+    
+    }
+
+
+
+
+
+
+
+
+
+    isso ficou estranho...
+
+
+
+
+
+    pq 'basename'
+
+    e 'filename'
+
+    FICARAM WEIRD...
+
+
+
+
+    ESSES NOMES NÃO SÃO PARECIDOS COM O NOME DA FILE QUE UPLOADAMOS...
+
+
+
+
+
+--> O QUE ESTÁ ACONTECENDO, AQUI?
+
+
+
+
+
+
+
+
+'''BY DEFAULT,
+    WHEN FILES ARE UPLOADED IN PHP,
+
+    THEY WILL BE STORED TEMPORARILY 
+
+    IN THE SERVER'S DEFAULT 'tmp' DIRECTORY...''
+
+
+
+
+
+
+
+-> E ISSO PODE SER ALTERADO NO ARQUIVO 'php.ini',
+    COMO LOGO ESTUDAREMOS...
+
+
+
+
+
+
+
+-> NO FINAL DO REQUEST, AS FILES _ 
+    DO DIRECTORY DE 'tmp' 
+
+    SÃO COMPLETAMENTE 
+
+    __APAGADAS__,
+    POR ISSO PRECISAMOS 
+
+    'MOVE' 
+
+    AS FILES,
+
+    DO DIRECTORY DE 'tmp',
+
+    para outro DIRECTORY...
+
+
+    NA VERDADE, A MELHOR OPÇÃO É 
+
+
+
+    ''UPLOAD THE FILES TO THE CLOUD'' (como S3),
+
+    OU ENTÃO 
+
+    'STORE THE FILES, LOCALLY, IN SOME LOCAL DIRECTORY...''
+
+
+
+
+
+
+
+
+-> PARA FAZER MOVE DE ESSA  FILE,
+
+PODEMOS USAR A FUNCTION DE 
+
+
+'move_uploaded_file()',
+
+
+TIPO ASSIM:
+
+
+
+
+
+    public function upload(): void
+    {
+        echo '<pre>';
+        echo var_dump($_FILES);   // Will dump an array with objects with the keys 'receipt', 'name', 'type', 'tmp_name', 'error', 'size'.
+        echo '</pre>';
+
+
+        var_dump(pathinfo($_FILES['receipt']['tmp_name'])); // get additional information about the file.
+
+        // Files that are uploaded with requests get stored temporarily in the 'tmp' folder, and get deleted after the request is finished.
+        // That's why we need to move the file to a permanent location, either locally, or to the cloud (s3 storage, for example):
+
+        move_uploaded_file($_FILES['receipt']['tmp_name'], 'uploads/' . $_FILES['receipt']['name']);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> COM ISSO,
+
+
+ESSA FUNCTION VAI GARANTIR QUE 
+
+A FILE QUE ESTÁ SENDO 
+MOVED 
+
+
+
+'''IS ACTUALLY A VALID UPLOADED FILE''',
+
+QUE 
+
+
+FOI UPLOADADA POR 'HTTP POST' upload...
+
+
+
+
+
+
+
+
+
+
+-> CERTO... MAS, ANTES DISSO, 
+
+
+PRECISAMOS DECIDIR 
+
+
+EM 1 FOLDER 
+PARA 
+
+DEIXAR ESSAS LOCAL FILES...
+
+
+
+
+
+-> É POR ISSO QUE CRIAMOS 1 FOLDER DE nome 'storage',
+
+
+NO ROOT DE NOSSO PROJECT...
+
+
+
+
+
+
+
+
+
+--> OK... AGORA, PARA ISSO, PRECISAMOS DO 'STORAGE PATH'..
+
+
+
+
+
+
+
+
+--> PARA ISSO,
+    PODEMOS OU:
+
+
+
+
+1) HARDCODAR O PATH, NESSE LOCAL
+ 
+
+
+
+
+
+OU 
+
+
+
+2) FAZER DEFINE DA CONSTANT 'PATH',
+    ou algo assim,
+
+    LÁ EM UMA CLASS DE 'Main.php',
+    ou algoo assim....
+
+
+
+
+
+
+
+
+-> MAS COMO NÃO TEMOS ESSA CLASS DE 'Main.php',
+
+
+
+
+
+
+E TEMOS APENAS ESSE ARQUIVO DE 'index.php'
+
+
+DENTRO DA PASTA 'public',
+
+
+
+PODEMOS, POR ENQUANTO,
+
+
+ADICIONAR ESSA CONTANT 
+
+
+
+DE 
+
+'PATH_STORAGE'
+
+
+lá 
+
+
+
+
+no 'index.php',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+
+namespace App19;
+
+
+require_once __DIR__ . "/../vendor/autoload.php"; // imports the composer's autoloader
+
+session_start();
+
+define('STORAGE_PATH', __DIR__ . '/../storage'); /// EIS O CÓDIGO EM QUESTÃO.
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, PODEREMOS USAR ESSE STORAGE PATH 
+
+
+
+COM O METHOD DE 'move_uploaded_file',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+    public function upload(): void
+    {
+        echo '<pre>';
+        echo var_dump($_FILES);   // Will dump an array with objects with the keys 'receipt', 'name', 'type', 'tmp_name', 'error', 'size'.
+        echo '</pre>';
+
+
+        var_dump(pathinfo($_FILES['receipt']['tmp_name'])); // get additional information about the file.
+
+        // Files that are uploaded with requests get stored temporarily in the 'tmp' folder, and get deleted after the request is finished.
+        // That's why we need to move the file to a permanent location, either locally, or to the cloud (s3 storage, for example):
+
+        move_uploaded_file($_FILES['receipt']['tmp_name'], STORAGE_PATH . '/' . $_FILES['receipt']['name']);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... ISSO VAI CRIAR ESSA FILE,
+
+NESSE FILEPATH...
+
+
+
+
+
+
+
+
+
+--> FAZEMOS 1 REFACTOR BÁSICO, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public function upload(): void
+    {
+        echo '<pre>';
+        echo var_dump($_FILES);   // Will dump an array with objects with the keys 'receipt', 'name', 'type', 'tmp_name', 'error', 'size'.
+        echo '</pre>';
+
+
+        var_dump(pathinfo($_FILES['receipt']['tmp_name'])); // get additional information about the file.
+
+        $filePath = STORAGE_PATH . '/' . $_FILES['receipt']['name'];
+        // Files that are uploaded with requests get stored temporarily in the 'tmp' folder, and get deleted after the request is finished.
+        // That's why we need to move the file to a permanent location, either locally, or to the cloud (s3 storage, for example):
+
+        move_uploaded_file($_FILES['receipt']['tmp_name'], $filePath);
+
+        echo '';
+
+        echo var_dump(pathinfo($filePath));
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+O OUTPUT DO ÚLTIMO DUMP FICA ASSIM:
+
+
+
+
+
+
+
+
+array(4) { 
+    ["dirname"]=> string(26) "/var/www/public/../storage" 
+    ["basename"]=> string(15) "Aunt Minnie.txt" 
+    ["extension"]=> string(3) "txt" 
+    ["filename"]=> string(11) "Aunt Minnie" }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... SINAL DE QUE ISSO FUNCIONOU...
+
+
+
+
+
+
+
+E PODEMOS CONSTATAR QUE ESSA FILE DE 'Aunt Minnie.txt'
+
+
+FOI ACTUALLY SALVA NO DIRECTORY DE 'storage'...
+
+
+
+
+
+
+
+
+NÓS TAMBÉM PODEMOS FAZER UPLOAD DE MÚLTIPLAS FILES 
+
+AO MESMO TEMPO..
+
+
+
+
+
+
+
+
+
+--> DIGAMOS QUE QUEREMOS ENVIAR O RECEIPT E TAMBÉM UMA IMAGE...
+
+
+
+
+
+
+
+
+
+
+COLOCAMOS 2 INPUT FILE FIELDS,
+
+
+
+TIPO ASSIM:
+
+
+
+
+    public function index()
+    {
+
+
+        $_SESSION['count'] = ($_SESSION['count'] ?? 0) + 1;
+
+
+        // return View::make('index', $_GET)->render();
+
+
+        // File Uploads lesson:
+        return <<<HTML
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <label for="receipt">Receipt:</label>
+            <input type="file" name="receipt">
+            <label for="image">Image:</label>
+            <input type="file" name="myimage">
+            <button type="submit">Upload</button>
+        </form>
+HTML;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, ENVIO 2 ARQUIVOS...
+
+
+
+
+
+O OUTPUT FICA ASSIM:
+
+
+
+
+
+array(2) {
+  ["receipt"]=>
+  array(5) {
+    ["name"]=>
+    string(15) "Aunt Minnie.txt"
+    ["type"]=>
+    string(10) "text/plain"
+    ["tmp_name"]=>
+    string(14) "/tmp/php7bB7tI"
+    ["error"]=>
+    int(0)
+    ["size"]=>
+    int(32)
+  }
+  ["myimage"]=>
+  array(5) {
+    ["name"]=>
+    string(24) "o-fantastico-jaspion.jpg"
+    ["type"]=>
+    string(10) "image/jpeg"
+    ["tmp_name"]=>
+    string(14) "/tmp/phpcqXHxq"
+    ["error"]=>
+    int(0)
+    ["size"]=>
+    int(286762)
+  }
+}
+
+
+
+
+
+
+
+ISSO PARA AS COISAS QUE FICARAM EM '$_FILES'...
+
+
+
+
+
+
+
+
+
+
+certo... entretanto, lá em 'storage',
+
+FIQUEI APENAS COMO O ARQUIVO DE 'Aunt Minnie.txt'...
+
+
+
+
+
+
+
+
+
+
+PRECISAMOS USAR 1 LOOP, PARA 
+UPLOADAR TODOS ESSES ARQUIVOS...
+
+
+
+
+
+
+
+
+--> MAS O PROFESSOR QUER DEMONSTRAR COM 1 EXEMPLO EM QUE 
+
+'TODOS OS ARQUIVOS DO INPUT SÃO DE MESMO TYPE,
+
+SÃO TODOS .txt'..
+
+
+
+
+
+
+
+-> PARA ISSO, ESCREVEMOS ASSIM (colocamos um name de 'receipt[]', para indicar que é uM ARRAY):
+
+
+
+
+
+
+
+
+
+    public function index()
+    {
+
+
+        $_SESSION['count'] = ($_SESSION['count'] ?? 0) + 1;
+
+
+        // return View::make('index', $_GET)->render();
+
+
+        // File Uploads lesson:
+        return <<<HTML
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <label for="receipt">Receipt:</label>
+            <input type="file" name="receipt[]">
+            <label for="receipt">Receipt:</label>
+            <input type="file" name="receipt[]">
+            <button type="submit">Upload</button>
+        </form>
+HTML;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    CERTO...
+
+
+
+
+
+
+
+ESCOLHEMOS ESSES 2 RECEIPTS DE NOSSO FILE SYSTEM,
+UPLOADAMOS...
+
+
+
+O SUPERGLOBAL, ENTÃO, VAI CONTER OS 2 RECEIPTS,
+
+
+MAS DENTRO DE 1 ARRAY COM KEY DE MESMO NOME,
+
+'receipt'...
+
+
+
+
+EX:
+
+
+
+array(1) {
+  ["receipt"]=>
+  array(5) {
+    ["name"]=>
+    array(2) {
+      [0]=>
+      string(15) "Aunt Minnie.txt"
+      [1]=>
+      string(11) "CONTATO.txt"
+    }
+    ["type"]=>
+    array(2) {
+      [0]=>
+      string(10) "text/plain"
+      [1]=>
+      string(10) "text/plain"
+    }
+    ["tmp_name"]=>
+    array(2) {
+      [0]=>
+      string(14) "/tmp/phpeNE3Bb"
+      [1]=>
+      string(14) "/tmp/phpoLLrGW"
+    }
+    ["error"]=>
+    array(2) {
+      [0]=>
+      int(0)
+      [1]=>
+      int(0)
+    }
+    ["size"]=>
+    array(2) {
+      [0]=>
+      int(32)
+      [1]=>
+      int(32)
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+CADA ITEM INDIVIDUAL ESTÁ CONTENDO MÚLTIPLOS ITEMS... 1 ARRAY, EM CADA ITEM...
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, PODEMOS USAR 1 LOOP 
+PARA 
+
+'LOOP OVER ALL THESE ITEMS',
+
+
+PARA AÍ 
+
+UPLOADAR ESSAS FILES AOS LOCAIS APROPRIADOS..
+
+
+
+
+
+
+OK... 
+
+
+
+
+
+
+
+
+AGORA QUE SABEMOS SOBRE OS BASICS DE FILE UPLOAD NO PHP,
+
+
+DEVEMOS FALAR SOBRE 
+
+ 
+AS DIRECTIVES 
+
+
+
+LÁ NO 'php.ini'..
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> A PRIMEIRA DIRECTIVE QUE VAMOS VER É 
+
+'file_uploads'....
+
+
+
+
+
+
+
+
+
+
+
+file_uploads --> PODE SER 1 OU 0... -> com 1, vc enable file uploads no seu app...
+                                        com 0, vc disabla...
+
+
+
+
+
+
+
+upload_tmp_dir --> É A DIRECTIVE QUE ESTABELECE O DIRECTORY QUE 
+                    VAI ARMAZENAR AS FILES TEMPORARIAMENTE, POR DEFAULT...
+
+                    SE VC MUDAR ESSE DIRECTORY, 
+                    VC PRECISA GARANTIR QUE ESSE DIRECTORY É WRITABLE,
+                    CASO CONTRÁRIO O PHP VAI 'FALLBACK' 
+
+                    PARA O DEFAULT TMP DIRECTORY DO SERVER...
+
+
+
+
+
+
+upload_max_filesize --> DEIXA VC SETTAR O MAXIMUM FILESIZE DE SEU APP...
+
+                        VAI GARANTIR QUE FILES ACIMA DO VALUE ESTIPULADO 
+                        NÃO POSSAM SER ENVIADAS...
+
+
+
+
+                        -> É BOM USAR ESSA SETTING, MAS É BOM TER 
+                            ESSE TIPO DE VALIDATION NO SEU CÓDIGO 
+                            SERVERSIDE TAMBÉM...
+
+
+
+
+
+max_file_uploads -->  DEFINE O NÚMERO MÁXIMO DE FILES QUE 
+                        PODEM SER UPLOADADAS, EM 1 MESMO REQUEST..
+
+                        SE O NÚMERO MÁXIMO É ULTRAPASSADO,
+                        O SUPERGLOBAL "$_FILES' VAI PARAR 
+                        DE PROCESSAR AS FILES...
+
+
+
+
+
+max_input_time ---> ESSA DIRECTIVE TEM RELAÇÃO COM MAIS DO QUE APENAS 
+                        FILE UPLOADS, MAS ELA BASICAMENTE SETTA 
+                        O 'MAXIMUM TIME' QUE 
+                        O 
+                        SCRIPT É 'ALLOWED TO RECEIVE INPUTS'
+
+
+                        --> esse value é DEFINIDO EM SEGUNDOS,
+                            E TAMBÉM INCLUI OS FILEUPLOADS...
+
+
+
+
+                        --> O QUE VC PODE FAZER, AGORA ,
+
+                        É PLAY AROUND COM ESSAS DIRECTIVES,
+
+                        PARA FICAR MAIS ACOSTUMADO COM ELAS...
