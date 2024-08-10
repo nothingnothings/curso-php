@@ -407,21 +407,2478 @@ RODAR 'phpinfo()' no index.php....
 --> EM 'output_buffering',
 
 
-    temos 1 value igual a '4096 KB' (kilobytes)...
+    temos 1 value igual a '4096B' (4096 bytes... oq quer dizer que isso é equivalente a 4KB)...
 
 
 
 
 
 
-    QUER DIZER QUE O 'output_buffering'
+     'output_buffering'
 
-    É UM MECANISMO EM QEU 
-
-
+    É UM MECANISMO EM Que
 
 
-    'INSTEAD OF SENDING A RESPONSE TO THE BROWSER IMMEDIATELY,
-     IT WILL BE BUFFER IT IN SOME PLACE, LIKE A VARIABLE,
 
-     TO THEN 
+
+    'INSTEAD OF SENDING A RESPONSE TO THE BROWSER RIGHT AWAY,
+     IT WILL BE BUFFER IT IN SOME PLACE, LIKE A VARIABLE, FOR EXAMPLE,
+
+     TO THEN SEND IT ALL AT ONCE''...
+
+
+
+    
+
+
+RESUMINDO:
+
+
+
+
+QUANDO ESTAMOS RODANDO AQUELE ECHO STATEMENT BEM AQUI:
+
+
+
+
+echo $router->resolve($_SERVER['REQUEST_URI'], strtolower($_SERVER['REQUEST_METHOD']));
+
+
+
+
+
+
+E DEPOIS ESTAMOS RODANDO AQUELE 
+
+
+
+'session_start()',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+echo $router->resolve($_SERVER['REQUEST_URI'], strtolower($_SERVER['REQUEST_METHOD']));
+
+
+
+
+
+
+session_start();
+
+
+
+phpinfo();
+
+
+
+
+
+
+
+
+
+
+ISSO SIGNIFICA QUE 
+
+
+
+O PHP NÃO ESTÁ PRINTANDO QUALQUER COISA NA TELA... EM VEZ DISSO,
+
+ELE ESTÁ BUFFERING ESSA DATA, 
+
+
+SALVANDO-A EM ALGUM LUGAR... AÍ, NO FINAL DO SCRIPT,
+
+
+OU 'UNTIL THE SAVED CONTENT REACHES 4096 bytes', 
+
+
+ELE FINALMENTE COMEÇA A PRINTAR ESSA INFO, de 'phpinfo()', na tela:
+
+
+
+
+
+
+
+
+echo $router->resolve($_SERVER['REQUEST_URI'], strtolower($_SERVER['REQUEST_METHOD']));
+
+
+
+
+session_start();
+
+
+
+phpinfo();
+
+
+
+
+
+
+
+
+
+-> E PODEMOS ACTUALLY TESTAR ISSO, DE FORMA MAIS SIMPLES,
+
+
+
+    COM O PRINT DE 'echo 1' na tela,
+
+
+    e então de um echo 2, depois de um sleep de 3 segundos,
+
+    tipo assim:
+
+
+
+
+
+echo $router->resolve($_SERVER['REQUEST_URI'], strtolower($_SERVER['REQUEST_METHOD']));
+
+
+
+echo 1;
+
+
+sleep(3);
+
+
+
+echo 2;
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE RECARREGAMOS A PÁGINA,
+    NOSSO SCRIPT VAI DEMORAR 3 SEGUNDOS, PARA SÓ ENTÃO 
+
+    '''PRINT 1 AND 2, AT THE SAME TIME, ALL AT ONCE''....
+
+
+
+
+
+
+
+
+QUER DIZER QUE ELE NÃO ESTÁ FAZENDO 
+
+
+PRINT 1 
+
+(ESPERA 3 SEGUNDOS)
+
+PRINT 2
+
+
+
+
+
+
+
+--> ELE ESTÁ REALMENTE 'WAITING UNTIL 4KB HAS BEEN REACHED,
+    OR SCRIPT HAS ENDED EXECUTION',
+
+    para aí enviar o response...
+
+
+
+
+
+
+
+
+---> É POR ISSO QUE, BY DEFAULT,
+    O 'output_buffering' É _ DISABLED,
+     
+     MAS, EM PRODUCTION ENVIRONMENT, 
+     ELE PROVAVELMENTE FICARÁ SETTADO 
+
+     COMO 4kb...
+
+
+
+-> VC DEVE TER EM MENTE QUE 
+
+'''IN MOST CASES, PHP WILL STILL WAIT 
+    FOR THE OUTPUT TO __ BE DISPLAYED ON THE SCREEN,
+    UNTIL IT PROCESSES THE RESPONSE''''
+
+
+    (isso quer dizer que MESMO COM 
+    
+    O 'output_buffering' settado como DISABLED,
+
+    ESSA SESSION AINDA ESPERARIA 3 SEGUNDOS 
+    ANTES DE PRINTAR 1 E 2..., tudo de uma 
+    só vez...
+     )
+
+
+     --> A RAZÃO PARA ISSO, NO CASO, É QUE 
+        EXISTEM OUTRAS COISAS QUE CONTROLAM
+        ESSE COMPORTAMENTO, COMO O WEBSERVER 
+        E A SUA CONFIGURATION... SE COMPRESSION 
+        É USADA OU NAO, ETC...
+
+
+
+
+
+
+
+
+--> NO CLI DO PHP,
+    OUTPUT BUFFERING SEMPRE FICA DISABLED....
+
+
+
+
+
+
+-> VC PODE TESTAR ISSO RODANDO 'php index.php' 
+    NO TERMINAL...
+
+
+
+
+
+--> ao rodar isso no terminal, veremos que 
+
+
+o output ficará 
+
+
+
+PRINT 1 
+
+(ESPERA 3 SEGUNDOS)
+
+PRINT 2
+
+
+
+
+
+
+
+--> OU SEJA, SERÁ RESPEITADO O 'sleep()',
+    e o output não será enviado todo de 1 vez só,
+
+    como no php de servidor... 
+
+
+
+
+
+-> E É CLARO QUE NÃO É ISSO QUE ACONTECE QUANDO VISITAMOS A PAGE 
+    NO BROWSER, PQ NO BROWSER HÁ ESSE OUTPUT BUFFERING (
+        it waits 3 seconds, before sending everything all at once,
+        because of the output_buffering behavior with our 'sleep()' code...
+    )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> BEM.... AGORA, NO CASO, O PROFESSOR QUER 
+
+    __ DESABILITAR_  O 'output_buffering'
+
+
+    de nosso server,
+
+
+    TUDO PARA QUE __ CONSIGAMOS _ VISUALIZAR O 
+
+
+    WARNING DE 
+
+
+    ''session_start() MUST BE CALLED AT THE BEGINNING OF YOUR SCRIPT'',
+
+    ou algo do gênero...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, PARA DESABILITAR O output_buffering,
+    o PROFESSOR ABRE 
+
+    A PASTA DE 'nginx',
+
+
+    e então abre o arquivo de 'nginx.conf',
+
+    QUE ATUALMENTE TEM ESTE CÓDIGO:
+
+
+
+
+
+server {
+    listen 80;
+    index index.php;
+    error_log  /var/log/nginx/error.log;
+    access_log /var/log/nginx/access.log;
+    error_page 404 /index.php;
+    root /var/www/public;
+    location ~ \.php$ {
+        try_files $uri =404;
+        fastcgi_pass app:9000;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    }
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+        gzip_static on;
+    }
+}
+
+
+
+
+
+
+
+
+DENTRO DE 'docker>nginx>',
+
+deveríamos ter 1 arquivo de 'php.ini'...
+
+
+
+
+
+
+
+ENTRETANTO, ATUALMENTE EU N TENHO ARQUIVO ALGUM 'php.ini', NESSE FOLDER...
+
+
+
+
+
+
+TENHO QUE PEGAR ESSE ARQUIVO, DAS AULAS DO PROFESSOR...
+
+
+
+
+
+
+
+OK... MAS ESSE ARQUIVO NÃO EXISTE, NAS AULAS DO PROFESSOR...
+
+
+
+
+
+
+TENHO QUE PEGÁ-LO DO  MEU CÓDIGO, MESMO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... PEGUEI DO MEU XAMPP MESMO...
+
+
+
+
+
+
+
+
+
+
+--> AÍ, DENTRO DE PHP.INI,
+
+TENHO ESTA LINHA:
+
+
+
+
+
+output_buffering=4096
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA DESABILITAR ESSE BUFFERING,
+
+
+PODEMOS ESCREVER OU 'Off' ou '0'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEFINI COMO 0, E AÍ RE-BUILDO O CONTAINER, COM O
+
+docker-compose up -d --build 
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+REBUILDEI O NEGÓCIO, REEXECUTEI O CONTAINER...
+
+
+
+
+
+
+
+
+
+---> AGORA, AO ENTRARMOS
+    EM 
+
+    'localhost:8000',
+
+
+    FICAMOS 
+
+
+    COM AQUELE WARNING QUE O PROFESSOR QUERIA:
+
+
+
+
+
+
+
+
+''
+
+
+Warning: session_start(): Session cannot be started after headers have already been sent in /var/www/public/index.php on line 77
+
+
+''
+
+
+
+
+
+
+
+
+
+--> É CLARO QUE ISSO É APENAS PRINTADO DEPOIS DE 3 SEGUNDOS,
+
+POR CONTA DO SLEEP STATEMENT QUE ESCREVEMOS ANTERIORMENTE...
+
+
+
+
+
+
+
+(e o send do html/data acontece 1 única vez, por isso o sleep 
+não é 'respeitado'')
+
+
+
+
+
+
+
+
+
+
+
+-> MAS O QUE INTERESSA É QUE 
+
+AGORA 
+
+ESTAMOS RECEBENDO ESSE WARNING AVISANDO QUE 
+
+
+'''SESSION NÃO PODE SER STARTADA DEPOIS DE OS HEADERS 
+    JÁ TEREM SIDO ENVIADOS...''
+
+
+
+
+
+
+
+ISSO ACONTECEU POR CONTA DAQUELE 'echo statement' que escrevemos logo acima:
+
+
+
+echo $router->resolve($_SERVER['REQUEST_URI'], strtolower($_SERVER['REQUEST_METHOD']));
+
+
+
+
+
+
+
+
+
+
+
+
+É ISSO QUE FAZ O RESOLVE DA ROUTE, E QUE RODA O METHOD APROPRIADO 
+A CADA ROUTE...
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR AINDA NÃO FALOU SOBRE HEADERS,
+    PQ ISSO É ALGO QUE ESTUDAREMOS MAIS TARDE NO CURSO,
+
+
+
+
+
+MAS BASICAMENTE, O QUE ESSE ERRO 
+
+SIGNIFICA, DE 'session_start()',
+
+É QUE 
+
+
+
+
+''WHENEVER PHP ENCOUNTERS ANY CONTENT/RECEIVES THE FIRST OUTPUT,
+  WHETHER THAT IS THROUGH PRINT STATEMENTS, ECHO STATEMENTS, 
+  OR JUST HTML ELEMENTS, OR EVEN AN EMPTY SPACE THAT IS NOT ENCLOSED 
+  WITHIN HTTP TAGS,
+
+  ___IT __ IS __ GOING __ TO __ BASICALLY__ ATTEMPT _ TO __ SEND _ THE HEADERS...
+
+  AND __ HEADERS ARE __ INCLUDED ___ WITH __ THE __ RESPONSE__ THAT THE SERVER 
+  SENDS... ___''''
+
+
+
+
+  A PARTE MAIS IMPORTANTE::::
+
+
+
+  '''''ONCE HEADERS ARE __ SENT__, YOU CAN __ NO LONGER__ SEND _ ANY 
+    OTHER_ HEADERS......'''''
+
+
+    '''''session_start(), AND A FEW OTHER FUNCTIONS, ___ DO __ MODIFY_ _THE 
+         HEADERS, __ AND ARE WHAT CAUSES THIS WARNING'''' 
+
+         (because php attempts to MODIFY THE HEADERS, AFTER THEY HAVE ALREADY BEEN SENT)...
+
+
+
+
+
+
+
+
+
+--> FALAREMOS MAIS SOBRE HEADERS POSTERIORMENTE, NO CURSO...
+
+
+
+
+
+
+--> MAS O PROFESSOR QUERIA FALAR SOBRE HEADERS AGORA PQ 
+    ELE QUERIA DISCUTIR O 'output_buffering',
+
+    junto com esses errors...
+
+
+
+
+
+
+--> ele queria FALAR SOBRE ISSO PQ __ ESSE É UM TÓPICO 
+    IMPORTANTE, 
+
+    E PQ ELE JÁ VIU 
+
+    CÓDIGOS/TUTORIAIS EM QUE 
+     
+     A 
+
+     'session' ERA __ STARTADA __ 
+
+
+     DE DENTRO DO '<body>' 
+
+
+     do html para DEMONSTRAR COMO ISSO FUNCIONA... E EMBORA 
+    ISSO NÃO TE MOSTRE NENHUM ERRO, POR CONTA DA SETTING DE 
+
+    'output_buffering',
+
+
+    ESSA __ AINDA NÃO É A MANEIRA CORRETA...
+
+
+
+
+
+
+
+
+
+--> A MANEIRA CORRETA_ É REALMENTE__ 
+    RODAR O 'session_start()' LOGO NO INÍCIO DO SEU SCRIPT...
+
+
+
+
+
+
+
+
+--> '''IN ORDER TO AVOID ANY POTENTIAL ISSUES, REGARDLESS OF 
+       WHAT THE BUFFERING CONFIGURATION IS CURRENTLY 
+       SET TO, 
+
+       IT __ IS __bEST__ TO __ START THE SESSION _  
+       _ BEFORE__ ANY__ OUTPUT/RETURNS...'''
+
+
+
+
+
+
+       E PODEMOS FACILMENTE CONSERTAR ISSO, NO NOSSO APP,
+
+
+       JUSTAMENTE PQ 
+
+
+       '''ALL OF OUR REQUESTS GO THROUGH THIS 'index.php',
+        AND WE ARE RENDERING OUR PAGES 
+
+        THROUGH 
+
+
+        THIS PART HERE:
+
+
+        echo $router->resolve($_SERVER['REQUEST_URI'], strtolower($_SERVER['REQUEST_METHOD']));
+
+
+'''''''''
+
+         
+
+         OU SEJA, NADA É RENDERIZADO 
+
+         ANTES DE ESSA PARTE/LINHA SER EXECUTADA...
+
+
+
+
+
+
+--> PARA CONSERTARMOS NOSSO PROBLEMA, BASTA MOVER A LINHA DE 'session_start()'
+    PARA UMA LINHA ACIMA DE 'echo $router->resolve()',
+
+    PARA QUE 
+
+
+
+    ELA SEJA EXECUTADA __ ANTES__ DO RENDER/RETURN DE QUALQUER CONTEÚDO condicional com o routing...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+// * This must be called BEFORE any output/return of content, by the server. This will modify the headers in the response sent to the client, in the return of the content.
+session_start(); 
+
+echo $router->resolve($_SERVER['REQUEST_URI'], strtolower($_SERVER['REQUEST_METHOD']));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... COM ISSO, 
+
+
+
+
+NOSSO ERRO SUMIU...
+
+
+
+
+
+
+FICAMOS APENAS COM O PRINT DE '1' e '2',
+
+
+depois de 3 segundos (sleep)...
+
+
+
+
+
+
+
+
+
+--> MAS É CLARO QUE É AINDA MELHOR MOVER ISSO LÁ PARA O INÍCIO DE NOSSO CÓDIGO,
+    LOGO APÓS OS IMPORTS,
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+require_once __DIR__ . "/../vendor/autoload.php"; // imports the composer's autoloader
+
+
+// * This must be called BEFORE any output/return of content, by the server. This will modify the headers in the response sent to the client, in the return of the content.
+session_start(); 
+
+$router = new Router();
+
+
+$router->get('/', [\App19\Classes\Home::class, 'index'])
+        ->get('/invoices', [\App19\Classes\Invoices::class, 'index'])
+        ->get('/invoices/create', [\App19\Classes\Invoices::class, 'create'])
+        ->post('invoices/create', [\App19\Classes\Invoices::class, 'store']);
+
+
+
+echo $router->resolve($_SERVER['REQUEST_URI'], strtolower($_SERVER['REQUEST_METHOD']));
+
+
+
+echo 1;
+
+sleep(3);
+
+echo 2;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, AS COISAS FUNCIONAM NORMALMENTE, DE NOVO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSA É, NA VERDADE,
+    UMA DAS RAZÕES 
+    DE NÓS 
+
+
+    __ EVITARMOS COLOCAR ?> (PHP CLOSING TAGS) 
+
+
+
+    NOS SCRIPTS PHP _ SE OS 
+
+    SCRIPTS PHP 
+
+    CONTÊM APENAS 
+
+
+
+    CÓDIGO PHP...
+
+
+
+    PQ ISSO AÍ, COLOCAR A CLOSING TAG,
+
+    PODE TRIGGAR ESSE ERROR...
+
+
+
+
+
+
+
+
+
+--> OK, MAS AGORA DEVEMOS FALAR SOBRE 'SESSIONS'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SESSIONS:
+
+
+
+
+
+
+
+
+-- ''WHEN A SESSION IS STARTED,
+    PHP WILL CREATE A __UNIQUE __SESSION ID''...
+
+
+-- ''AND IT WILL WRITE THIS SESSIONID __ INTO A COOKIE''....
+
+
+
+
+
+-- ''THEN, THIS SESSIONID COOKIE __ WILL __ BE SENT 
+     ON EVERY REQUEST, BY THE BROWSER, AFTERWARDS.''
+
+
+
+
+-- ABRIMOS AS DEV TOOLS DO BROWSER,
+
+VAMOS EM APPLICATION-> COOKIES...
+
+
+
+
+
+
+
+
+
+
+
+
+--> DENTRO DE 'localhost:8000',
+
+
+
+    PERCEBEMOS QUE TEMOS UM 
+
+    COOKIE DE 
+
+    'PHPSESSID',
+
+
+    com um value de 
+
+
+    '16236c755e812d3781569a651a2a44ef'
+
+
+
+
+
+
+
+--> ISSO É UM ACRÔNIMO PARA 'PHP SESSION ID',
+
+    E AÍ O VALUE...
+
+
+
+
+
+
+--> SE DELETAMOS ESSE COOKIE E RECARREGAMOS A PAGE,
+    NOVAMENTE FICAMOS COM OUTRO DESSES COOKIES,
+
+    MAS AGORA COM 1 OUTRO VALUE...
+
+
+
+
+
+
+
+--> ISSO ACONTECE POR CONTA DO CÓDIGO DE 'session_start()'...
+
+
+
+
+-> CADA VEZ QUE ESSE CÓDIGO É EXECUTADO,
+
+UM NOVO 'PHPSESSID', UM PHP SESSION ID,
+
+É CRIADO, SE ELE AINDA NÃO EXISTE...
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS SE 1 PHPSESSID JÁ EXISTE,
+
+    NO NOSSO BROWSER,
+
+
+    O VALUE DELE VAI CONTINUAR O MESMO,
+
+    LÁ NOS COOKIEs do browser...
+
+
+
+
+
+
+
+
+
+-> ESSE COOKIE SERÁ PASSADO 
+
+EM TODOS OS REQUESTS SUBSEQUENTES...
+
+
+''ALL SO THAT THE PROPER __ SESSION DATA _ 
+THAT IS ASSOCIATED WITH THAT SESSIONID CAN BE 
+__LOOKED __ UP...''
+
+
+
+
+
+
+
+
+
+
+
+-> POR EXEMPLO, SE TROCARMOS PARA A ABA 'NETWORK'
+    E INSPECIONARMOS O GET REQUEST DE 'localhost',
+
+    e aí trocarmos para a aba de 'cookies',
+
+
+    PERCEBEMOS QUE ESSE PHPSESSID FOI ENVIADO JUNTO COM 
+    O REQUEST...
+
+
+
+
+--> E ESSE COOKIE É ENVIADO PARA TODAS AS PAGES/ROUTES 
+    DE NOSSO SITE, SEMPRE É ENVIADO JUNTO COM O REQUEST...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PARA TESTAR, AGORA, VAMOS 
+
+ADICIONAR 1 COUNTER SIMPLES,
+
+
+PARA GARANTIR QUE 
+
+O COOKIE ESTÁ PERSISTINDO A SESSION/SESSIONS,
+
+ATRAVÉS DOS REQUESTS...
+
+
+
+
+
+
+
+-> PARA ISSO, VAMOS SETTAR O COUNTER NA CLASS DE 'Home'...
+
+
+
+
+
+
+A CLASS DE 'Home.php',
+
+ATUALMENTE, ESTÁ ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php 
+
+declare(strict_types= 1);
+
+
+namespace App19\Classes;
+
+
+class Home {
+
+    public function index() {
+        // From the 'GET and POST superglobals' lesson: 
+        var_dump($_GET); // We can use  this to get the QUERY_STRING, and other parameters
+        var_dump($_POST); // We can use  this to get the POST data, in the body.
+        var_dump($_REQUEST); // Contains both GET and POST data + Data from cookies ($_COOKIE)
+        // return 'Home';
+
+
+        return '<form action="/?foo=bar" method="post"><label for="amount">Amount:</label><input type="number" name="amount" id="amount" value="100"><input type="submit"></form>';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+VAMOS USAR A SUPERGLOBAL DE '$_SESSION' 
+
+PARA 'SET ACCESS'
+
+E PARA, ENTÃO,
+
+
+
+__UPDATAR__ A SESSION DATA_...
+
+
+
+
+
+
+
+
+
+
+
+
+OK.. MAS O CÓDIGO DO PROFESSOR ESTÁ DIFERENTE... PARECE QUE ELE CRIOU UMA CLASS DE 'View',
+
+com 
+
+
+1 method estático de 'make()'...
+
+
+
+
+NO CASO, ELE FOI ESCREVENDO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php 
+
+declare(strict_types= 1);
+
+
+namespace App19\Classes;
+
+
+class View {
+    
+    public function __construct($view, $data) {
+        
+        $this->view = $view;
+        $this->data = $data;
+    }
+    
+    static public function make($view, $data) {
+        return new static($view, $data);
+    }
+
+    public function render() {
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+mas, antes disso, Home->index(),
+
+
+o professor USOU O SUPERGLOBAL
+
+
+
+DE '$_SESSION',
+
+
+para aí acessar a property de 'count'.... ele vai incrementar por '1' 
+
+
+essa key de 'count', a cada request:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class Home {
+
+    public function index() {
+
+
+        $_SESSION['count'] = ($_SESSION['count'] ?? 0) + 1;
+
+        return View::make('index', $_GET)->render();
+        
+            }
+}
+
+
+
+
+
+
+
+
+
+ISSO FEITO, LÁ EM 'index.php',
+
+
+
+
+DUMPAMOS TAMBÉM O '$_SESSION',
+
+tipo assim:
+
+
+
+
+
+
+
+
+// * This must be called BEFORE any output/return of content, by the server. This will modify the headers in the response sent to the client, in the return of the content.
+session_start(); 
+
+$router = new Router();
+
+
+$router->get('/', [\App19\Classes\Home::class, 'index'])
+        ->get('/invoices', [\App19\Classes\Invoices::class, 'index'])
+        ->get('/invoices/create', [\App19\Classes\Invoices::class, 'create'])
+        ->post('invoices/create', [\App19\Classes\Invoices::class, 'store']);
+
+
+
+echo $router->resolve($_SERVER['REQUEST_URI'], strtolower($_SERVER['REQUEST_METHOD']));
+
+
+var_dump($_SESSION);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO,
+
+
+
+
+ESSE COUNTER VAI SEMPRE IR INCREMENTANDO A CADA VISITA DE 'HOME'...
+
+
+
+
+
+
+
+
+
+
+
+
+MAS SE VISITAMOS 
+
+
+OUTRAS PAGES, DIFERENTES DE 'Home',
+
+esse counter não é incrementado...
+
+
+
+
+
+
+
+
+
+
+
+
+MAS É CLARO QUE '$_SESSION' pode ser acessada 
+
+
+
+também em outras classes, como 'Invoice.php',
+
+
+
+
+COMO PODEMOS VER, NESSE METHOD DE 'index()" dela:
+
+
+
+
+<?php 
+
+declare(strict_types= 1);
+
+
+namespace App19\Classes;
+
+
+class Invoices {
+
+    public function index() {
+
+        var_dump($_SESSION); // Superglobals can be accessed in any place of your code.
+
+        return 'Invoices';
+    }
+
+    public function create(): string {
+        return '<form action="/invoices/create" method="post"><label for="amount">Amount:</label><input type="number" name="amount" id="amount" value="100"><input type="submit"></form>';
+    }
+
+    public function store(): void {
+        $amount = $_POST['amount'];
+
+        var_dump($amount);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS SE DELETAMOS O COOKIE,
+
+FICAMOS COM 0... 
+
+
+
+
+
+
+
+-> SE ENTRARMOS NA PAGE de 'home' mais uma vez,
+
+
+
+ FICAREMOS COM '1'...
+
+
+
+
+
+
+
+
+
+
+--> TAMBÉM 
+
+
+    PODEMOS_ DELETAR_ ALGUM VALUE/KEY-VALUE PAIR 
+    DENTRO DAS NOSSAS SESSIONS,
+
+    DENTRO 
+
+    DO CÓDIGO,
+
+
+    POR MEIO DA FUNCTION BUILT-IN DE 'unset()',
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php 
+
+declare(strict_types= 1);
+
+
+namespace App19\Classes;
+
+
+class Invoices {
+
+    public function index() {
+
+        unset($_SESSION['count']); // With this, you can unset any keys in the session of the user.
+
+        return 'Invoices';
+    }
+
+    public function create(): string {
+        return '<form action="/invoices/create" method="post"><label for="amount">Amount:</label><input type="number" name="amount" id="amount" value="100"><input type="submit"></form>';
+    }
+
+    public function store(): void {
+        $amount = $_POST['amount'];
+
+        var_dump($amount);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... E ISSO REALMENTE FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+
+HÁ OUTRAS BUILT-IN FUNCTIONS, COMO 
+
+
+
+'session_unset()'
+
+
+e 
+
+'session_destroy()',
+
+
+
+
+
+
+
+
+
+MAS SEMPRE É MELHOR FAZER CLEANUP DAS SUAS SESSIONS 
+
+
+COM O SUPERGLOBAL DE '$_SESSION' e 'unset()',
+
+
+
+É MAIS SEGURO...
+
+
+
+------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS AGORA DEVEMOS FALAR SOBRE __ _COOKIES__...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COOKIES:
+
+
+
+
+
+
+
+
+
+
+
+
+
+''''A COOKIE IS JUST A FILE 
+    THAT IS STORED ON A DEVICE, LIKE A USER'S COMPUTER''''
+
+
+
+
+
+
+''''ONCE A COOKIE IS CREATED, EACH REQUEST  
+    MADE BY THAT MACHINE WILL INCLUDE THAT COOKIE, 
+
+    SO THAT SERVERS CAN ACCESS THEM...''
+
+
+
+
+'''WE SAW THAT IN ACTION, WHEN WE WERE TALKING ABOUT SESSIONS...'''
+
+
+
+
+
+
+
+
+
+
+COOKIES POSSUEM MTS USOS:
+
+
+-- SESSION-MANAGEMENT 
+
+
+-- TRACKING 
+
+
+-- TARGET ADS 
+
+
+-- STORE INFORMATION TO ENHANCE THE USER EXPERIENCE ON THE WEBSITE..
+
+
+
+
+
+
+
+
+
+
+
+
+'''WE CAN USE THE FUNCTION 
+    'setcookie()' 
+
+    TO CREATE THE COOKIE, AND THEN 
+
+    VERIFY IT WITH THE dev tools 
+    of 
+
+    chrome,
+    to see if it really was created...
+
+
+
+
+
+
+
+
+
+
+-> PARA CRIAR 1 COOKIE, VAMOS ATÉ O METHOD de 'index()"
+
+
+da class 'Home',
+
+
+E AÍ ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+class Home {
+
+    public function index() {
+
+
+        setcookie();
+
+        return View::make('index', $_GET)->render();
+        
+    }
+}
+
+
+
+
+
+
+
+
+
+
+--> CERTO, AÍ TEMOS A LISTA DE ARGUMENTS...
+
+
+
+
+
+
+
+
+
+ARGUMENTS:
+
+
+
+
+
+1) O _ NOME__ DO COOKIE__ ... pode ser qualquer nome ...
+
+
+
+-> colocamos 'username' 
+
+
+
+
+2) O _ VALUE _ DO COOKIE... colocamos 'Gio', como exemplo....
+
+
+
+
+
+3) EXPIRETIME --> É O NÚMERO DE SECONDS ATÉ QUE O COOKIE EXPIRE...
+
+                --> DEPOIS DO TEMPO SELECIONADO, O COOKIE SERÁ 
+                EXPIRADO...
+
+
+
+
+            
+            --> o professor coloca 'time() + 60',
+
+            o que quer dizer o 'CURRENT TIME' + 60 segundos..
+
+
+
+            o cookie vai expirar em 1 minuto...
+
+
+
+
+
+
+        EX:
+
+
+
+
+
+        class Home {
+
+    public function index() {
+
+
+        setcookie(
+            'userName',
+            'Gio',
+            time() + 60
+        );
+
+        return View::make('index', $_GET)->render();
+        
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+COLOCAMOS 10 SEGUNDOS, NA VERDADE...
+
+
+
+
+
+EX:
+
+
+
+
+
+     setcookie( // name, value, expirationTime, path, domain, secure, httpOnly 
+            'userName', // name
+            'John Doe', // value
+            time() + 60, // expirationTime (in this case, 1 minute from now)
+            '/' // path for which the cookie will be valid
+        );
+
+
+
+
+
+
+
+
+O 5o parameter é 
+
+
+
+
+usado para definir 'PARA QUAIS DOMAINS SEU COOKIE SERÁ VALID'...
+
+
+
+
+
+
+
+-> NÃO VAMOS SETTAR ESSE PARAMETER...
+
+
+
+
+
+
+
+
+-> O PRÓXIMO PARAMETER É O PARAMETER DE 'secure'( boolean) --> ELE 
+                                                                DETERMINA 
+                                                                SE O COOKIE 
+                                                                DEVE SER 
+
+                                                                ENVIADO 
+
+                                                                APENAS 
+
+                                                                'ON SECURE 
+                                                                HTTPS CONNECTIONS'...
+
+
+
+                                                            -> DEFINIMOS COMO 'false',
+
+                                                            para que ELE SEJA SEMPRE 
+                                                            ENVIADO, ATÉ MESMO 
+
+                                                            EM CONNECTIONS NON-HTTPS...
+
+
+
+
+
+
+                                                            --> O DEFAULT É 'FALSE'...
+
+
+
+
+o último argument 
+DETERMINA 
+
+
+SE ESSE COOKIE VAI SER 'HTTP-ONLY' -> SE VC SETTA ISSO COMO TRUE,
+                                        O COOKIE PODERÁ SER ACESSADO 
+                                        APENAS __ POR HTTP PROTOCOL,
+
+                                        E NÃO PODERÁ SER ACESSADO 
+                                        POR CLIENTSIDE CODE, COMO 
+                                        JAVASCRIPT...
+
+
+
+
+--> DEIXAMOS 'false', que é o default...
+
+
+
+
+
+A ESCRITA TODA FICA ASSIM:
+
+
+
+
+        // * This is used to CREATE and SET a cookie.
+        setcookie( // name, value, expirationTime, path, domain, secure, httpOnly 
+            'userName', // name
+            'John Doe', // value
+            time() + 60, // expirationTime (in this case, 1 minute from now)
+            '/', // path for which the cookie will be valid
+            '', // domain
+            false, // secure (cookie will only be sent over HTTPS)
+            false
+        );
+
+
+
+
+
+
+
+
+
+
+PODERÍAMOS SIMPLIFICAR ESSA ESCRITA,
+POR MEIO DO REMOVE DOS PARAMETERS 4,5,6 E 7:
+
+
+
+
+        // * This is used to CREATE and SET a cookie.
+        setcookie( // name, value, expirationTime, path, domain, secure, httpOnly 
+            'userName', // name
+            'John Doe', // value
+            time() + 60, // expirationTime (in this case, 1 minute from now)
+        );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DESDE O PHP 7.3,
+
+
+
+VC TEM A OPÇÃO/POSSIBILIDADE 
+
+
+
+DE 
+
+
+'PASS AN ASSOCIATIVE ARRAY OF OPTIONS',
+
+EM VEZ DE 
+
+PASSAR OS ARGUMENTS 
+
+
+
+COM ESSA ESCRITA EM ORDEM...
+
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE PODERÍAMOS TER ESCRITO ASSIM:
+
+
+        // * This is used to CREATE and SET a cookie.
+        setcookie( // name, value, expirationTime, path, domain, secure, httpOnly 
+            'userName', // name
+            'John Doe', // value
+            [
+                expires => xxx,
+                path => yyyy,
+                domain => zzzz,
+                secure => wwww,
+                httponly => 2222,
+                samesite => ddddd
+            ]
+        );
+
+
+
+
+
+
+
+
+
+MAS NÃO USAREMOS ISSO, POR ENQUANTO...
+
+
+
+
+
+
+
+AO RECARREGARMOS A PAGE DE Home,
+
+
+FICAMOS COM ESSE COOKIE, CRIADO NO NOSSO BROWSER...
+
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA DEVEMOS VISITAR A OUTRA PAGE,
+
+COMO 'Invoices',
+
+
+PARA PERCEBERMOS QUE 
+
+O COOKIE VAI CONTINUAR NO NOSSO BROWSER...
+
+
+
+
+
+ENTRETANTO, AO RECARREGARMOS A PAGE,
+NOSSO 
+
+COOKIE VAI TER SUMIDO.... ISSO É PQ A EXPIRATION DATE É 
+DE APENAS 1 MINUTO..
+
+
+
+
+
+-- SE DEIXAMOS ALGO COMO '24 * 60 * 60',
+
+
+
+O COOKIE VAI DURAR POR 24 HORAS...
+
+
+
+
+
+
+
+
+--> CERTO..
+
+
+
+
+
+
+
+
+
+
+
+--> OS COOKIES__ DEVEM, OBRIGATORIAMENTE,
+
+    SEREM __ sETTADOS_ 
+
+    ANTES DE RETORNAR QUALQUER OUTPUT (como echo, html, json, whatever)...
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE, SE TENTAMOS SETTAR OS COOKIES 
+    DEPOIS DE FAZER 'ECHO',
+
+    ficamos com o warning de 'Cannot Modify Header information - headers already sent'...
+
+
+
+
+
+EX:
+
+
+
+    public function index()
+    {
+
+
+        $_SESSION['count'] = ($_SESSION['count'] ?? 0) + 1;
+
+        echo 1;  // This is bad (comes before 'setcookie')
+
+        setcookie(  // THIS WILL GIVE US A WARNING, because of the 'echo' before it.
+            'userName',
+            'John Doe', 
+            time() + 60, 
+            '/',
+            '',
+            false,
+            false
+        );
+
+        return View::make('index', $_GET)->render();
+
+        // '<form action="/?foo=bar" method="post"><label for="amount">Amount:</label><input type="number" name="amount" id="amount" value="100"><input type="submit"></form>';
+    }
+
+
+
+
+
+
+
+
+
+-> a solution disso é simples,
+
+
+    COLOCAR O SET DOS COOKIES ANTES DE QUALQUER OUTPUT...
+
+
+
+
+
+
+
+-> E ISSO É, ACTUALLY,
+    UM DOS USE-CASES DO BUFFERING...
+
+
+
+
+    O 'output_buffering'
+
+
+
+    EXISTE PARA TENTAR RESOLVER/CONSERTAR 
+
+    OS CASES EM QUE 
+
+    '''EVEN IF YOU ECHO OUT SOMETHING/RETURN SOMETHING OUT
+        __BEFORE SETTING COOKIES OR STARTING SESSIONS,
+        IT MAKES SURE THAT THE 'cannot modify header information' 
+        HEADER IS NOT GIVEN...'''
+
+
+
+
+
+
+
+--> voltamos ao arquivo de 'php.ini'
+
+
+E DEIXAMOS O VALUE DE VOLTA PARA '4096'....
+
+
+
+--> DEPOIS DISSO, REBUILDAMOS O CONTAINER...
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+AGORA, EM VEZ DE FAZER O DUMP DE '$_SESSION',
+
+
+PODEMOS 
+
+FAZER 
+
+
+O DUMP DE '$_COOKIE':
+
+
+
+
+var_dump($_COOKIE);
+
+
+
+
+
+
+
+
+
+
+como resultado disso,
+
+
+
+FICAMOS COM ESTE PRINT:
+
+
+
+
+array(2) { ["PHPSESSID"]=> string(32) "80cecaeb87dfa7b10165eac6a6980576" ["userName"]=> string(8) "John Doe" }
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+
+
+2 COOKIES,
+
+
+O DE 'PHPSESSID'
+
+
+
+e 
+
+
+O do 'userName',
+
+que criamos com 'setcookie()'...
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+E, SE O SEU OBJETIVO É __ DELETAR__ 
+
+1 COOKIE,
+
+
+
+VC PODE FAZER ISSO POR MEIO 
+
+
+
+DO SET DO EXPIRE TIME COMO SENDO  O 'PASSADO'...
+
+
+
+
+
+
+
+
+BASTA ESCREVER TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+        setcookie(  // THIS WILL GIVE US A WARNING, because of the 'echo' before it.
+            'userName',
+            'John Doe', 
+            time() - 60, 
+        );
+
+
+
+
+
+
+
+
+
+
+
+--> COMO O TEMPO É SETTADO COMO 'IN THE PAST',
+
+ELE VAI SER EXPIRADO IMEDIATAMENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+MAS 1 COISA QUE VC DEVE SABER É QUE 
+
+
+'''YOU SHOULD NOT STORE SENSITIVE INFORMATION IN THE COOKIES'''....
+
+
+
+
+
+
+
+
+isso pq ''THEY CAN BE EASILY ACCESSED BY THE CLIENT,
+            BY OPENING THE DEV TOOLS..''
+
+
+
+
+
+
+--> ALÉM DISSO, OS USERS PODEM SER HACKEADOS,
+        OU ENGANADOS, POR MEIO DOS COOKIES...
+
+
+
+        VC N QUER TER SENSITIVE INFORMATION EXPOSTA NOS 
+        COOKIES...
+
+
+
+
+
+        --> MAS àS VEZES VC PRECISARÁ ARMAZENAR DATA NOS COOKIES,
+            INFO QUE SEJA + OU - SENSITIVE... -> NESSES CASES, 
+                                                    VC VAI PRECISAR 
+                                                    ENCRYPTAR OS DADOS,
+
+                                                    HASHEAR OS DADOS...
+
+
+
+                                                    VEREMOS MAIS SOBRE HASHING 
+                                                    E ENCRYPTION MAIS TARDE NO CURSO...
+
+
+
+
+--> FALAREMOS SOBRE COOKIES E SESSIONS MAIS NA TERCEIRA PARTE DO CURSO,
+    PRINCIPALMENTE DEPOIS DE TRABALHARMOS COM AUTHENTICATION...
+
+
+
+
+    -> VAMOS PRINCIPALMENTE USAR 'SYMPHONY COMPONENTS',
+    JUNTO DE OUTROS PACKAGES, nos nossos apps..
+
+
+
+
+    --> AGORA VAMOS FALAR SOBRE O UPLOAD DE FILES NO PHP...
