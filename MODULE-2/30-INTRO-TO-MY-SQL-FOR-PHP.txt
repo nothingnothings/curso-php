@@ -1,0 +1,1564 @@
+
+
+
+
+VAMOS REVISAR MYSQL....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+sql...
+
+
+
+--> VAMOS INSTALAR SQL...
+
+
+
+
+--> COMO ESTAMOS USANDO DOCKER,
+
+
+DEVEMOS ADICIONAR  1 CONTAINER PARA O MYSQL..
+
+
+
+
+
+
+
+--> PARA ISSO, TEMOS O CÓDIGO DO CONTAINER DA DATABASE..
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+  db:
+    container_name: programwithgio-db
+    image: mysql:8.0
+    volumes: 
+      - ./storage/mysql:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - 3306:3306
+
+
+
+
+
+
+
+
+
+
+    BASICAMENTE USAMOS ESSA IMAGE,
+
+    DO DOCKERHUB.....
+
+
+
+
+
+
+
+
+-> VAMOS MAPPEAR 
+
+O FOLDER DE '/storage/mysql' 
+
+
+
+COM O FOLDER DO CONTAINER INTERNO '/var/lib/mysql'...
+
+
+
+
+
+
+
+fazemos isso para que, quando nosso container for DESTRUÍDO 
+E STARTADO DNV,
+
+ISSO NÃO VAI DESTRUIR NOSSAS DATABASES E TABLES E ETC...
+
+
+
+
+
+
+
+
+-> não temos esse folder de 'storage/mysql',
+
+mas ele será criado 
+
+
+quando buildarmos esse container..
+
+
+
+
+
+
+
+-> A PORT SERÁ 3306,
+
+
+PODEREMOS CONECTAR A ISSO COM 
+
+
+A COMMAND LINE,
+
+OU COM OUTROS SOFTWARES COMO MYSQL WORKBENCH 
+
+
+
+OU DATABASE SOLUTIONS COMO PHP MYADMIN... TAMBÉM ANTARES...
+
+
+
+
+
+
+
+
+
+
+
+
+rodamos docker-compose up -d --build,
+
+
+PARA REBUILDAR AS NOSSAS IMAGES...
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO....
+
+
+
+
+
+
+com docker ps,
+
+
+
+percebemos que os containers estão rodando:
+
+
+
+
+
+
+DEPOIS DISSO,  RODAMOS DOCKER EXEC PARA CONECTAR AO NOSSO CONTAINER DE 'programwithgiodb'....
+
+
+
+
+
+EX:
+
+
+PS D:\PROJETO20-PHP-FROM-THE-GROUND-UP\MODULE-2\project\docker> docker ps
+CONTAINER ID   IMAGE               COMMAND                  CREATED          STATUS  
+        PORTS                               NAMES
+a8932e373c1b   mysql:8.0           "docker-entrypoint.s…"   33 seconds ago   Up 16 seconds   0.0.0.0:3306->3306/tcp, 33060/tcp   programwithgio-db
+247e8eaacdfc   docker-app          "docker-php-entrypoi…"   8 days ago       Up 51 seconds   9000/tcp                            programwithgio-app
+28d809e9e917   nginx:1.19-alpine   "/docker-entrypoint.…"   10 days ago      Up 51 seconds   0.0.0.0:8000->80/tcp                programwithgio-nginx
+
+
+
+
+
+EX:
+
+
+docker exec -it programwithgio-db bash
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... AÍ RODAMOS 
+'mysql',
+
+para nos conectarmos ao mysql...
+
+
+
+
+
+aí rodamos 
+
+
+'mysql -u root -p',
+
+
+PARA 
+
+USARMOS O PASSWORD, QUE É 
+
+'root'...
+
+
+
+Ex;
+
+
+
+
+
+
+
+
+
+
+bash-5.1# mysql -u root -p
+Enter password: 
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 8
+Server version: 8.0.39 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.       
+
+mysql>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NÓS ENTRAMOS COMO 'ROOT USER', CLARO,
+
+
+MAS PODERÍAMOS CONECTAR COM USERS SEPARADOS, COM PERMISSIONS DIFERENTES,
+
+ETC...
+
+
+
+
+
+
+
+--> MAS VAMOS COMEÇAR COM ESSE 'root' aí..
+
+
+
+
+
+
+
+
+
+--> AÍ RODAMOS 'show databases', para ver todas as databases...
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+show databases;
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+4 rows in set (0.00 sec)
+
+mysql>
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO NOS DÁ AS BASIC DATABASES,
+
+
+NENHUMA DATABASE CRIADA POR NÓS..
+
+
+
+
+
+
+
+
+
+
+
+
+criamos uma nova database 
+
+
+
+
+com 
+
+
+
+
+
+CREATE DATABASE MY_DB;
+
+
+
+
+
+
+
+
+
+
+
+-> nossa database estará criada...
+
+
+
+
+
+
+
+
+
+
+
+---> PODERÍAMOS CONTINUAR MANAGEANDO 
+
+AS DATABASES COM A CLI,
+
+
+MAS É MELHOR 
+
+
+USAR 
+
+
+
+SQL TOOLS,
+
+
+COMO MYSQL WORKBENCH...
+
+
+
+
+
+
+
+
+
+-> MAS SE VC ESTÁ TRABALHANDO COM O XAMPP,
+VC 
+JÁ VAI TER O PHP ADMIN,
+E PODE USAR ISSO AÍ...
+
+
+
+
+
+
+
+
+
+
+VOU USAR O ANTARES...
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ VAMOS NOS CONECTAR AO 'localhost'...
+
+
+
+
+
+
+
+a port será a port de 3306....
+
+
+
+COMO PASSWORD, COLOCAMOS 'root'...
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA ESTOU CONECTADO A ESSA DATABASE...
+
+
+
+
+
+
+
+
+
+
+
+
+-> TEMOS TODAS AS DATABASES MOSTRADAS, NA ESQUERDA...
+
+
+
+
+
+
+
+VAMOS USAR O QUERY TOOL....
+
+
+(ESCREVER AS COISAS DIRETAMENTE)...
+
+
+
+
+
+
+
+
+ESCREVEMOS TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+CREATE TABLE users (
+    ID int UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    EMAIL VARCHAR(255) UNIQUE NOT NULL,
+    FULL_NAME VARCHAR(255) NOT NULL,
+    IS_ACTIVE BOOLEAN DEFAULT 0 NOT NULL,
+    CREATED_AT DATETIME NOT NULL,
+    KEY `is_active`(`is_active`)
+);
+
+
+
+
+
+--> OK...
+
+COLOCAMOS AS COLUMN DEFINITIONS...
+
+
+
+
+
+
+
+
+--> CADA USER PODE TER 1 UNIQUE IDENTIFIER...
+
+
+
+int...
+
+
+'unsigned' --> não sei o que é... --> QUER DIZER QUE 'WE CAN ONLY STORE POSITIVE NUMBERS, AND NO NEGATIVE NUMBERS' (e 'unsigned' te deixa ARMAZENAR NÚMEROS MAIORES, POR CONTA DOS BITS)
+
+
+
+
+
+
+
+'PRIMARY KEY' -> simplesmente indica que essa column é o unique identifier do row...
+
+
+
+
+auto_increment ->  bem simples..
+
+
+
+
+
+
+
+email --> unique 
+
+
+'is_Active' -> boolean ... default é 'false'...
+
+
+
+
+
+
+
+
+
+
+
+
+podemos definir compound keys, mas é mais raro...
+
+
+
+
+
+
+
+
+
+
+
+EMAIL PODERIA SER A PRIMARY KEY...
+
+
+
+
+
+
+
+E ISSO PODERIA SER FINE SE TIVÉSSEMOS POUCAS TABLES... MAS ASSIM 
+
+
+QUE NOSSA DATABASE CRESCE,
+
+
+PRECISARÍAMOS REFERENCIAR 1 COLUMN... 
+
+E REFERENCIAR 
+
+VARCHARS É BEM MENOS PERFORMANT DO QUE REFERENCIAR INTEGERS..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TAMBÉM, ESTARÍAMOS ARMAZENANDO EMAIL ADDRESSES
+    EM MÚLTIPLAS TABLES, EM 1 RELATIONAL DATABASE, O QUE NÃO É 
+    IDEAL....
+
+
+
+
+    --> POR ISSO QUE O ID COMO COLUMN SEPARADA FAZ SENTIDO...
+
+
+
+
+
+
+
+''boolean' --> O MYSQL __NÃO TEM 1 NATIVE BOOLEAN DATATYPE... O QUE ISSO FAZ,
+                                                                POR TRÁS DAS SCENES,
+
+
+                                                                É CONVERTER 'boolean' 
+                                                                para 
+                                                                'tinyint(1)'...
+
+
+
+
+
+-->    'created_at' --> É A COLUMN DE 'datetime'... -> poderíamos armazenar como 
+                                                        timestamp em vez de 'datetime',
+
+                                                        se 
+
+                                                        o objetivo da column é apenas 
+                                                        trackar o creation time das tables...
+
+
+
+
+
+
+
+KEY --> ESTAMOS CRIANDO 1 INDEX... --> E INDEXES PODEM 
+                                        FAZER TABLES SEREM LIDAS MAIS RAPIDAMENTE...
+
+
+
+
+                                        -> ESTAMOS CRIANDO 1 INDEX PARA A COLUMN DE 
+
+                                        'is_active'..
+
+
+
+
+                                    --> ADICIONAR INDEXES 
+
+                                 SEMPRE TRAZ 1 CUSTO...
+
+
+
+
+
+
+
+                                 -> SUAS QUERIES PODEM NEM MESMO USAR OS INDEXES,
+
+                                 SE OS INDEXES NÃO ESTIVEREM SETTADOS APROPRIADAMENTE..
+
+
+
+
+
+
+
+
+
+
+
+
+ok... criamos essa table...
+
+
+
+
+
+
+
+
+
+
+
+-> DEPOIS DISSO, PODEMOS USAR 'DESCRIBE + table_name'
+
+
+para ter info sobre a table:
+
+
+
+
+
+DESC USERS;
+
+
+
+
+
+
+[
+	[
+		'COLUMNS.Field' => 'ID',
+		'COLUMNS.Type' => 'int unsigned',
+		'COLUMNS.Null' => 'NO',
+		'COLUMNS.Key' => 'PRI',
+		'COLUMNS.Default' => null,
+		'COLUMNS.Extra' => 'auto_increment'
+	],
+	[
+		'COLUMNS.Field' => 'EMAIL',
+		'COLUMNS.Type' => 'varchar(255)',
+		'COLUMNS.Null' => 'NO',
+		'COLUMNS.Key' => 'UNI',
+		'COLUMNS.Default' => null,
+		'COLUMNS.Extra' => ''
+	],
+	[
+		'COLUMNS.Field' => 'FULL_NAME',
+		'COLUMNS.Type' => 'varchar(255)',
+		'COLUMNS.Null' => 'NO',
+		'COLUMNS.Key' => '',
+		'COLUMNS.Default' => null,
+		'COLUMNS.Extra' => ''
+	],
+	[
+		'COLUMNS.Field' => 'IS_ACTIVE',
+		'COLUMNS.Type' => 'tinyint(1)',
+		'COLUMNS.Null' => 'NO',
+		'COLUMNS.Key' => 'MUL',
+		'COLUMNS.Default' => '0',
+		'COLUMNS.Extra' => ''
+	],
+	[
+		'COLUMNS.Field' => 'CREATED_AT',
+		'COLUMNS.Type' => 'datetime',
+		'COLUMNS.Null' => 'NO',
+		'COLUMNS.Key' => '',
+		'COLUMNS.Default' => null,
+		'COLUMNS.Extra' => ''
+	]
+]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O ANTARES NOS DEIXA EXPORTAR NESSE FORMATO PHP,
+
+E TAMBÉM EM OUTROS FORMATOS:
+
+
+
+[{"COLUMNS.Field":"ID","COLUMNS.Type":"int unsigned","COLUMNS.Null":"NO","COLUMNS.Key":"PRI","COLUMNS.Default":null,"COLUMNS.Extra":"auto_increment"},{"COLUMNS.Field":"EMAIL","COLUMNS.Type":"varchar(255)","COLUMNS.Null":"NO","COLUMNS.Key":"UNI","COLUMNS.Default":null,"COLUMNS.Extra":""},{"COLUMNS.Field":"FULL_NAME","COLUMNS.Type":"varchar(255)","COLUMNS.Null":"NO","COLUMNS.Key":"","COLUMNS.Default":null,"COLUMNS.Extra":""},{"COLUMNS.Field":"IS_ACTIVE","COLUMNS.Type":"tinyint(1)","COLUMNS.Null":"NO","COLUMNS.Key":"MUL","COLUMNS.Default":"0","COLUMNS.Extra":""},{"COLUMNS.Field":"CREATED_AT","COLUMNS.Type":"datetime","COLUMNS.Null":"NO","COLUMNS.Key":"","COLUMNS.Default":null,"COLUMNS.Extra":""}]
+
+
+
+
+ID	int unsigned	NO	PRI		auto_increment
+EMAIL	varchar(255)	NO	UNI		
+FULL_NAME	varchar(255)	NO			
+IS_ACTIVE	tinyint(1)	NO	MUL	0	
+CREATED_AT	datetime	NO			
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+SE VC QUER ADICIONAR MAIS COLUMNS,
+
+OU DROPAR COLUMNS DA TABLE,
+
+VC ESCREVERIA ASSIM:
+
+
+
+
+
+ALTER TABLE USERS ADD COLUMN FOO VARCHAR(150);
+
+
+
+
+
+
+
+
+
+
+
+
+
+TAMBÉM PODEMOS DROPPAR,
+ ASSIM:
+
+
+
+
+ ALTER TABLE USERS DROP COLUMN FOO;
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ANTES DE CRIAR NOSSA TABLE MAIS UMA VEZ,
+
+DEVEMOS DROPPÁ-LA,
+
+COM 'DROP TABLE XXXX'...
+
+
+
+
+
+
+
+--> HÁ MT MAIS COISAS QUE DEVEMOS SABER SOBRE MYSQL...
+
+
+
+
+
+
+
+
+
+
+
+
+PARA INSERIR DATA NA TABLE,
+
+ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+INSERT INTO USERS (
+    EMAIL,
+    FULL_NAME,
+    IS_ACTIVE,
+    CREATED_AT 
+) VALUES (
+    'john@doe.com',
+    'John Doe',
+    1,
+    NOW()
+),
+(
+    'jane@doe.com',
+    'Jane Doe',
+    1,
+    NOW()
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS, PODEMOS RODAR 'SELECT * fROM USERS':
+
+
+
+
+
+
+
+
+
+1	john@doe.com	John Doe	1	2024-08-11 22:02:16
+2	jane@doe.com	Jane Doe	1	2024-08-11 22:02:16
+
+
+
+
+
+
+
+
+
+E AÍ, AS COISAS BÁSICAS:
+
+
+
+
+
+
+
+
+
+
+
+
+SELECT ID, EMAIL
+FROM USERS 
+WHERE is_active = 0
+ORDER BY created_at DESC;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+SE QUEREMOS RODAR 1 SEARCH PROCURANDO POR 1 PATTERN ESPECÍFICO,
+
+
+PODEMOS USAR 
+
+
+'LIKE '%doe%''
+
+
+(VAI ENCONTRAR TODOS OS USERS COM ESSA STRING NO MEIO):
+
+
+
+
+
+
+SELECT ID, EMAIL
+FROM USERS 
+WHERE email LIKE '%john%';
+
+
+
+
+
+
+
+
+
+
+ISSO VAI RETORNAR A ENTRY DO JOHN DOE...
+
+
+
+
+
+
+
+
+
+
+
+
+TAMBÉM PODEMOS USAR 'not',
+
+TIPO ASSIm:
+
+
+
+
+
+
+SELECT ID, EMAIL
+FROM USERS 
+WHERE email NOT LIKE '%john%';
+
+
+
+
+
+
+
+
+
+
+
+
+
+PARA MUDAR ENTRIES NA TABLE, PODEMOS USAR UPDATE 
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+UPDATE USERS 
+SET EMAIL = 'jane@gmail.com'
+WHERE ID = 2;
+
+
+
+
+
+
+
+
+
+
+
+
+CUIDADO COM A WHERE CLAUSE, COM O UPDATE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TBM DEVEMOS TER CUIDADO COM O DELETE, MESMA COISA:
+
+
+
+
+
+
+
+
+DELETE FROM USERS 
+WHERE ID = 2;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DETALHE:::
+
+
+
+'''DELETING ROWS DOES NOT RESET THE AUTO-INCREMENT 
+    OF THE ID'''
+
+
+
+    (isso é feito para não quebrar tudo)...
+
+
+
+
+
+-> SE VC QUISER RESETTAR A ORDEM DOS IDS QUANDO 
+    VC DELETAR 1 DAS ENTRIES 
+    DA TABLE,
+
+    VC TERÁ QUE 
+    USAR 
+
+
+    1 'TRUNCATE TABLE' STATEMENT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... AGORA DEVEMOS FALAR SOBRE FOREIGN KEYS E RELATIONS ENTRE TABLES...
+
+
+
+
+
+
+
+
+
+O PROFESSOR CRIA UMA OUTRA TABLE, DE INVOICES, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+CREATE TABLE INVOICES (
+    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    AMOUNT 
+)
+
+
+
+
+
+
+
+
+
+NÃO É BOM ARMAZENAR VALORES MONETÁRIOS COMO 'FLOAT',
+
+DEVIDO À POSSIBILIDADE DE ROUNDING ERRORS...
+
+
+
+
+
+
+
+O DATA TYPE QUE O PROFESSOR USARÁ É 'DECIMAL(10, 4)'
+ 
+
+
+ (é um precision data type)...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+CREATE TABLE INVOICES (
+    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    AMOUNT decimal(10, 4),
+    USER_ID
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PARA A TERCEIRA COLUMN,
+
+
+
+COLOCAMOS UM DATA TYPE DE 'INT UNSIGNED',
+PQ ELA DEVE MATCHEAR 
+
+A COLUMN 
+
+NA TABLE ORIGINAL DE 
+
+
+'USERS'...
+
+
+
+
+
+
+
+
+
+
+-> POR FIM, ESCREVEMOS A FOREIGN KEY,
+
+COM ESTE CÓDIGO:
+
+
+
+
+
+
+CREATE TABLE INVOICES (
+    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    AMOUNT decimal(10, 4),
+    USER_ID INT UNSIGNED,
+    FOREIGN KEY (USER_ID) REFERENCES USERS(id)
+)
+
+
+
+
+
+
+
+
+
+
+depois disso,
+
+
+podemos colocar algumas options, se queremos cascade 
+
+quando 
+
+
+1 user foi deletado, etc etc...
+
+
+
+
+
+
+
+
+PARA COISAS COMO ''IF A USER IS DELETED, WE WANT HIS INVOICES TO GET DELETED AS WELL'...
+
+
+
+
+NO NOSSO CASO, NÃO QUEREMOS QUE OS INVOICES 
+
+DO USER 
+
+DELETADO 
+
+
+SEJAM DELETADAS TAMBÉM..
+
+
+
+
+
+
+
+
+
+
+
+
+EM VEZ DISSO, QUEREMOS QUE O USER_ID NAS INVOICES SEJA SETTADO COMO 'NULL',
+
+QUE ELE SEJA NULLABLE,
+
+
+PARA QUE SUAS INVOICES CONTINUEM EXISTINDO...
+
+
+
+
+
+--> PARA ISSO,
+
+ESCREVEMOS ASSIM:
+
+
+
+CREATE TABLE INVOICES (
+    id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    AMOUNT decimal(10, 4),
+    USER_ID INT UNSIGNED,
+    FOREIGN KEY (USER_ID) REFERENCES USERS(ID)
+        ON DELETE SET NULL 
+        ON UPDATE CASCADE
+);
+
+
+
+
+
+
+
+
+
+
+AGORA, QUANDO 1 USER FOR DELETADO,
+
+
+This defines what happens to the USER_ID in the INVOICES table if the 
+corresponding ID in the USERS table is deleted. With ON DELETE SET NULL, 
+if a user is deleted from the USERS table, the USER_ID value in the
+ INVOICES table will be set to NULL for all invoices 
+ associated with that user. This helps maintain referential 
+ integrity without removing the invoice records.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ O PROFESSOR FALA DE JOINS...
+
+
+
+
+
+
+
+
+ -> USAMOS PRINCIPALMENTE INNER E LEFT JOINS...
+
+
+
+
+
+
+
+ INNER JOINS RETORNAM APENAS ALGUNS ROWS,
+
+
+APENAS OS MATCHES...
+
+
+
+
+
+
+
+--> LEFT JOINS VÃO RETORNAR 
+TODAS AS ENTRIES DA LEFT TABLE,
+
+MESMO AQUELAS QUE NÃO TEM NENHUM MATCH (AS COLUMNS DA RIGHT TABLE FICAM COMO 'NULL')....
+
+
+
+
+
+
+
+
+
+
+para fazer 1 join,
+
+rodamos assim:
+
+
+
+
+
+
+SELECT id, amount, full_name
+FROM INVOICES AS I
+INNER JOIN USERS AS U ON 
+U.ID = I.USER_ID;
+
+
+
+
+
+
+
+
+
+
+
+TAMBÉM PODEMOS COLOCAR CONDITIONS, COMO WHERE:
+
+
+
+
+
+SELECT id, amount, full_name
+FROM INVOICES AS I
+INNER JOIN USERS AS U ON 
+U.ID = I.USER_ID
+WHERE AMOUNT < 100;
+
+
+
+
+
+
+
+
+
+
+
+TEMOS VÁRIAS FUNCTIONS DO SQL,
+
+
+COMO 'COUNT()'
+
+
+'MIN()'
+
+
+'MAX()'
+
+
+
+'CONCAT()'
+
+
+
+'SUM()'
+
+
+'REPLACE()"
+
+
+
+'TRIM()'
+
+
+'IN()'...
