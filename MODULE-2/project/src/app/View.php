@@ -1,24 +1,27 @@
-<?php 
+<?php
 
-declare(strict_types= 1);
+declare(strict_types=1);
 
 
 namespace App19\Classes;
 
 
-class View {
-    
-    public function __construct($view, $data) {
-        
-        $this->view = $view;
-        $this->data = $data;
-    }
-    
-    static public function make($view, $data) {
-        return new static($view, $data);
+class View
+{
+
+    public function __construct(protected string $view, public array $params = [])
+    {
+
+
     }
 
-    public function render() {
-        return '';
+
+
+    public function render()
+    {
+        // include $this->view;
+        include VIEW_PATH . $this->view . '.php';
     }
+
+
 }
