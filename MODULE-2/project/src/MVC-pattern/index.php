@@ -21,6 +21,7 @@ $router = new Router();
 
 
 $router->get('/', [\App21\Controllers\HomeController::class, 'index'])
+    ->get('/download', [\App21\Controllers\HomeController::class, 'download'])
     ->post('/upload', [\App21\Controllers\HomeController::class, 'upload'])
     ->get('/invoices', [\App21\Controllers\InvoiceController::class, 'index'])
     ->get('/invoices/create', [\App21\Controllers\InvoiceController::class, 'create'])

@@ -1,0 +1,2146 @@
+
+
+
+
+
+
+
+
+
+SEMPRE QUE VC VISITA UMA WEBPAGE, OU SUBMITTA 1 FORM,
+
+OU FAZ QUALQUER ACTION QUE FAZ 1 REQUEST,
+
+
+O CLIENT VAI FAZER 1 HTTP REQUEST 
+
+AO SERVER...
+
+
+
+
+
+
+
+
+
+
+O SERVER, ENTÃO , VAI PEGAR ESSE REQUEST,
+
+PROCESSÁ-LO, E ENTÃO 
+
+
+ENVIAR A RESPONSE AO CLIENT...
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO É CONHECIDO COMO 'HTTP MESSAGE'...
+
+
+
+
+
+
+
+-> É COMO A DATA É EXCHANGED ENTRE O CLIENT E O SERVER...
+
+
+
+
+
+
+
+--> A STRUCTURE DA HTTP MESSAGE, PARA TANTO REQUEST E RESPONSE,
+    É SIMILAR...
+
+
+
+
+
+
+
+
+
+
+    VAMOS COMPARAR:
+
+
+
+
+
+
+
+
+
+
+
+REQUEST                    VS              RESPONSE 
+
+
+GET /invoices HTTP/1.1                     HTTP/1.1 200 OK 
+Host: localhost:8000                       Content-Type: text/html;
+Accept: text/html                          Server: nginx/ 1.19-7
+Accept-Language: en-US, en;q=0.9           Date: Sun, 27 Jun 2021 
+Connection: keep-alive                     Expires: Sun, 27 Jun 2021 
+Upgrade-Insecure-Requests: 1               Connection: keep-alive 
+User-Agent: Mozilla/5.0                    Cache-Control: no-cache=...
+
+
+
+
+search=100&sortBy=date&order...            <!doctype HTML><html lang="en">...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+START LINE:
+
+''REQUESTS COMEÇAM COM O HTTP METHOD, 
+    REQUEST URL E PROTOCOL VERSION...''
+
+
+
+''JÁ RESPONSES COMEÇAM COM 'PROTOCOL VERSION,
+    STATUS CODE, E STATUS TAGS...''
+
+
+
+
+
+
+DEPOIS DISSO,
+
+TEMOS OS 'HTTP HEADERS':
+
+
+
+
+-- REQUEST --> É TUDO DESDE 'HOST' ATÉ 'USER-AGENT'...
+
+
+-- RESPONSE --> É TUDO DESDE 'Content-Type' até 'Cache-Control'...
+
+
+
+
+
+--> HEADERS BASICAMENTE PERMITEM 
+    AO SERVER E CLIENT 'PASS SOME ADDITIONAL INFORMATION'...
+
+
+
+
+
+-> EXISTEM MTOS HEADERS... 
+
+
+
+
+
+
+--> BASICAMENTE, ESSES HEADERS SÃO AGRUPADOS 
+    EM CATEGORIAS...
+
+    COMO 
+
+
+    ''REQUEST HEADERS''
+
+    ''RESPONSE HEADERS''
+
+    ''REPRESENTATION HEADERS'', etc...
+
+
+
+
+
+
+
+-> FINALMENTE,
+
+
+TANTO REQUEST COMO RESPONSE 
+
+POSSUEM 'BODY',
+
+
+E O BODY CONTÉM A DATA ASSOCIADA 
+COM O REQUEST...
+
+
+
+
+
+OU, NO CASO DA RESPONSE,
+ DATA/DOCUMENT (html)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> EXISTEM MTOS TIPOS DE HEADERS,
+    MAS VC NAO PRECISA CONHECER TODOS ELES...
+
+
+
+
+
+
+--> VC VAI SE FAMILIARIZAR COM ELES
+    COM O TEMPO...
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+'Accept-*' -->   ACCEPT HEADERS SÃO _ ENVIADOS COM REQUESTS,
+                    PARA INDICAR 'QUAIS FORMATS SÃO ALLOWED/PREFERIDOS, PARA A RESPONSE'...
+
+
+
+
+'Authorization' --> USADO PARA AUTHENTICATION...
+
+
+
+
+'User-Agent' --> TIPO DE APARELHO...
+
+
+
+
+
+
+
+
+
+'Cache-Control' --> USADO PARA CACHING DE INFO ...
+
+
+
+
+
+'Referrer' -> 
+
+
+
+'Cookie' -> 
+
+
+
+
+
+
+
+
+
+
+'Location' --> É UM HEADER QUE PODE SER USADO 
+                PARA REDIRECIONAR O USER A OUTRA PAGE/URL...
+
+
+
+    
+
+
+
+
+'Set-Cookie' --> É UM HEADER QUE PODE SER USADO PARA 
+                    ENVIAR 1 COOKIE, VINDO DO SERVER...
+
+
+
+
+
+''Content-Type'' --> USADO PARA ESPECIFICAR O TYPE DE RESOURCE QUE 
+                    VIRÁ NA RESPONSE (diz qual será o return type do returned content)
+
+
+
+
+
+
+
+
+
+
+
+--> ALÉM DA RESPONSE CONTER HEADERS,
+    ELA CONTÉM 
+
+    TAMBÉM 
+
+    O 
+
+    'RESPONSE STATUS CODE',
+
+
+    E 'RESPONSE STATUS TEXT'... (como 'OK')..
+
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE EXISTEM 1 MONTE DE STATUS CODES...
+
+
+
+
+
+
+MAS VEREMOS OS MAIS COMUNS...
+
+
+
+
+
+
+
+
+
+
+
+
+100 - 199 --> 'INFORMATIONAL' --> SÃO RAROS.. 
+
+
+
+
+
+
+
+200 - 299 --> SUCCESS STATUS CODES... -> 200 - OK 
+                                        201 - CREATED 
+                                        204 - NO CONTENT RETURNED  (mas ok)
+
+
+    
+
+
+
+300 - 399 --> REDIRECTS -->  301 - 'Moved Permanently' (domínio foi transferido para 1 nova url)
+                             304 - 'Not modified'... (USADO PRINCIPALMENTE COM CACHING... CLIENT PODE USAR A CACHED VERSION DO WEBSITE)
+
+
+
+
+
+
+
+
+
+
+
+400 - 499 --> clientside errors --> 401  - UNAUTHORIZED 
+                                    403 - FORBIDDEN 
+                                    404 - NOT FOUND 
+                                    405 - METHOD NOT ALLOWED...
+
+
+
+
+
+
+
+
+401 VS 403 
+
+
+
+
+
+
+401 --> DEVE SER USADO QUANDO 1 USER SEM LOGIN TENTA ACESSAR ALGO...
+
+
+
+
+
+
+
+403 --> DEVE SER USADO PARA ''USERS THAT ARE AUTHENTICATED, BUT IS TRYING TO ACCESS A PAGE/ACTION WHERE THE USER _ DOES _ NOT HAVE THE NECESSARY PERMISSIONS TO DO SO'...
+
+
+
+
+
+
+
+
+404 -> NOT FOUND (PAGE) -> SERVER DOES NOT ALLOWED THE SPECIFIC REQUEST METHOD THAT IS BEING MADE...
+
+
+
+                        EX: ''IF YOU MAKE A POST REQUEST TO A CERTAIN ROUTE,
+                            WHEN THE SERVER DOES NOT SUPPORT POSTS TO THAT ROUTE,
+                            YOU CAN RECEIVE A 404 ERROR'....
+
+
+
+
+
+
+
+500-599 -->  SERVER ERRORS -->   500 ---> INTERNAL SERVER ERROR 
+                                 502 ---> BAD GATEWAY... (communication entre 2 servers, mas não entre vc e o server)...
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA QUE SABEMOS OS BASICS SOBRE 
+
+HEADERS E STATUS CODES,
+
+
+DEVEMOS APLICAR ISSO AO PHP,
+
+
+AO NOSSO CÓDIGO DE MVC ATUAL...
+
+
+
+
+
+
+
+
+
+
+O CÓDIGO ATUAL ESTÁ ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+declare(strict_types=1);
+
+
+namespace App21;
+
+
+require_once __DIR__ . "/../vendor/autoload.php"; // imports the composer's autoloader
+
+
+session_start();
+
+define('STORAGE_PATH', __DIR__ . '/../storage');
+define('VIEW_PATH', __DIR__ . '/../views');
+
+
+$router = new Router();
+
+
+$router->get('/', [\App21\Controllers\HomeController::class, 'index'])
+    ->post('/upload', [\App21\Controllers\HomeController::class, 'upload'])
+    ->get('/invoices', [\App21\Controllers\InvoiceController::class, 'index'])
+    ->get('/invoices/create', [\App21\Controllers\InvoiceController::class, 'create'])
+    ->post('invoices/create', [\App21\Controllers\InvoiceController::class, 'store']);
+
+
+
+
+echo $router->resolve($_SERVER['REQUEST_URI'], strtolower($_SERVER['REQUEST_METHOD']));
+
+
+
+
+
+
+
+
+
+
+
+--------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE ENTRAMOS NA PAGE DE 'localhost:8000',
+
+
+FICAMOS, NA ABA DE NETWORK DO CHROME, 
+
+
+COM '200'....
+
+
+
+
+
+
+
+
+
+
+SE INSPECIONAMOS O REQUEST,
+
+
+FICMAOS COM 1 MONTE DE INFO...
+
+
+
+
+
+
+
+
+REQUEST METHOD: GET,
+
+
+
+STATUS CODE: 200 OK 
+
+
+
+RESPONSE HEADERS -->
+
+
+
+
+
+REQUEST HEADRS ----- >'accept', 'user-agent', etc...
+
+
+
+
+
+
+
+
+NA ABA DE 'response',
+
+ENCONTRAMOS O HTML DOCUMENT QUE FOI RETORNADO... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+AGORA FECHAMOS TUDO ISSO,
+
+
+E AÍ 
+
+
+FOCAMOS EM COMO PODEMOS MAKE USE OF HEADERS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE, ATUALMENTE,
+
+TENTAMOS ENTRAR EM 1 PAGE QUE NÕA EXISTE,
+
+
+
+FICAMOS COM AQUELA EXCEPTION DE 
+
+
+
+'RouteNotFound',
+
+
+QUE TÍNHAMOS CRIADO ANTES...
+
+
+
+
+
+
+
+
+
+
+
+-> É CLARO QUE ESSA EXCEPTION NÃO É MT USER-FRIENDLY...
+
+
+
+
+
+
+
+
+
+-> MAS SE ABRIMOS AS DEV TOOLS E REFRESHAMOS A PAGE,
+    DESCOBRIMOS QUE O STATUS CODE DE ESSA PAGE 
+
+    ESTÁ COMO '200 OK'...
+
+    O QUE NÃO FAZ MT SENTIDO...
+
+
+
+
+
+
+--> QUEREMOS MUDAR ISSO, PARA QUE O PROPER STATUS CODE SEJA ENVIADO...
+
+
+STATUS CODE DE 404...
+
+
+
+
+
+
+--> PARA ISSO, PRECISAMOS FAZER 'CATCH' DE ESSA EXCEPTION NO NOSSO APP....
+
+
+
+
+
+
+--> PRECISAMOS FAZER CATCH NO MESMO LEVEL, DE NOSSO APP,
+
+EM QUE 
+ESTAMOS FAZENDO RESOLVE DA ROUTE (ou seja, no public/index.php)...
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, WRAPPAMOS TODO O CÓDIGO DE 'index.php'
+
+
+
+EM 1 TRY-CATCH, PARA QUE TENHAMOS 
+
+1 ERROR HANDLIGN...
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+declare(strict_types=1);
+
+
+namespace App21;
+
+
+require_once __DIR__ . "/../vendor/autoload.php"; // imports the composer's autoloader
+
+
+session_start();
+
+define('STORAGE_PATH', __DIR__ . '/../storage');
+define('VIEW_PATH', __DIR__ . '/../views');
+
+try {
+    $router = new Router();
+
+
+    $router->get('/', [\App21\Controllers\HomeController::class, 'index'])
+        ->post('/upload', [\App21\Controllers\HomeController::class, 'upload'])
+        ->get('/invoices', [\App21\Controllers\InvoiceController::class, 'index'])
+        ->get('/invoices/create', [\App21\Controllers\InvoiceController::class, 'create'])
+        ->post('invoices/create', [\App21\Controllers\InvoiceController::class, 'store']);
+
+
+
+
+    echo $router->resolve($_SERVER['REQUEST_URI'], strtolower($_SERVER['REQUEST_METHOD']));
+
+} catch (\Throwable $e) {
+    echo $e->getMessage();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VC PODE USAR OU 'Throwable' ou 'Exception',
+
+dependendo se 
+
+vc 
+
+quer CAPTURAR TODO TIPO DE THROWABLE,
+
+OU SÓ EXCEPTIONS (e deixar errors serem 'uncaught')...
+
+
+
+
+
+
+
+
+
+-> EM GERAL, É 
+
+MELHOR 
+
+FAZER CATCH DE TODO TIPO DE EXCEPTION, GENERICAMENTE,
+
+
+E AÍ TER PROPER HANDLING PARA 
+
+
+ELAS...
+
+
+
+
+
+
+
+
+
+
+
+-> MAS EU DEIXEI O CATCH GENÉRICO, DE 'Exception'...
+
+
+
+
+
+
+
+
+
+-> NÓS FAZEMOS ISSO, E AÍ COLOCAMOS 1 CÓDIGO DE 
+
+''echo $e->getMessage();''
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+session_start();
+
+define('STORAGE_PATH', __DIR__ . '/../storage');
+define('VIEW_PATH', __DIR__ . '/../views');
+
+try {
+    $router = new Router();
+
+
+    $router->get('/', [\App21\Controllers\HomeController::class, 'index'])
+        ->post('/upload', [\App21\Controllers\HomeController::class, 'upload'])
+        ->get('/invoices', [\App21\Controllers\InvoiceController::class, 'index'])
+        ->get('/invoices/create', [\App21\Controllers\InvoiceController::class, 'create'])
+        ->post('invoices/create', [\App21\Controllers\InvoiceController::class, 'store']);
+
+
+
+
+    echo $router->resolve($_SERVER['REQUEST_URI'], strtolower($_SERVER['REQUEST_METHOD']));
+
+} catch (\Throwable $e) {
+    echo $e->getMessage();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, APENAS VISUALIZAMOS 
+
+A MESSAGE DE '404 Not Found',
+
+no browser...
+
+
+
+
+
+
+
+
+
+
+-> MAS SERIA MELHOR FAZER O RENDER DE 1 PAGE DE ERROR,
+
+COM 1 CÓDIGO DE METHOD ESTÁTICO NA CLASS DE 'View'...
+
+
+
+PARA ISSO, DEVEMOS CRIAR 1 file de '404.php',
+
+
+
+DENTRO DO FOLDER DE 'views', também..
+
+
+
+
+
+
+ 
+
+
+
+FICA TIPO ASSIM:
+
+
+
+
+
+require_once __DIR__ . "/../vendor/autoload.php"; // imports the composer's autoloader
+
+
+session_start();
+
+define('STORAGE_PATH', __DIR__ . '/../storage');
+define('VIEW_PATH', __DIR__ . '/../views');
+
+try {
+    $router = new Router();
+
+
+    $router->get('/', [\App21\Controllers\HomeController::class, 'index'])
+        ->post('/upload', [\App21\Controllers\HomeController::class, 'upload'])
+        ->get('/invoices', [\App21\Controllers\InvoiceController::class, 'index'])
+        ->get('/invoices/create', [\App21\Controllers\InvoiceController::class, 'create'])
+        ->post('invoices/create', [\App21\Controllers\InvoiceController::class, 'store']);
+
+
+
+
+    echo $router->resolve($_SERVER['REQUEST_URI'], strtolower($_SERVER['REQUEST_METHOD']));
+
+} catch (\Throwable $e) {
+    // echo $e->getMessage();
+    View::make('error/404');
+}
+
+
+
+
+
+
+
+
+
+
+
+
+E ASSIM ('error/404.php'):
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>404 - Page not found</h1>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA ISSO SERÁ RENDERIZADO SEMPRE QUE O USER 
+
+ACESSAR 
+1 PAGE QUE NÃO EXISTE....
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS O PROBLEMA, AQUI, É QUE 
+
+O STATUS AINDA 
+
+
+ESTÁ COM 1 STATUS CODE DE '200 OK'...
+
+
+
+
+
+
+
+
+
+
+
+--> PRECISAMOS SETTAR O STATUS CODE COMO '404'...
+
+
+
+
+-> É BEM DIFERENTE DO EXPRESS... 
+
+
+
+
+
+
+
+
+
+
+-> PARA __ ADICIONAR HEADERS A NOSSAS RESPONSES,
+
+    PODEMOS USAR 
+
+
+    A FUNCTION DE 
+
+
+ 
+    'header()'...
+
+
+
+
+
+
+
+
+
+
+NO CASO, O PROFESSOR ADICIONA 1 HEADER TIPO ASSIM:
+
+
+
+
+
+
+
+
+header('HTTP/1.1 404 Not Found');
+
+
+
+
+
+
+
+
+
+
+
+-> ELE COLOCA ISSO DENTRO DO 'CATCH'...
+
+
+EX:
+
+
+
+
+
+
+
+require_once __DIR__ . "/../vendor/autoload.php"; // imports the composer's autoloader
+
+
+session_start();
+
+define('STORAGE_PATH', __DIR__ . '/../storage');
+define('VIEW_PATH', __DIR__ . '/../views');
+
+try {
+    $router = new Router();
+
+
+    $router->get('/', [\App21\Controllers\HomeController::class, 'index'])
+        ->post('/upload', [\App21\Controllers\HomeController::class, 'upload'])
+        ->get('/invoices', [\App21\Controllers\InvoiceController::class, 'index'])
+        ->get('/invoices/create', [\App21\Controllers\InvoiceController::class, 'create'])
+        ->post('invoices/create', [\App21\Controllers\InvoiceController::class, 'store']);
+
+
+
+
+    echo $router->resolve($_SERVER['REQUEST_URI'], strtolower($_SERVER['REQUEST_METHOD']));
+
+} catch (\Throwable $e) {
+    // echo $e->getMessage();
+
+    header('HTTP/1.1 404 Not Found'); // This is how you set status code of 404 on your response.
+    View::make('error/404');
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ex:
+
+
+
+
+catch (\Throwable $e) {
+    // echo $e->getMessage();
+
+    header('HTTP/1.1 404 Not Found'); // This is how you set status code of 404 on your response.
+    View::make('error/404');
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO,
+
+
+CONSEGUIMOS RENDERIZAR NOSSA CUSTOM ERROR PAGE,
+
+AO MESMO TEMPO 
+
+
+
+QUE ENVIAMOS 1 RESPONSE COM STATUS CODE DE 404...
+
+
+
+
+
+
+
+
+
+
+
+--> HÁ OUTRA MANEIRA DE SETTAR STATUS CODE HEADERS,
+
+1 MANEIRA MELHOR..
+
+
+
+
+
+
+
+
+
+
+A MANEIRA MELHOR É COM O METHOD DE 'http_response_code()',
+
+
+
+QUE EXIGE O NÚMERO DO STATUS CODE...
+
+
+
+
+
+
+
+ESCREVEMOS 
+
+
+http_response_code(404),
+
+
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+
+
+} catch (\Throwable $e) {
+    // echo $e->getMessage();
+
+    // header('HTTP/1.1 404 Not Found'); // * This is one of the ways you can set status code of 404 on your response.
+    http_response_code(404); // * This is another way (more pratical and secure) to set status code of 404 on your response.
+    View::make('error/404');
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ISSO VAI FUNCIONAR EXATAMENTE COMO ANTES...
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS VC DEVE TER EM MENTE QUE 
+
+'HEADERS MUST BE SENT/SET _BEFORE__ 
+
+SENDING ANY RESPONSES'...
+
+
+
+
+
+
+
+
+-> VC NÃO PODE ESCREVER 'http_response_code(404)'
+
+
+DEPOIS DE 'View::make()', nesse caso...
+
+
+
+
+
+
+
+
+
+--> O OUTUPT BUFFERING GERALMENTE CONSERTA ESSE PROBLEMA,
+
+MAS SEMPRE É MELHOR ESCREVER E EXECUTAR O 'http_response_code()'
+
+
+ANTES DE ENVIAR A RESPONSE...
+
+
+
+
+
+
+
+
+
+-> ALÉM DESSE APPROACH AÍ,
+
+VC PODE
+
+TAMBÉM USAR 
+
+
+'headers_send()',
+
+
+
+PARA CHECAR SE OS HEADERS JÁ FORAM SENT,
+
+ANTES DE ENVIAR OS HEADERS...
+
+
+
+
+
+
+
+
+
+
+-> AGORA QUE ESTAMOS COM A PAGE DE ERROR 404 
+
+FUNCIONANDO,
+
+
+DEVEMOS 
+
+
+
+VER ALGUNS DOS OUTROS HEADERS...
+
+
+
+
+
+
+
+
+
+
+
+--. SE VAMOS ATÉ O 'HomeController',
+
+
+temos o method de 'upload()':
+
+
+
+
+    public function upload(): void
+    {
+        echo '<pre>';
+        echo var_dump($_FILES);   // Will dump an array with objects with the keys 'receipt', 'name', 'type', 'tmp_name', 'error', 'size'.
+        echo '</pre>';
+
+
+        var_dump(pathinfo($_FILES['receipt']['tmp_name'])); // get additional information about the file.
+
+        $filePath = STORAGE_PATH . '/' . $_FILES['receipt']['name'];
+
+
+
+        move_uploaded_file($_FILES['receipt']['tmp_name'], $filePath);
+
+        echo '';
+
+        echo var_dump(pathinfo($filePath));
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> NESSE METHOD, NÓS ESTAMOS FAZENDO 1 VAR_DUMP, AO FINAL...
+
+
+
+
+EM VEZ DE FAZER ESSE VAR_DUMP,
+
+
+
+
+
+QUEREMOS FAZER REDIRECT DO USER à HOME PAGE,
+
+PARA INDICAR QUE A FILE FOI UPLOADADA...
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, PODEMOS USAR 
+
+
+o 'LOCATION HEADER'...
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO,
+
+BASTA ESCREVER ASSIM:
+
+
+
+
+
+
+
+'header('Location: ');
+
+
+
+
+
+
+
+
+
+
+
+LÁ NO METHOD, FICA ASSIM:
+
+
+
+
+
+
+
+    public function upload(): void
+    {
+        echo '<pre>';
+        echo var_dump($_FILES);   // Will dump an array with objects with the keys 'receipt', 'name', 'type', 'tmp_name', 'error', 'size'.
+        echo '</pre>';
+
+
+        var_dump(pathinfo($_FILES['receipt']['tmp_name'])); // get additional information about the file.
+
+        $filePath = STORAGE_PATH . '/' . $_FILES['receipt']['name'];
+
+
+        move_uploaded_file($_FILES['receipt']['tmp_name'], $filePath);
+
+        echo '';
+
+        echo var_dump(pathinfo($filePath));
+
+        header('Location: ' );
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+    AÍ, DO LADO DE 'Location: ',
+
+
+    COLOCAMOS A URL A QUE QUEREMOS REDIRECIONAR O USER...
+
+
+
+
+
+
+
+
+
+
+--> NESSE CASO, VAMOS REDIRECIONAR à HOME PAGE,
+
+com '/'..
+
+
+
+EX:
+
+
+
+
+
+
+
+    public function upload(): void
+    {
+        echo '<pre>';
+        echo var_dump($_FILES);   // Will dump an array with objects with the keys 'receipt', 'name', 'type', 'tmp_name', 'error', 'size'.
+        echo '</pre>';
+
+
+        var_dump(pathinfo($_FILES['receipt']['tmp_name'])); // get additional information about the file.
+
+        $filePath = STORAGE_PATH . '/' . $_FILES['receipt']['name'];
+
+
+        move_uploaded_file($_FILES['receipt']['tmp_name'], $filePath);
+
+        echo '';
+
+        echo var_dump(pathinfo($filePath));
+
+        header('Location: /' );
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+ public function upload(): void
+    {
+        echo '<pre>';
+        echo var_dump($_FILES);   // Will dump an array with objects with the keys 'receipt', 'name', 'type', 'tmp_name', 'error', 'size'.
+        echo '</pre>';
+
+
+        var_dump(pathinfo($_FILES['receipt']['tmp_name'])); // get additional information about the file.
+
+        $filePath = STORAGE_PATH . '/' . $_FILES['receipt']['name'];
+        // Files that are uploaded with requests get stored temporarily in the 'tmp' folder, and get deleted after the request is finished.
+        // That's why we need to move the file to a permanent location, either locally, or to the cloud (s3 storage, for example):
+
+
+
+        move_uploaded_file($_FILES['receipt']['tmp_name'], $filePath);
+
+
+        header('Location: /'); // * Redirects user to the home page, using this header.
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK.. CONSEGUIMOS REDIRECIONAR O USER à HOME PAGE...
+
+
+
+
+
+
+
+
+
+--. COM ISSO, O STATUS CODE FICA DE 302, E NÃO 200...
+
+
+
+
+
+
+
+
+
+300 STATUS --> SIGNIFICA REDIRECT...
+
+
+
+
+
+
+
+E PERCEBEMOS QUE A FILE FOI UPLOADADA CORRETAMENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS 'header' ACEITA MAIS DO QUE 1 ÚNICO PARAMETER...
+
+
+
+
+
+
+OS PARAMETERS SÃO:
+
+
+
+
+
+1) 'header value' (string)
+
+
+
+2) 'REPLACE' (bool)
+
+
+
+
+
+3) 'RESPONSE CODE' (int)
+
+
+
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE PODEMOS ESPECIFICAR O STATUS CODE DIRETAMENTE 
+
+    EM 'header'...
+
+
+
+
+
+
+
+
+
+--> E O ARGUMENT DE 'replace', quando definido como 'true',
+
+
+    VAI 'REPLACE THE PREVIOUS SIMILAR HEADER'...
+
+
+
+
+
+    -> SE VC DEFINE COMO 'FALSE',
+
+
+    ISSO VAI TE DEIXAR ENVIAR O MESMO TIPO DE HEADER __ MÚLTIPLAS 
+    VEZES EM SEGUIDA...
+
+
+
+
+
+
+
+
+--> OK.... PARA O PRÓXIMO EXEMPLO,
+    DIGAMOS QUE QUEREMOS 
+
+    FAZER_ 
+
+    DOWNLOAD _ DA FILE...
+
+
+
+
+
+
+
+-> DIGAMOS QUE A FILE SERÁ 
+
+    EM 1 FORMATO .pdf...
+
+
+
+
+
+
+
+
+--> O PROFESSOR ESCREVE ESTE METHOD, lá em HOMECONTROLLER':
+
+
+
+
+
+
+class HomeController
+{
+
+    public function index(): View
+    {
+
+
+        // return (new \App21\View('index'))->render();
+
+        return View::make('index', ['foo' => 'bar']);
+    }
+
+
+    public function download()
+    {
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO..
+
+
+
+
+
+
+
+
+
+ANTES DE MAIS NADA, O PROFESSOR DEFINE O 'header()'
+
+
+
+COMO SENDO 
+
+'Content-Type: application/pdf';
+
+
+
+
+
+
+--> DEPOIS DISSO, ELE SETTA OUTRO HEADER,
+
+
+
+'Content-Disposition',
+
+
+QUE É UM HEADER QUE TE DEIXA ESPECIFICAR 
+
+
+
+
+''O NOME QUE QUEREMOS QUE ESSA DOWNLOADED FILE TENHA...''
+
+
+
+-> queermos que seja baixada como 'myfile.pdf'...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+class HomeController
+{
+
+    public function index(): View
+    {
+
+
+        // return (new \App21\View('index'))->render();
+
+        return View::make('index', ['foo' => 'bar']);
+    }
+
+
+    public function download()
+    {
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: attachment;filename"myfile.pdf"');
+    }
+
+
+
+
+
+
+
+
+
+
+
+por fim, o professor tem que fazer o READ DA FILE,
+
+
+PARA ENVIÁ-LA NA RESPONSE...
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+class HomeController
+{
+
+    public function index(): View
+    {
+
+
+        // return (new \App21\View('index'))->render();
+
+        return View::make('index', ['foo' => 'bar']);
+    }
+
+
+    public function download()
+    {
+ 
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E O PROFESSOR TAMBÉM PRECISA REGISTRAR ESSE METHOD,
+
+
+com este código de REGISTER No object de 'router':
+
+
+
+
+
+
+
+
+
+
+$router->get('/', [\App21\Controllers\HomeController::class, 'index'])
+    ->get('/download', [\App21\Controllers\HomeController::class, 'download'])
+    ->post('/upload', [\App21\Controllers\HomeController::class, 'upload'])
+    ->get('/invoices', [\App21\Controllers\InvoiceController::class, 'index'])
+    ->get('/invoices/create', [\App21\Controllers\InvoiceController::class, 'create'])
+    ->post('invoices/create', [\App21\Controllers\InvoiceController::class, 'store']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK..  COM ISSO,
+
+
+AO ENTRARMOS 
+
+NESSA ROUTE,
+
+
+DE 'localhost:8000/download',
+
+
+FICAMOS COM O DOWNLOAD 
+
+DE ESSE PDF...
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+
+
+
+
+
+
+MAS O PROFESSOR ESQUECEU DE MENCIONAR UMA COISA:
+
+
+
+
+
+
+
+
+
+
+
+
+''''IN 'upload()' method, after we REDIRECT THE USER,
+    WE MUST exit the script execution with 'exit',
+    otherwise the CODE AFTER THAT WILL BE EXECUTED....''
+
+
+
+
+--> É POR ISSO QUE O PROFESSOR 
+
+ESCREVE TIPO ASSIM:
+
+
+
+
+]
+
+
+
+
+
+  public function upload(): void
+    {
+        echo '<pre>';
+        echo var_dump($_FILES);   // Will dump an array with objects with the keys 'receipt', 'name', 'type', 'tmp_name', 'error', 'size'.
+        echo '</pre>';
+
+
+        var_dump(pathinfo($_FILES['receipt']['tmp_name'])); // get additional information about the file.
+
+        $filePath = STORAGE_PATH . '/' . $_FILES['receipt']['name'];
+        // Files that are uploaded with requests get stored temporarily in the 'tmp' folder, and get deleted after the request is finished.
+        // That's why we need to move the file to a permanent location, either locally, or to the cloud (s3 storage, for example):
+
+
+
+        move_uploaded_file($_FILES['receipt']['tmp_name'], $filePath);
+
+        // echo '';
+
+        // echo var_dump(pathinfo($filePath));
+
+        header('Location: /'); // * Redirects user to the home page, using this header.
+
+        exit; // We must exit the script execution, otherwise the codes that follow will be executed even after user was redirected.
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE ESSA NÃO É A MELHOR MANEIRA DE 
+
+LIDAR COM REQUESTS/RESPONSES 
+
+E ENVIAR 
+
+HEADERS E ETC...
+
+
+
+
+
+
+
+
+'''HAVING A REQUEST AND RESPONSE CLASSES,
+   WHERE WE CAN CREATE OBJECTS FROM, WOULD BE PRETTY COOL..'''
+
+
+
+
+
+'''IMAGINE QUE TEMOS 1 CLASS DE 'Request', 
+    QUE PODEMOS FAZER 'INJECT' no method de 'upload()',
+
+    PARA ENTÃO O UTILIZARMOS PARA PEGAR TODAS AS FILES,
+
+    todos os parameters 'get' e 'post' necessários, etc...''
+
+
+
+
+
+
+--> TAMBÉM PODERÍAMOS CRIAR 1 OBJECT 'RESPONSE',
+E AÍ ENVIAR HEADERS E ASSIM POR DIANTE....
+
+
+
+
+
+
+--> E ISSO É ACTUALLY POSSÍVEL POR MEIO DO USO DE PACKAGES 
+    E COMPONENTS JÁ EXISTENTES, QUE FAZEM 1 MONTE DESSAS COISAS 
+    OUT OF THE BOX, E DE MANEIRA BEM MELHOR...
+
+
+
+--> NÃO VAMOS CONSTRUIR 1 FRAMEWORK MVC FROM SCRATCH...
+
+
+
+
+--> NO PROJECT EM QUE VAMOS TRABALHAR,
+VAMOS USAR ESSAS PACKAGES.....
+
+
+
+
+
+
+--> QUANDO USARMOS ESSAS PACKAGES,
+
+TUDO VAI FAZER SENTIDO,
+
+E TUDO VAI FUNCIOnar....
