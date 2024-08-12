@@ -1,0 +1,2912 @@
+
+
+
+
+
+
+
+na última aula, revimos os basics do mysql...
+
+
+
+
+
+
+
+
+NESSA AULA, 
+
+VAMOS:
+
+
+
+
+
+1) CONECTAR A MYSQL DATABASE AO PHP 
+
+
+
+2) USAR PHP PDO, PARA RODAR QUERIES...
+
+
+
+3) VAMOS APRENDER SOBRE 'PREPARED STATEMENTS'
+
+
+
+
+4) SQL INJECTION (E COMO A EVITAR) 
+
+
+
+5) EMULATED PREPARES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VC PODE ADICIONAR DATABASE USAGE AO SEU APP DE DIVERSAS 
+    MANEIRAS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+1a MANEIRA: 
+
+
+                POR MEIO DO USO DE 'NATIVE PHP FUNCTIONS' PARA O MYSQL 
+                DRIVER, COMO POR EXEMPLO 
+
+                AS FUNCTIONS 
+
+                DE 'MySQLi'...
+
+
+
+
+
+
+
+
+
+2a MANEIRA:
+
+
+                POR MEIO DO USO DOS 'PHP DATABASE OBJECTS' (chamado de 'PDO')...
+
+
+
+
+
+
+
+
+
+
+TANTO AS 'MySQLi' functions 
+
+como o PDO 
+
+
+possuem vantagens próprias...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+mySQLi:
+
+
+-- OFERECE TANTO 'PROCEDURAL' COMO 'OOP' APPROACHES...
+
+
+-- Suporta APENAS MySQL...
+
+ 
+
+-- NÃO SUPORTA NAMED PARAMETERS...
+
+
+
+
+
+
+PDO:
+
+
+-- É 'ALL ABOUT OOP', não tem nada de procedural...
+
+
+-- Suporta diversos drivers, como 'MySQL', SQLite, etc...
+
+
+-- SUPORTA 'NAMED PARAMETERS'...
+
+
+
+
+
+
+
+
+
+
+
+AS DATABASES SUPORTADAS PELO PDO SÃO:
+
+
+
+
+
+
+
+Driver name	Supported databases
+
+PDO_CUBRID	Cubrid
+PDO_DBLIB	FreeTDS / Microsoft SQL Server / Sybase
+PDO_FIREBIRD	Firebird
+PDO_IBM	        IBM DB2
+PDO_INFORMIX	IBM Informix Dynamic Server
+PDO_MYSQL	MySQL 3.x/4.x/5.x/8.x
+PDO_OCI	    Oracle Call Interface
+PDO_ODBC	ODBC v3 (IBM DB2, unixODBC and win32 ODBC)
+PDO_PGSQL	PostgreSQL
+PDO_SQLITE	SQLite 3 and SQLite 2
+PDO_SQLSRV	Microsoft SQL Server / SQL Azure
+
+
+
+
+
+
+
+
+
+
+
+CERTO... BASICAMENTE, O PDO 
+
+
+'ABSTRACTS AWAY THE DATA ACCESS LAYER',
+
+
+AND 
+
+'PROVIDES THE COMMON INTERFACE'...
+
+
+
+
+
+
+
+
+
+--> VC DEVE ENTENDER QUE O 'PDO'
+ 
+
+ 'DOES NOT PROVIDE DATABASE ABSTRACTION' --> ISSO É ALGO QUE 
+                                            ALGUNS FRAMEWORKS OFERECEM,
+
+                                            MAS O PDO EM SI NÃO OFERECE..
+
+
+
+
+
+
+
+
+-> O PDO É 'LIKE A DATA ACCESS LAYER...'...
+
+
+
+
+
+
+
+
+
+
+-> ANTES DE MAIS NADA, PRECISAMOS GARANTIR QUE 
+
+    O DRIVER PDO __ ADEQUADO ESTÁ ENABLADO...
+
+
+
+
+
+
+
+
+    ''WHILE PDO IS ENABLED BY DEFAULT, IN PHP,
+
+    YOU STILL NEED TO ENABLE THE SPECIFIC DRIVER, FOR THE 
+    DATABASE YOU ARE GOING TO BE USING'...
+
+
+
+
+
+
+
+-> COMO VAMOS USAR UMA DATABASE MYSQL,
+
+    PRECISAMOS DO PDO 
+
+
+
+    'PDO_MYSQL'...
+
+
+
+
+
+-> PRECISAMOS CHECAR SE ESSE DRIVER ESTÁ ENABLED... E , SE NÃO ESTIVER ENABLED,
+                                                    PRECISAMOS ENABLÁ-LO...
+
+
+
+
+
+
+ 
+ --> PODEMOS CHECAR SE O PDO MYSQL DRIVER ESTÁ ENABLADO 
+
+ COM A CLÁSSICA FUNCTION 
+
+
+ 'phpinfo()'..
+
+
+
+
+
+
+
+
+
+ -> BASTA RODAR ISSO EM 'HomeController',
+
+ tipo assim:
+
+
+
+
+
+
+
+
+class HomeController
+{
+
+    public function index(): View
+    {
+
+
+        // return (new \App21\View('index'))->render();
+
+        phpinfo();
+
+        return View::make('index', ['foo' => 'bar']);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+BEM MAIS PARA BAIXO, ENCONTRAMOS ISTO:
+
+
+
+
+
+
+
+'PDO 
+
+
+
+
+PDO Support 
+
+
+PDO Drivers          sqlite
+
+
+
+
+
+
+
+
+
+
+
+
+--> BASICAMENTE, PERCEBEMOS QUE O ÚNICO DRIVER AVAILABLE PARA 
+
+    O PDO, NO NOSSO APP,
+
+
+    É O SQLITE...
+
+
+
+ 
+
+--> PRECISAMOS ENABLAR O DRIVER MYSQL...
+
+
+
+
+
+
+
+
+
+
+
+-> ESSE PROCESSO PODE SER 1 PCO DIFERENTE A DEPENDER:
+
+
+
+
+
+1) DO SISTEMA OPERACIONAL DE SEU SERVER
+
+
+
+
+2) DE COMO SEU PHP ESTÁ INSTALADO...
+
+
+
+
+
+
+
+
+
+-> SE VC SEGUIU A SÉRIE ATÉ AGORA, VC ESTÁ COM O PHP NO DOCKER...
+
+
+
+
+
+
+
+
+SE VC ESTÁ USANDO ALGO COMO XAMPP,
+
+
+ENABLAR ESSE DRIVER SERÁ BEM MAIS SIMPLES...
+
+
+
+
+
+
+
+-> BASTA ABRIR A CONFIG FILE DO PHP (php.ini)
+
+E DESCOMENTAR A PARTE DE 
+
+
+
+';extension=pdo_mysql'...
+
+
+
+
+
+
+
+-> DEPOIS DE DESCOMENTAR ISSO, 
+    VC DEVE REINICIAR SEU WEBSERVER,
+
+    PARA TER ESSE DRIVER HABILITADO COM SUCESSO...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+extension=bz2
+extension=curl
+;extension=ffi
+;extension=ftp
+extension=fileinfo
+;extension=gd
+extension=gettext
+;extension=gmp
+;extension=intl
+;extension=imap
+;extension=ldap
+extension=mbstring
+extension=exif      ; Must be after mbstring as it depends on it
+extension=mysqli
+;extension=oci8_12c  ; Use with Oracle Database 12c Instant Client
+;extension=oci8_19  ; Use with Oracle Database 19 Instant Client
+;extension=odbc
+;extension=openssl
+;extension=pdo_firebird
+extension=pdo_mysql
+;extension=pdo_oci
+;extension=pdo_odbc
+;extension=pdo_pgsql
+extension=pdo_sqlite
+;extension=pgsql
+;extension=shmop
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> COM O DOCKER, NO ENTANTO,
+
+    O PROCESSO É MAIS COMPLEXO...
+
+
+
+
+
+
+
+PRECISAMOS:
+
+
+
+
+
+
+1o) INSTALAR O PDO 
+
+
+
+2o) ENABLAR O PDO...
+
+
+
+
+
+
+
+
+
+
+
+
+FELIZMENTE, O REPO DO PHP NO DOCKERHUB
+ 
+
+
+ TEM 1 HELPER SCRIPT QUE PODEMOS EXECUTAR 
+ PARA FAZER ISSO PARA NÓS...
+
+
+
+
+
+
+
+--> PARA EXECUTAR ESSE HELPER SCRIPT,
+
+
+BASTA IR 
+
+
+ATÉ O arquivo 'Dockerfile',
+
+
+
+
+que está com este código:
+
+
+
+
+
+FROM php:8.0.2-fpm 
+
+
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    zip \
+    unzip 
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+WORKDIR /var/www
+
+
+
+
+
+
+
+
+
+
+
+
+E ENTÃO RODAR, DEPOIS DO 'curl',
+
+
+
+O CÓDIGO DE 
+
+
+
+
+'RUN docker-php-ext-install pdo pdo_mysql'
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO VAI INSTALAR O PDO E ENABLAR O MYSQL DRIVER...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+FROM php:8.0.2-fpm 
+
+
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    zip \
+    unzip 
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+RUN docker-php-ext-install pdo pdo_mysql
+
+WORKDIR /var/www
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, RE-RODAMOS O DOCKER COMPOSE,
+
+
+
+COM docker-compose up -d --build...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK.. ISSO VAI REBUILDAR A IMAGE....
+
+
+
+
+
+
+
+
+
+-> AÍ RECARREGAMOS A PAGE,
+
+E AÍ VEREMOS, LÁ NA INFO OUTPUTTADA 
+
+POR 'phpinfo()',
+
+
+
+
+
+a parte:
+
+
+
+
+
+PDO 
+
+
+
+
+PDO drivers    sqlite, mysql...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA QUE ESTAMOS COM O PDO SETTADO,
+
+
+PODEMOS ACTUALLY UTILIZÁ-LO, DENTRO DE NOSSO CÓDIGO,
+
+PARA NOS CONECTARMOS À DATABASE MYSQL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VAMOS FAZER TUDO DE DENTRO DO CONTROLLER DE 'HomeController',
+
+
+para facilitar..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMEÇAMOS COM ALGO TIPO ASSIm:
+
+
+
+
+
+
+
+
+    public function index()
+    {
+
+
+
+
+
+
+        phpinfo();
+
+        return View::make('index', $_GET)->render();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+MAIS TARDE, VAMOS EXTRAIR 
+
+
+ESSA LÓGICA DE 'PDO' EM OUTRO LUGAR..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO... MAS VAMOS CRIAR 1 NOVO OBJECT '$db',
+
+COM A CLASS DE 'PDO',
+
+tipo assim:
+
+
+
+
+
+
+        // * PDO (php data objects - with my sql) lesson:
+        $db = new PDO();
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS É CLARO QUE ESSE CONSTRUCTOR EXIGE 
+    ALGUNS ARGUMENTS...
+
+
+
+
+
+
+
+OS ARGUMENTS SÃO:
+
+
+
+
+
+
+'''THE DATA SOURCE NAME''  (DSN) ------>  CONTÉM 'THE HOST OF THE DATABASE' + 'THE DATABASE NAME'...
+
+
+
+'''THE DATABASE CREDENTIALS''' (username, password)
+
+
+
+''SOME OPTIONS'' (se necessário)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O 'DSN' SEMPRE TEM ESTE FORMATO:
+
+
+
+mysql:host=DB_HOST;dbname=DB_NAME;
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> NO CASO, O NOSSO VAI FICANDO ASSIM:
+
+
+
+
+mysql:host=localhost;dbname=MY_DB;
+
+
+
+
+
+
+
+
+
+
+O HOST É LOCALHOST,
+
+
+a database é 'MY_DB'...
+
+
+
+
+
+
+
+
+
+--> depois disso, temos o USER E O PASSWORD...
+
+
+O VALUE DOS 2 É 'root',
+
+POR ISSO ESCREVEMOS ASSIM:
+
+
+
+
+
+        // * PDO (php data objects - with my sql) lesson:
+        $db = new PDO(
+            'mysql:host=localhost;dbname=MY_DB',
+            'root',
+            'root'
+
+        );
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+        // * PDO (php data objects - with my sql) lesson:
+        $db = new PDO(
+            'mysql:host=localhost;dbname=MY_DB', // DSN (data source name) - composed of host (localhost) and database name (MY_DB)
+            'root', // username
+            'root' // password
+        );
+
+
+
+
+
+
+
+
+
+
+
+
+
+    CERTO... AÍ REFRESHAMOS A PAGE,
+
+    E FICAMOS COM 1 ERROR..
+
+
+
+
+
+
+
+
+
+--> ''PDO EXCEPTION' --> 
+
+
+
+
+
+
+
+
+
+
+''Uncaught PDO Exception''....
+
+
+
+
+
+
+se há qualquer erro de connection,
+o pdo 
+
+FAZ O THROW DE 1 EXCEPTION, COMO ELE FEZ, AQUI..
+
+
+
+
+
+
+
+
+
+
+
+CERTO, MAS PQ NAÕ ESTAMOS SENDO CAPAZES DE NOS CONECTAR 
+
+A ESSA 
+
+DATABASE, AQUI?
+
+
+
+
+
+
+
+
+
+
+-> O PROBLEMA, AQUI, 
+
+É O 'HOSTNAME'...
+
+
+
+
+
+
+
+--> NO CASO, AQUI COLOCAMOS 
+
+'localhost' como HOSTNAME...
+
+
+
+
+
+
+
+--> mas se trocamos para '127.0.0.1',
+
+
+
+FICAMOS COM OUTRO TIPO DE ERROR...
+
+FICAMOS COM 
+
+
+'Connection Refused'...
+
+
+
+
+
+
+
+
+
+
+O PROBLEMA, AQUI,
+
+
+É QUE 
+
+
+
+
+''PDO IS TRYING TO CONNECT TO THIS HOST _ FROM WITHIN THE 
+
+    ___ APP CONTAINER... BUT  ___ _THERE __ IS NO MYSQL 
+    INSTALLED WITHIN THE CONTAINER''...
+
+
+
+
+
+
+
+--> O MYSQL ESTÁ INSTALADO NO LADO DE __ FORa__ DO CONTAINER...
+
+
+
+
+
+
+-> SIGNIFICA QUE PRECISAMOS DE ALGUMAS TRICKS DO DOCKER,
+    PARA CONSEGUIRMOS NOS CONECTAR 
+
+    COM ESSE host aí...
+
+
+
+
+--> PROVAVELMENTE PRECISAMOS USAR A PORT DE '3306',
+
+que foi exposta para essa database, anteriormente...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+        // * PDO (php data objects - with my sql) lesson:
+        $db = new PDO(
+            'mysql:host=localhost:3306;dbname=MY_DB', // DSN (data source name) - composed of host (localhost) and database name (MY_DB)
+            'root', // username
+            'root' // password
+        );
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS O PROFESSOR AINDA APONTA QUE 
+
+NÃO DEVEMOS COLOCAR 'localhost',
+
+
+E SIM DEVEMOS COLOCAR 
+
+
+O CONTAINER NAME EM SI...
+
+
+
+
+PQ É ASSIM QUE FUNCIONA, COM O DOCKER...
+
+
+
+
+
+
+---> por isso que apenas colocamos um host de 'db'...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+        // * PDO (php data objects - with my sql) lesson:
+        $db = new PDO(
+            'mysql:host=db;dbname=MY_DB', // DSN (data source name) - composed of host (localhost) and database name (MY_DB)
+            'root', // username
+            'root' // password
+        );
+
+
+
+
+
+
+
+
+
+ISSO PQ,
+
+LÁ NO DOCKER-COMPOSE.YML,
+
+
+
+TEMOS ESTE CÓDigo:
+
+
+
+
+
+  db: //// THIS IS THE CONTAINER IDENTIFIER...
+    container_name: programwithgio-db
+    image: mysql:8.0
+    volumes: 
+      - ./storage/mysql:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - 3306:3306
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+é por isso que 'db' funciona... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO... AGORA ESTAMOS FICANDO COM O OBJECT,
+
+
+E COM NENHUMA EXCEPTION...
+
+
+
+
+
+
+
+
+
+ex:
+
+
+
+object(PDO)#5 (0) { }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... 
+
+MAS ANTES DE PROSSEGUIR, O PROFESSOR QUER TRIGGAR A EXCEPTION 
+MAIS 1 VEZ,
+
+PQ APARENTEMENTE ESTAMOS COM UM 'BIG PROBLEM',
+
+QUE PRECISA SER CONSERTADO..
+
+
+
+
+
+
+
+
+
+PARA ISSO, O PROFESSOR COLOCA UMAS CREDENTIALS ERRADAS, SÓ PARA TESTAR,
+TIPO ASSIM:
+
+
+        // * PDO (php data objects - with my sql) lesson:
+        $db = new PDO(
+            'mysql:host=db;dbname=MY_DB', // DSN (data source name) - composed of host (localhost) and database name (MY_DB)
+            'root', // username
+            'rootdassdaa' // password
+        );
+
+
+
+
+
+
+
+
+
+
+
+
+
+    ISSO TRIGGA A EXCEPTION:
+
+
+
+
+
+
+Fatal error: Uncaught PDOException: SQLSTATE[HY000] [1045] Access denied for user 'root'@'172.18.0.3' (using password: YES) in /var/www/app/Home.php:88 Stack trace: #0 /var/www/app/Home.php(88): PDO->__construct('mysql:host=db;d...', 'root', 'rootdassdaa') #1 [internal function]: App19\Classes\Home->index() #2 /var/www/app/Router.php(63): call_user_func_array(Array, Array) #3 /var/www/public/index.php(75): App19\Router->resolve('/', 'get') #4 {main} thrown in /var/www/app/Home.php on line 88
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+mas o problema, no caso, é que essa exception 
+ESTÁ 
+
+
+DEIXANDO EXPOSTOS 
+
+__ TODOS OS VALUES DAS CREDENTIALS
+
+
+(aquela parte de 
+
+
+construct('mysql:host=db;d...', 'root', 'rootdassdaa')
+)
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO ESTÁ DANDO TODO O DSN,
+
+    E TAMBÉM 
+    O PASSWORD... ISSO É NADA 
+
+    SECURE, E 'PRETTY BAD'...
+
+
+
+
+
+
+
+
+-> E AINDA QUE NÃO ESTIVÉSSEMOS 
+    ENVIANDO ESSES ERRORS AOS USERS,
+
+
+    TALVEZ ESTEJAMOS ENVIANDO ESSES ERRORS 
+    A THIRD-PARTY SERVICES QUE HANDLAM NOSSOS ERRORS,
+
+    
+    MAS NÃO INTERESSA, O QUE IMPORTA É QUE ESSA 
+
+    É _ SENSITIVE INFORMATION,
+
+    E QUE _ ELA _ NÃO DEVE SER EXPOSTA DESSA FORMA...
+
+
+
+
+
+
+--> PARA RESOLVER ISSO, PODEMOS SIMPLESMENTE WRAPPAR 
+ESSE CÓDIGO COM UM TRY-CATCH,
+
+E AÍ 
+
+HANDLAR DE FORMA DIFERENTE, LÁ NO CATCH,
+TIPO ASSIM:
+
+
+
+
+
+       // * PDO (php data objects - with my sql) lesson:
+        try {
+            $db = new PDO(
+                'mysql:host=db;dbname=MY_DB', // DSN (data source name) - composed of host (localhost) and database name (MY_DB)
+                'root', // username
+                'rootdassdaa' // password
+            );
+
+            var_dump($db);
+
+        } catch (\Throwable $e) {
+            echo 'Something went wrong when trying to connect to the database.';
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OU PODEMOS, ALTERNATIVAMENTE, FAZER O THROW 
+
+DE 1 CUSTOM 'PDOException',
+
+MAS 
+
+COM MENOS INFO,
+
+TIPO ASSIM:
+
+
+
+       // * PDO (php data objects - with my sql) lesson:
+        try {
+            $db = new PDO(
+                'mysql:host=db;dbname=MY_DB', // DSN (data source name) - composed of host (localhost) and database name (MY_DB)
+                'root', // username
+                'rootdassdaa' // password
+            );
+
+            var_dump($db);
+
+        } catch (\PDOException $e) {
+            // With this, we can hide sensitive database information (like username and password) from the user.
+            throw new \PDOException($e->getMessage(), (int) $e->getCode());
+        }
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+
+COM ISSO, 
+
+
+
+FICAMOS COM 1 ERROR HANDLING BEM MELHOR...
+
+
+
+
+
+O CÓDIGO DE ERRO FICA ASSIM:
+
+
+
+
+
+
+
+
+
+Fatal error: Uncaught PDOException: SQLSTATE[HY000] [1045] Access denied for
+ user 'root'@'172.18.0.3' (using password: YES) in 
+ /var/www/app/Home.php:96 Stack trace: #0 [internal function]:
+  App19\Classes\Home->index() #1 /var/www/app/Router.php(63): call_user_func_array(Array,
+   Array) #2 /var/www/public/index.php(75): App19\Router->resolve('/', 'get') 
+   #3 {main} thrown in /var/www/app/Home.php on line 96
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... 
+
+
+
+
+
+
+
+OUTRO DETALHE:
+
+
+
+
+
+
+
+''YOU MUST KNOW __ THAT __ THE CONNECTION WILL REMAIN ACTIVE 
+    UNTIL:
+
+        1) THE SCRIPT ENDS 
+
+
+        2) THERE ARE NO MORE REFERENCES TO THE PDO OBJECT, IN THE CODE...''
+
+
+    
+
+
+
+NÓS TAMBÉM PODEMOS, ALTERNATIVAMENTE,
+
+    PASSAR 1 LISTA DE OPTIONS À CLASS DE 
+    'PDO', COMO ARGUMENT...
+
+
+
+
+
+
+
+    OU, ENTÃO, PODEMOS USAR 
+    O METHOD DE 'setAttribute()',
+
+    NO OBJECT 'PDO',
+    PARA 
+     SETAR ALGUNS DESSES ATTRIBUTES..
+
+
+
+
+
+
+
+--> MAS NÃO VAMOS USAR O METHOD DE setAttribute() por enquanto,
+    e sim vamos 
+
+    USAR O PASS DE OPTIONS NO CONSTRUCTOR....
+
+
+
+
+
+
+
+
+
+
+
+--> '''ONE OF THE OPTIONS THAT YOU MIGHT WANT TO SET, 
+       DEPENDING ON YOUR PHP VERSION, IS THE _ _ERROR __ MODE__ ''
+
+
+
+
+
+
+
+
+       O ERROR MODE 'DETERMINA A MANEIRA PELA QUAL 
+       __ERRORS__ SÃO HANDLADOS _ PELO PDO 
+
+
+
+        (DETERMINA SE 
+
+        O PHP DEVE 
+
+        'THROW EXCEPTIONS', 'THROW WARNINGS'
+
+        OU 'DO NOTHING AT ALL' 
+        E SIMPLESMENTE  DEIXAR O DEVELOPER INSPECIONAR 
+        O ERROR CODE E MESSAGE ATRAVÉS DOS AVAILABLE METHODS...
+        
+        )
+
+
+
+
+
+    tipo assim:
+
+
+
+    $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+
+
+
+
+
+
+-> ANTES DO PHP8,
+
+
+NO PDO, 
+
+O 'SILENT MODE'  ERA O DEFAULT...
+
+
+
+
+
+
+
+
+
+
+
+OS VALUES POSSÍVEIS SÃO:
+
+
+
+
+
+'PDO::ERRMODE_SILENT''
+
+
+
+
+''PDO::ERRMODE_WARNING''
+
+
+
+''PDO::ERRMODE_EXCEPTION''...
+
+
+
+
+
+
+
+
+
+
+ANTES DO PHP8,
+
+O SILENT MODE ERA O DEFAULT... ANTES DELE,
+
+SE VC QUISESSE FAZER O THROW DE EXCEPTIONS QUANDO OCORRESSEM ERRORS,
+VC 
+
+TERIA 
+
+DE 
+
+'SET THE EXCEPTION MODE', através das options (com 'PDO::ERRMODE_EXCEPTION')...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> mas, DESDE O PHP8, 
+
+O EXCEPTION MODE É O DEFAULT,
+
+POR ISSO NÃO PRECISAMOS MUDAR COISA ALGUMA...
+
+
+
+
+
+---------------------------------------------
+
+
+
+
+
+
+
+
+OK.. AGORA, FINALMENTE, DEVEMOS RODAR ALGUMAS QUERIES...
+
+
+
+
+
+
+QUERIES...
+
+
+
+
+
+
+
+
+
+
+
+
+--> TEMOS 2 TABLES, INVOICES E USERS...
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR POPULOU A TABLE COM 1 BOCADO DE DATA,
+
+PARA QUE CONSIGAMOS QUERIÁ-LA...
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA RODAR QUERIES, PODEMOS 
+
+
+
+
+
+
+
+USAR O METHOD DE 'query()'
+
+DENTRO 
+
+
+DE 
+'$db',
+
+
+
+TIPO ASSIM:
+
+
+
+        try {
+            $db = new PDO(
+                'mysql:host=db;dbname=MY_DB', // DSN (data source name) - composed of host (localhost) and database name (MY_DB)
+                'root', // username
+                'rootdassdaa' // password
+            );
+
+            $query = 'SELECT * FROM users';
+
+            $stmt = $db->query($query);
+
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            return $result;
+
+
+
+
+
+
+
+
+
+
+
+
+O METHOD DE 
+
+
+'->query(YOUR_QUERY)'
+
+
+
+RETORNA 
+
+UM _ _OBJETO __ DA 
+
+CLASS 
+
+'Statement' DO PDO...
+
+
+
+
+
+
+
+-> ESSE OBJECT, 'statement',
+
+
+    PODE SER USADO PARA __ RETRIEVAR 
+
+    __ OS RESULTADOS DA QUERY...
+
+
+
+--> O PROFESSOR USA O METHOD DE '->fetchAll()',
+
+PARA FETCHEAR 
+
+TODA A DATA RETORNADA...
+
+
+
+
+
+
+
+
+
+
+PODEMOS RODAR ALGO ASSIM:
+
+
+
+
+
+
+
+
+
+
+        // * PDO (php data objects - with my sql) lesson:
+        try {
+            $db = new PDO(
+                'mysql:host=db;dbname=MY_DB', // DSN (data source name) - composed of host (localhost) and database name (MY_DB)
+                'root', // username
+                // 'rootdassdaa', // ! Testing errors and exception handling.
+                'root', // password
+
+            );
+
+            $query = 'SELECT * FROM users';
+
+            $stmt = $db->query($query);
+
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC); // 'fetchAll' - method that is used to fetch all the results from the query.
+
+            echo '<pre>';
+            print_r($result);
+            echo '</pre>';
+
+
+
+
+
+
+
+        COMO RESULTADO, FICAMOS COM ESTE PRINT:
+
+
+
+
+ Array
+(
+    [0] => Array
+        (
+            [ID] => 1
+            [EMAIL] => john@doe.com
+            [FULL_NAME] => John Doe
+            [IS_ACTIVE] => 1
+            [CREATED_AT] => 2024-08-11 22:02:16
+        )
+
+    [1] => Array
+        (
+            [ID] => 2
+            [EMAIL] => jane@doe.com
+            [FULL_NAME] => Jane Doe
+            [IS_ACTIVE] => 1
+            [CREATED_AT] => 2024-08-11 22:02:16
+        )
+
+)
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE TER PERCEBIDO,
+
+O RETURNED VALUE É UM __ ARRAY_.... 
+
+
+
+
+
+
+
+
+O ARRAY É 
+
+'INDEXED BY __ BOTH 
+    THE COLUMN NAME
+
+    AND THE 0-INDEXED COLUMN NUMBER'...
+
+
+
+
+
+
+
+
+
+
+
+
+-> E ESSE É O DEFAULT FETCH MODE DO 'PDO',
+
+    que é chamado de 
+
+    'FETCH_BOTH'...
+
+
+
+
+
+
+
+
+-> PDO::FETCH_BOTH...
+
+
+
+
+
+
+
+
+MAS PODEMOS MUDAR ESSE DEFAULT FETCH MODE 
+
+
+__ GLOBALMENTE,
+
+DENTRO DAS OPTIONS DO PDO,
+
+
+OU 
+
+ENTÃO 
+
+
+PODEMOS 
+
+MUDAR ISSO LOCALMENTE,
+
+
+
+
+COM 
+
+
+'THE PASS OF THE FETCH MODE AS AN ARGUMENT 
+
+TO METHODS LIKE 'fetchAll()'...'''
+
+
+
+
+
+
+
+
+
+
+
+
+-> TAMBÉM PODERÍAMOS PASSAR O 'FETCH MODE'
+
+COMO 2o argumento DO METHOD de 'query()",
+
+
+
+MAS VAMOS 
+
+USAR APENAS 
+
+COMO O
+
+
+ARGUMENTO DE 'fetchAll()',
+
+
+por enquanto,
+
+TIPO ASSIM:
+
+
+
+
+
+      // * PDO (php data objects - with my sql) lesson:
+        try {
+            $db = new PDO(
+                'mysql:host=db;dbname=MY_DB', // DSN (data source name) - composed of host (localhost) and database name (MY_DB)
+                'root', // username
+                // 'rootdassdaa', // ! Testing errors and exception handling.
+                'root', // password
+
+            );
+
+            $query = 'SELECT * FROM users';
+
+            $stmt = $db->query($query);
+
+            $result = $stmt->fetchAll(PDO::FETCH_OBJ); // 'fetchAll' - method that is used to fetch all the results from the query.
+
+            echo '<pre>';
+            print_r($result);
+            echo '</pre>';
+
+        }
+
+
+
+
+
+
+
+
+
+
+COLOCAMOS UM VALUE DE MODE DE 'PDO::FETCH_OBJ'...
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO VAI 
+
+
+'''FETCH EACH ROW AS AN OBJECT OF PHP's 'stdClass'.. '''
+
+
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+
+Array
+(
+    [0] => stdClass Object
+        (
+            [ID] => 1
+            [EMAIL] => john@doe.com
+            [FULL_NAME] => John Doe
+            [IS_ACTIVE] => 1
+            [CREATED_AT] => 2024-08-11 22:02:16
+        )
+
+    [1] => stdClass Object
+        (
+            [ID] => 2
+            [EMAIL] => jane@doe.com
+            [FULL_NAME] => Jane Doe
+            [IS_ACTIVE] => 1
+            [CREATED_AT] => 2024-08-11 22:02:16
+        )
+
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+FICAMOS COM CADA ROW COMO 1 OBJECT...
+
+
+
+
+
+
+
+'IF YOU WANTED THE DEFAULT FETCH 
+
+TO BE AN OBJECT AS WELL,
+
+
+YOU CAN SET THE DEFAULT FETCH MODE FROM INSIDE 
+
+THE PDO object's options',
+
+TIPO ASSIM:
+
+
+
+
+        try {
+            $db = new PDO(
+                'mysql:host=db;dbname=MY_DB', // DSN (data source name) - composed of host (localhost) and database name (MY_DB)
+                'root', // username
+                // 'rootdassdaa', // ! Testing errors and exception handling.
+                'root', // password
+
+                [
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ
+                ]
+            );
+
+
+
+
+
+
+
+
+
+
+    CERTO...
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE EXISTEM OUTROS FETCH MODES... PODEMOS CHECAR OS DOCS SOBRE ISSO..
+
+
+
+
+
+
+
+
+
+--> MAS OS FETCH MODES MAIS COMUNS, MAIS UTILIZADOS,
+
+SÃO:
+
+
+
+
+
+
+
+'PDO::FETCH_ASSOC' --> VAI 'INDEX' O ARRAY CONSIDERANDO OS COLUMN NAMES... CADA ROW VAI SER SÓ 1 ASSOCIATE ARRAY, COM AS COLUMNS SENDO AS KEYS...
+
+
+
+
+
+
+
+
+O OUTRO É:
+
+
+
+
+'PDO::FETCH_CLASS' -> ESSE VAI ''FETCH ROWS AS _ OBJECTS__ OF THE GIVEN CLASSNAME (que vc passa como outro argument) ''
+
+
+                                ''IT WILL MAP THE COLUMNS TO THE PROPERTIES 
+                                OF THE CLASS, BY THE NAME...''
+
+
+                                 ''AND IF THE COLUMN NAME DOES NOT EXIST AS THE 
+                                 PROPERTY ON THAT CLASS, THEN IT WILL CALL THE 
+                                 MAGIC __set() method of php, which will dynamically 
+                                 CREATE THAT PROPERTY AND MAKE IT AVAILABLE ON THAT OBJECT'...
+
+
+
+
+
+
+
+
+POR FIM,
+
+TEMOS 
+
+
+
+
+
+
+
+'PDO::FETCH_OBJ' -> ESSE É O QUE RECÉM FIZEMOS,
+                        QUE VAI 
+
+                        ''FETCH EACH ROW AS PHP'S STANDARD OBJECTS'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR DIZ QUE 
+
+USAR O METHOD DE 'query()'
+
+
+é ___ FINE__ PARA 
+
+
+
+SIMPLE QUERIES COMO ESSA..
+
+
+
+
+
+
+
+
+-> TAMBÉM É FINE PARA QUERIES 
+    COMPLEXAS QUE CONTÉM 
+
+
+    COISAS COMO 
+
+    'JOINS, ORDER BY, WHERE CLAUSE', etc...
+
+
+
+
+
+
+
+--> MAS SE VC PRECISA 
+    USAR USER INPUT COMO 
+    PARAMETERS PARA A QUERY 
+
+    (como para a WHERE CLAUSe),
+
+AI A USAGE DO METHOD DE 'query()"
+
+NÃO É IDEAL...
+
+
+
+
+
+
+
+
+
+-> ALÉM DISSO, SE VC QUER 
+RODAR 1 MESMA QUERY EM 1 LOOP,
+
+
+'query()' method não vai ser mt eficiente...
+
+
+
+
+
+
+
+
+
+-> É NESSES CASOS QUE 
+
+OS 'Prepared Statements' PODEM AJUDAR...
+
+
+
+
+
+
+
+
+
+Prepared Statements 
+
+
+
+---> NÃO É ALGO LIMITADO AO PHP...
+
+
+
+
+
+
+
+
+-> É UMA FEATURE QUE EXISTE/FOI ORIGINADA EM 
+
+DATABSAE MANAGEMENT SYSTEMS...
+
+
+
+
+
+
+
+-> OS PREPARED STATEMENTS TRAZEM 2 MAIN ADVANTAGES:
+
+
+
+1a) --> MORE EFFICIENT...
+
+
+
+            ''YOU PREPARE THE QUERY ONCE, AND THEN YOU EXECUTE IT 
+                MULTIPLE TIMES, WITH EITHER THE SAME 
+                OR DIFFERENT PARAMETERS''....
+
+                (isso resolve o problema de executar sua query dentro 
+                de loops, por exemplo...)
+
+
+
+
+
+
+
+2a --> BETTER PROTECTION AGAINST SQL INJECTIONS...
+
+
+
+
+
+
+
+
+
+
+SQL INJECTION --> É QUANDO 1 STATEMENT MALICIOSO    
+                    É INJETADO NA QUERY... E QUE PODE 
+                    ACONTECER ATRAVÉS DE USER INPUTS COMO 
+
+                    QUERY STRINGS E POST DATA....
+
+
+
+
+
+
+
+
+-> O PROFESSOR NOS MOSTRA 1 EXEMPLO...
+
+
+
+
+
+
+
+
+-> ''LET'S SAY THAT WE WANT TO FIND EMAILS 
+    WITH X ID...''
+
+
+
+
+    --> ''LET'S SAY THAT THE EMAIL COMES FROM A QUERY STRING'...
+
+
+
+
+
+
+
+-> PODERÍAMOS ESCREVER TIPO ASSIM:
+
+
+
+
+
+
+$query = 'SELECT * FROM users WHERE email = " ' . $email . '"';
+
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS PEGAR O EMAIL DA SUPERGLOBAL DE '$_GET',
+
+TIPO ASSIM:
+
+
+
+
+ 
+
+$email = $_GET["email"];
+ 
+$query = 'SELECT * FROM users WHERE email = " ' . $email . '"';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... 
+AÍ, LÁ NA URL, PODEMOS ESCREVER ASSIM:
+
+
+
+localhost:8000/?email=foo@bar.com 
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO VAI FAZER COM QUE O SQL PROCURE POR 1 EMAIL DE 
+
+'foo@bar.com'...
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR FAZ 1 ECHO DA QUERY EM SI,
+
+
+COM ESTE ´CODIGO:
+
+
+
+
+
+
+
+       // * PDO (php data objects - with my sql) lesson:
+        try {
+            $db = new PDO(
+                'mysql:host=db;dbname=MY_DB', // DSN (data source name) - composed of host (localhost) and database name (MY_DB)
+                'root', // username
+                'root', // password
+            );
+
+
+
+            $email = $_GET["email"];
+
+            $query = 'SELECT * FROM users WHERE email = " ' . $email . '"';
+
+            echo $query;
+
+            // $query = 'SELECT * FROM users';
+
+            $stmt = $db->query($query);
+
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC); // 'fetchAll' - method that is used to fetch all the results from the query.
+
+            echo '<pre>';
+            print_r($result);
+            echo '</pre>';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        certo... 
+
+
+
+
+
+
+
+
+
+    COMO ESTAMOS FAZENDO INJECT DO USER INPUT DIRETAMENTE
+
+    NA QUERY,
+
+
+    TECNICAMENTE PODEMOS MODIFICAR ESSA QUERY....
+
+
+
+
+
+
+--> DEVEMOS PASSAR UM " DEPOIS DO value de 'email',
+
+
+
+PARA 
+
+QUEBRAR NOSSO APPP...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+localhost:8000/?email=foo@bar.com " 
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO JÁ VAI QUEBRAR NOSSO APP,
+
+COM 1 FATAL ERROR, O QUE JÁ É BEM RUIM..
+
+
+
+
+
+
+
+DEPOIS DE ", 
+O PROFESSOR 
+
+
+ESCREVE 
+
+'+' E DEPOIS 'OR'...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+localhost:8000/?email=foo@bar.com"+OR 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK...
+
+
+
+
+
+
+
+AGORA, COM ISSO, 
+
+
+
+PODEMOS 
+
+
+
+RETORNAR MAIS USERS DO QUE O ESPERADO,
+
+
+POR MEIO DO PROVIDE DE 1 SIMPLES TRUTHY CONDITION...
+
+
+
+
+
+
+
+
+--> PODEMOS ESCREVER TIPO ASSIM:
+
+
+
+
+localhost:8000/?email=foo@bar.com"+OR+1=1 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> COMO '1' É SEMPRE '1',
+
+ESSA QUERY SEMPRE SERÁ TRUE...
+
+
+
+
+
+COM ISSO, ESTAMOS SELECIONANDO 
+
+
+_ TODOS OS USERS 
+
+
+
+
+QUE POSSUAM EMAIL DE 'foo@bar.com' 
+
+
+
+OU '1=1'.... ou seja,
+
+TODOS USERS... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO VAI ESSENCIALMENTE RETORNAR TODOS OS USERS 
+
+DA TABLE DE USERS...
+
+
+
+
+
+
+
+-> A ÚNICA COISA QUE FALTA, PARA FAZER ISSO FUNCIONAR,
+
+
+É REMOVER 
+
+O " final...
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, BASTA ESCREVERMOS 
+ASSIM:
+
+
+
+
+
+'localhost:8000/?email=foo@bar.com"+OR+1=1+--+' 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, CONSEGUIMOS TODOS OS USERS DE VOLTA,
+
+E NÃO SÓ 1 ÚNICO USER...
+
+
+
+
+
+
+
+
+
+
+
+
+E ISSO É A SQL INJECTION, BASICAMENTE...
+
+
+
+
+
+
+
+
+
+--> CONSEGUIMOS RETRIEVAR DATA DE FORMA ILEGAL, LÁ DA DATABASE,
+
+    POR MEIO DO INJECTION DE QUERIES QUE VÃO SEMPRE RETORNAR TRUE 
+
+
+    'WHERE 1=1'...

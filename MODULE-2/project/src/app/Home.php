@@ -5,6 +5,8 @@ declare(strict_types=1);
 
 namespace App19\Classes;
 
+use PDO;
+
 
 // class Home {
 
@@ -72,20 +74,60 @@ class Home
     {
 
 
-        $_SESSION['count'] = ($_SESSION['count'] ?? 0) + 1;
 
+
+
+        // ! SESSION AND COOKIES LESSON:
+        // $_SESSION['count'] = ($_SESSION['count'] ?? 0) + 1;
+
+
+        // * PDO (php data objects - with my sql) lesson:
+        try {
+            $db = new PDO(
+                'mysql:host=db;dbname=MY_DB', // DSN (data source name) - composed of host (localhost) and database name (MY_DB)
+                'root', // username
+                // 'rootdassdaa', // ! Testing errors and exception handling.
+                'root', // password
+                // [ // * Use this if you want to set the default fetch mode to 'object', instead of 'both'.
+                //     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ
+                // ]
+            );
+
+
+
+            $email = $_GET["email"];
+
+            $query = 'SELECT * FROM users WHERE email = " ' . $email . '"';
+
+            // $query = 'SELECT * FROM users';
+
+            $stmt = $db->query($query);
+
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC); // 'fetchAll' - method that is used to fetch all the results from the query.
+
+            echo '<pre>';
+            print_r($result);
+            echo '</pre>';
+
+        } catch (\PDOException $e) {
+            // With this, we can hide sensitive database information (like username and password) from the user.
+            throw new \PDOException($e->getMessage(), (int) $e->getCode());
+        }
+
+
+        // phpinfo();
 
         // return View::make('index', $_GET)->render();
 
 
         // File Uploads lesson:
-        return <<<HTML
-        <form action="/upload" method="post" enctype="multipart/form-data">
-            <label for="amount">File:</label>
-            <input type="file" name="receipt">
-            <button type="submit">upload</button>
-        </form>
-HTML;
+//         return <<<HTML
+//         <form action="/upload" method="post" enctype="multipart/form-data">
+//             <label for="amount">File:</label>
+//             <input type="file" name="receipt">
+//             <button type="submit">upload</button>
+//         </form>
+// HTML;
 
 
         // TODO - USE THIS IF YOU WANT TO UPLOAD MULTIPLE FILES:
