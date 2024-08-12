@@ -40,6 +40,9 @@ namespace App19;
 
 require_once __DIR__ . "/../vendor/autoload.php"; // imports the composer's autoloader
 
+// This is how you load the .env file, in php:
+$dotenv = \Dotenv\Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
 
 // * This must be called BEFORE any output/return of content, by the server. This will modify the headers in the response sent to the client, in the return of the content.
 session_start();

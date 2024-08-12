@@ -1,0 +1,2320 @@
+
+
+
+
+
+
+
+NAS ÚLTIMAS AULAS,
+
+APRENDEMOS OS BASICS SOBRE MYSQL... COMO CONECTAR à DATABASE USANDO 
+PDO, E ETC...
+
+
+
+
+
+
+
+
+
+
+NESSA AULA VEREMOS MAIS COISAS,
+
+COISAS RELACIONADAS COM O TRABALHO COM 
+
+DATABASES...
+
+
+
+
+
+
+
+
+
+
+
+-- COMO:
+
+
+1) DATABASE TRANSACTIONS 
+
+
+
+
+
+2) COMO USAR CONFIG FILES/ENV FILES (EM VEZ DE FAZER O HARDCODE DE DATABASE CREDENTIALS)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS O PROFESSOR QUER FALAR SOBRE ALGUMAS COISAS DA ÚLTIMA AULA:
+
+
+
+
+
+
+first concern --> ''O PROFESSOR PASSOU O ID DIRETAMENTE NA SEGUNDA QUERY, COM query(),
+                    EM VEZ DE USAR 'prepare()'''...
+
+
+                
+
+                --> O PROFESSOR NÃO ACHOU TÃO IMPORTANTE,
+                    MAS 
+
+                    BASICAMENTE CONCORDA,
+
+
+                    ELE ACHA QUE DEVEMOS USAR 'PREPARE()' statements sempre,
+
+                    em vez de 'query()'...
+
+
+
+                -> NÃO HÁ NENHUMA RAZÃO PARA FAZER INJECT __ DE VARIABLES EM QUERIES 
+                    DIRETAMENTE COMO FOI FEITO COM 'query()', MESMO EM CASES 
+                    EM QUE SUA DATA É INTERNA (como aqui, com o 'id' retornado por nós 
+                    mesmos)..
+
+
+                -> AINDA ASSIM, O 'CONTEXTO' E 'INTENÇÃO' IMPORTAM,
+
+                com código...
+
+
+
+
+
+
+                -> O PROFESSOR SÓ FEZ ISSO PARA ECONOMIZAR TEMPO...
+
+
+
+
+
+
+
+                --> MAS O PROFESSOR AINDA PODERIA TER USADO O 
+                'prepare()', no lugar do 'query()'..
+
+
+
+
+                --> VC PODE PENSAR EM 'query()" como 1 DEBUG 
+                STATEMENT,
+
+                PQ 
+
+                'prepare()' PRECISA DE MAIS ALGUMAS LINHAS...
+
+
+
+
+
+
+
+
+
+
+2o concern --> ALGUNS VIDEOS POSSUEM 'FOLLOW-UP VIDEOS'...
+                e outros videos são splittados em múltiplas aulas,
+                como este....
+
+
+
+
+
+
+
+
+
+3o concern -->  '''O PROFESSOR NÃO COLOCOU O 'try-catch'
+                    mais para cima...''
+
+
+
+
+                    TIPO ASSIM:
+
+
+
+
+                
+
+
+
+
+       try {
+            $db = new PDO(
+                'mysql:host=db;dbname=MY_DB', // DSN (data source name) - composed of host (localhost) and database name (MY_DB)
+                'root', // username
+                // 'rootdassdaa', // ! Testing errors and exception handling.
+                'root', // password
+                // [ // * Use this if you want to set the default fetch mode to 'object', instead of 'both'.
+                //     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ
+                // ]
+            );
+       } catch (\PDOException $e) {
+        throw new \PDOException($e->getMessage(), (int) $e->getCode())
+       }
+
+
+
+
+
+
+
+
+
+
+O CORRETO SERIA FAZER ISSO,
+
+PQ QUALQUER UMA DAS LINHAS POSTERIOR,
+
+
+SE FIZESSE THROW DE ALGUMA EXCEPTION,
+
+
+FICARÍAMOS COM VÁRIOS THROWS REPETIDOS...
+
+
+
+
+
+
+
+
+
+EX (de código ruim):
+
+
+
+
+
+
+
+        try {
+            $db = new PDO(
+                'mysql:host=db;dbname=MY_DB', // DSN (data source name) - composed of host (localhost) and database name (MY_DB)
+                'root', // username
+                'root', // password
+            );
+
+
+
+            $email = $_GET["email"];
+
+            $query = 'SELECT * FROM users WHERE email = ?';
+
+            $insertQuery = 'INSERT INTO users (email, full_name, is_active, created_at) VALUES (:email, :full_name, :is_active, :date);';
+
+            $stmt = $db->prepare($insertQuery);
+
+            $stmt->execute(['name' => $email, 'full_name' => 'Arthur', 'is_active' => true, 'created_at' => date('Y-m-d H:i:s', strtotime('07/11/2021 9:00PM'))]);
+
+
+            $id = $db->lastInsertId();
+
+            $user = $db->query('SELECT * FROM users WHERE id = ' . $id);
+
+
+            echo '<pre>';
+
+            var_dump($user);
+            echo '</pre>';
+
+        } catch (\PDOException $e) {
+            // With this, we can hide sensitive database information (like username and password) from the user.
+            throw new \PDOException($e->getMessage(), (int) $e->getCode());
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+E ISSO, DE FATO,
+
+
+
+
+É VERDADE...
+
+
+
+
+
+
+
+
+--> VAMOS PERCEBER QUE, NESSE VÍDEO,
+    O PROFESSOR SIMPLESMENTE 
+
+    FEZ ISSO AÍ,
+
+    ELE 
+
+
+    COLOCOU APENAS A CONNECTION DE 'PDO' 
+
+    DENTRO DO TRY-CATCH,
+
+
+    E AÍ 
+
+    MOVEU O RESTO DAS QUERIES NO LADO DE FORA...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+       try {
+            $db = new PDO(
+                'mysql:host=db;dbname=MY_DB', // DSN (data source name) - composed of host (localhost) and database name (MY_DB)
+                'root', // username
+                // 'rootdassdaa', // ! Testing errors and exception handling.
+                'root', // password
+                // [ // * Use this if you want to set the default fetch mode to 'object', instead of 'both'.
+                //     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ
+                // ]
+            );
+       } catch (\PDOException $e) {
+        throw new \PDOException($e->getMessage(), (int) $e->getCode())
+       }
+
+
+        
+            $email = $_GET["email"];
+
+            $query = 'SELECT * FROM users WHERE email = ?';
+
+            $insertQuery = 'INSERT INTO users (email, full_name, is_active, created_at) VALUES (:email, :full_name, :is_active, :date);';
+
+            $stmt = $db->prepare($insertQuery);
+
+            $stmt->execute(['name' => $email, 'full_name' => 'Arthur', 'is_active' => true, 'created_at' => date('Y-m-d H:i:s', strtotime('07/11/2021 9:00PM'))]);
+
+
+            $id = $db->lastInsertId();
+
+            $user = $db->query('SELECT * FROM users WHERE id = ' . $id);
+
+
+            echo '<pre>';
+
+            var_dump($user);
+            echo '</pre>';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AGORA FALAREMOS SOBRE 'DATABASE TRANSACTIONS'...
+
+
+
+
+
+
+
+
+
+                            
+
+
+
+                        
+                        DATABASE TRANSACTIONS:
+
+
+
+
+
+
+
+
+
+
+--> EM TERMOS SIMPLES,
+
+
+
+
+
+1 TRANSACTION É 
+
+
+
+''' A SEQUENCE OF ONE OR MORE 
+    SQL STATEMENTS/OPERATIONS THAT 
+    ARE TREATED AS A WHOLE/UNIT..'''
+
+
+
+
+
+
+
+
+-> 1 CASO TÍPICO  DE TRANSACTION,
+
+    CLÁSSICO,
+
+
+    É 
+
+
+
+    O 'TRANSFER OF MONEY FROM 1 ACCOUNT TO ANOTHER ACCOUNT'...
+
+
+
+
+
+
+
+
+
+
+--> PQ ISSO ENVOLVE 2 OPERATIONS,
+
+
+
+
+
+1a operation ---> DECREASE DO BALANCE DA CONTA QUE TRANSFERE 
+
+
+
+
+2a operation --> INCREASE DO BALANCE DA CONTA QUE RECEBE...
+
+
+
+
+
+
+
+
+
+
+-> AÍ, TAMBÉM, VC PODE TER ALGUMAS QUERIES 
+    ADICIONAIS, COMO 
+
+
+    1 LOG EM 1 TABLE DE NOME 'transfer_history', ou algo assim... isso tbm pode 
+    existir na transaction em si...
+
+
+
+
+
+
+
+
+
+
+O PRIMEIRO STATEMENT PODE SER ASSIM:
+
+
+
+
+
+
+UPDATE checkings_accounts
+SET balance = balance - 2000
+WHERE account_number = '7777';
+
+
+
+
+O SEGUNDO:
+
+
+
+
+UPDATE checkings_accounts
+SET balance = balance + 2000
+WHERE account_number = '7778';
+
+
+
+
+
+O TERCEIRO (LOG):
+
+
+
+
+INSERT INTO transfers('from_acc', 'to_acc', 'amount', date')
+VALUES ('7777', '7778', 2000, NOW());
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok... mas o que acontece se O PRIMEIRO STATEMENT 
+
+DEU CERTO,
+
+MAS AÍ DEU ALGO ERRADO NO SEGUNDO...
+
+
+
+
+
+
+
+
+
+
+--> ISSO SERIA MT RUIM,
+    PQ AÍ UMA PESSOA PERDERIA O DINHEIRO, E A OUTRA NÃO GANHARIA NADA...
+
+
+
+
+
+
+
+
+
+
+
+--> QUEREMOS 1 TRANSACTION PARA QUE TUDO 
+    SEJA EXECUTADO AO MESMO TEMPO 
+
+    (and each query will depend on the success of the previous query)...
+
+
+
+
+
+
+-> É UMA MANEIRA DE EXECUTAR 'BATCHES' de queries...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PRECISAMOS DE STATEMENTS COMO 
+
+
+'BEGIN TRANSACTION'
+
+
+
+e 
+
+
+
+'END'... (OU 'COMMIT')...
+
+
+
+
+
+
+
+
+
+
+
+também 'ABORT'... (isso vai fazer rollback)...
+
+
+
+
+
+
+
+
+
+
+--> O EXEMPLO DO PROFESSOR É BEM CLÁSSICO, 
+    MAS EXISTEM OUTROS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OUTRO EXEMPLO:
+
+
+
+
+
+
+
+
+
+
+''YOU HAVE A FORM WHERE A USER 
+  SELECTS/REGISTERS A SUBSCRIPTION PLAN''...
+
+
+
+
+  ''WHEN A USER SUBMITS THIS REQUEST, HE'LL LIKELY 
+   END UP CREATING A FEW QUERIES...''
+
+
+
+
+
+
+
+
+QUERIES:
+
+
+
+
+1) create a USER IN THE 'USERS' TABLE --> 
+
+
+            INSERT INTO users (...) VALUES (...)
+
+
+
+
+2) Create a SUBSCRIPTION in the SUBSCRIPTION table...
+
+
+            INSERT INTO subscriptions (...) values (...)
+
+
+
+                (AO MESMO TEMPO QUE ASSOCIAMOS O USER à SUBSCRIPTION, COM 'user_id'
+                na subscription)
+
+
+
+
+3) LOG THE ENTIRE REQUEST, IN THE 'TRANSACTION_LOGS' table:
+
+
+                        INSERT INTO transaction_logs (...) values (...)
+
+
+
+
+
+
+4) A QUERY TO SAVE THE INVOICE THAT WAS GENERATED AND PROCESSED AS A RESULT OF THIS ACTION:
+
+
+                        INSERT INTO invoices (...) values (...)
+
+
+
+
+
+
+
+
+
+E MAIS OPERATIONS, CASO NECESSÁRIO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---> OU SEJA,
+RODARÍAMOS BASTANTES QUERIES..
+
+
+
+
+
+
+-> SE VC RODAR ISSO TUDO SEM TRANSACTIONS E TIVESSE ALGUM ERRO 
+    NO MEIO DAS OPERATIONS,
+    VC 
+
+
+    FICARIA COM INCONSISTENT DATA..
+
+
+
+
+
+
+
+
+-> MAS COM TRANSACTIONS,
+    SE OCORRER ALGUM ERROR,
+
+    VC PODE FAZER 'ROLLBACK'
+
+
+    AO INÍCIO DA QUERY... SE NÃO OCORRER 
+NENHUM ERROR,
+
+
+VC FAZ COMMIT DAS CHANGES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NEM TODAS ENGINES SUPORTAM TRANSACTIONS...
+
+
+
+
+
+
+
+--> MAS A DEFAULT ENGINE DO MYSQL, QUE É 
+
+'INNODB',
+
+SUPORTA TRANSACTIONS...
+
+
+
+
+
+
+
+
+--> A OUTRA ENGINE É 'MyISAM'...
+
+
+
+
+
+
+-->  STORAGE ENGINES  SÃO KINDOF 
+    COMPONENTS EM MYSQL QUE __ HANDLAM 
+    AS OPERATIONS 
+
+    DA DATABASE,
+
+
+    A DEPENDER DOS TABLE TYPES...
+
+
+
+
+
+
+
+
+
+-> INNODB --> É A DATABASE ENGINE DEFAULT,  
+                E É A GENERAL-PURPOSE ENGINE...
+
+
+                COMMONLY USED, AINDA MAIS SE VC 
+
+                QUER TER SUPORTE A FOREIGN KEYS E TRANSACTIONS..
+
+
+
+
+
+
+
+
+
+--> MyISAM --> ERA A DEFAULT ENGINE DO MYSQL ANTIGAMENTE,
+                MAS ELA NÃO SUPORTA TRANSACTIONS E 
+                FOREIGN KEYS...
+
+
+
+
+
+
+
+
+-> INNODB --> APLICA 'ROW-LEVEL LOCKING'
+
+
+
+
+--> 'MyISAM' --> aplica 'TABLE-LEVEL LOCKING'...
+
+
+
+
+
+
+
+
+
+
+
+
+INNODB É 
+
+A VERSÃO DEFAULT DESDE O MYSQL 5.5... (2010)..
+
+
+
+
+
+
+
+
+
+
+---------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+AGORA USAREMOS TRANSACTIONS COM O PDO...
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR MODIFICOU 1 POUCO O CÓDIGO DA ÚLTIMA AULA,
+    EM HOMECONTROLLER... ELE ESTÁ ASSIM:
+
+
+    
+
+
+
+    public function index()
+    {
+
+
+        // * PDO (php data objects - with my sql) lesson:
+        try {
+            $db = new PDO(
+                'mysql:host=db;dbname=MY_DB', // DSN (data source name) - composed of host (localhost) and database name (MY_DB)
+                'root', // username
+                'root', // password
+            );
+
+            $email = 'john.doe@example.com';
+            $name = 'John Doe';
+            $amount = 25;
+
+        } catch (\PDOException $e) {
+            throw new \PDOException($e->getMessage(), (int) $e->getCode());
+        }
+
+        $newUserStmt = $db->prepare('INSERT INTO users (email, full_name, is_active, created_at) VALUES (?, ?, 1, NOW())');
+
+        $newInvoiceStmt = $db->prepare('INSERT INTO invoices (amount, user_id) VALUES (?, ?)');
+
+        $newUserStmt->execute([$email, $name]);
+
+        $userId = (int) $db->lastInsertId();
+
+        $newInvoiceStmt->execute([$amount, $userId]);
+
+        $fetchStmt = $db->prepare(`
+        SELECT invoices.id AS invoice_id, amount, user_id, full_name 
+        FROM invoices 
+        INNER JOIN users 
+        ON user_id = users.id 
+        WHERE email = ?`);
+
+        $fetchStmt->execute([$email]);
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    --> COM ISSO, TEMOS MTOS STATEMENTS CONSECUTIVOS...
+
+
+
+
+
+
+--> PARA CONFIRMAR QUE TUDO DEU CERTO,
+
+TEMOS AQUELE STATEMENT 
+
+DE 
+
+
+'fetchStmt()'..
+
+
+
+
+
+
+
+--> O USER FAZ SIGN UP, 
+    CRIAMOS 1 USER,
+    GERAMOS 1 INVOICE,
+    AÍ PROCESSAMOS ESSE INVOICE E ETC...
+
+
+
+
+
+
+
+
+
+--> TUDO ISSO PARECE ESTAR OK,
+
+
+MAS SE TIVERMOS ALGUM ERRO DURANTE TODAS AS OPERATIONS,
+
+
+
+FICAREMOS COM RESULTS INCONSISTENTES...
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE PRECISAMOS DE UMA TRANSACTION, AQUI...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS RESOLVER ISSO, POR MEIO DE TRANSACTIONS..
+
+
+
+
+
+
+->  PARA COMEÇAR 1 TRANSACTION, USANDO O PDO,
+
+BASTA RODAR 
+
+
+
+'$db->beginTransaction();'
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+        $db->beginTransaction(); // This will start a transaction.
+
+        $newUserStmt = $db->prepare('INSERT INTO users (email, full_name, is_active, created_at) VALUES (?, ?, 1, NOW())');
+
+        $newInvoiceStmt = $db->prepare('INSERT INTO invoices (amount, user_id) VALUES (?, ?)');
+
+        $newUserStmt->execute([$email, $name]);
+
+        $userId = (int) $db->lastInsertId();
+
+        $newInvoiceStmt->execute([$amount, $userId]);
+
+        $fetchStmt = $db->prepare(`
+        SELECT invoices.id AS invoice_id, amount, user_id, full_name 
+        FROM invoices 
+        INNER JOIN users 
+        ON user_id = users.id 
+        WHERE email = ?`);
+
+        $fetchStmt->execute([$email]);
+
+
+
+
+
+
+
+
+
+
+
+
+certo..
+
+
+
+
+
+NO CASO,
+
+QUEREMOS 'COMMIT' 
+
+
+
+LOGO DEPOIS DO CREATE DE 1 'INVOICE',
+
+
+
+POR ISSO ESCREVEMOS ASSIM:
+
+
+
+
+
+       // * PDO (php data objects - with my sql) lesson:
+        try {
+            $db = new PDO(
+                'mysql:host=db;dbname=MY_DB', // DSN (data source name) - composed of host (localhost) and database name (MY_DB)
+                'root', // username
+                'root', // password
+            );
+
+            $email = 'john.doe@example.com';
+            $name = 'John Doe';
+            $amount = 25;
+
+        } catch (\PDOException $e) {
+            throw new \PDOException($e->getMessage(), (int) $e->getCode());
+        }
+
+        $db->beginTransaction(); // This will start a transaction.
+
+        $newUserStmt = $db->prepare('INSERT INTO users (email, full_name, is_active, created_at) VALUES (?, ?, 1, NOW())');
+
+        $newInvoiceStmt = $db->prepare('INSERT INTO invoices (amount, user_id) VALUES (?, ?)');
+
+        $newUserStmt->execute([$email, $name]);
+
+        $userId = (int) $db->lastInsertId();
+
+        $newInvoiceStmt->execute([$amount, $userId]);
+
+        $db->commit(); // This will commit the transaction (apply all changes).
+
+        $fetchStmt = $db->prepare(`
+        SELECT invoices.id AS invoice_id, amount, user_id, full_name 
+        FROM invoices 
+        INNER JOIN users 
+        ON user_id = users.id 
+        WHERE email = ?`);
+
+        $fetchStmt->execute([$email]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    CERTO... 
+
+    MAS PRECISAMOS FAZER O HANDLING DA EXCEPTION,
+
+    PARA QUE QUANDO UMA EXCEPTION SEJA 'THROWN',
+
+
+
+    NÓS FAÇAMOS O ROLLBACK 
+
+
+    DA OPERATION,
+
+
+    Com '        $db->rollBack();           '''
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, PODEMOS WRAPPAR TODO O BLOCK 
+
+DE 
+
+
+
+''
+
+      $db->beginTransaction(); // This will start a transaction.
+
+        $newUserStmt = $db->prepare('INSERT INTO users (email, full_name, is_active, created_at) VALUES (?, ?, 1, NOW())');
+
+        $newInvoiceStmt = $db->prepare('INSERT INTO invoices (amount, user_id) VALUES (?, ?)');
+
+        $newUserStmt->execute([$email, $name]);
+
+        $userId = (int) $db->lastInsertId();
+
+        $newInvoiceStmt->execute([$amount, $userId]);
+
+        $db->commit(); // This will commit the transaction (apply all changes).
+
+
+
+
+''
+
+EM UM TRY-CATCH BLOCK...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+        try {
+            $db->beginTransaction(); // This will start a transaction.
+
+            $newUserStmt = $db->prepare('INSERT INTO users (email, full_name, is_active, created_at) VALUES (?, ?, 1, NOW())');
+
+            $newInvoiceStmt = $db->prepare('INSERT INTO invoices (amount, user_id) VALUES (?, ?)');
+
+            $newUserStmt->execute([$email, $name]);
+
+            $userId = (int) $db->lastInsertId();
+
+            $newInvoiceStmt->execute([$amount, $userId]);
+
+            $db->commit(); // This will commit the transaction (apply all changes).
+        } catch (\Throwable $e) {
+            $db->rollBack(); // This will rollback the transaction (undo all changes).
+            throw new \PDOException($e->getMessage(), (int) $e->getCode());
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS O METHOD DE 'rollBack()'
+
+
+
+    ACEITA UNS PARAMETERS...
+
+
+
+
+
+
+
+
+
+
+
+
+'rollBack' -> PODE TAMBÉM FAZER O THROW DE 1 EXCEPTION SE 
+            'THERE IS NO ACTIVE TRANSACTION'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA FICARMOS MAIS 'SAFE' COM O CALL DE 'rollBack()',
+
+o professor 
+
+GOSTA DE ADICIONAR 1 CHECK PARA 
+
+QUE FAÇAMOS 'ROLLBACK'
+ 
+
+ APENAS SE HÁ 1 TRANSACTION ACONTECENDO, NO PRESENTE..
+
+
+
+ -> TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+        try {
+            $db->beginTransaction(); // This will start a transaction.
+
+            $newUserStmt = $db->prepare('INSERT INTO users (email, full_name, is_active, created_at) VALUES (?, ?, 1, NOW())');
+
+            $newInvoiceStmt = $db->prepare('INSERT INTO invoices (amount, user_id) VALUES (?, ?)');
+
+            $newUserStmt->execute([$email, $name]);
+
+            $userId = (int) $db->lastInsertId();
+
+            $newInvoiceStmt->execute([$amount, $userId]);
+
+            $db->commit(); // This will commit the transaction (apply all changes).
+        } catch (\Throwable $e) {
+            if ($db->inTransaction()) { // * This will only execute if a transaction is ongoing.
+                $db->rollBack(); // *  This will rollback the transaction (undo all changes).
+                throw new \PDOException($e->getMessage(), (int) $e->getCode());
+            }
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+MAS, AQUI, TEMOS OUTRO DETALHE:
+
+
+
+
+
+
+
+
+''YOU SHOULD RETHROW THE EXCEPTION,
+ IN THE CATCH BLOCK,
+
+ AFTER THE IF STATEMENT''...
+
+
+
+
+
+
+
+
+
+ TIPO ALGO ASSIm:
+
+
+
+
+
+
+
+
+
+
+ 
+        try {
+            $db->beginTransaction(); // This will start a transaction.
+
+            $newUserStmt = $db->prepare('INSERT INTO users (email, full_name, is_active, created_at) VALUES (?, ?, 1, NOW())');
+
+            $newInvoiceStmt = $db->prepare('INSERT INTO invoices (amount, user_id) VALUES (?, ?)');
+
+            $newUserStmt->execute([$email, $name]);
+
+            $userId = (int) $db->lastInsertId();
+
+            $newInvoiceStmt->execute([$amount, $userId]);
+
+            $db->commit(); // This will commit the transaction (apply all changes).
+        } catch (\Throwable $e) {
+            if ($db->inTransaction()) { // * This will only execute if a transaction is ongoing.
+                $db->rollBack(); // *  This will rollback the transaction (undo all changes).
+                throw new \PDOException($e->getMessage(), (int) $e->getCode());
+            }
+
+            throw $e; // Throw generic exception.
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS FAZER O THROW DE 1 EXCEPTION MANUAL,
+
+
+PARA TESTAR 
+
+
+
+
+SE O 'rollBack' está funcionando...
+
+
+
+
+
+
+
+TIPO ASSIm:
+
+
+
+
+        try {
+            $db->beginTransaction(); // This will start a transaction.
+
+            $newUserStmt = $db->prepare('INSERT INTO users (email, full_name, is_active, created_at) VALUES (?, ?, 1, NOW())');
+
+            $newInvoiceStmt = $db->prepare('INSERT INTO invoices (amount, user_id) VALUES (?, ?)');
+
+            $newUserStmt->execute([$email, $name]);
+
+            $userId = (int) $db->lastInsertId();
+
+            throw new \Exception('Test');
+
+            $newInvoiceStmt->execute([$amount, $userId]);
+
+            $db->commit(); // This will commit the transaction (apply all changes).
+        } catch (\Throwable $e) {
+            if ($db->inTransaction()) { // * This will only execute if a transaction is ongoing.
+                $db->rollBack(); // *  This will rollback the transaction (undo all changes).
+                throw new \PDOException($e->getMessage(), (int) $e->getCode());
+            }
+
+            throw $e; // Throw generic exception.
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR DESTACA:
+
+
+
+
+'''PLEASE NOTE THAT YOU MUST CALL 'lastInsertId()'
+    BEFORE __ THE COMMIT METHOD... BECAUSE 
+
+    IF YOU CALL 'lastInsertId()' AFTER WE RUN THE 
+    TRANSACTION,
+
+    'lastInsertId()' WILL RETURN __0...''
+
+
+
+
+
+
+
+
+
+
+OU SEJA, NUNCA ESCREVA ASSIM:
+
+
+
+            $db->beginTransaction(); // This will start a transaction.
+
+            $newUserStmt = $db->prepare('INSERT INTO users (email, full_name, is_active, created_at) VALUES (?, ?, 1, NOW())');
+
+            $newInvoiceStmt = $db->prepare('INSERT INTO invoices (amount, user_id) VALUES (?, ?)');
+
+            $newUserStmt->execute([$email, $name]);
+
+            $db->commit(); // This will commit the transaction (apply all changes).
+
+            $userId = (int) $db->lastInsertId();
+
+            $newInvoiceStmt->execute([$amount, $userId]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+
+
+
+
+é por isso que vc deve chamar 'lastInsertId()'
+
+ANTES 
+
+DO $db->commit(); 
+
+
+
+METHJOD...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+mas aqui estamos com alguns problemas... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+PROBLEMAS:
+
+
+
+
+
+
+
+1) ESTAMOS HARDCODANDO NOSSAS CREDENTIALS,  
+    EM VEZ DE AS EXTRAIR DE 1 ARQUIVO '.env', com o docker...
+
+
+
+
+
+2) NOSSA LÓGICA TODA DO PDO ESTÁ NO CONTROLLER 
+    DE HOME.... ESSA LÓGICA TEM QUE 
+    SER MOVIDA PARA 
+
+    CLASSES PRÓPRIAS, MODELS PRÓPRIOS...
+
+
+
+
+
+
+
+
+
+
+
+-> VAMOS TER ENV VARIABLES...
+
+
+
+
+
+
+
+
+
+--> MTOS BENEFÍCIOS PARA ENV FILES... -> 
+
+O MAIOR BENEFÍCIO É QUE VC NAO ESTÁ COMMITANDO 
+
+ESSE CÓDIGO 
+NOS REPOSITORIES...
+
+
+
+
+
+
+-> VC N QUER SUAS DATABASE CREDENTIALS NA SUA COMMIT HISTORY...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, CRIAMOS AS .env files,
+
+
+
+
+.env 
+
+
+e 
+
+
+.env.example....
+
+
+
+
+
+
+
+
+
+
+
+
+
+'.env.example'
+
+
+SERÁ UM SIMPLES TEMPLATE,
+QUE VAI CONTER 
+TODAS 
+
+AS ENV VARIABLES NECESSÁRIAS AO SEU APP... 
+
+
+
+
+
+
+
+
+
+E VAMOS COLOCAR ISSO NO ROOT DE NOSSO PROJECT...
+
+
+
+
+
+
+
+
+
+
+
+--> O '.env.example' 
+
+NÃO VAI CONTER 
+
+
+AS CREDENTIALS DE VERDADE,
+
+VAI CONTER APENAS 1  EXEMPLO... O '.env.example' é commitado 
+
+
+para dentro de nosso repository,
+
+mas o '.env'
+
+
+
+NÃO É... 
+
+
+
+
+
+
+
+
+
+
+
+NO MEU GITIGNORE, ESCREVO ASSIM:
+
+
+
+
+
+MODULE-2/project/docker/storage/mysql/mysql.sock
+MODULE-2/project/.env
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+MAS O QUE ESCREVEMOS, DENTRO DESSE '.env'?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PRECISAMOS DE:
+
+
+
+
+
+
+
+DB_HOST=db 
+DB_USER=root
+DB_PASSWORD=root 
+DB_DATABASE=my_db
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NO ENV EXAMPLE, PODEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+
+
+
+
+DB_HOST=
+DB_USER=
+DB_PASSWORD=
+DB_DATABASE=
+
+
+
+
+
+
+
+
+
+E É ESSA FILE QUE É COMMITADA AO 
+
+NOSSO REPO...
+
+
+É APENAS 1 TEMPLATE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo... agora que temos essas env variables,
+
+
+
+
+QUEREMOS ACESSÁ-LAS, POR MEIO DO SUPERGLOBAL DE 
+
+
+'$_ENV'....
+
+
+
+
+
+
+PODEMOS TENTAR ACESSAR ESSES VALUES, 
+
+
+COM 1 FORMATO TIPO ASSIM:
+
+
+
+
+
+
+
+    public function index()
+    {
+
+        var_dump($_ENV['DB_HOST']);  
+
+
+
+
+
+
+
+
+
+
+
+
+MAS ISSO não funcionará,
+
+
+ISSO PQ 
+
+
+NOSSO ARQUIVO DE '.env'
+
+AINDA NÃO FOI CARREGADO PARA DENTRO DO CÓDIGO...
+
+
+
+
+
+
+
+
+
+
+
+--> PARA CARREGAR ESSA ENV FILE PARA DENTRO 
+
+DE NOSSO CÓDIGO,
+
+
+PODEMOS USAR 
+
+
+
+UMA 
+
+THIRD-PARTY PACKAGE,
+
+
+CHAMADA 
+
+DE 
+
+
+
+'PHPDOTENV'...
+
+
+
+--> ISSO NOS AJUDA A CARREGAR AS ENV VARIABLES...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA INSTALAR ESSE TPP,
+
+
+BASTA 
+
+
+ESCREVER ASSIM:
+
+
+
+
+
+
+composer require vlucas/phpdotenv 
+
+
+
+
+
+
+
+
+-> BASTA RODARMOS ISSO NO DOCKER, dentro do bash do 
+
+container com o php app...
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> DEPOIS DISSO, NOS DOCS DO PHPDOTENV,
+
+
+TEMOS 
+
+ESTA INFO:
+
+
+
+
+
+
+''You can then load .env in your application with:
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COLOCAMOS ISSO NO ENTRYPOINT DE NOSSO APP,
+
+QUE É 'index.php'...
+
+
+TIPO ASSIM:
+
+
+
+
+
+$dotenv = \Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+MAS O PROBLEMA, AQUI,
+
+
+
+
+É QUE 
+
+
+'__DIR__'
+
+VAI TENTAR ENCONTRAR 
+
+
+ESSE ARQUIVO '.env'
+
+
+NO MESMO DIRECTORY EM QUE ESTAMOS.... E ISSO É ERRADO... QUEREMOS QUE SUBA 
+
+1 NÍVEL,
+
+PARA O ROOT DE NOSSO APP...
+
+
+
+
+
+
+
+por isso escrevemos assim:
+
+
+
+
+$dotenv = \Dotenv\Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+
+
+
+
+
+
+
+
+usamos 'dirname()',
+
+PARA PEGAR O 'PATH DO PARENT DIRECTORY' (Que é o root de nosso app)..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok.. mas mesmo assim, ficamos com 1 error:
+
+
+
+
+'Uncaught Dotenv\Exception\InvalidPathException':  
+
+
+Unable to read any of the environment file(s) at .env....
+
+
+
+
+
+
+
+
+
+
+
+ISSO ACONTECEU PQ O .env estava em 1 local errado...
+
+
+
+
+
+
+
+-> o professor colocou essa file no src directory, e aí funcionou...
+
+
+
+
+
+--> AGORA PODEMOS ACESSAR 
+
+ESSA ENVFILE,
+
+COM 
+
+
+
+
+
+
+O SUPERGLOBAL DE 
+
+'$_ENV'...
+
+
+
+
+
+
+
+
+--> É CLARO  QUE VC PODE TER 
+
+MTAS OUTRAS ENV VARIABLES DENTRO DE SUAS ENV FILES... 
+
+
+
+VC PODE TER MAIS DO QUE APENAS AS DB CREDENTIALS..
+
+PODE TER OUTRAS CONFIGS...
+
+
+
+
+
+
+
+AGORA PODEMOS SUBSTITUIR 
+
+NOSSOS VALUES HARDCODADOS 
+
+
+PELAS VARIABLES DO ENV,
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+class Home
+{
+
+    public function index()
+    {
+
+        var_dump($_ENV['DB_HOST']);
+
+        // * PDO (php data objects - with my sql) lesson:
+        try {
+            $db = new PDO(
+                'mysql:host=' . $_ENV['DB_HOST'] . ';dbname=' . $_ENV['DB_DATABASE'], // This is how you use env variables (if you load them with phpdotenv)
+                $_ENV['DB_USER'], // username
+                $_ENV['DB_PASSWORD'], // password
+            );
+
+            $email = 'john.doe@example.com';
+            $name = 'John Doe';
+            $amount = 25;
+
+        } catch (\PDOException $e) {
+            throw new \PDOException($e->getMessage(), (int) $e->getCode());
+        }
+
+
+
+
+
+
+
+
+
+
+
+        CERTO...
+
+
+
+
+
+
+
+AGORA NOSSA CONNECTION FUNCIONA,
+
+USANDO ESSES ENVIRONMENT VARIABLES...
+
+
+
+
+
+
+
+PHPDOTENV PACKAGE -- HÁ MAIS ALGUNS METHODS QUE PODEM SER ÚTEIS....
+
+
+
+
+
+
+
+
+OPTIONS ÚTEIS:
+
+
+
+
+1) MAKE CERTAIN ENV VARIABLES REQUIRED 
+
+
+
+2) ALLOW FOR SPECIFIC TYPES, ETC...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NO PRÓXIMO VIDEO,
+
+
+VAMOS LIMPAR 1 POUCO NOSSO CÓDIGO (pq o controller está fazendo mtas coisas, tem que ser mais streamlined...)...
+
+
+
