@@ -1,0 +1,5248 @@
+
+
+
+
+
+
+
+
+--> NOS ÚLTIMOS VIDEOS,
+FALAMOS SOBRE:
+
+
+
+
+1) PDO 
+
+
+2) MYSQL 
+
+
+
+3) DATABASE TRANSACTIONS ...
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESCREVEMOS UM BOCADO DE CÓDIGO,
+
+MAS AGORA É HORA DE REFATORÁ-LO,
+
+PARA QUE NOSSO CONTROLLER DE 'HOME'
+
+NÃO FAÇA MTAS COISAS....
+
+
+
+
+
+
+PQ, ATUALMENTE,
+
+ELE FAZ MTAS COISAS:
+
+
+
+
+
+
+
+class Home
+{
+
+    public function index()
+    {
+
+        var_dump($_ENV['DB_HOST']);
+
+        // * PDO (php data objects - with my sql) lesson:
+        try {
+            $db = new PDO(
+                'mysql:host=' . $_ENV['DB_HOST'] . ';dbname=' . $_ENV['DB_DATABASE'], // This is how you use env variables (if you load them with phpdotenv)
+                $_ENV['DB_USER'], // username
+                $_ENV['DB_PASSWORD'], // password
+            );
+
+            $email = 'john.doe@example.com';
+            $name = 'John Doe';
+            $amount = 25;
+
+        } catch (\PDOException $e) {
+            throw new \PDOException($e->getMessage(), (int) $e->getCode());
+        }
+
+
+        try {
+            $db->beginTransaction(); // This will start a transaction.
+
+            $newUserStmt = $db->prepare('INSERT INTO users (email, full_name, is_active, created_at) VALUES (?, ?, 1, NOW())');
+
+            $newInvoiceStmt = $db->prepare('INSERT INTO invoices (amount, user_id) VALUES (?, ?)');
+
+            $newUserStmt->execute([$email, $name]);
+
+            $userId = (int) $db->lastInsertId();
+
+            $newInvoiceStmt->execute([$amount, $userId]);
+
+            $db->commit(); // This will commit the transaction (apply all changes).
+        } catch (\Throwable $e) {
+            if ($db->inTransaction()) { // * This will only execute if a transaction is ongoing.
+                $db->rollBack(); // *  This will rollback the transaction (undo all changes).
+                throw new \PDOException($e->getMessage(), (int) $e->getCode());
+            }
+
+            throw $e; // Throw generic exception.
+
+        }
+
+
+
+        $fetchStmt = $db->prepare(`
+        SELECT invoices.id AS invoice_id, amount, user_id, full_name 
+        FROM invoices 
+        INNER JOIN users 
+        ON user_id = users.id 
+        WHERE email = ?`);
+
+        $fetchStmt->execute([$email]);
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ELE FAZ:
+
+
+
+
+1)  CONNECT TO THE DATABASE (responsible for the connection)
+
+
+2) RUNS QUERIES 
+
+
+3) CREATES USERS 
+
+
+4) CREATES INVOICES 
+
+
+5) AND SO ON...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO PARECE BEM FEIO, POR ISSO PRECISAMOS REFATORAR...
+
+
+
+
+
+
+
+
+
+
+
+-> VAMOS COMEÇAR...
+
+
+
+
+
+
+
+
+
+
+--> A PRIMEIRA COISA QUE PRECISAMOS FAZER É 
+
+
+VER O 'index.php',
+
+
+QUE 
+
+É O ENTRYPOINT 
+
+PARA O NOSSO APP...
+
+
+
+
+
+
+
+-> ATUALMENTE, ELE ESTÁ COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+declare(strict_types=1);
+
+
+namespace App21;
+
+
+require_once __DIR__ . "/../vendor/autoload.php"; // imports the composer's autoloader
+
+
+session_start();
+
+define('STORAGE_PATH', __DIR__ . '/../storage');
+define('VIEW_PATH', __DIR__ . '/../views');
+
+try {
+    $router = new Router();
+
+
+    $router->get('/', [\App21\Controllers\HomeController::class, 'index'])
+        ->post('/upload', [\App21\Controllers\HomeController::class, 'upload'])
+        ->get('/invoices', [\App21\Controllers\InvoiceController::class, 'index'])
+        ->get('/invoices/create', [\App21\Controllers\InvoiceController::class, 'create'])
+        ->post('invoices/create', [\App21\Controllers\InvoiceController::class, 'store']);
+
+
+
+
+    echo $router->resolve($_SERVER['REQUEST_URI'], strtolower($_SERVER['REQUEST_METHOD']));
+
+} catch (\Throwable $e) {
+    // echo $e->getMessage();
+
+    // header('HTTP/1.1 404 Not Found'); // * This is one of the ways you can set status code of 404 on your response.
+    http_response_code(404); // * This is another way (more pratical and secure) to set status code of 404 on your response.
+    View::make('error/404');
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O QUE QUEREMOS FAZER, NO CASO,
+
+
+É 
+
+
+
+
+EXTRAIR O CÓDIGO  DE 
+
+
+
+
+
+'''
+    echo $router->resolve($_SERVER['REQUEST_URI'], strtolower($_SERVER['REQUEST_METHOD']));
+
+''''
+
+
+
+
+
+E TAMBÉM 
+AQUELE 
+
+TRY-CATCH BLOCK:
+
+
+
+
+
+ catch (\Throwable $e) {
+    // echo $e->getMessage();
+
+    // header('HTTP/1.1 404 Not Found'); // * This is one of the ways you can set status code of 404 on your response.
+    http_response_code(404); // * This is another way (more pratical and secure) to set status code of 404 on your response.
+    View::make('error/404');
+}
+
+
+
+
+
+
+
+
+
+
+
+PARA ISSO,
+
+
+PODEMOS CRIAR 1 CLASS CHAMADA DE 
+
+'App.php',
+
+
+
+ou algo assim,
+
+
+QUE VAI 
+
+SER 
+RESPONSÁVEL PELO 
+
+BOOTSTRAP E RUN 
+
+DE NOSSO APP...
+
+
+
+
+---------------------
+
+
+
+
+
+
+
+
+O QUE QUEREMOS, NO FINAL DAS CONTAS,
+
+É QUE NOSSO CÓDIGO FIQUE ASSIM:
+
+
+
+
+
+
+
+(new App())->run();
+
+
+
+
+
+
+
+
+
+
+-> PARA DEIXAR ISSO MAIS FLEXÍVEL, PODEMOS 
+    PASSAR O ROUTER OBJECT DENTRO DO CONSTRUCTOR DO APP....
+
+
+    ISSO PARA QUE, SE QUISERMOS, NO FUTURO, TER OUTRO ROUTER,
+
+
+    PODEMOS SIMPLESMENTE PASSÁ-LO, DENTRO DE ESSE ARGUMENTO 
+    DE 'App()"..
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+(new App($router))->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA VAMOS CRIAR ESSA CLASS DE 'App.php',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+namespace App30;
+
+
+class App
+{
+
+    public function __construct(public \App30\Router $router)
+    {
+
+    }
+}
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS DEIXAMOS ESSA PROPERTY COMO 'PROTECTED',
+PARA FICAR MELHOR:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+namespace App30;
+
+
+class App
+{
+
+    public function __construct(protected \App30\Router $router)
+    {
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> DEPOIS DISSO, COLOCAMOS A CALL DE '$router->resolve'
+
+
+DENTRO DE 1 METHOD DE 'run()',
+
+nesse 'App',
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+namespace App30;
+
+
+class App
+{
+
+    public function __construct(protected \App30\Router $router)
+    {
+
+    }
+
+    public function run(): void
+    {
+
+        echo $this->router->resolve($_SERVER['REQUEST_URI'], strtolower($_SERVER['REQUEST_METHOD']));
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+---> AÍ WRAPPAMOS ESSE CALL INTEIRO COM 1 TRY-CATCH, TIPO ASSIM:
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+namespace App30;
+
+
+class App
+{
+
+    public function __construct(protected \App30\Router $router)
+    {
+
+    }
+
+    public function run(): void
+    {
+        try {
+            echo $this->router->resolve($_SERVER['REQUEST_URI'], strtolower($_SERVER['REQUEST_METHOD']));
+        } catch (\App30\Exceptions\RouteNotFoundException $e) {
+            http_response_code(404);
+            View::make('error/404');
+        }
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É CLARO QUE, NESSE LOCAL,
+     VC COLOCARIA OUTROS TIPOS DE EXCEPTIONS TAMBÉM,
+
+     PARA FAZER CATCH DE OUTROS TIPOS, NÃO APENAS 'ROUTE NOT FOUND'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     LÁ EM INDEX.PHP,
+
+
+     PODEMOS NOS LIVRAR DO TRY CATCH E DO RESOLVE...
+
+
+
+
+
+
+
+
+
+--> FICA APENAS ASSIM:
+
+
+
+
+
+
+
+<?php
+
+
+
+declare(strict_types=1);
+
+
+namespace App30;
+
+
+require_once __DIR__ . "/../vendor/autoload.php"; // imports the composer's autoloader
+
+
+$dotenv = \Dotenv\Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+define('STORAGE_PATH', __DIR__ . '/../storage');
+define('VIEW_PATH', __DIR__ . '/../views');
+
+$router = new Router();
+
+$router->get('/', [\App30\Controllers\HomeController::class, 'index'])
+    ->post('/upload', [\App30\Controllers\HomeController::class, 'upload'])
+    ->get('/invoices', [\App30\Controllers\InvoiceController::class, 'index'])
+    ->get('/invoices/create', [\App30\Controllers\InvoiceController::class, 'create'])
+    ->post('invoices/create', [\App30\Controllers\InvoiceController::class, 'store']);
+
+(new App($router))->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ou seja,
+
+ESTAMOS APENAS:
+
+
+
+
+
+
+1) CARREGANDO A ENV FILE 
+
+
+
+2) ALGUMAS CONSTANTS (storage_path e view_path) 
+
+
+
+3) CRIANDO 1 ROUTER 
+
+
+
+4) REGISTRANDO ROUTES NESSE ROUTER 
+
+
+
+5) PASSANDO ESSE ROUTER,
+    COMO ARG,
+
+    À INSTANCE 
+
+    DE 'App'...
+
+
+
+
+
+
+
+
+
+
+--> LÁ EM 'App.php',
+
+
+
+
+TEMOS O METHOD DE 'run':
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+namespace App30;
+
+
+class App
+{
+
+    public function __construct(protected \App30\Router $router)
+    {
+
+    }
+
+    public function run(): void
+    {
+        try {
+            echo $this->router->resolve($_SERVER['REQUEST_URI'], strtolower($_SERVER['REQUEST_METHOD']));
+        } catch (\App30\Exceptions\RouteNotFoundException $e) {
+            http_response_code(404);
+            View::make('error/404');
+        }
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE ANALISAMOS ESSE METHOD,
+
+PERCEBEMOS QUE 
+
+ELE DEPENDE 
+ 
+
+
+DE '$_SERVER['REQUEST_URI']',
+
+
+
+
+
+OU SEJA,
+
+DEPENDE 
+
+DE ESSA SUPERGLOBAL...
+
+
+
+
+
+
+
+-> E O PROFESSOR DEFINITIVAMENTE _ NÃO QUER_ QUE 
+
+    ESSE METHOD DEPENDA DA SUPERGLOBAL DE '$_SERVER'....
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE PODEMOS FAZER PASS DE ESSE VALUE,
+    POR DENTRO DO CONSTRUCTOR DE 'App',
+    TAMBÉM..
+
+
+
+
+
+
+TIPO ALGO ASSim:
+
+
+
+
+    public function __construct(protected \App30\Router $router, protected array $request)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PODERÍAMOS USAR 1 TPP,
+
+
+QUE ENTÃO HANDLARIA 
+
+O 'REQUEST OBJECT'
+
+PARA NÓS,
+
+
+MAS, POR ENQUANTO, O PROFESSOR VAI PASSAR ISSO, COMO 1 ARRAY...
+
+
+
+
+
+
+
+
+
+--> AÍ ELE REFATORA O call de '$this->router->resolve',
+
+
+PARA QUE FIQUE ASSIm:
+
+
+
+
+
+
+
+    public function run(): void
+    {
+        try {
+            echo $this->router->resolve(
+                $this->request['uri'],
+                strtolower($this->request['method'])
+            );
+        } catch (\App30\Exceptions\RouteNotFoundException $e) {
+            http_response_code(404);
+            View::make('error/404');
+        }
+
+    }
+
+
+
+
+
+
+
+    CERTO..
+
+
+
+
+
+AÍ, LÁ EM 'INDEX.PHP',
+
+podemos passar 
+
+
+os parameters assim:
+
+
+
+
+
+
+
+
+(new App($router, ['uri' => $_SERVER['REQUEST_URI'], 'method' => $_SERVER['REQUEST_METHOD']]))->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> A PRÓXIMA COISA QUE PRECISAMOS TER É 
+
+    'A DATABASE CONNECTION INSTANCE 
+    AVAILABLE ACROSS OUR APP'...
+
+
+
+
+
+
+-> ATUALMENTE, TEMOS 1 INSTANCE DISPONÍVEL
+ 
+ DENTRO DO 'HomeController',
+
+
+ mas só isso NÃO BASTA...
+
+
+
+
+
+
+
+
+ -> SE  QUISERMOS TER ACESSO A ESSE '$db'
+
+ em outra class ou method 
+
+ DO CONTROLLER,
+
+ PRECISARÍAMOS 
+
+ DUPLICAR 
+
+ ESSE CÓDIGO... E ISSO TBM IMPLICARIA MÚLTIPLAS CONNECTIONS À DATABASE,
+
+ O QUE É PÉSSIMO...
+
+
+
+
+
+
+
+
+
+
+ -> NOSSO OBJETIVO É TER 1 ÚNICA DATABASE CONNECTION...
+    E ESSA INSTANCE DEVE FICAR DISPONÍVEL 
+    AO LONGO DE TODO APP....
+
+
+
+
+
+
+
+
+-> HÁ MÚLTIPLAS MANEIRAS PELAS QUAIS PODEMOS ACHIEVE 
+
+''' A SINGLE DATABASE CONNECTION ACROSS OUR ENTIRE APP''...
+
+
+
+
+
+
+
+
+
+
+
+1a MANEIRA) --> 'singleton pattern'... MAS O PROFESSOR NÃO 
+                    GOSTA MT DISSO, POR CONTA DE RAZÕES ESPECIFICADAS ANTERIORMENTE NO CURSO 
+
+                    (provavelmente a sintaxe, que é diferente...)
+
+
+
+
+
+
+2a MANEIRA) --> É USAR 'DEPENDENCY INJECTION', 
+                E PASSAR A DATABASE CONNECTION ATRAVÉS 
+                DO CONSTRUCTOR,
+
+                SEMPRE QUE ELA FOR NECESSÁRIA...
+
+
+
+                ESSA SEGUNDA MANEIRA É UMA BOA SOLUTION, 
+                MAS AINDA NÃO COBRIMOS DEPENDENCY INJECTION 
+
+                EM DETALHES...
+
+
+                --> AINDA PRECISAMOS ESTUDAR DEPENDENCY INJECTION
+                CONTAINERS E ETC...
+
+
+
+
+
+
+                --> É POR ISSO QUE NÃO VAMOS USAR ESSE APPROACH,
+                TAMBÉM...
+
+
+
+
+
+
+3a MANEIRA) COM O USO DE 'STATICS'...
+
+
+
+
+
+
+
+--> MAS EM QUE LUGAR PODERÍAMOS EXTRAIR 
+    O CÓDIGO DO PDO?
+
+
+
+
+
+
+
+
+
+
+
+
+--> A ESCOLHA MAIS ÓBVIA SERIA 
+
+O 'App.php',
+
+
+
+
+pq essa é MAIN CLASS 
+
+
+QUE STARTA O NOSSO APP...
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE PODERÍAMOS ARMAZENAR A DATABASE DENTRO DESSA APP,
+DE 'CLASS'...
+
+
+
+
+
+
+
+
+-> É CLARO QUE VC PODERIA FAZER ISSO DE MTAS OUTRAS FORMAS DIFERENTES,
+    MAS, POR ENQUANTO, VAMOS COLOCÁ-LA DENTRO DA CLASS DE APP,
+
+
+    DENTO DO CONSTRUCTOR EM SI...
+
+
+
+
+
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+class App
+{
+
+    protected \PDO $db;
+
+    public function __construct(protected \App30\Router $router, protected array $request)
+    {
+        try {
+            $this->db = new \PDO(
+                'mysql:host=' . $_ENV['DB_HOST'] . ';dbname=' . $_ENV['DB_DATABASE'], // This is how you use env variables (if you load them with phpdotenv)
+                $_ENV['DB_USER'], // username
+                $_ENV['DB_PASSWORD'], // password
+            );
+
+            $email = 'john.doe@example.com';
+            $name = 'John Doe';
+            $amount = 25;
+
+        } catch (\PDOException $e) {
+            throw new \PDOException($e->getMessage(), (int) $e->getCode());
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    PODEMOS COMEÇAR COM ALGO ASSIM, SIM...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+-->  MAS O PROFESSOR DEFINE ESSA PROPERTY COMO 'static',
+
+e não como comum...
+
+
+
+
+
+
+
+-> É PQ NÓS QUEREMOS QUE ESSA INSTANCE REALMENTE FAÇA 
+
+PARTE DO APP SEM PRECISAR INSTANCIAR O APP...
+
+
+
+
+
+TAMBÉM REFORMATAMOS O "$this->db',
+
+para que fique 
+
+
+'static::$db'...
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+
+
+    protected static \PDO $db;
+
+    public function __construct(protected \App30\Router $router, protected array $request)
+    {
+        try {
+            static::$db = new \PDO(
+                'mysql:host=' . $_ENV['DB_HOST'] . ';dbname=' . $_ENV['DB_DATABASE'], // This is how you use env variables (if you load them with phpdotenv)
+                $_ENV['DB_USER'], // username
+                $_ENV['DB_PASSWORD'], // password
+            );
+
+            $email = 'john.doe@example.com';
+            $name = 'John Doe';
+            $amount = 25;
+
+        } catch (\PDOException $e) {
+            throw new \PDOException($e->getMessage(), (int) $e->getCode());
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+--> DEPOIS DISSO, O PROFESSOR CRIA UM METHOD QUE SERÁ UTILIZADO 
+
+
+PARA 'USE' THE CONNECTION,
+
+
+
+
+COM nome de 'db()',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+    // Initializes the database connection:
+    public function __construct(protected \App30\Router $router, protected array $request)
+    {
+        try {
+            static::$db = new \PDO(
+                'mysql:host=' . $_ENV['DB_HOST'] . ';dbname=' . $_ENV['DB_DATABASE'], // This is how you use env variables (if you load them with phpdotenv)
+                $_ENV['DB_USER'], // username
+                $_ENV['DB_PASSWORD'], // password
+            );
+
+            $email = 'john.doe@example.com';
+            $name = 'John Doe';
+            $amount = 25;
+
+        } catch (\PDOException $e) {
+            throw new \PDOException($e->getMessage(), (int) $e->getCode());
+        }
+    }
+
+    // Use the database connection:
+    public static function db(): \PDO
+    {
+        return static::$db;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... COM ISSO, LÁ NO CONTROLLER DE 'HOME',
+
+
+PODEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+
+
+
+    public function index()
+    {
+
+        var_dump($_ENV['DB_HOST']);
+
+        $email = 'john.doe@example.com';
+        $name = 'John Doe';
+        $amount = 25;
+
+        try {
+            $db = \App30\App::db();
+
+            $db->beginTransaction();
+
+            $newUserStmt = $db->prepare('INSERT INTO users (email, full_name, is_active, created_at) VALUES (?, ?, 1, NOW())');
+
+            $newInvoiceStmt = $db->prepare('INSERT INTO invoices (amount, user_id) VALUES (?, ?)');
+
+            $newUserStmt->execute([$email, $name]);
+
+            $userId = (int) $db->lastInsertId();
+
+            $newInvoiceStmt->execute([$amount, $userId]);
+
+            $db->commit();
+        } catch (\Throwable $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+                throw new \PDOException($e->getMessage(), (int) $e->getCode());
+            }
+            throw $e;
+        }
+
+        $fetchStmt = $db->prepare(`
+        SELECT invoices.id AS invoice_id, amount, user_id, full_name 
+        FROM invoices 
+        INNER JOIN users 
+        ON user_id = users.id 
+        WHERE email = ?`);
+
+        $fetchStmt->execute([$email]);
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+QUER DIZER QUE AGORA TEMOS 1 ÚNICA INSTANCE DA DATABASE CONNECTION,
+
+COM ISTO:
+
+
+           $db = \App30\App::db();
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+CERTO... MAS AINDA PODEMOS MELHORAR NOSSO CÓDIGOO...
+
+
+
+
+
+
+
+
+
+-> O QUE PODEMOS MELHORAR?
+
+
+
+
+
+
+
+
+LÁ NO CÓDIGO DE App.php,
+
+
+
+TEMOS ISTO:
+
+
+
+
+
+
+
+
+
+
+    // Initializes the database connection:
+    public function __construct(protected \App30\Router $router, protected array $request)
+    {
+        try {
+            static::$db = new \PDO(
+                'mysql:host=' . $_ENV['DB_HOST'] . ';dbname=' . $_ENV['DB_DATABASE'], // This is how you use env variables (if you load them with phpdotenv)
+                $_ENV['DB_USER'], // username
+                $_ENV['DB_PASSWORD'], // password
+            );
+
+        } catch (\PDOException $e) {
+            throw new \PDOException($e->getMessage(), (int) $e->getCode());
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+DENTRO DO CÓDIGO DO CONSTRUCTOR,
+
+ESTAMOS 
+
+
+ACESSANDO O SUPERGLOBAL DE '$_ENV'...
+
+
+
+
+
+
+
+
+
+
+--> em vez de pegar as superglobals 
+diretamente 
+
+
+aqui,
+
+DEVEMOS REPASSÁ-LAS,
+
+COMO ARGUMENTOS DO CONSTRUCTOR,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+    // Initializes the database connection:
+    public function __construct(protected \App30\Router $router, protected array $request, protected array $config)
+    {
+        try {
+            static::$db = new \PDO(
+                'mysql:host=' . $config['DB_HOST'] . ';dbname=' . $config['DB_DATABASE'], // This is how you use env variables (if you load them with phpdotenv)
+                $config['DB_USER'], // username
+                $config['DB_PASSWORD'], // password
+            );
+
+        } catch (\PDOException $e) {
+            throw new \PDOException($e->getMessage(), (int) $e->getCode());
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+PRONTO...
+
+
+
+
+
+AGORA SÓ PRECISAMOS PASSAR ISSO, NO CALL DE 'new App()',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+(new App($router, ['uri' => $_SERVER['REQUEST_URI'], 'method' => $_SERVER['REQUEST_METHOD']], $_ENV))->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MELHOR AINDA, ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // Initializes the database connection:
+    public function __construct(protected \App30\Router $router, protected array $request, protected array $config)
+    {
+        try {
+            static::$db = new \PDO(
+                $config['driver'] . 'host=' . $config['db_host'] . ';dbname=' . $config['db_database'], // This is how you use env variables (if you load them with phpdotenv)
+                $config['db_user'], // username
+                $config['db_password'], // password
+            );
+
+        } catch (\PDOException $e) {
+            throw new \PDOException($e->getMessage(), (int) $e->getCode());
+        }
+    }
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+(new App($router, ['uri' => $_SERVER['REQUEST_URI'], 'method' => $_SERVER['REQUEST_METHOD']], [
+    'driver' => $_SERVER['DB_DRIVER'],
+    'db_host' => $_SERVER['DB_HOST'],
+    'database' => $_SERVER['DB_DATABASE'],
+    'db_user' => $_SERVER['DB_USER'],
+    'db_password' => $_SERVER['DB_PASSWORD'],
+]))->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+
+
+
+
+
+
+
+AGORA NÃO ESTAMOS MAIS ACESSANDO OS SUPERGLOBALS DIRETAMENTE,
+
+E SIM ESTAMOS PASSANDO-OS ATRAVÉS DO CONSTRUCTOR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS MELHOR DO QUE DEFINIR O PDO DIRETAMENTE NO CONSTRUCTOR 
+
+DO APP,
+
+
+É 
+
+
+__DEFINIR 1 CLASS QUE HANDLE O PDO, SEPARADAMENTE..
+
+
+
+
+
+--> AÍ INSTANCIAREMOS ESSA DB CLASS, 
+
+COM ALGO COMO 
+
+
+
+
+static::$db = new DB($config);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VAMOS CRIAR ESSA CLASS DENTRO DO FOLDER DE 'app',
+
+
+com o nome  'DB.php'...
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+declare(strict_types=1);
+
+namespace App30;
+
+class DB
+{
+    private \PDO $pdo;
+
+    public function __construct(array $config)
+    {
+        try {
+            $this->pdo = new \PDO(
+                $config['driver'] . 'host=' . $config['db_host'] . ';dbname=' . $config['database'], // This is how you use env variables (if you load them with phpdotenv)
+                $config['db_user'], // username
+                $config['db_password'], // password
+            );
+        } catch (\PDOException $e) {
+            throw new \PDOException($e->getMessage(), (int) $e->getCode());
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+COM ESSA CLASS AÍ,
+
+ESCREVEMOS ASSIM, 
+
+LÁ NO 'App.php':
+
+
+
+
+
+
+
+
+class App
+{
+
+    protected static \App30\DB $db; // Will be a static property, always available.
+
+
+    // Initializes the database connection:
+    public function __construct(protected \App30\Router $router, protected array $request, protected array $config)
+    {
+        static::$db = new \App30\DB($config);
+    }
+
+    // Use the database connection:
+    public static function db(): \App30\DB
+    {
+        return static::$db;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS ESSA CLASS DB AINDA PODE TER 1 POUCO MAIS DE FUNCTIONALITY...
+
+
+
+
+
+
+--> COLOCAMOS MAIS 1 ARRAY OPCIONAL DE `options`,
+
+
+
+por meio do QUARTO PARAMETER DE 'new PDO()',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+declare(strict_types=1);
+
+namespace App30;
+
+class DB
+{
+    private \PDO $pdo;
+
+    public function __construct(array $config, array $defaultOptions = [])
+    {
+        $defaultOptions = [
+            \PDO::ATTR_EMULATE_PREPARES => false,
+            \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+        ];
+
+        try {
+            $this->pdo = new \PDO(
+                $config['driver'] . 'host=' . $config['db_host'] . ';dbname=' . $config['database'], // This is how you use env variables (if you load them with phpdotenv)
+                $config['db_user'], // username
+                $config['db_password'], // password
+                $config['options'] ?? $defaultOptions // options
+            );
+        } catch (\PDOException $e) {
+            throw new \PDOException($e->getMessage(), (int) $e->getCode());
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+com isso, basicamente dizemos 
+
+
+''QUEREMOS QUE O PDO 
+
+
+USE OS NATIVE PREPARES, SEM EMULATED PREPARES,
+
+
+E QUEREMOS QUE O DEFAULT FETCH MODE SEJA  no formato DE ASSOCIATED ARRAY....''
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok... 
+
+
+
+
+MAS AINDA TEMOS QUE ALTERAR MAIS ALGUMAS COISAS...
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+ LÁ NO HOME CONTROLLER,
+
+
+ PERCEBEMOS QUE ESTAMOS COM 1 MONTE DE ERRORS...
+
+
+
+
+ PQ OS METHODS DE 'beginTransaction()',
+
+
+ 'prepare()"
+
+ e outros 
+
+
+ NÃO ESTÃO DISPONÍVEIS DIRETAMENTE NO 'db'...
+
+
+
+ -> PARA CONSERTAR ISSO, MUDAMOS O VALUE DA VARIABLE '$db'
+
+ no topo,
+
+ tipo assim:
+
+
+
+
+
+
+
+       $db = \App30\App::db()->pdo;
+
+
+
+
+
+
+
+
+
+
+MAS 1 PROBLEMA, AQUI,
+
+É QUE 
+
+
+
+'pdo' 
+
+
+
+É UMA PROTECTED PROPERTY...
+
+
+
+
+
+
+
+
+
+
+--> PARA CONSERTAR ISSO, PODEMOS 
+
+
+
+''CREATE A PUBLIC GETTER METHOD OF THE pdo property ''
+
+
+
+E ENTAÕ USAR ESSE PUBLIC GETTER METHOD 
+
+
+
+lá 
+
+
+no 
+
+"$db = App::db()'..
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS UMA SOLUTION MELHOR É _ SIMPLESMENTE FAZER 
+
+
+'''PROXY''' 
+
+
+DAS CALLS DE 'beginTransaction()'
+
+
+'prepare()'
+
+e ETC 
+
+
+DIRETAMENTE à INSTANCE DO pdo...
+
+
+
+com o magic method de '__call__',
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+    public function __call(string $name, array $arguments)
+    {
+        return call_user_func_array([$this->pdo, $name], $arguments);
+    }
+
+
+
+
+
+
+
+
+
+    --> VAMOS USAR O 'PDO OBJECT',
+
+    e aí o METHOD NAME,
+
+com '$name'...
+
+
+
+
+--> É AQUELA ESCRITA HORRÍVEL
+
+
+DE 
+[$class, $method],
+
+que 
+
+
+estudamos anteriormente...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NO HOME CONTROLLER,
+
+
+
+AS COISAS VÃO FUNCIONAR:
+
+
+
+
+
+
+
+
+
+
+
+
+class HomeController
+{
+
+    public function index()
+    {
+
+        var_dump($_ENV['DB_HOST']);
+
+        $email = 'john.doe@example.com';
+        $name = 'John Doe';
+        $amount = 25;
+
+        try {
+            $db = \App30\App::db();
+
+            $db->beginTransaction();
+
+            $newUserStmt = $db->prepare('INSERT INTO users (email, full_name, is_active, created_at) VALUES (?, ?, 1, NOW())');
+
+            $newInvoiceStmt = $db->prepare('INSERT INTO invoices (amount, user_id) VALUES (?, ?)');
+
+            $newUserStmt->execute([$email, $name]);
+
+            $userId = (int) $db->lastInsertId();
+
+            $newInvoiceStmt->execute([$amount, $userId]);
+
+            $db->commit();
+        } catch (\Throwable $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+                throw new \PDOException($e->getMessage(), (int) $e->getCode());
+            }
+            throw $e;
+        }
+
+        $fetchStmt = $db->prepare(`
+        SELECT invoices.id AS invoice_id, amount, user_id, full_name 
+        FROM invoices 
+        INNER JOIN users 
+        ON user_id = users.id 
+        WHERE email = ?`);
+
+        $fetchStmt->execute([$email]);
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EXPLICAÇÃO DO QUE VAI ACONTECER, AQUI:
+
+
+
+
+
+
+
+
+
+'''WHEN WE CALL A METHOD ON THE $db OBJECT,
+    IT IS GOING TO TRIGGER THE 
+    '__call' magic method... ''
+
+
+
+
+
+    ''the __call magic method will then 
+    call the whatever method, on the object of '$this->pdo'''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VOLTAMOS ATÉ A CLASS DE 'APP'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO MENCIONADO ANTERIORMENTE,
+
+
+HÁ MTAS MANEIRAS DE IMPLEMENTAR ESSE FLOW TODO...
+
+
+
+
+
+
+
+--> NA TERCEIRA PARTE DO CURSO,
+
+    VEREMOS COMO PODEMOS USAR ALGO CHAMADO DE 
+
+    'DEPENDENCY INJECTION' 
+
+
+    E 
+
+
+    'DEPENDENCY INJECTION CONTAINERS',
+
+
+
+    JUSTAMENTE 
+
+
+    PARA 
+
+    EVITAR 
+
+
+
+    COISAS COMO 
+
+
+    '$db = App::db()';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... VOLTAMOS AO 'App.php',
+
+
+
+e o professor quer consertar outra coisa..
+
+
+
+
+
+
+
+
+
+
+--> ATUALMENTE, ESTAMOS 
+    PASSANDO '$config'
+     
+
+     como 1 dos parameters do '__construct()",
+
+
+     TIPO ASSIM:
+
+
+         public function __construct(protected \App30\Router $router, protected array $request, protected array $config)
+
+
+
+
+
+
+
+
+
+E ESTAMOS ASSUMINDO, COM ISSO,
+
+QUE O CONFIG 
+
+VAI CONTER APENAS 
+
+DATABASE CREDENTIALS...
+
+
+
+
+
+
+
+
+
+
+
+
+MAS E SE, NO CASO,
+ 
+ TIVÉSSEMOS OUTRAS CREDENTIALS DE NOSSO APP,
+
+
+
+QUE NÃO GOSTARÍAMOS QUE FOSSEM PASSADAS JUNTO COM ESSE '$config'?
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, PODEMOS SUBSTITUIR ESSE 
+
+
+TYPE DE 'array'
+ 
+ por algo mais específico,
+
+ como uma class de 'Config',
+
+
+ TIPO ASSIM:
+
+
+
+
+
+
+
+     public function __construct(protected \App30\Router $router, protected array $request, protected Config $config)
+
+
+
+
+
+
+
+
+
+
+E AÍ IMPLEMENTARÍAMOS ESSA CLASS DE 'config'...
+
+
+
+
+
+
+
+
+--> AÍ PODERÍAMOS ACESSAR APENAS A PROPERTY 'db',
+
+dentro de '$config' (setoriazaríamos as configs de nosso app, basicamente)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> É CLARO QUE O MELHOR APPROACH SERIA UMA UTILIZAÇÃO DE INTERFACES,
+    MAS O PROFESSOR NÃO QUER DEIXAR O VÍDEO LONGO DEMAIS...
+
+
+
+
+-> VAMOS CRIAR UMA NOVA CLASS....
+
+
+
+
+
+
+
+
+AÍ, LÁ NO 'index.php',
+
+
+NÃO VAMOS PASSAR NOSSAS CONFIGURATIONS ASSIM:
+
+
+(new App($router, ['uri' => $_SERVER['REQUEST_URI'], 'method' => $_SERVER['REQUEST_METHOD']], [
+    'driver' => $_SERVER['DB_DRIVER'],
+    'host' => $_SERVER['DB_HOST'],
+    'database' => $_SERVER['DB_DATABASE'],
+    'user' => $_SERVER['DB_USER'],
+    'password' => $_SERVER['DB_PASSWORD'],
+]))->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PASSARÍAMOS APENAS 1 INSTANCE DA CLASS DE 'Config',
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+$config = new Config($_ENV);
+
+$router = new Router();
+
+$router->get('/', [\App30\Controllers\HomeController::class, 'index'])
+    ->post('/upload', [\App30\Controllers\HomeController::class, 'upload'])
+    ->get('/invoices', [\App30\Controllers\InvoiceController::class, 'index'])
+    ->get('/invoices/create', [\App30\Controllers\InvoiceController::class, 'create'])
+    ->post('invoices/create', [\App30\Controllers\InvoiceController::class, 'store']);
+
+
+(
+    new App(
+        $router,
+        ['uri' => $_SERVER['REQUEST_URI'], 'method' => $_SERVER['REQUEST_METHOD']],
+        $config
+    )
+)->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DESSA FORMA,
+
+
+FAZEMOS COM QUE A CLASS DE 'Config'
+
+SEJA RESPONSÁVEL 
+PELO EXTRACT DE TODA 
+
+DATA NECESSÁRIA 
+
+DO SUPERGLOBAL DE '$_ENV',
+
+
+'AS NEEDED'...
+
+
+
+
+
+
+
+
+--> PARA ISSO, CRIAMOS ESSA CLASS DE 'Config',
+
+tipo assim:
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+namespace App30;
+
+class Config
+{
+    protected array $config = [];
+
+    public function __construct(array $env)
+    {
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, ESSA CLASS DE 'Config'
+
+
+FICA COM 1 PROPERTY DE '$config',
+
+que será 1 array vazio, por default..
+
+
+
+
+
+
+--> QUANDO ELA É INSTANCIADA,
+ 
+    ASSIGNAMOS 
+
+
+    A PROPERTY DE 'config'
+
+    AOS VALUES ADEQUADOS, TIPO ASSIM:
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+namespace App30;
+
+class Config
+{
+    protected array $config = [];
+
+    public function __construct(array $env)
+    {
+        $this->config =
+            [
+                [
+                    'driver' => $_SERVER['DB_DRIVER'],
+                    'host' => $_SERVER['DB_HOST'],
+                    'database' => $_SERVER['DB_DATABASE'],
+                    'user' => $_SERVER['DB_USER'],
+                    'password' => $_SERVER['DB_PASSWORD'],
+                ]
+            ];
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO... AÍ USAMOS 
+
+AQUELE PARAMETER DE '$env',
+
+
+em vez de 
+
+"$_ENV[xxx]",
+
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+namespace App30;
+
+class Config
+{
+    protected array $config = [];
+
+    public function __construct(array $env)
+    {
+        $this->config =
+            [
+                [
+                    'driver' => $env['DB_DRIVER'],
+                    'host' => $env['DB_HOST'],
+                    'database' => $env['DB_DATABASE'],
+                    'user' => $env['DB_USER'],
+                    'password' => $env['DB_PASSWORD'],
+                ]
+            ];
+    }
+}
+
+
+
+
+
+
+
+
+
+
+FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+namespace App30\Config;
+
+class Config
+{
+    protected array $config = [];
+
+    public function __construct(array $env)
+    {
+        $this->config =
+            [
+                [
+                    'driver' => $env['DB_DRIVER'],
+                    'host' => $env['DB_HOST'],
+                    'database' => $env['DB_DATABASE'],
+                    'user' => $env['DB_USER'],
+                    'password' => $env['DB_PASSWORD'],
+                ]
+            ];
+    }
+}
+
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+
+
+
+$config = new \App30\Config\Config($_ENV);
+
+$router = new Router();
+
+$router->get('/', [\App30\Controllers\HomeController::class, 'index'])
+    ->post('/upload', [\App30\Controllers\HomeController::class, 'upload'])
+    ->get('/invoices', [\App30\Controllers\InvoiceController::class, 'index'])
+    ->get('/invoices/create', [\App30\Controllers\InvoiceController::class, 'create'])
+    ->post('invoices/create', [\App30\Controllers\InvoiceController::class, 'store']);
+
+(
+    new App(
+        $router,
+        ['uri' => $_SERVER['REQUEST_URI'], 'method' => $_SERVER['REQUEST_METHOD']],
+        $config
+    )
+)->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS QUEREMOS QUE ESSE ARRAY INTEIRO COM ARGUMENTS SEJA 
+
+
+UMA KEY, chamada de 'db',
+
+
+
+por isso escrevemos assim:
+
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+namespace App30\Config;
+
+class Config
+{
+    protected array $config = [];
+
+    public function __construct(array $env)
+    {
+        $this->config =
+            [
+                'db' => [
+                    'driver' => $env['DB_DRIVER'] ?? 'mysql',
+                    'host' => $env['DB_HOST'],
+                    'database' => $env['DB_DATABASE'],
+                    'user' => $env['DB_USER'],
+                    'password' => $env['DB_PASSWORD'],
+                ]
+            ];
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+
+
+
+
+
+
+
+
+MAS ISSO VAI QUEBRAR COISAS, NO NOSSO CÓDIGO...
+
+
+
+
+
+
+
+
+
+
+
+
+PARA CONSERTAR ISSO, O PROFESSOR USA O MAGIC GETTER 
+
+'__get()'
+
+
+
+LÁ NO Config.php,
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+namespace App30\Config;
+
+class Config
+{
+    protected array $config = [];
+
+    public function __construct(array $env)
+    {
+        $this->config =
+            [
+                'db' => [
+                    'driver' => $env['DB_DRIVER'] ?? 'mysql',
+                    'host' => $env['DB_HOST'],
+                    'database' => $env['DB_DATABASE'],
+                    'user' => $env['DB_USER'],
+                    'password' => $env['DB_PASSWORD'],
+                ]
+            ];
+    }
+
+
+    public function __get(string $name)
+    {
+        return $this->config[$name] ?? null;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+LÁ NA CLASS DE 'App.php',
+
+podemos alterar o código, 
+
+
+para que ele consiga pegar o value desse config corretamente,
+
+
+com esta mudança:
+
+
+
+
+
+    public function __construct(protected \App30\Router $router, protected array $request, protected \App30\Config\Config $config)
+    {
+        static::$db = new \App30\DB($config->db);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE VER,
+
+
+ESTAMOS ACESSANDO (get)
+
+
+a property de 'db' dentro do config:
+
+
+        static::$db = new \App30\DB($config->db);
+
+
+
+
+
+E ISSO, POR SUA VEZ, VAI TRIGGAR A LÓGICA DO 
+
+GETTER 
+
+
+
+DE 'config':
+
+
+
+    public function __get(string $name)
+    {
+        return $this->config[$name] ?? null;
+    }
+
+
+
+
+
+
+
+
+
+E ISSO VAI NOS RETORNAR A CONFIG DESEJADA, de db...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... TESTAMOS TUDO, PARA VER SE O APP ESTÁ FUNCIONANDO,
+
+ANTES DE EXTRAIR 
+
+
+A LÓGICA DE OPERATIONS SQL 
+
+EM MODELS (model de user, model de invoice, etc)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+TUDO FUNCIONOU..
+
+
+
+
+
+
+
+ISSO SIGNIFICA QUE 
+AS NOVAS CLASSES QUE 
+
+CRIAMOS (App, Config e DB)
+
+FUNCIONARAM COMO EXPECTED...
+
+
+
+
+
+
+
+
+--> MAS UMA COISA QUE O PROFESSOR QUER 
+GARANTIR, AQUI,
+
+
+É QUE 
+
+ESTAMOS SEMPRE COM A MESMA INSTANCE 
+
+
+DE 'db'...
+
+
+
+
+
+
+
+
+--> PARA ISSO, ELE ESCREVE ASSIM, EM 'HomeController':
+
+
+
+
+
+
+class HomeController
+{
+
+    public function index()
+    {
+
+        var_dump($_ENV['DB_HOST']);
+
+        $email = 'john.doe@example.com';
+        $name = 'John Doe';
+        $amount = 25;
+
+        try {
+
+            // This only works because of the __call magic method, in the DB class.
+            $db1 = \App30\App::db();
+            $db2 = \App30\App::db();
+            $db3 = \App30\App::db();
+
+            var_dump($db1 === $db2, $db2 === $db3, $db1 === $db3);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE QUALQUER UM DESSES RETORNAR 'false',
+
+
+SIGNIFICARÁ QUE ESTAMOS COM MÚLTIPLAS DB CONNECTIONS,
+
+O QUE NÃO É BOM...
+
+
+
+
+
+
+
+MAS TODAS ELAS RFETORNAM TRUE,
+
+O QUE QUER DIZER QUE ESTAMOS COM 1 MESMO OBJECT DE DB...
+
+
+
+
+
+
+
+
+--> PORTANTO, TEMOS APENAS 1 INSTANCE DE DB...
+
+
+
+
+
+
+-> É CLARO QUE SE VC 
+    FAZER 1 NOVA INSTANCE DA CLASS DE 'App' ou 'DB'
+    diretamente,
+
+
+    ISSO VAI _ RESULTAR EM ADDITIONAL DATABASE CONNECTIONS...
+
+    MAS VC N DEVE FAZER ISSO DIRETAMENTE, 
+
+    E SIM DEVE FAZER ISSO 
+
+    USANDO 
+
+    O METHOD DE 'db()',
+
+
+    NA CLASS DE 'App' que nós criamos...
+
+
+
+
+
+
+
+
+
+
+
+
+
+POR FIM, PRECISAMOS VER A PARTE DOS MODELS..
+
+
+
+
+
+
+
+
+
+
+
+--> PRECISAMOS DE 2 MODELS:
+
+
+
+
+1) USER 
+
+
+
+2) INVOICE...
+
+
+
+
+
+
+
+
+->  É POR ISSO QUE O PROFESSOR COMEÇA ASSIM, LÁ EM 'HOME':
+
+
+
+
+
+
+
+
+$userModel = new User();
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ, COM ISSO, QUEREMOS EXECUTAR ALGUM TIPO 
+    DE METHOD  DE 'create()',
+
+    NO MODEL DE USER,
+
+    QUE VAI CRIAR O USER PARA NÓS...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+$userModel = new User();
+
+
+$userId = $userModel->create();
+
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ VAMOS PASSAR A INFO NECESSÁRIA, DENTRO DE 'create()'...
+
+
+
+
+
+email, name, amount, is_active...
+
+
+ 
+
+
+-> TIPO ALGO ASSIM:
+
+
+
+
+
+$userModel = new User();
+
+
+$userId = $userModel->create($email, $name, $amount, true);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> FAZEMOS A MESMA COISA PARA O INVOICE,
+TIPO ASSIm:
+
+
+
+
+
+$userModel = new User();
+$userId = $userModel->create($email, $name, $amount, true);
+
+
+
+$invoiceModel = new Invoice();
+$invoiceId = $invoiceModel->create($amount, $userId);
+
+
+
+
+
+
+
+
+
+
+
+ALGO ASSIM:
+
+
+
+
+
+
+       try {
+
+            // This only works because of the __call magic method, in the DB class.
+            $db = \App30\App::db();
+
+            $db->beginTransaction();
+
+            // Model usage example:
+            $userModel = new User();
+            $userId = $userModel->create($email, $name, $amount, true);
+
+            $invoiceModel = new Invoice();
+            $invoiceId = $invoiceModel->create($amount, $userId);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+PODERÍAMOS TER USADO UM 'DTO',
+
+mas vamos falar mais sobre DTOs na terceira parte do curso...
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... QUER DIZER QUE 
+    PODEMOS NOS LIVRAR DE TODO ESTE TRECHO:
+
+
+
+
+    
+            // $newUserStmt = $db->prepare('INSERT INTO users (email, full_name, is_active, created_at) VALUES (?, ?, 1, NOW())');
+
+            // $newInvoiceStmt = $db->prepare('INSERT INTO invoices (amount, user_id) VALUES (?, ?)');
+
+            // $newUserStmt->execute([$email, $name]);
+
+            // $userId = (int) $db->lastInsertId();
+
+            // $newInvoiceStmt->execute([$amount, $userId]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS VAMOS CRIAR O MODEL DE 'USER' ANTES...
+
+
+
+
+
+
+
+--> CRIAMOS ELE DENTRO DE 1 FOLDER CHAMADO DE 'Models',
+    DENTRO DE 'app'...
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+namespace App30\Models;
+
+class User
+{
+
+
+    public function __construct()
+    {
+
+    }
+
+    public function create(string $email, string $name, bool $isActive = true)
+    {
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+O METHOD DE 'create()'
+
+VAI RETORNAR UM INT,
+
+QUE VAI 
+
+
+SER O ID DO USER...
+
+
+TIPO ASSIM:
+
+
+
+<?php
+
+declare(strict_types=1);
+namespace App30\Models;
+
+class User
+{
+
+
+    public function __construct()
+    {
+
+    }
+
+    // Will return the id of the user
+    public function create(string $email, string $name, bool $isActive = true): int
+    {
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ PODEMOS MOVER A PARTE DE 
+
+
+''
+
+
+            // $newUserStmt = $db->prepare('INSERT INTO users (email, full_name, is_active, created_at) VALUES (?, ?, 1, NOW())');
+
+
+
+''
+
+
+PARA DENTRO DO MODEL DE USER...
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+namespace App30\Models;
+
+class User
+{
+
+
+    public function __construct()
+    {
+
+    }
+
+    // Will return the id of the user
+    public function create(string $email, string $name, bool $isActive = true): int
+    {
+        $stmt = $db->prepare('INSERT INTO users (email, full_name, is_active, created_at) VALUES (?, ?, ?, NOW())');
+
+
+        $stmt->execute([$email, $name, $isActive]);
+
+        return (int) $db->lastInsertId();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS É CLARO QUE 'db' NÃO ESTÁ DISPONÍVEL DENTRO
+DESSA CLASS...
+
+
+
+
+
+
+PRECISAMOS PASSAR ESSE DB, COMO REFERENCE VALUE,
+
+
+A ESSA CLASS...
+
+
+
+
+
+
+
+-> UMA MANEIRA DE FAZER ISSO É 
+
+
+
+
+ESCREVER 'App::db()->prepare()',
+
+
+DIRETAMENTE 
+
+NESSA CLASS...
+
+
+
+E ISSO FUNCIONARIA, MAS 
+
+NÃO É IDEAL... PQ TERÍAMOS DE DUPLICAR ISSO,
+
+
+
+EM CADA 1 DE NOSSOS MODELS...
+
+
+
+
+
+
+
+
+
+-> EM VEZ DISSO, É MELHOR ESCREVER ALGO COMO:
+
+
+
+
+'$stmt = $this->db->prepare()'...
+
+
+
+
+
+
+
+AÍ, NO CASO, PODEMOS 
+
+FAZER 
+
+
+__ O EXTEND _ DE UM 'Model',
+
+
+
+
+
+TIPO UM 'BASE MODEL',
+
+
+QUE TERIA ESSA PROPERTY DE '$db'
+
+
+
+SEMPRE DISPONÍVEL,
+
+
+E QUE 
+
+TODOS NOSSOS MODELS FARIAM EXTEND TAMBÉM...
+
+
+
+
+
+
+
+
+
+
+
+
+--> DEPENDENCY INJECTION SERIA MELHOR,
+    MAS AINDA NÃO FAREMOS ISSO, NESSA LESSON..
+
+
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+namespace App30\Models;
+
+use PDO;
+
+class Model
+{
+    protected PDO $db;
+    public function __construct()
+    {
+        $this->db = \App30\App::db();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+esse é o base model...
+
+
+
+
+
+
+
+
+
+--> AÍ, NO CASO,
+
+
+
+VAMOS TER ESSA PROPERTY DE 'db',
+
+
+
+DENTRO DO MODEL DO USER,
+
+TIPO ASSIM:
+
+
+
+
+ 
+
+
+
+
+ <?php
+
+declare(strict_types=1);
+namespace App30\Models;
+
+
+// the `Model` base model will have the $db property, which will be used to execute the queries/statements.
+class User extends \App30\Models\Model
+{
+
+
+    public function __construct()
+    {
+
+    }
+
+    // Will return the id of the user
+    public function create(string $email, string $name, bool $isActive = true): int
+    {
+        $stmt = $this->db->prepare('INSERT INTO users (email, full_name, is_active, created_at) VALUES (?, ?, ?, NOW())');
+
+
+        $stmt->execute([$email, $name, $isActive]);
+
+        return (int) $this->db->lastInsertId();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+E ISSO REALMENTE FUNCIONOU...
+
+
+
+
+
+
+
+
+
+MAIS UMA COISA QUE VC TEM QUE SABER,
+SOBRE ESSE METHOD,
+
+
+
+O METHOD DE 'create()',
+
+
+É 
+
+
+
+
+''''IF YOU WERE TO CALL THE _create() custom method 
+
+    INSIDE OF A LOOP (where you are creating multiple users),
+    YOU WOULD 
+    BE RUNNING 
+
+    THE 'prepare()' statement EVERY SINGLE TIME...''''
+
+
+
+    '''TO AVOID THAT, TO RUN THIS 'prepare()' logic 
+    only a single time and then execute the final logic a single 
+    time (with 'stmt->execute()'),
+
+    WE COULD CREATE ANOTHER METHOD, CALLED 'createMany(),
+
+    AND THEN PASS DOWN AN ARRAY OF USERS TO BE CREATED, 
+
+    AND THEN SIMPLY PREPARE THE STATEMENT _ BEFORE_ 
+
+    THE LOOP_, AND ONLY THEN EXECUTE THE STATEMENT, FROM WITHIN 
+    THE LOOP''''...
+
+
+
+
+
+
+
+
+-> SE VC QUER TER O CREATE DE MÚLTIPLOS USERS DE 1 VEZ SÓ,
+    ESSE É O APPROACH MAIS CORRETO...
+
+
+
+ 
+
+
+
+
+
+
+
+
+ CERTO...
+
+
+
+
+
+
+
+ MAS AGORA VAMOS CRIAR UM MODEL PARA O 'INVOICE'...
+
+
+
+
+
+
+
+
+
+
+ --> COPIAMOS A CLASS 
+
+ DO USER MODEL,
+
+ E AÍ 
+
+ VAMOS 
+
+
+
+ MUDANDO ALGUMAS COISAS:
+
+
+
+
+
+
+
+
+ <?php
+
+declare(strict_types=1);
+namespace App30\Models;
+
+
+// the `Model` base model will have the $db property, which will be used to execute the queries/statements.
+class Invoice extends \App30\Models\Model
+{
+
+
+    public function __construct()
+    {
+
+    }
+
+    // Will return the id of the invoice
+    public function create(float $amount, int $userId): int
+    {
+        $stmt = $this->db->prepare('INSERT INTO invoices (amount, user_id) VALUES (?, ?)');
+
+        $stmt->execute([$amount, $userId]);
+
+        return (int) $this->db->lastInsertId();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ISSO DEVE FUNCIONAR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VC PODE PERCEBER, NO ENTANTO, QUE ESTAMOS 
+REPETINDO 1 POUCO DE CÓDIGO, AQUI..
+
+
+
+
+
+
+
+'''WE ARE REPEATING SOME CODE... 
+
+RUNNING THE INSERT STATEMENTS,
+AND THEN 
+
+RETURNING THE USER ID''...
+
+
+
+
+
+
+
+
+--> PODERÍAMOS EXTRAIR ESSES STATEMENTS 
+E DEIXÁ-LOS FLEXIBLE... AÍ KINDOF 
+CRIAR 
+
+NOSSO PRÓPRIO QUERY BUILDER... EM QUE PODERÍAMOS REUSAR 
+
+1 MONTE DA FUNCTIONALITY...
+
+
+
+
+
+
+
+MAS NÃO ESTAMOS BUILDANDO  1 QUERY BUILDER,
+
+E NÃO ESTAMOS CRIANDO 1 FRAMEWORK INTEIRO,
+
+POR ISSO VAMOS KEEP IT SIMPLE..
+
+
+
+
+
+
+AÍ TROCAMOS PARA O 'HomeController',
+
+
+
+e aí estamos com este código:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class HomeController
+{
+
+    public function index()
+    {
+
+        var_dump($_ENV['DB_HOST']);
+
+        $email = 'john.doe@example.com';
+        $name = 'John Doe';
+        $amount = 25;
+
+        try {
+
+            // This only works because of the __call magic method, in the DB class.
+            $db = \App30\App::db();
+
+            $db->beginTransaction();
+
+            // Model usage example:
+            $userModel = new \App30\Models\User();
+            $userId = $userModel->create($email, $name, true);
+
+            $invoiceModel = new \App30\Models\Invoice();
+            $invoiceId = $invoiceModel->create($amount, $userId);
+
+            // $newUserStmt = $db->prepare('INSERT INTO users (email, full_name, is_active, created_at) VALUES (?, ?, 1, NOW())');
+
+            // $newInvoiceStmt = $db->prepare('INSERT INTO invoices (amount, user_id) VALUES (?, ?)');
+
+            // $newUserStmt->execute([$email, $name]);
+
+            // $userId = (int) $db->lastInsertId();
+
+            // $newInvoiceStmt->execute([$amount, $userId]);
+
+            $db->commit();
+
+
+        } catch (\Throwable $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+                throw new \PDOException($e->getMessage(), (int) $e->getCode());
+            }
+            throw $e;
+        }
+
+        $fetchStmt = $db->prepare(`
+        SELECT invoices.id AS invoice_id, amount, user_id, full_name 
+        FROM invoices 
+        INNER JOIN users 
+        ON user_id = users.id 
+        WHERE email = ?`);
+
+        $fetchStmt->execute([$email]);
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    MAS UMA PARTE QUE AINDA PRECISAMOS OUTSOURCEAR É A QUERY FINAL,
+
+
+    DE 
+
+
+
+
+    '$fetchStmt'...
+
+
+
+
+
+
+
+
+
+ESSA QUERY NAÕ É NECESSÁRIA... O ÚNICO PROPÓSITO 
+
+DELA ERA 
+
+'CONFIRM THAT THE INVOICE AND USER WERE CREATED...''
+
+
+
+
+
+
+MAS, DE QUALQUER FORMA,
+
+
+
+VAMOS CONFIRMAR ISSO DE UMA MANEIRA DIFERENTE...
+
+
+
+
+
+
+
+
+POR ISSO NOS LIVRAMOS DO CÓDIGO DO FINAL, E FICA TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class HomeController
+{
+
+    public function index()
+    {
+
+        var_dump($_ENV['DB_HOST']);
+
+        $email = 'john.doe@example.com';
+        $name = 'John Doe';
+        $amount = 25;
+
+        try {
+
+            // This only works because of the __call magic method, in the DB class.
+            $db = \App30\App::db();
+
+            $db->beginTransaction();
+
+            // Model usage example:
+            $userModel = new \App30\Models\User();
+            $userId = $userModel->create($email, $name, true);
+
+            $invoiceModel = new \App30\Models\Invoice();
+            $invoiceId = $invoiceModel->create($amount, $userId);
+
+            // $newUserStmt = $db->prepare('INSERT INTO users (email, full_name, is_active, created_at) VALUES (?, ?, 1, NOW())');
+
+            // $newInvoiceStmt = $db->prepare('INSERT INTO invoices (amount, user_id) VALUES (?, ?)');
+
+            // $newUserStmt->execute([$email, $name]);
+
+            // $userId = (int) $db->lastInsertId();
+
+            // $newInvoiceStmt->execute([$amount, $userId]);
+
+            $db->commit();
+
+
+        } catch (\Throwable $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+                throw new \PDOException($e->getMessage(), (int) $e->getCode());
+            }
+            throw $e;
+        }
+
+
+        return \App30\View::make('index');
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+POR FIM, PODEMOS PASSAR ALGUMA INFO à VIEW...
+
+
+
+
+
+
+
+
+
+PODEMOS ESCREVER ALGO COMO ISTO:
+
+
+
+        return \App30\View::make('index',
+
+            [
+                'invoice' => $invoiceModel->find($invoiceId)
+            ]
+        
+        
+        );
+
+
+
+
+
+
+
+PASSAMOS O invoiceId
+
+
+como parameter do method de 'find'
+
+
+
+do 'invoiceModel'...
+
+
+
+
+AGORA SÓ PRECISAMOS 
+
+
+
+DESSE METHOD, DE 'find',
+
+
+
+
+NO MODELO 
+
+
+
+DO 'Invoice'...
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+    public function find(int $invoiceId): array
+    {
+        $stmt = $this->db->prepare('SELECT invoices.id, amount, full_name FROM invoices
+         LEFT JOIN users ON users.id = invoices.user_id
+         WHERE invoices.id = ?'
+        );
+        $stmt->execute([$invoiceId]);
+
+        $invoice = $stmt->fetch();
+
+        return $invoice;
+    }
+
+
+
+
+
+
+
+
+
+
+    MAS PODEMOS RETORNAR 1 ARRAY VAZIO,
+
+    CASO NENHUMA INVOICE SEJA ENCONTRADA:
+
+
+
+
+
+
+
+
+
+
+
+    public function find(int $invoiceId): array
+    {
+        $stmt = $this->db->prepare('SELECT invoices.id, amount, full_name FROM invoices
+         LEFT JOIN users ON users.id = invoices.user_id
+         WHERE invoices.id = ?'
+        );
+        $stmt->execute([$invoiceId]);
+
+        $invoice = $stmt->fetch();
+
+        return $invoice ?? [];
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    CERTO...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+    public function index()
+    {
+
+        var_dump($_ENV['DB_HOST']);
+
+        $email = 'john.doe@example.com';
+        $name = 'John Doe';
+        $amount = 25;
+
+        try {
+
+            // This only works because of the __call magic method, in the DB class.
+            $db = \App30\App::db();
+
+            $db->beginTransaction();
+
+            // Model usage example:
+            $userModel = new \App30\Models\User();
+            $userId = $userModel->create($email, $name, true);
+
+            $invoiceModel = new \App30\Models\Invoice();
+            $invoiceId = $invoiceModel->create($amount, $userId);
+
+            $db->commit();
+
+
+        } catch (\Throwable $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+                throw new \PDOException($e->getMessage(), (int) $e->getCode());
+            }
+            throw $e;
+        }
+
+
+        return \App30\View::make('index', [
+            'invoice' => $invoiceModel->find($invoiceId), // use the data from the model's method.
+        ]);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AS COISAS ESTÃO  BEM MELHORES, MAIS CONCISAS,
+
+
+
+
+MAS AINDA PODEMOS MELHORAR...
+
+
+
+
+
+
+
+
+
+
+
+
+VOLTAMOS AO CONTROLLER DE 'HOME',
+
+
+E AS COISAS JÁ ESTÃO BEM MELHORES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS O PROFESSOR DIZ QUE AINDA HÁ ALGO QUE ELE N GOSTA...
+
+
+
+
+
+É DESTA PARTE AQUI:
+
+
+
+            $db->beginTransaction();
+
+            // Model usage example:
+            $userModel = new \App30\Models\User();
+            $userId = $userModel->create($email, $name, true);
+
+            $invoiceModel = new \App30\Models\Invoice();
+            $invoiceId = $invoiceModel->create($amount, $userId);
+
+            $db->commit();
+
+
+        } catch (\Throwable $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+                throw new \PDOException($e->getMessage(), (int) $e->getCode());
+            }
+            throw $e;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+ELE ACHA QUE 
+
+
+ESSE TRECHO TODO TEM QUE SER OUTSOURCEADO,
+
+PQ O CONTROLLER NÃO DEVE SER RESPONSÁVEL POR ISSO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> DEVEMOS MOVER ISSO PARA DENTO DE 1 MODEL...
+
+
+
+--> MAS PARA QUAL MODEL DEVEMOS MOVER ISSO AÍ?
+    USER? INVOICE?
+
+
+
+
+
+
+--> TUDO DEPENDE DE SUA OPINIAO,    
+    MAS O PROFESSOR PREFERE CRIAR 1 NOVO MODEL,
+
+    DE NOME 
+
+
+    'UserInvoice',
+
+    ou 
+
+    'Signup'...
+
+
+
+
+
+
+
+
+-> ESSENCIALMENTE,
+O QUE ESTAMOS TENTANDO FAZER AQUI 
+
+É 'SIMULATE A SIGNUP'  
+
+
+
+    pq o user:
+
+    1) FILLS UP THE FORM;
+    
+    2) SIGNS UP 
+
+    3) THE INVOICE IS GENERATED RIGHT AWAY...
+
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE VAMOS CRIAR 
+
+    1 MODEL 
+
+
+    DE NOME 
+
+
+    'SignUp()'...
+
+
+
+
+
+
+
+
+AÍ VAMOS PASSAR, PARA DENTRO DO 'SignUp',
+
+
+OS MODELS DE '$userModel' 
+
+e 
+
+'$invoiceModel',
+
+
+TIPO assim:
+
+
+
+
+
+
+
+
+$userModel = new User();
+$invoiceModel = new Invoice();
+
+(new SignUp($userModel, $invoiceModel))->register();
+
+
+
+
+
+
+
+
+
+
+
+
+A ESSE 'register()',
+
+PRECISARÍAMOS PASS 2 SETS DE INFORMATION,
+
+
+
+PRECISAMOS PASSAR INFO SOBRE O USER,
+
+E INFO SOBRE O INVOICE...
+
+
+
+
+
+
+
+-> PARA ISSO, PODEMOS 
+
+OU PASS:
+
+
+1) 2 ARRAYS 
+
+
+
+2) MÚLTIPLOS ARGUMENTS...
+
+
+
+
+
+
+-> PARA ISSO, PODEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+
+
+
+            // This only works because of the __call magic method, in the DB class.
+            $db = \App30\App::db();
+
+            $db->beginTransaction();
+
+            // Model usage example:
+            $userModel = new \App30\Models\User();
+
+            $invoiceModel = new \App30\Models\Invoice();
+
+            (new \App30\Models\SignUp($userModel, $invoiceModel))->register(
+                [
+                    'email' => $email,
+                    'name' => $name
+                ],
+
+                [
+                    'amount' => $amount,
+                ]
+            );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE AINDA NÃO TERMINAMOS...
+
+
+
+
+
+PODEMOS FAZER ESSE METHOD DE REGISTER RETORNAR
+
+
+OU:
+
+
+1) USER ID E INVOICE ID (em um array )
+
+
+2) user object 
+
+
+3) invoice object 
+
+
+4) qualquer coisa...
+
+
+
+
+
+
+
+
+
+
+
+
+--> FAREMOS COM QUE ELE RETORNE O 'invoiceId'...
+
+
+
+EX:
+
+
+
+<?php
+
+declare(strict_types=1);
+namespace App30\Models;
+
+class SignUp extends \App30\Models\Model
+{
+    public function __construct(protected User $userModel, protected Invoice $invoiceModel)
+    {
+
+    }
+
+    // Will return the invoice id 
+    public function register(): int
+    {
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AÍ PRECISAMOS DOS PARAMETERS DE 'array $userInfo' e 'array $invoiceInfo'...
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+namespace App30\Models;
+
+class SignUp extends \App30\Models\Model
+{
+    public function __construct(protected User $userModel, protected Invoice $invoiceModel)
+    {
+
+    }
+
+    // Will return the invoice id 
+    public function register(array $userInfo, array $invoiceInfo): int
+    {
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+QUEREMOS TAMBÉM REMOVER A PARTE DE 
+
+
+''
+
+
+            // This only works because of the __call magic method, in the DB class.
+            $db = \App30\App::db();
+
+            $db->beginTransaction();
+
+        
+'''
+
+
+LÁ DO HOME CONTROLLER,
+
+
+
+POR ISSO REMOVEMOS ESSA PARTE,
+
+
+
+E AÍ 
+
+
+
+
+DECIDIMOS 
+
+
+
+
+USAR ESSA PROPERTY DE '$db'
+
+
+DE DENTRO 
+
+
+
+DO MODEL DE 'SignUp',
+
+
+
+
+
+
+COM 
+
+
+
+um call de 
+
+
+'parent::__construct()''
+
+
+
+DENTRO DO CONSTRUCTOR 
+
+
+DO 'SignUp',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+class SignUp extends \App30\Models\Model
+{
+    public function __construct(protected User $userModel, protected Invoice $invoiceModel)
+    {
+        parent::__construct(); // This is used so that the $db property is available in this 'SignUp' model.
+    }
+
+    // Will return the invoice id 
+    public function register(array $userInfo, array $invoiceInfo): int
+    {
+
+        try {
+            $this->db->beginTransaction();
+
+            $userId = $this->userModel->create($userInfo['email'], $userInfo['name']);
+            $invoiceId = $this->invoiceModel->create($invoiceInfo['amount'], $userId);
+
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+                throw new \PDOException($e->getMessage(), (int) $e->getCode());
+            }
+            throw $e;
+        }
+
+        return $invoiceId;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O NOSSO CONTROLLER 
+AGORA FICOU BEM MAIS CLEAN,
+
+COM APENAS ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+    public function index()
+    {
+
+        var_dump($_ENV['DB_HOST']);
+
+        $email = 'john.doe@example.com';
+        $name = 'John Doe';
+        $amount = 25;
+
+        // Model usage example:
+        $userModel = new \App30\Models\User();
+        $invoiceModel = new \App30\Models\Invoice();
+
+        $invoiceId = (new \App30\Models\SignUp($userModel, $invoiceModel))->register(
+            [
+                'email' => $email,
+                'name' => $name
+            ],
+
+            [
+                'amount' => $amount,
+            ]
+        );
+
+        return \App30\View::make('index', [
+            'invoice' => $invoiceModel->find($invoiceId), // use the data from the invoice model.
+        ]);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+
+
+AGORA A ÚLTIMA COISA QUE PRECISAMOS FAZER É 
+
+O DISPLAY DE ALGUMA COISA NA NOSSA VIEW...
+
+
+
+
+
+
+
+POR ISSO, EM 
+
+views>index.php,
+
+
+ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>
+        <?= $this->params['foo'] ?> <!--NOT IDEAL -->
+        <?= $this->foo ?> <!-- ALSO NOT IDEAL -->
+    </h1>
+    <!-- … {{ content}} -->
+
+    <div>
+        <?php if (!empty($invoice)): ?>
+            Invoice ID: <?= $invoice['id'] ?><br />
+            Amount: <?= $invoice['amount'] ?><br />
+            User: <?= $invoice['full_name'] ?><br />
+        <?php endif ?>
+    </div>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok... mas precisamos fazer 'escape' de tudo isso aí,
+
+
+senao o user vai ficar vulnerável a XSS...
+
+
+
+
+
+
+
+falaremos mais sobre XSS na terceira parte do curso,
+
+
+depois do tópico de security..
+
+
+
+
+
+
+
+
+---> A DATA QUE VC FAZ DISPLAY, NA TELA,
+
+PRECISA SER 'ESCAPED',
+
+PARA QUE VC N FIQUE VULNERÁVEL...
+
+
+
+
+
+
+
+--> para fazer ESCAPE de esse content,
+
+usamos o method de 'htmlspecialchars()',
+
+
+
+E TAMBÉM 'ENT_QUOTES
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>
+        <?= $this->params['foo'] ?> <!--NOT IDEAL -->
+        <?= $this->foo ?> <!-- ALSO NOT IDEAL -->
+    </h1>
+    <!-- … {{ content}} -->
+
+    <div>
+        <?php if (!empty($invoice)): ?>
+            Invoice ID: <?= htmlspecialchars($invoice['id'], ENT_QUOTES) ?><br />
+            Amount: <?= htmlspecialchars($invoice['amount'], ENT_QUOTES) ?><br />
+            User: <?= htmlspecialchars($invoice['full_name'], ENT_QUOTES) ?><br />
+        <?php endif ?>
+    </div>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS FALAREMOS MAIS SOBRE ISSO NA TERCEIRA PARTE DO CURSO...
