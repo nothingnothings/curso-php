@@ -97,16 +97,41 @@ class Home
 
             $email = $_GET["email"];
 
-            $query = 'SELECT * FROM users WHERE email = " ' . $email . '"';
+            $query = 'SELECT * FROM users WHERE email = ?';
+
+            // ? This is using ordered parameters (normal placeholders, like '?'):
+            // $insertQuery = 'INSERT INTO users (email, full_name, is_active, created_at) VALUES (?, ?, ?, ?);';
+
+            // ? This is using named parameters (:name placeholders):
+            $insertQuery = 'INSERT INTO users (email, full_name, is_active, created_at) VALUES (:email, :full_name, :is_active, :date);';
 
             // $query = 'SELECT * FROM users';
 
-            $stmt = $db->query($query);
+            // $stmt = $db->query($query); // ! This is not safe - we should use prepared statements, with the 'prepare()' method, to avoid SQL injection.
 
-            $result = $stmt->fetchAll(PDO::FETCH_ASSOC); // 'fetchAll' - method that is used to fetch all the results from the query.
+            // $stmt = $db->prepare($query); // * This is safer - but it won't be enough, you still need to sanitize the data and use placeholders/named parameters.
+
+            $stmt = $db->prepare($insertQuery);
+
+            // ? This is using ordered parameters (normal placeholders, like '?'), and not named parameters.
+            // $stmt->execute([$email, 'Arthur', true, date('Y-m-d H:i:s', strtotime('07/11/2021 9:00PM'))]); // this is needed, when using 'prepare()' and placeholders ('?' symbols).
+
+            // ? This is using named parameters (:name placeholders), and not ordered parameters:
+            $stmt->execute(['name' => $email, 'full_name' => 'Arthur', 'is_active' => true, 'created_at' => date('Y-m-d H:i:s', strtotime('07/11/2021 9:00PM'))]);
+
+
+            $id = $db->lastInsertId();
+
+            $user = $db->query('SELECT * FROM users WHERE id = ' . $id);
+
+
+
+            // * 'fetchAll' - should be used with SELECT queries, and not insert/update/delete.
+            // $result = $stmt->fetchAll(PDO::FETCH_ASSOC); // 'fetchAll' - method that is used to fetch all the results from the query.
 
             echo '<pre>';
-            print_r($result);
+            // print_r($result);
+            var_dump($user);
             echo '</pre>';
 
         } catch (\PDOException $e) {

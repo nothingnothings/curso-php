@@ -2910,3 +2910,1457 @@ E ISSO É A SQL INJECTION, BASICAMENTE...
 
 
     'WHERE 1=1'...
+
+
+
+
+
+
+
+
+
+
+--> HÁ VÁRIAS VARIAÇÕES E MANEIRAS DE INJETAR SQL,
+    E NEM TODAS QUERIES VÃO TER ESTA APARÊNCIA,
+    MAS É BEM SIMPLES QUEBRAR 1 APP, SE ELE É VULNERÁVEL
+    A ATAQUES SQL...
+
+
+
+
+
+
+
+
+
+--> ALÉM DE PODER SELECIONAR DATA NÃO AUTORIZADA,
+    O ATACANTE PODE TAMBÉM DELETE DATA, UPDATE DATA,
+    ETC....
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE É MT IMPORTANTE QUE VC 
+    NUNCA _USE DATA __ PROVIDENCIADA PELOS USERS (como input)
+    DIRETAMENTE NAS SUAS QUERIES...
+
+
+    VC SEMPRE DEVE TER SERVERSIDE VALIDATION, 
+
+    LÁ NOS CONTROLLERS, PARA IMPEDIR ESSE TIPO DE COISA..
+
+
+
+
+
+
+
+--> E É AQUI, NO CASO, QUE 'PREPARED STATEMENTS' PODEM TE AJUDAR...
+
+
+
+
+
+
+
+
+
+
+
+--> O METHOD DE 'PREPARE'
+
+
+é chamado 
+
+assim:
+
+
+
+
+
+
+
+$db->prepare($query);
+
+
+
+
+
+
+
+
+NO NOSSO CÓDIGO, FICA TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            $email = $_GET["email"];
+
+            $query = 'SELECT * FROM users WHERE email = " ' . $email . '"';
+
+            $stmt = $db->prepare($query); // * This is safe - we should use prepared statements, with the 'prepare()' method, to avoid SQL injection.
+
+  
+            echo '<pre>';
+            print_r($result);
+            echo '</pre>';
+
+
+
+
+
+
+
+
+
+
+
+
+O METHOD DE 'PREPARE()'
+
+
+TAMBÉM FAZ O RETURN DE UM 'PDO OBJECT',
+
+
+
+OBJECT EM QUE TEMOS O METHOD DE 'EXECUTE',
+
+QUE PODE SER USADO 
+PARA __ eXECUTAR _ A QUERY...
+
+
+
+
+
+
+--> POR FIM, PODEMOS USAR AQUELE MESMO METHOD DE 'fetchAll()'
+
+
+PARA LOOPAR POR TODOS OS ROWS DOS RESULTS...
+
+
+
+
+
+
+
+
+
+
+
+
+fica tipo assim:
+
+
+
+
+
+
+
+
+
+
+          $email = $_GET["email"];
+
+            $query = 'SELECT * FROM users WHERE email = " ' . $email . '"';
+
+            // $query = 'SELECT * FROM users';
+
+            // $stmt = $db->query($query); // ! This is not safe - we should use prepared statements, with the 'prepare()' method, to avoid SQL injection.
+
+            $stmt = $db->prepare($query); // * This is safe - we should use prepared statements, with the 'prepare()' method, to avoid SQL injection.
+
+            $stmt->execute(); // this is needed, when using 'prepare()'.
+
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC); // 'fetchAll' - method that is used to fetch all the results from the query.
+
+            echo '<pre>';
+            print_r($result);
+            echo '</pre>';
+
+
+
+
+
+
+
+
+MAS MESMO USANDO 
+
+
+
+'prepare()',
+
+
+ainda temos o mesmo result,
+
+
+com o SQL INJECTION ainda funcionando.... ainda estamos vulneráveis...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROBLEMA, AQUI, É QUE 
+PREPARE() STATEMENTS, POR SI MESMOS,
+NÃO 
+
+VÃO CONSEGUIR TE PROTEGER DE SQL INJECTION...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PRECISAMOS FAZER SANITIZE DO INPUT DO USER...
+
+
+
+
+
+
+
+--> PARA ISSO, PRECISAMOS USAR OU:
+
+
+
+
+1) PLACEHOLDERS 
+
+
+
+
+2) NAMED PARAMETERS  
+
+
+
+
+
+
+
+
+na nossa query....
+
+
+
+
+
+
+
+
+---> PARA USAR PLACEHOLDERS,
+
+
+PODEMOS SIMPLESMENTE ESCREVER ASSIM:
+
+
+
+
+            $query = 'SELECT * FROM users WHERE email = ?';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O '?' INDICA O PLACEHOLDER...
+
+
+
+
+
+
+
+
+
+
+---> AÍ, DENTRO DO 'execute()',
+
+    DEVEMOS PASSAR 1 ARRAY DE VALUES, EM ORDEM,
+
+    QUE SERÃO INSERIDOS 
+
+    NOS PLACEHOLDERS...
+
+
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+
+            $email = $_GET["email"];
+
+            $query = 'SELECT * FROM users WHERE email = ?';
+
+            $stmt = $db->prepare($query); // * This is safer - but it won't be enough, you still need to sanitize the data and use placeholders/named parameters.
+
+            $stmt->execute([$email]); // this is needed, when using 'prepare()' and placeholders ('?' symbols).
+
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC); // 'fetchAll' - method that is used to fetch all the results from the query.
+
+            echo '<pre>';
+            print_r($result);
+            echo '</pre>';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        RECARREGAMOS A PAGE...
+
+
+
+        AGORA REALMENTE NÃO FICAMOS MAIS COM TODOS USERS...
+
+
+        COM ISSO, CONSEGUIMOS IMPEDIR SQL INJECTION...
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS AGORA DIGAMOS QUE QUEREMOS 1 QUERY DE INSERT,
+EM VEZ DE SELECT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+$query = 'INSERT INTO users (email, full_name, is_active, created_at) VALUES (?, ?, ?, ?);'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESCREVEMOS TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            $insertQuery = 'INSERT INTO users (email, full_name, is_active, created_at) VALUES (?, ?, ?, ?);';
+
+            $stmt = $db->prepare($insertQuery);
+
+            $stmt->execute([$email, 'Arthur', true, date('Y-m-d H:i:s', strtotime('07/11/2021 9:00PM'))]); // this is needed, when using 'prepare()' and placeholders ('?' symbols).
+
+           
+
+
+
+
+
+
+
+
+    --> É CLARO QUE NÃO PODEMOS MAIS USAR 'fetchAll()' COM ESSE STATEMENT,
+        PQ AQUI ESTAMOS RODANDO 1 INSERT STATEMENT, E NÃO UM SELECT STATEMENT...
+
+
+
+
+
+        -> É POR ISSO QUE O PROFESSOR EXECUTA '$db->query('SELECT * FROM users WHERE id = ' . $id)'
+
+
+
+
+
+
+
+
+
+
+NÓS AINDA NÃO TEMOS ESSE VALUE DE '$id', 
+
+MAS PODEMOS OBTÊ-LO COM 
+
+
+
+
+
+ESTE METHOD:
+
+
+
+'$db->lastInsertId();' -----------> ESSE METHOD RETORNA O ID DO 'LAST INSERTED ROW'... o que vai nos dar o id do last inserted user...
+
+
+
+
+
+
+
+
+
+
+
+FICA TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+        $stmt = $db->prepare($insertQuery);
+
+            $stmt->execute([$email, 'Arthur', true, date('Y-m-d H:i:s', strtotime('07/11/2021 9:00PM'))]); // this is needed, when using 'prepare()' and placeholders ('?' symbols).
+
+            $id = $db->lastInsertId();
+
+            $user = $db->query('SELECT * FROM users WHERE id = ' . $id);
+
+            echo '<pre>';
+            var_dump($user);
+            echo '</pre>';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... COM ISSO, 
+
+
+O USER ACABA CRIADO,
+
+
+E FICAMOS COM ELE SELECIONADO, POR CONTA DO SEGUNDO STATEMENT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> USAR PLACEHOLDERS É FINE, SIM...
+
+
+
+
+
+
+
+
+--> MAS QUANDO VC TEM __MUUUUITOS PLACEHOLDERS__,
+
+    PODE FICAR DIFÍCIL DE ENTENDER 'WHICH VALUE GOES IN WHAT PLACEHOLDER''...
+
+
+
+
+
+    --> E SE ERRARMOS A ORDEM, FICAREMOS COM PROBLEMAS (pq as coisas serão inseridas 
+    nos lugares errados)
+
+
+
+
+
+
+
+
+--> ALTERNATIVAMENTE, EM VEZ DE USAR PLACEHOLDERS (em que a ORDEM importa),
+
+    VC PODERIA/DEVE USAR 'NAMED PARAMETERS'...
+
+
+
+
+
+
+
+
+
+---> COM NAMED PARAMETERS, A ORDEM NÃO IMPORTA...
+
+
+
+
+
+
+
+
+
+
+
+--> PARA USAR POSITIONAL PARAMETERS,
+
+
+    DEVEMOS ESCREVER ASSIM (com ':'):
+
+
+
+
+
+
+
+
+$insertQuery = 'INSERT INTO users (email, full_name, is_active, created_at) VALUES (:email, :name, :active, :date);';
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... COM ISSO, DENTRO DO 'execute()',
+
+
+DEVEMOS PASSAR 1 ASSOCIATIVE ARRAY, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+         // ? This is using named parameters (:name placeholders):
+            $insertQuery = 'INSERT INTO users (email, full_name, is_active, created_at) VALUES (:email, :full_name, :is_active, :date);';
+
+            $stmt = $db->prepare($insertQuery);
+
+            // ? This is using ordered parameters (normal placeholders, like '?'), and not named parameters.
+            // $stmt->execute([$email, 'Arthur', true, date('Y-m-d H:i:s', strtotime('07/11/2021 9:00PM'))]); // this is needed, when using 'prepare()' and placeholders ('?' symbols).
+
+            // ? This is using named parameters (:name placeholders), and not ordered parameters:
+            $stmt->execute(['name' => $email, 'full_name' => 'Arthur', 'is_active' => true, 'created_at' => date('Y-m-d H:i:s', strtotime('07/11/2021 9:00PM'))]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... ESTE FORMATO:
+
+
+
+
+
+            $stmt->execute([
+                'name' => $email, 
+                'full_name' => 'Arthur', 
+                'is_active' => true, 
+                'created_at' => date('Y-m-d H:i:s', strtotime('07/11/2021 9:00PM'))
+                
+                ]);
+
+
+
+
+
+
+
+
+
+E ISSO VAI FUNCIONAR...
+
+
+
+
+
+
+a outra forma de passar named parameters, além 
+
+de essa forma, diretamente no 'execute',
+
+
+
+É __ USAR _ 'BIND',  para bindar values aos arguments..
+
+
+
+
+
+--> usamos 'bindValue('nomeDoParametro', valueDoParametro, )
+
+
+
+
+
+--> o terceiro parametro é O DATA TYPE do parameter... por default, é 'PDO::PARAM_STR', que indica que é um string data type...
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+         // ? This is using named parameters (:name placeholders):
+            $insertQuery = 'INSERT INTO users (email, full_name, is_active, created_at) VALUES (:email, :full_name, :is_active, :date);';
+
+            $stmt = $db->prepare($insertQuery);
+
+            $stmt->bindValue('name', $name);
+            $stmt->bindValue('email', $email);
+            $stmt->bindValue('active', $isActive, PDO::PARAM_BOOL);
+            $stmt->bindValue('date', $createdAt);
+
+         
+            $stmt->execute();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... E ISSO FUNCIONA...
+
+
+
+
+
+
+ 
+ALÉM DE PODER ESPECIFICAR OS DATA TYPES ASSIM,
+
+
+
+OUTRA _ VANTAGEM DO USO DE 
+
+'bindValue'
+ 
+
+ e 
+
+ 'bindParam' 
+
+
+
+É
+
+
+
+''''IF YOU WERE WORKING WITH LOOPS 
+    AND YOU WERE PREPARING A STATEMENT BEFORE THE 
+    LOOP AND YOU __HAD __ FEW__ PARAMETERS THAT 
+    WERE THE SAME, AND YOU DIDN'T NEED TO BIND THEM 
+    EVERYTIME WITHIN THE LOOP, YOU COULD BIND THEM OUTSIDE 
+    OF THE LOOP, AND THEN BIND ADDITIONAL PARAMETERS, FROM WITHIN 
+    THE LOOP, and then execute that statement multiple times, from within the loop...''
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+ OK...
+
+
+
+
+
+ OUTRO METHOD QUE O PROFESSOR HAVIA MENCIONADO É 
+
+
+
+ 'bindParam'...
+
+
+
+
+
+
+
+
+
+
+
+
+-> A DIFERENÇA DE 'bindValue' 
+
+para 
+
+'bindParam'
+
+
+é que
+
+
+
+o 'bindParam' 
+
+
+''BINDS BY REFERENCE''...
+
+
+
+
+
+
+
+
+
+
+--> isso quer dizer que, se vc ALTERA O VALUE DE ALGUMA DAS VARIABLES,
+    DURANTE A EXECUTION,
+
+    ISSO VAI SER REFLETIDO NO param que vc passou a esse method...
+
+
+
+
+
+EX:
+
+
+            $isActive = 1;
+
+
+            $stmt->bindParam('active', $isActive, PDO::PARAM_BOOL); // will set '1' as value 
+
+
+            $isActive = 0; // changes the original variable value, BUT THE ARGUMENT PASSED TO 'bindParam' GETS CHANGED AS WELL... (referential value)
+
+
+            $stmt->execute(); // Executes the statement, considering 'isActive' as 0, not 1.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OUTRA DIFERENÇA É QUE, POR SER 'BY REFERENCE',
+VC 
+
+NÃO PODE FAZER HARDCODE DE VALUES, DENTRO DE 'bindParam'...
+
+
+
+QUER DIZER QUE ISTO É PROIBIDO:
+
+
+
+
+  $stmt->bindParam('active', true, PDO::PARAM_BOOL);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  CERTO...
+
+
+
+
+
+
+
+  ESSA É, PORTANTO, A DIFERENÇA ENTRE BINDPARAM E BINDVALUE...
+
+
+
+
+
+
+
+
+--> VC TAMBÉM PODE USAR 'bindParam' e 'bindValue'
+
+
+
+COM PLACEHOLDERS...
+
+
+
+
+
+
+-> se vc quer usar com placeholders,
+
+vc CONSIDERARIA OS INDEXES DOS PLACEHOLDERS,
+
+
+TIPO ASSIM:
+
+
+
+            $insertQuery = 'INSERT INTO users (email, full_name, is_active, created_at) VALUES (?, ?, ?, ?);';
+
+            $stmt = $db->prepare($insertQuery);
+
+            $stmt->bindValue(2, $name);
+            $stmt->bindValue(1, $email);
+            $stmt->bindValue(3, $isActive, PDO::PARAM_BOOL);
+            $stmt->bindValue(4, $createdAt);
+
+         
+            $stmt->execute();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+E ISSO FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+
+-> VC TAMBÉM DEVE SABER QUE, 
+    DENTRO DE 'bindParam' e 'bindValue',
+
+
+
+OS PARAM 
+
+NAMES 
+
+
+
+
+DEVEM SER PREFIXADOS COM ':'...
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+         // ? This is using named parameters (:name placeholders):
+            $insertQuery = 'INSERT INTO users (email, full_name, is_active, created_at) VALUES (:email, :full_name, :is_active, :date);';
+
+            $stmt = $db->prepare($insertQuery);
+
+            $stmt->bindValue(':name', $name);
+            $stmt->bindValue(':email', $email);
+            $stmt->bindValue(':active', $isActive, PDO::PARAM_BOOL);
+            $stmt->bindValue(':date', $createdAt);
+
+         
+            $stmt->execute();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+UÉ, MAS ANTES NÓS NÃO TÍNHAMOS PREFIXADO...
+
+
+
+
+
+
+
+PQ ISSO FUNCIONA?
+
+
+
+
+
+
+
+-> É PQ A EXTENSION DE 'PDO' 
+
+VAI ADICIONAR O ':' automaticamente,
+
+se ele estiver missing...
+
+
+
+
+
+
+
+
+
+--> MAS VC NÃO DEVE CONFIAR NISSO,
+    PQ OS DOCS NÃO FALAM QUE 
+
+    ':' SÃO OPCIONAIS...
+
+
+
+
+
+
+    MAS O PROFESSOR ACHA QUE É OPTIONAL, PQ 
+
+    ELE CHECOU O SOURCE CODE,
+
+
+
+    E O SOURCE CODE ADICIONA ':' sempre que 
+
+
+    ELES ESTÃO MISSING...
+
+
+
+
+
+
+
+
+
+
+
+
+-> MT CONTEÚDO NESSA AULA,
+   MAS TAKE YOUR TIME...
+
+
+
+
+
+
+
+
+
+--> AGORA DEVEMOS VER O PRÓXIMO TÓPICO,
+    QUE É 'EMULATED PREPARES'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EMULATED PREPARES:
+
+
+
+
+
+
+
+
+
+
+
+
+-- ''YOU CANNOT  USE THE SAME PARAMETER NAME MULTIPLE TIMES 
+    IN PREPARE STATEMENTS'''..
+
+
+
+
+
+
+
+
+POR EXEMPLO, DIGAMOS QUE TEMOS OUTRO CAMPO DE DATE, 'updated_at',
+
+
+E AÍ QUEREMOS USAR O MESMO VALUE DE ':date',
+
+TIPO ASSIM:
+
+
+
+
+         // ? This is using named parameters (:name placeholders):
+            $insertQuery = 'INSERT INTO users (email, full_name, is_active, created_at, updated_at) VALUES (:email, :full_name, :is_active, :created_at, :date, :date);';
+
+            $stmt = $db->prepare($insertQuery);
+
+            $stmt->bindValue('name', $name);
+            $stmt->bindValue('email', $email);
+            $stmt->bindValue('active', $isActive, PDO::PARAM_BOOL);
+            $stmt->bindValue('date', $createdAt);
+
+         
+            $stmt->execute();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> QUEREMOS USAR O MESMO VALUE DE ':date' com 
+'created_at'
+
+
+e 
+'updated_at'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> E ISSO VAI FUNCIONAR, ESTRANHAMENTE..
+
+
+
+
+
+
+''YOU ARE NOT ALLOWED TO USE THE SAME PARAMETER MULTIPLE TIMES''
+
+
+
+
+E ISSO É VERDADE... MAS O ___ PDO __ MYSQL DRIVER USA 
+
+                    'EMULATED PREPARES' POR DEFAULT...
+
+
+
+
+
+                    MAS ISSO PODE SER DISABLED POR 
+                    MEIO DA OPTION DE 
+
+                   'ATTR_EMULATE_PREPARES'
+
+
+
+
+
+PERCEBA QUE 
+
+
+
+''PDO WILL ALSO EMULATE 
+    PREPARED STATEMENTS AND BOUND PARAMETERS 
+    FOR SOME DRIVERS THAT DO NOT NATIVELY SUPPORT THEM''....
+
+
+
+
+
+E, JUSTAMENTE PELOS PREPARES SEREM 'EMULATED',
+
+VC CONSEGUE 'GET AWAY'
+
+FAZENDO COISAS COMO ESSA... (com o uso repetido de ':date', nesse caso)...
+
+
+
+
+
+
+
+-> MAS SE DESABILITAMOS O 'ATTR_EMULATE_PREPARES',
+
+
+TIPO ASSIM:
+
+
+
+
+
+    try {
+            $db = new PDO(
+                'mysql:host=db;dbname=MY_DB', // DSN (data source name) - composed of host (localhost) and database name (MY_DB)
+                'root', // username
+                'root', // password
+                [PDO::ATTR_EMULATE_PREPARES=false]
+            );
+
+
+
+
+
+
+
+
+
+
+
+
+        
+
+        FICAMOS COM 1 ERROR...
+
+
+
+
+
+
+
+
+
+--> PARA CONSERTAR ISSO,
+
+    USARÍAMOS OUTRAS KEYS PARA 
+
+    ESSES SLOTS,
+
+    COMO 
+
+
+    ':date1'
+
+    e 
+
+    ':date2',
+
+    ou algo assim...
+
+
+
+
+
+coisa simples..
+
+
+
+
+
+
+
+
+
+
+
+
+OUTRO DETALHE:
+
+
+
+
+
+
+
+
+
+
+''NOTICE THAT 'id' field is coming back as a INT value...
+
+before, it was coming back as a STRING...''
+
+
+
+
+
+
+
+
+
+
+
+--> é pq QUANDO DESABILITAMOS OS EMULATED PREPARES,
+    A DATA VEM COMO 'INT', e não 
+
+    como 'string'...
+
+
+
+
+
+
+
+    --> COM EMULATED PREPARES 
+        __ DESABILITADOS E 
+
+        USANDO 'NATIVE PREPARED STATEMENTS',
+
+        VC 
+
+        FICA 
+
+
+        COM ALGUMAS VANTAGENS,
+
+        ALÉM DE 1 PEQUENO PERFORMANCE BOOST...
+
+
+
+        (INT E FLOAT SERÃO RETORNADOS COMO INTS E FLOATS, E NÃO COMO STRINGS...
+        
+        E VC TAMBÉM SERÁ CAPAZ DE USAR PLACEHOLDERS EM OUTROS CLAUSE STATEMENTS 
+        COMO 
+        'LIMIT'... JÁ COM EMULATED PREPARES, VC NÃO PODERÁ USAR...
+        )
+
+
+
+
+
+
+
+
+NO PRÓXIMO VIDEO,
+
+VEREMOS COISAS COMO TRANSACTIONS COM PDO,
+
+ASSIM COMO 'HOW WE CAN USE THE .env files to get the database credentials''...
+
+
+
+
+
+TAMBÉM VEREMOS COMO PODEMOS 
+
+
+EXTRACT E REFACTOR OS CALLS DE 'PDO',
+
+
+TUDO PARA QUE ESSA LÓGICA DE DATABASE NÃO FIQUE DENTRO DOS CONTROLLERS...
+
+
+
+
+
+
+
+
+
+--> VAMOS COLOCAR ESSA LÓGICA TODA, DE DATABASE, DENTRO DOS NOSSOS MODELS...
+
