@@ -694,3 +694,1715 @@ POR ENQUANTO,
 
 
 FICAMOS COM APENAS 1 ELEMENTO '<testsuite>' (para os unit tests)...
+
+
+
+
+
+
+
+
+--> MAIS TARDE PODEMOS ADICIONAR 1 '<testsuite>' para 
+  INTEGRATION TESTS E ETC...
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE RODAMOS O SCRIPT BASE SEM ESPECIFICAR 
+  TEST ALGUM, TIPO ASSIM:
+
+
+
+
+
+./vendor/bin/phpunit
+
+
+
+
+
+
+
+
+
+ISSO VAI EXECUTAR TODOS OS TEST SCRIPTS DEFINIDOS 
+
+NO ARQUIVO DE CONFIG...
+
+
+
+
+--> COMO AINDA NÃO DEFINIMOS TEST ALGUM DENTRO DA 'TESTSUITE',
+
+  FICAMOS COM TESTE WARNING,
+
+  DE 
+
+
+  'No tests executed!'
+
+
+
+
+  EX:
+
+
+
+
+
+
+  PS D:\PROJETO20-PHP-FROM-THE-GROUND-UP\MODULE-3\phpunit-first-example>  ./vendor/bin/phpunit 
+PHPUnit 9.5.0 by Sebastian Bergmann and contributors.
+
+No tests executed!
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+VAMOS ESCREVER ALGUNS TESTS PARA A CLASS DE 'Router',
+
+
+que ESCREVEMOS NA PARTE ANTERIOR DO CURSO...
+
+
+
+
+
+
+
+
+
+-> O CÓDIGO DE Router.php estava assim:
+
+
+
+
+
+
+
+
+
+<?php 
+
+declare(strict_types= 1);
+
+
+namespace App19;
+
+use App19\Exceptions\RouteNotFoundException;
+
+class Router {
+
+    private array $routes = [];
+
+    // * Call it like '$router->register('GET /foo', function() { ... });'
+    private function register(string $requestMethod,string $route, callable|array $action): self {
+        $this->routes[$requestMethod][$route] = $action;
+
+        return $this;
+    }
+
+    // * This is used to call the 'register' method for the 'get' request method routes:
+    public function get(string $route, callable|array $action): self {
+ 
+        return $this->register('get', $route, $action);
+    }
+
+    public function post(string $route, callable|array $action): self {
+        return $this->register('post', $route, $action);
+    }
+
+    public function routes(): array {
+        return $this->routes;
+    }
+
+
+
+    public function resolve(string $requestUri, string $requestedMethod){
+
+    // * The first part of the request URI is the route (the second part is the query string/parametrs)
+        $route = explode('?', $requestUri)[0];
+
+        // * Find the action for the route, in the routes array.
+        $action = $this->routes[$requestedMethod][$route] ?? null;
+
+        if (!$action) {
+            // Throw custom exception.
+            throw new RouteNotFoundException();
+        }
+
+
+        if (is_callable($action)) {
+            return call_user_func($action, $route);
+        }
+
+        // * If it is not callable, it must be an array:
+        if(is_array($action)) {
+            [$class, $method] = $action;
+            if (class_exists($class)) {
+            
+                $class = new $class;
+                
+                if (method_exists($class, $method)) {
+                    return call_user_func_array([$class, $method],[]);
+                }
+            
+            }
+
+
+        }
+
+        throw new RouteNotFoundException();
+    
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+TEMOS ALGUNS METHODS DISPONÍVEIS,
+
+
+
+
+
+COMO 'get' 
+
+' 
+
+'post',
+
+
+
+QUE SIMPLESMENTE CHAMAM O METHOD DE 'register' 
+
+
+JUNTO COM A ACTION CORRESPONDENTE ...
+
+
+
+
+
+
+
+
+
+
+-> A ACTION PODE SER OU 1 ARRAY (
+  controller, method
+)
+
+  ou 1 callable simples...
+
+
+
+
+
+
+
+
+
+--> AÍ TEMOS O METHOD de 'routes()",
+
+  QUE RETORNA TODAS AS ROUTES,
+
+
+  E AÍ 
+
+  TEMOS 
+
+  O METHOD 
+
+  DE 
+
+  'resolve()',
+
+
+
+
+
+
+
+  que faz o resolve da route, com base no request URI e request method..
+
+
+
+
+
+
+
+
+
+
+--> É UM ROUTER BEM SIMPLES,
+  NOTHING FANCY... MAS 
+
+
+  O FATO DE SER SIMPLES NÃO QUER DIZER QUE NÃO DEVEMOS 
+
+ CRIAR TESTS PARA ELE...
+
+
+
+
+
+
+
+
+
+
+
+ -> VAMOS CRIAR OS TESTS EM 1 ARQUIVO DE 'RouterTest.php',
+
+
+
+ LÁ 
+
+
+ NO FOLDER DE 'tests'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ -> CERTO....
+
+
+
+
+
+
+
+ AÍ, DENTRO DISSO,
+
+
+VAMOS FAZER EXTEND DA CLASS DE 'TestCase'
+
+
+DO 'PHPUnit'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+
+namespace Tests\Unit;
+
+
+use PHPUnit\Framework\TestCase;
+
+
+class RouterTest extends TestCase
+{
+
+}
+
+
+
+
+
+
+
+
+
+A CLASS DE 'TestCase'
+
+PROVIDENCIA A FUNCIONALIDADE PARA OS TESTS...
+
+
+
+
+
+
+
+
+OS TESTS EM SI SÃO ESCRITOS COMO METHODS,
+
+DENTRO DA CLASS DE 
+
+
+'RouterTest'...
+
+
+
+
+
+
+
+
+
+
+--> A PRIMEIRA COISA QUE QUEREMOS TESTAR É 
+
+
+'TEST IF A ROUTE CAN BE REGISTERED'.
+
+
+
+
+
+
+
+
+-> OU SEJA, O METHOD TARGETADO 
+
+  É 
+
+
+
+
+    // * Call it like '$router->register('GET /foo', function() { ... });'
+    private function register(string $requestMethod,string $route, callable|array $action): self {
+        $this->routes[$requestMethod][$route] = $action;
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+
+-> para escrever 1 test para isso,
+
+
+
+podemos criar com este formato:
+
+
+
+
+
+
+
+public function it_registers_a_route(): void
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+
+namespace Tests\Unit;
+
+
+use PHPUnit\Framework\TestCase;
+
+
+class RouterTest extends TestCase
+{
+
+    public function it_registers_a_route(): void
+    {
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR PREFERE NOMES DESCRITIVOS, MESMO QUE SEJAM 
+  LONGOS...
+
+
+
+
+
+
+-> QUANDO O PROFESSOR ESCREVE TESTS, ELE TENTA SEGUIR 
+OS PADRÕES:
+
+
+
+
+
+''GIVEN 
+   - 
+   WHEN 
+   - 
+   THEN 
+  ''
+
+
+
+E 
+
+
+'' ARRANGE 
+      - 
+    ACT 
+    - 
+  ASSERT 
+
+''
+
+
+
+
+
+
+
+--> QUANDO VC QUER TESTAR ALGUMA COISA, TBM AJUDA 
+  ESCREVER O QUE VC QUER TESTAR...
+
+
+
+
+
+
+
+
+--. TIPO ASSIM:
+
+
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+
+namespace Tests\Unit;
+
+
+use PHPUnit\Framework\TestCase;
+
+
+class RouterTest extends TestCase
+{
+
+    public function it_registers_a_route(): void
+    {
+
+      // Given that we have a router object 
+
+      // When we call a register method and provide the arguments
+
+      // Then we assert that the route was registered.
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+AÍ ESCREVEMOS TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+
+namespace Tests\Unit;
+
+
+use PHPUnit\Framework\TestCase;
+
+
+class RouterTest extends TestCase
+{
+
+    public function it_registers_a_route(): void
+    {
+
+      // Given that we have a router object 
+      $router = new Router();
+
+      // When we call a register method and provide the arguments
+      $router->register();
+
+      // Then we assert that the route was registered.
+    }
+}
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+NÃO IMPORTA OS ARGUMENTS QUE ESTAMOS PASSANDO A '->register()',
+
+
+pq aqui 
+
+ESTAMOS APENAS
+
+TESTANDO SE ROUTES CONSEGUEM SER REGISTERED....
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESCREVEMOS ASSIM:
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+
+namespace Tests\Unit;
+
+
+use PHPUnit\Framework\TestCase;
+
+
+class RouterTest extends TestCase
+{
+
+    public function it_registers_a_route(): void
+    {
+
+      // Given that we have a router object 
+      $router = new Router();
+
+      // When we call a register method and provide the arguments
+      $router->register('get', '/users', ['Users', 'index']);
+
+      // Then we assert that the route was registered.
+    }
+}
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NO FINAL, NA PARTE FINAL,
+QUEREMOS 'ASSERT'...
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, USAMOS 1 DOS ASSERTION METHODS,
+
+DA CLASS DE 'TestCase'
+
+
+do PHPUNIT...
+
+
+
+
+
+
+
+
+--> NO CASO,
+
+
+
+USAMOS 
+
+
+'$this->assertEquals()',
+
+
+PARA 
+
+
+
+
+
+'''COMPARE THE EXPECTED VALUE WITH THE _ ACTUAL__ VALUE_...''
+
+
+
+
+
+
+--> usaremos um array de nome '$expected',
+
+
+e o ACTUAL VALUE pegaremos de 
+
+'$routes->routes()',
+
+
+PQ 
+
+
+ESSE '->routes()'
+
+
+RETORNA A PROPRIEDADE '$routes' 
+
+do objeto 'Router'...
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE O CÓDIGO VAI FICANDO ASSIM:
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+
+namespace Tests\Unit;
+
+
+use App\Router;
+use PHPUnit\Framework\TestCase;
+
+
+class RouterTest extends TestCase
+{
+
+    public function it_registers_a_route(): void
+    {
+        // Given that we have a router object 
+        $router = new Router();
+
+        // When we call a register method and provide the arguments
+        $router->register('get', '/users', ['Users', 'index']);
+
+        $expected = [
+            
+        ];
+
+        // Then we assert that the route was registered.
+        $this->assertEquals($expected, $router->routes());
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+aí podemos 
+
+
+
+HARDCODAR O VALUE ESPERADO DE ESSE ROUTER,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+
+namespace Tests\Unit;
+
+
+use App\Router;
+use PHPUnit\Framework\TestCase;
+
+
+class RouterTest extends TestCase
+{
+
+    public function it_registers_a_route(): void
+    {
+        // Given that we have a router object 
+        $router = new Router();
+
+        // When we call a register method and provide the arguments
+        $router->register('get', '/users', ['Users', 'index']);
+
+        $expected = [
+            'get' => [
+                '/users' => ['Users', 'index'],
+            ]
+        ];
+
+        // Then we assert that the route was registered.
+        $this->assertEquals($expected, $router->routes());
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+ASSIM QUE ESCREVEMOS ESSE TEST,
+
+
+TENTAMOS EXECUTÁ-LO NO TERMINAL, COM O COMANDO BASE:
+
+
+
+./vendor/bin/phpunit
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS NENHUM 
+
+TEST FOI ENCONTRADO...
+
+
+
+
+
+
+
+--> GANHAMOS AQUELE WARNING:
+
+
+
+
+1) Warning
+No tests found in class "Tests\Unit\RouterTest".
+
+WARNINGS!
+Tests: 1, Assertions: 0, Warnings: 1.
+
+
+
+
+
+
+
+
+
+
+-->  A RAZÃO PARA O WARNING/ERROR 
+
+É QUE 
+
+
+
+''PHPUNIT DOES NOT KNOW IF THIS METHOD IS A __ TEST_ METHOD _ OR 
+  IF IT IS A __ REGULAR __ METHOD'''..
+
+
+
+
+
+
+
+
+-> PARA HINTAR QUE NOSSO METHOD É UM 'TEST METHOD',
+   PODEMOS USAR 'ANNOTATION',
+
+
+   ou 
+
+   ENTÃO 
+   PREFIXAR 
+
+   O METHOD DE TEST COM A PALAVRA 'Test'...
+
+
+
+  
+
+
+
+
+
+-> SE VC QUER USAR A ANOTATION,
+
+  VC DEVE ESCREVER 
+
+  '/** @test */''
+
+
+  LOGO ANTES DO SEU TEST...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+
+namespace Tests\Unit;
+
+
+use App\Router;
+use PHPUnit\Framework\TestCase;
+
+
+class RouterTest extends TestCase
+{
+
+    /** @test */
+    public function it_registers_a_route(): void
+    {
+        // Given that we have a router object 
+        $router = new Router();
+
+        // When we call a register method and provide the arguments
+        $router->register('get', '/users', ['Users', 'index']);
+
+        $expected = [
+            'get' => [
+                '/users' => ['Users', 'index'],
+            ]
+        ];
+
+        // Then we assert that the route was registered.
+        $this->assertEquals($expected, $router->routes());
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+CERTO... COM ISSO, O NEGÓCIO VAI DETECTAR 1 TEST E 1 ASSERTION...
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS AO RODAR ISSO, NOVAMENTE,
+
+
+FIQUEI COM ESTE ERROR:
+
+
+
+
+
+
+
+
+
+
+
+
+Call to private method App\Router::register() from scope Tests\Unit\RouterTest  
+
+
+
+
+
+
+
+
+
+
+QUER DIZER QUE ESSE METHOD DEVE FICAR COMO 'public',
+
+PARA QUE EU CONSIGA EXECUTÁ-LO DENTRO 
+
+DA CLASS DE 'RouterTest'...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+    // * Call it like '$router->register('GET /foo', function() { ... });'
+    public function register(string $requestMethod, string $route, callable|array $action): self
+    {
+        $this->routes[$requestMethod][$route] = $action;
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+  OK... AGORA DEU CERTO...
+
+
+
+
+
+
+
+
+
+
+
+  PS D:\PROJETO20-PHP-FROM-THE-GROUND-UP\MODULE-3\phpunit-first-example>  ./vendor/bin/phpunit 
+PHPUnit 9.5.0 by Sebastian Bergmann and contributors.
+
+.                                                                   1 / 1 (100%)
+
+Time: 00:00.004, Memory: 6.00 MB
+
+OK (1 test, 1 assertion)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A OUTRA MANEIRA DE MARCAR QUE 
+
+1 METHOD 
+
+
+É DE TIPO 'TEST'
+
+
+É ESCREVÊ-LO TIPO ASSIM:
+
+
+
+''test_that_it_registers_a_route(): void 
+{
+
+}
+''
+
+
+
+
+
+
+AMBOS SÃO FINE...
+
+
+
+
+
+
+
+
+PARA TEST METHODS, O PROFESSOR USA SNAKE_CASE...
+
+
+
+
+
+
+
+
+
+
+
+MAS AGORA VAMOS ADICIONAR ALGUNS OUTROS TESTS...
+
+
+
+
+
+
+
+
+--> vamos adicionar 
+
+
+um test 
+
+para 
+
+'
+CONFIRM THAT GET AND POST ROUTES ARE REGISTERED PROPERLY 
+WHEN WE CALL THE GET AND POST METHODS...''
+
+
+
+
+
+
+
+
+--> PODERÍAMOS ADICIONAR 1 
+    UNIT TEST PARA TESTAR AMBOS,
+
+    OU CRIAR 1 PARA CADA...
+
+
+
+
+
+
+
+    -> O PROFESSOR PREFERE TER TESTS SEPARADOS..
+
+
+    TIPO ASSIM:
+
+
+  
+
+
+
+
+
+  
+class RouterTest extends TestCase
+{
+
+    /** @test */
+    public function it_registers_a_route(): void
+    {
+        // Given that we have a router object 
+        $router = new Router();
+
+        // When we call a register method and provide the arguments
+        $router->register('get', '/users', ['Users', 'index']);
+
+        $expected = [
+            'get' => [
+                '/users' => ['Users', 'index'],
+            ]
+        ];
+
+        // Then we assert that the route was registered.
+        $this->assertEquals($expected, $router->routes());
+    }
+
+    /** @test */
+    public function it_registers_a_get_route(): void
+    {
+        // Given that we have a router object 
+        $router = new Router();
+
+        // When we call a get method and provide the arguments
+        $router->get('/posts', ['Posts', 'index']);
+
+        $expected = [
+            'get' => [
+                '/posts' => ['Posts', 'index'],
+            ]
+        ];
+
+        // Then we assert that the route was registered.
+        $this->assertEquals($expected, $router->routes());
+    }
+
+    /** @test */
+    public function it_registers_a_post_route(): void
+    {
+        // Given that we have a router object 
+        $router = new Router();
+
+        // When we call a get method and provide the arguments
+        $router->post('/posts', ['Posts', 'create']);
+
+        $expected = [
+            'post' => [
+                '/posts' => ['Posts', 'create'],
+            ]
+        ];
+
+        // Then we assert that the route was registered.
+        $this->assertEquals($expected, $router->routes());
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... E ISSO FUNCIONOU...
+
+
+
+
+
+
+
+
+
+
+se tentássemos passar outros params, os tests 
+
+falhariam,
+
+o que é bom...
+
+
+
+
+
+
+
+
+
+
+
+-> AGORA VAMOS ADICIONAR OUTRO  
+  UNIT TEST 
+
+  PARA O METHOD DE '->routes()',
+
+
+  PARA QUE NÓS 
+
+
+  ''TEST THAT NO ROUTES ARE REGISTERED INITIALLY, WHEN WE CALL THAT METHOD''...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+class RouterTest extends TestCase
+{
+
+    /** @test */
+    public function it_registers_a_route(): void
+    {
+        // Given that we have a router object 
+        $router = new Router();
+
+        // When we call a register method and provide the arguments
+        $router->register('get', '/users', ['Users', 'index']);
+
+        $expected = [
+            'get' => [
+                '/users' => ['Users', 'index'],
+            ]
+        ];
+
+        // Then we assert that the route was registered.
+        $this->assertEquals($expected, $router->routes());
+    }
+
+    /** @test */
+    public function it_registers_a_get_route(): void
+    {
+        // Given that we have a router object 
+        $router = new Router();
+
+        // When we call a get method and provide the arguments
+        $router->get('/posts', ['Posts', 'index']);
+
+        $expected = [
+            'get' => [
+                '/posts' => ['Posts', 'index'],
+            ]
+        ];
+
+        // Then we assert that the route was registered.
+        $this->assertEquals($expected, $router->routes());
+    }
+
+    /** @test */
+    public function it_registers_a_post_route(): void
+    {
+        // Given that we have a router object 
+        $router = new Router();
+
+        // When we call a get method and provide the arguments
+        $router->post('/posts', ['Posts', 'create']);
+
+        $expected = [
+            'post' => [
+                '/posts' => ['Posts', 'create'],
+            ]
+        ];
+
+        // Then we assert that the route was registered.
+        $this->assertEquals($expected, $router->routes());
+    }
+
+    /** @test */
+    public function it_returns_no_routes_when_router_is_created(): void
+    {
+        // Given that we have a router class and when we create an instance of it
+        $router = new Router();
+
+        $expected = [];
+
+        // Then we assert that the routes are empty.
+        $this->assertEquals($expected, $router->routes());
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... 
+
+
+
+
+ISTO AQUI:
+
+
+
+
+
+
+   /** @test */
+    public function it_returns_no_routes_when_router_is_created(): void
+    {
+        // Given that we have a router class and when we create an instance of it
+        $router = new Router();
+
+        $expected = [];
+
+        // Then we assert that the routes are empty.
+        $this->assertEquals($expected, $router->routes());
+    }
+
+
+
+
+
+
+
+
+
+
+
+  E ISSO REALMENTE FUNCIONA, PQ 
+
+  O ARRAY DE ROUTES FICA VAZIO, NO INÍCIO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR MOSTRA COMO EXECUTAR 
+
+
+O TEST COM APENAS 1 TEST ESPECÍFICO...
+
+
+
+
+BASTA RODARMOS O COMANDO BASE 
+
+
+COM A FLAG DE --filter 
+
+
+E 
+
+AÍ O NOME DO TEST METHOD,
+
+tipo assim:
+
+
+
+
+./vendor/bin/phpunit  --filter it_returns_no_routes_when_router_is_created
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+mas o test do professor deu errado...
+
+
+
+
+
+
+
+--> NO TEST DO PROFESSOR, ELE HAVIA ESCRITO ASSIM:
+
+
+
+
+'$this->assertEmpty($router->routes())'
+
+
+
+
+
+
+
+
+O MEU FOI DIFERENTE, FOI:
+
+
+
+''        $this->assertEquals($expected, $router->routes());         ''
+ 
+
+
+
+
+
+
+
+
+
+A MESSAGE DE ERROR 
+
+
+DO PROFESSOR FOI 
+
+
+
+'$routes must not be accessed befor initialization''...
+
+
+
+
+
+
+
+
+
+
+isso aconteceu pq 
+
+a versão do professor de routes começa assim:
+
+
+
+
+    private array $routes;
+
+
+
+
+
+
+
+    e não assim:
+
+
+
+
+
+        private array $routes = [];
+
+
+
+
+
+(QUE É A MINHA VERSÃO, CORRETA)....
+
+
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE 
+  1 SIMPLES UNIT TEST COMO ESSE 
+
+  NOS AJUDA A ENCONTRAR BUGS 
+
+  NO NOSSO CÓDIGO...
+
+
+
+
+
+
+  FEITA A MUDANÇA NA CLASS DE 'Router',
+
+  PROSSEGUIMOS...
