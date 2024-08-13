@@ -1,0 +1,610 @@
+
+
+
+
+
+
+
+
+
+
+A PRIMEIRA SECTION ERA PROCEDURAL PHP...
+
+
+
+
+
+A SEGUNDA SECTION FOI DE INTERMEDIATE PHP,
+
+
+
+COM:
+
+
+
+
+
+
+
+OOP 
+
+
+MVC 
+
+
+ROUTING 
+
+
+MYSQL 
+
+
+PDO 
+
+
+
+
+etc...
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA VEREMOS TÓPICOS MAIS AVANÇADOS...
+
+
+
+
+
+
+--> VEREMOS RAPIDAMENTE OS TÓPICOS QUE 
+    PODEMOS EXPECT NESSA SECTION,
+
+
+    PARA AÍ COMEÇARMOS COM O TESTING...
+
+
+
+
+--------------------------------------
+
+
+
+
+
+
+
+
+                            ADVANCED PHP - SECTION 3
+
+
+
+
+
+
+-- INTRODUCTION TO TESTING AND PHPUNIT...
+
+
+
+
+
+
+
+-- ESCREVEREMOS TESTS COM O PHPUNIT...
+
+
+
+
+
+
+
+-- DEPENDENCY INJECTION AND CONTAINERS (é super importante)...
+
+
+
+
+
+
+
+
+
+-- BASICS DE APIs, JSON e CURL....
+
+
+
+
+
+
+
+-- PHP MAGIC COM REFLECTION API 
+
+
+
+
+
+
+
+-- GENERATORS 
+
+
+
+
+-- FEATURES PHP8 (como attributes)...
+
+
+
+
+
+-- 'DATA MAPPER' PATTERN 
+
+
+
+
+-- 'DTO' 
+
+
+
+
+-- CACHING E SECURITY (XSS, CSRF)...
+
+
+
+
+
+-- SCHEDULED JOBS (cron)
+
+
+
+
+
+-- HOSTING AND DEPLOYMENT...
+
+
+
+
+
+
+-- BUILD AN APP (full project)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... VAMOS COMEÇAR COM O TESTING...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O WRITE DE TESTS É IMPORTANTE,
+    E É UMA BOA PRACTICE...
+
+
+
+
+
+
+
+
+
+
+
+-> VC TEM QUE TESTAR TODAS AS PARTES 
+    MANUALMENTE...
+
+
+
+
+
+
+
+--> VC PODE PEDIR AJUDA PARA A Q E A TEAM,
+
+PARA FAZER O TESTING..
+
+
+
+
+
+
+
+--> FAZER PEQUENAS CHANGES/REFACTOR NÃO DEVE 
+    EXIGIR 
+
+    O REFACTOR DE TUDO..
+
+
+
+
+
+
+--> É NESSES ASPECTOS QUE AUTOMATED TESTING PODE NOS AJUDAR...
+
+
+
+
+
+
+
+
+
+
+
+
+--> POR MEIO DO WRITE DE TESTS, VC GANHA MAIS CONFIDENCE,
+    PARA QUE QUANDO VC 
+
+
+    TENHA DE FAZER REFACTOR DO CODE,
+
+    VC NÃO TERÁ MEDO DE QUEBRAR FUNCTIONALITY...
+
+
+
+
+
+
+
+
+--> SEM TESTS, VC FICA COM MT MAIS MEDO DE MUDAR AS COISAS..
+
+
+
+
+
+
+
+-> COM PROPER TESTS,
+    SE VC FAZ 1 CHANGE QUE INTRODUZ 1 BUG,
+
+
+    SEU APP 
+
+    VAI 'FAIL'
+
+    ANTES 
+
+    DE 
+
+    ENTRAR 
+    EM PRODUCTION...
+
+
+
+
+
+
+
+
+
+
+-> HÁ DIFERENTES TIPOS DE TÉCNICAS DE TESTING 
+    E TESTING FRAMEWORKS...
+
+
+
+
+
+
+
+
+
+
+--> FALAREMOS UM POUCO SOBRE TDD E BDD 
+    NO FINAL DO VIDEO....
+
+
+
+
+
+
+
+
+
+
+SOBRE OS TIPOS DE TESTING, TEMOS:
+
+
+
+
+
+1) ACCESSIBILITY TESTING 
+
+
+2) ACCEPTANCE TESTING 
+
+
+3) END TO END TESTING 
+
+
+4) FUNCTIONAL TESTING 
+
+
+5) INTEGRATION TESTING 
+
+
+6) LOAD TESTING 
+
+
+7) UNIT TESTING...
+
+
+8) STRESS TESTING 
+
+
+
+9) REGRESSION TESTING 
+
+
+10) SMOKE TESTING..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+UNIT E INTEGRATION TESTING..
+
+
+
+
+
+
+
+
+
+
+
+
+
+UNIT TESTS --> TESTS SMALL PIECE OF CODE (i.e single function),
+                and mocks/fakes any needed dependencies 
+                or database connections..
+
+
+
+
+
+                ESSE TIPO DE TEST É BEM MAIS RÁPIDO DE IMPLEMENTAR 
+
+                E DE RESOLVER OS PROBLEMAS..
+
+
+
+
+
+
+INTEGRATION TESTS:
+
+
+
+
+
+'''TESTS MULTIPLE MODULES OR UNITS TOGETHER (i.e method that connects to databse, runs queries and returns something')
+    DEPENDENCIES CAN BE RESOLVED AND __
+    IT __ CAN ALSO USE DATABASE CONNECTION...''' 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+HÁ VÁRIOS TESTING FRAMEWORKS:
+
+
+
+
+
+
+
+'CODECEPTION' 
+
+
+'BEHAT'
+
+
+
+
+'PHPUNIT'...
+
+
+
+
+
+
+
+
+
+
+FALAREMOS SOBRE O PHPUNIT NA PRÓXIMA AULA....
+
+
+
+
+
+
+
+
+ANTES DE TERMINARMOS ESTE VÍDEO,
+
+DEVEMOS FALAR 
+
+
+
+
+
+SOBRE 
+
+
+
+
+
+
+
+
+
+TDD:
+
+
+
+''TEST-DRIVEN DEVELOPMENT'''
+
+
+
+
+BDD:
+
+
+
+
+'BEHAVIOR-DRIVEN DEVELOPMENT''..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM AMBOS APPROACHES,
+
+
+
+'THE CODE IS WRITTEN FIRST,
+    AND THE CODE IS __WRITTEN AFTERWARDS...''
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TDD:
+
+
+
+
+
+
+--> O PROCESSO É TIPO ASSIM:
+
+
+''VC ESCREVE O TEST, COM 1 TEST-CASE, 
+    AÍ VC EXECUTA ESSE TEST, QUE FALHA... 
+
+    AÍ VC ESCREVE O CÓDIGO, DE MODO QUE ELE PASSE NO TEST,
+
+    E AÍ VC REPETE ESSAS ETAPAS, AO MESMO TEMPO QUE REFATORA E ORGANIZA 
+    O CÓDIGO...''
+
+
+
+
+
+
+
+
+
+
+
+
+BDD:
+
+
+
+-- É PARECIDO COM TDD,
+    MAS EM VEZ DE ESCREVER TESTS E TEST-CASES,
+
+    VC ESCREVE_ BEHAVIORS, 'IN SIMPLE ENGLISH'...
+
+
+
+
+
+-- NÃO É TÃO FÁCIL DE 'ACHIEVE' 
+    TDD EM REAL WORLD APPLICATIONS...
+
+     
+     PQ COISAS IMPREVISÍVEIS PODEM ACONTECER 
+     NO MEIO OU FINAL DE 1 PROJECT...
+
+
+
+
+
+
+
+
+     --> O PROFESSOR NÃO SEGUE TDD PQ 
+     ISSO SIMPLESMENTE NÃO FUNCIONA, PARA ELE...
+
+
+     --> O PROFESSOR PREFERE ESCREVER TESTS DEPOIS,
+        E NÃO ANTES...
+
+
+
+
+    --> SE VC N CONSEGUE SEGUIR ESSES APPROACHES,
+        NÃO É O FIM DO MUNDO,
+
+        MESMO SE OS TESTS FOREM ESCRITOS POSTERIORMENTE...
