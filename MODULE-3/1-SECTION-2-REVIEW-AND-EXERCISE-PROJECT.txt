@@ -1,0 +1,2352 @@
+
+
+
+
+
+
+TERMINAMOS A PARTE 2 DO CURSO...
+
+
+
+
+
+
+
+-> AINDA NÃO ACABAMOS... DEVEMOS REVISAR A PARTE 2, PARA ENTÃO FAZERMOS A PARTE 3...
+
+
+
+
+
+
+
+
+
+BEGINNER - SECTION 1:
+
+
+
+- PHP INSTALLATION E SETUP 
+
+
+- WEB SERVERS AND HOW THEY WORK 
+
+
+- PHP IN HTML 
+
+
+
+
+- SYNTAX, VARIABLES E REFERENCES 
+
+
+
+
+- TYPECASTING E DATA TYPES 
+
+
+
+- OPERATORS E OPERATOR PRECEDENCE 
+
+
+
+- CONTROL STRUCTURES 
+
+
+- WORKING WITH ARRAYS, DATES AND FILES 
+
+
+
+- PHP AND APACHE CONFIGS 
+
+
+
+-- ERROR HANDLING 
+
+
+-- FUNCTIONS 
+
+
+-- PHP 8...
+
+
+
+
+
+
+
+
+
+
+
+
+SECTION 2 - INTERMEDIATE PHP:
+
+
+
+
+
+
+
+- PHP WITH DOCKER 
+
+
+
+- OBJECTS E CLASSES (OOP) 
+
+
+- FOUR PRINCIPLES OF OOP 
+
+
+
+- PHP8 (i.e Property Promotion)
+
+
+
+- PSR, Composer and autoloading 
+
+
+
+- Magic Methods 
+
+
+
+- Traits, Statics e LATE STATIC BINDING...
+
+
+
+- Exceptions e Iterators
+
+
+
+
+
+
+
+- Superglobals ($_POST, $_COOKIE, $_SERVER, $_ENV, etc)
+
+
+
+
+
+
+
+
+- File uploads, http headers, etc...
+
+
+
+
+
+
+
+- MVC 
+
+
+
+
+
+
+- MySQL e PDO...
+
+
+
+
+
+
+
+
+
+
+
+ESSES SÃO MT TÓPICOS, O BASTANTE PARA VC COMEÇAR A TRABALHAR COM O PHP...
+
+
+
+
+
+HÁ MAIS TÓPICOS QUE PRECISAMOS COBRIR, QUE VEREMOS NESSA TERCEIRA PARTE..
+
+ESSES TÓPICOS SERÃO MAIS AVANÇADOS...
+
+
+
+
+
+
+A TERCEIRA PARTE DO CURSO INCLUÍ O PROJECT EM QUE TRABALHAREMOS, JUNTOS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS TEMOS QUE FALAR SOBRE O EXERCISE....
+
+
+
+
+
+
+
+
+-> AGORA TEREMOS OUTRO MINI EXERCISE...
+
+
+
+
+
+
+
+- AGORA QUE VIMOS OOP E DATABASES,
+ PODEMOS FAZER O MESMO EXERCISE, MAS USANDO OOP...
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR QUER QUE FAÇAMOS TUDO ISSO COMO EXERCISE...
+
+
+
+
+
+
+
+
+----> É UMA BOA OPORTUNIDADE PARA PRATICAR
+    O QUE APRENDEMOS NA PRIMEIRA E SEGUNDA SECTIONS DO CURSO...
+
+
+
+
+
+
+
+
+
+
+
+--> DEVEMOS PEGAR O LINK PARA O REPOSITORY....
+
+
+
+
+
+
+
+--> OBJETIVO DO EXERCÍCIO:
+
+
+
+
+-- 'LET THE USER UPLOAD THE CSV FILE THAT WILL CONTAIN
+    A LIST OF TRANSACTIONS, AND YOU NEED TO IMPORT THOSE 
+    TRANSACTIONS INTO A TRANSACTION TABLE....
+
+    AND THEN DISPLAY THE 
+    TRANSACTIONS IN THE SAME FORMAT WE DID, IN THE FIRST 
+
+    PART OF THE COURSE''..  
+
+
+
+
+
+
+
+
+    --> É O MESMO EXERCISE DA PRIMEIRA PARTE DO CURSO, MAS COM:
+
+
+    1) OOP ....
+
+
+    2) DEIXANDO O USER UPLOADAR A FILE, EM VEZ DE LER 
+        AS FILES DO DIRECTORY...
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR PROVIDENCIA 1 ESQUELETO...
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR PROVIDENCIA 
+    A UI...
+
+
+
+
+
+
+
+
+
+
+
+--> se vc quer, pode construir todo mvc from scratch...
+
+
+
+
+
+
+
+--> O PROFESSOR TAMBÉM PROVIDENCIA O FOLDER com 'Dockerfile' e 'docker-compose.yml'...
+
+
+
+ https://github.com/ggelashvili/learnphptherightway-project/tree/2.33
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ --> instruções:
+
+
+
+
+
+
+
+
+
+
+
+
+
+ #### Instructions
+
+1. Clone this repository to your local or download it.
+2. If you are using docker you can `cd` into the docker directory & run `docker-compose up -d`. If you are using something else like XAMPP just make sure you have Web Server (Apache), PHP & MySQL running.
+   * Please note that **PHP 8** is required if you want to use the skeleton that I am providing. You will need to adjust the code to make it work for lower PHP versions.
+3. Create a `.env` file by copying variables from `.env.example`. Fill in those values in `.env` file.
+4. Make sure that whatever database name you enter actually exists, if not, create that database.
+5. Confirm that once you open your `http://localhost:8000` it loads the home page.
+6. Create a new route & controller that will let you upload the transactions CSV file. The UI is not important, so you don't even need any CSS. If you want you can use `HomeController` and simply add a new method and route for it or create a new controller entirely.
+7. Your controller should accept the uploaded file, read it line by line & save the data into the **transactions** table. You can download the sample transactions file to upload [here](./transactions_sample.csv)
+   * Create the **transactions** table with appropriate columns to store the data
+   * Create a model within the **Models** directory to actually process the file & save data into the database
+   * First column is the date of the transaction
+   * Second column is the check # which is optional & is not always provided
+   * The third column is transaction description
+   * The fourth column is the amount (negative number indicates it's an expense, positive number indicates it's an income), it's up to you how you want to store it
+8. The view file is provided for you under `views/transactions.php` you just need to render this from your controller & pass down the necessary data to display transactions.
+   * The date of the transaction should be in this format "Jan 4, 2021"
+   * Show income amounts in green color & show expense amounts in red
+9. Submit the PR with your changes, I will review & provide feedback, if you get stuck or have any questions let me know.
+10. **Bonus:** Allow multiple file uploads so that more than one CSV file can be uploaded at the same time.
+
+
+
+
+
+
+
+
+
+
+
+
+
+A DOCKERFILE:
+
+
+
+
+
+
+
+
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: "."
+      dockerfile: Dockerfile
+    container_name: programwithgio-app
+    restart: always
+    working_dir: /var/www/
+    volumes:
+      - ../:/var/www
+  nginx:
+    image: nginx:1.19-alpine
+    container_name: programwithgio-nginx
+    restart: always
+    ports:
+      - 8000:80
+    volumes:
+      - ../:/var/www
+      - ./nginx:/etc/nginx/conf.d
+  db:
+    container_name: programwithgio-db
+    image: mysql:8.0
+    volumes:
+      - ./storage/mysql:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - 3306:3306
+
+
+
+
+
+
+
+
+
+
+
+certo... 
+
+rodo 
+
+
+docker-compose up -d --build 
+
+
+
+no folder 
+
+
+
+
+onde há os arquivos...
+
+
+
+
+
+
+
+
+--> depois, 
+
+tento entrar na página localhost:8000,
+
+
+fico com 1 erro...
+
+
+
+
+
+o erro era de que o 'autoload.php'
+
+não estava sendo encontrado...
+
+
+
+
+
+
+
+
+
+isso aconteceu pq o 'autoload.php'
+
+
+não estava configurado corretamente..
+
+
+
+
+-- para configurar corretamente,
+
+
+entrei no container do docker que tem o php + composer, com 
+
+
+o comando
+
+''docker exec -it programwithgio-app bash ''
+
+
+
+
+
+
+
+
+isso feito,
+
+
+
+
+
+rodei o comando 
+
+
+
+
+composer dump-autoload -o,
+
+
+
+para gerar 
+
+
+
+
+
+a data necessária no arquivo autoload.php...
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO,
+
+
+
+
+
+FICO COM 1 NOVO ERROR,
+
+
+
+AO ENTRAR NA PAGE DE 'localhost:8000':
+
+
+Fatal error: Uncaught Error: Class "Dotenv\Dotenv" not found in /var/www/public/index.php:12 Stack trace: #0 {main} thrown in /var/www/public/index.php on line 12
+
+
+
+
+
+
+
+
+
+
+
+ISSO ACONTECEU PQ O 'dotenv'
+
+ainda não foi instalado,
+
+
+com o composer...
+
+
+
+
+
+
+
+
+
+--> para isso, basta rodar, no container com bash:
+
+
+
+
+
+
+
+
+
+'composer require vlucas/phpdotenv' 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo... isso funcionou.
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ, NO CASO, FIQUEI COM OUTRO ERROR:
+
+
+
+
+
+ENTERED
+Fatal error: Uncaught PDOException: SQLSTATE[HY000] [1045] 
+Access denied for user 'ROOT'@'172.18.0.2' (using password: YES) in /var/www/app/DB.php:31 
+Stack trace: #0 /var/www/app/App.php(15): App\DB->__construct(Array) #1
+ /var/www/public/index.php(29): App\App->__construct(Object(App\Router),
+  Array, Object(App\Config)) #2 {main} thrown in /var/www/app/DB.php on line 31
+
+
+
+
+
+
+
+
+os parameters estão sendo usados incorretamente (as env variables)...
+
+
+
+
+
+
+
+
+o problema era que o user estava como 'ROOT', quando deveria ser 'root',
+
+no arquivo '.env'...
+
+
+
+
+
+
+
+
+com essa correção, fico com outro erro:
+
+
+ENTERED
+Fatal error: Uncaught PDOException: SQLSTATE[HY000] [1049] Unknown database 'home_db' in /var/www/app/DB.php:31 Stack trace: #0 /var/www/app/App.php(15): App\DB->__construct(Array) #1 /var/www/public/index.php(29): App\App->__construct(Object(App\Router), Array, Object(App\Config)) #2 {main} thrown in /var/www/app/DB.php on line 31
+
+
+
+
+
+
+
+
+
+-> para consertar isso,
+    basta trocar o nome, no env, para 'HOME_DB',
+
+    que foi a database que eu criei, usando o antares...
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA CONSEGUI ENTRAR 
+
+
+
+NA HOME PAGE...
+
+
+
+
+
+
+
+
+
+
+-. O PRÓXIMO PASSO:
+
+
+
+
+
+Create a new route & controller that will let
+ you upload the transactions CSV file. The UI 
+ is not important, so you don't even need any CSS. 
+ If you want you can use HomeController and simply add a
+  new method and route for it or create a new controller entirely.
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+CRIEI 1 NOVO CONTROLLER, E UMA NOVA ROUTE, DE GET,
+
+
+PARA 
+
+
+PEGAR ESTE ARQUIVO INDEX.PHP:
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Upload Transaction</title>
+</head>
+
+<body>
+    <h1>Upload Transaction</h1>
+    <form action="/transaction" method="post" enctype="multipart/form-data">
+        <label for="transaction">Choose your transaction:</label>
+        <br>
+        <br>
+        <input type="file" name="file" />
+        <br>
+        <br>
+        <button type="submit">Upload</button>
+    </form>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+O CONTROLLER:
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\View;
+
+class TransactionController
+{
+    public function index(): View
+    {
+        return View::make('create-transaction');
+    }
+
+    public function create(): void
+    {
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+e o register das routes:
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+use App\App;
+use App\Config;
+use App\Controllers\HomeController;
+use App\Controllers\TransactionController;
+use App\Router;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+define('STORAGE_PATH', __DIR__ . '/../storage');
+define('VIEW_PATH', __DIR__ . '/../views');
+
+$router = new Router();
+
+$router
+    ->get('/', [HomeController::class, 'index'])
+    ->get('/transaction', [TransactionController::class, 'index'])
+    ->post('/transaction', [TransactionController::class, 'create']);
+
+(
+    new App(
+        $router,
+        ['uri' => $_SERVER['REQUEST_URI'], 'method' => $_SERVER['REQUEST_METHOD']],
+        new Config($_ENV)
+    )
+)->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA PRECISO CRIAR O MODEL DE 'transaction',
+ talvez o  de 'user', também,
+
+
+
+ e aí 
+
+
+UTILIZÁ-LOS, LÁ NO 'TransactionController'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-->  O PRÓXIMO PASSO É:
+
+
+
+
+
+
+
+
+
+
+
+
+''
+
+Your controller should accept the uploaded file,
+ read it line by line & save the data into the transactions table.
+  You can download the sample transactions file to upload here ''
+
+
+
+
+
+
+
+
+
+
+
+
+
+Create the transactions table with appropriate columns to store the data.
+
+Create a model within the Models directory to actually process the file & save data into the database
+
+First column is the date of the transaction
+
+Second column is the check # which is optional & is not always provided
+
+The third column is transaction description
+
+The fourth column is the amount (negative number indicates it's an expense, positive number indicates it's an income), it's up to you how you want to store it
+
+
+
+
+
+
+
+
+
+
+TIPO ALGO ASSIM:
+
+
+
+
+
+
+
+
+USE HOME_DB;
+
+DROP TABLE TRANSACTIONS;
+
+CREATE TABLE TRANSACTIONS (
+    DATE DATETIME NOT NULL,
+    CHECK_NUMBER VARCHAR(255),
+    DESCRIPTION VARCHAR(255) NOT NULL,
+    AMOUNT DECIMAL(10, 4) NOT NULL
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ISTO:
+
+
+
+
+
+
+
+- The view file is provided for you under views/transactions.php you just need to render this from your controller & pass down the necessary data to display transactions.
+- The date of the transaction should be in this format "Jan 4, 2021"
+- Show income amounts in green color & show expense amounts in red
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FUI ESCREVENDO TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+use App\App;
+use App\Config;
+use App\Controllers\HomeController;
+use App\Controllers\TransactionController;
+use App\Router;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+define('STORAGE_PATH', __DIR__ . '/../storage');
+define('VIEW_PATH', __DIR__ . '/../views');
+
+$router = new Router();
+
+$router
+    ->get('/', [HomeController::class, 'index'])
+    ->get('/transactions', [TransactionController::class, 'index'])
+    ->get('/create-transaction', [TransactionController::class, 'createTransactionIndex'])
+    ->post('/transactions', [TransactionController::class, 'createTransaction']);
+
+(
+    new App(
+        $router,
+        ['uri' => $_SERVER['REQUEST_URI'], 'method' => $_SERVER['REQUEST_METHOD']],
+        new Config($_ENV)
+    )
+)->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, LÁ EM 'TRANSACTION CONTROLLER':
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\View;
+
+class TransactionController
+{
+    public function index(): View
+    {
+        return View::make('transactions');
+    }
+
+
+    public function createTransactionIndex(): View
+    {
+        return View::make('create-transaction');
+    }
+
+    public function createTransaction(): void
+    {
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA FALTA A LÓGICA DE 'CONNECT AO DATABASE',
+
+para então pegarmos as transactions...
+
+
+
+
+
+
+
+
+FIZ UM INSERT DE 1 ROW NA TABLE,
+
+
+COM ESTA SINTAXE:
+
+
+
+
+
+
+
+
+INSERT INTO TRANSACTIONS (
+DATE,
+CHECK_NUMBER,
+DESCRIPTION,
+AMOUNT
+) VALUES (
+NOW(),
+'1',
+'A NORMAL CHECK',
+-200
+);
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA PRECISO RENDERIZAR ISSO
+
+NA VIEW DE TRANSACTIONS, DE ALGUMA FORMA..
+
+
+
+
+
+
+
+
+PROVAVELMENTE SERÁ O USO DO MODEL DE 'Transaction.php',
+
+
+no method 'index'
+
+
+do controller de TransactionController..
+
+
+
+
+
+TIPO ALGO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+// the `Model` base model will have the $db property, which will be used to execute the queries/statements.
+class Transaction extends \App\Model
+{
+
+    public function __construct()
+    {
+        parent::__construct(); // This is used so that the $db property is available in this 'Transaction' class.
+    }
+
+    public function get(): array
+    {
+        $stmt = $this->db->prepare("SELECT * FROM transactions;");
+        $stmt->execute();
+
+        $result = $stmt->fetch();
+
+        return $result;
+    }
+
+    // Will return the id of the user
+    public function create(string $email, string $name, bool $isActive = true): int
+    {
+        // $stmt = $this->db->prepare('INSERT INTO users (email, full_name, is_active, created_at) VALUES (?, ?, ?, NOW())');
+
+
+        // $stmt->execute([$email, $name, $isActive]);
+
+        // return (int) $this->db->lastInsertId();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+devemos ignorar o method de 'create'...
+
+
+
+
+
+
+o method de 'get' está realmente retornando as TRANSACTIONS, mas ainda temos 
+que fazer 
+RETURN delas, lá na view...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Transactions</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+
+        table tr th,
+        table tr td {
+            padding: 5px;
+            border: 1px #eee solid;
+        }
+
+        tfoot tr th,
+        tfoot tr td {
+            font-size: 20px;
+        }
+
+        tfoot tr th {
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Check #</th>
+                <th>Description</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php print_r($transactions); ?>
+            <?php foreach ($transactions as $transaction): ?>
+                <tr>
+                    <td><?php echo $transaction['DATE']; ?></td>
+                    <td><?php echo $transaction['CHECK_NUMBER']; ?></td>
+                    <td><?php echo $transaction['DESCRIPTION']; ?></td>
+                    <td><?php echo $transaction['AMOUNT']; ?></td>
+
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="3">Total Income:</th>
+                <td><!-- TODO --></td>
+            </tr>
+            <tr>
+                <th colspan="3">Total Expense:</th>
+                <td><!-- TODO --></td>
+            </tr>
+            <tr>
+                <th colspan="3">Net Total:</th>
+                <td><!-- TODO --></td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok... isso me dá as transactions, em 1 list, tudo tirado da database...
+
+
+
+
+
+
+INSIRO MAIS ALGUNS ROWS, PARA TESTAR...
+
+
+
+
+
+
+
+
+
+ok... mas estou ficando com apenas 1 value, e não vários...
+
+
+
+alguma coisa está dando errado...
+
+
+
+
+
+
+
+
+O PROBLEMA ERA O METHOD DE 'fetch',
+
+em vez de 'fetchAll':
+
+
+
+
+
+
+
+    public function get(): array
+    {
+        $stmt = $this->db->prepare("SELECT * FROM transactions;");
+        $stmt->execute();
+
+        $result = $stmt->fetchAll();
+
+        return $result;
+    }
+
+
+
+
+
+
+
+
+
+FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Transactions</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+
+        table tr th,
+        table tr td {
+            padding: 5px;
+            border: 1px #eee solid;
+        }
+
+        tfoot tr th,
+        tfoot tr td {
+            font-size: 20px;
+        }
+
+        tfoot tr th {
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Check #</th>
+                <th>Description</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($transactions as $transaction): ?>
+                <tr>
+                    <td><?php echo $transaction['DATE']; ?></td>
+                    <td><?php echo $transaction['CHECK_NUMBER']; ?></td>
+                    <td><?php echo $transaction['DESCRIPTION']; ?></td>
+                    <td><?php echo $transaction['AMOUNT']; ?></td>
+
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="3">Total Income:</th>
+                <td><!-- TODO --></td>
+            </tr>
+            <tr>
+                <th colspan="3">Total Expense:</th>
+                <td><!-- TODO --></td>
+            </tr>
+            <tr>
+                <th colspan="3">Net Total:</th>
+                <td><!-- TODO --></td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+AGORA FALTA FAZER FUNCIONAR O 'Total Income', 'Total Expense' e 'Net total'....
+
+
+
+
+
+
+--> PODEMOS FAZER ISSO FUNCIONAR COM SQL FUNCTIONS... 
+    MAS NÃO SEI SE VALE A PENA...
+
+    
+
+
+
+
+
+
+
+
+
+
+
+FIZ ISSO COM HELPER FUNCTIONS NO PRÓPRIO PHP,
+
+
+FICOU ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Transactions</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+
+        table tr th,
+        table tr td {
+            padding: 5px;
+            border: 1px #eee solid;
+        }
+
+        tfoot tr th,
+        tfoot tr td {
+            font-size: 20px;
+        }
+
+        tfoot tr th {
+            text-align: right;
+        }
+
+        .green {
+            color: green;
+        }
+
+        .red {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Check #</th>
+                <th>Description</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($transactions as $transaction): ?>
+                <tr>
+                    <td><?php echo $transaction['DATE']; ?></td>
+                    <td><?php echo $transaction['CHECK_NUMBER']; ?></td>
+                    <td><?php echo $transaction['DESCRIPTION']; ?></td>
+                    <td><?php echo $transaction['AMOUNT']; ?></td>
+
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="3">Total Income:</th>
+                <td>
+                    <span><?php echo formatDollarAmount($totals['totalIncome']) ?? 0 ?></span>
+                </td>
+            </tr>
+            <tr>
+                <th colspan="3">Total Expense:</th>
+                <td>
+                    <span><?php echo formatDollarAmount($totals['totalExpense']) ?? 0 ?></span>
+                </td>
+            </tr>
+            <tr>
+                <th colspan="3">Net Total:</th>
+                <td>
+                    <span><?php echo formatDollarAmount($totals['netTotal']) ?? 0 ?></span>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AS HELPER FUNCTIONS (helpers.php):
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+function formatDollarAmount(float $amount): string
+{
+    $isNegative = $amount < 0;
+
+    return ($isNegative ? '-' : '') . '$' . number_format(abs($amount), 2, '.', '');
+}
+
+function formatDate(string $date): string
+{
+
+    return date('M j, Y', strtotime($date));
+}
+
+
+
+
+
+
+
+
+
+
+
+
+O IMPORT, NO 'public/index.php':
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+use App\App;
+use App\Config;
+use App\Controllers\HomeController;
+use App\Controllers\TransactionController;
+use App\Router;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../app/helpers.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+define('STORAGE_PATH', __DIR__ . '/../storage');
+define('VIEW_PATH', __DIR__ . '/../views');
+
+$router = new Router();
+
+$router
+    ->get('/', [HomeController::class, 'index'])
+    ->get('/transactions', [TransactionController::class, 'index'])
+    ->get('/create-transaction', [TransactionController::class, 'createTransactionIndex'])
+    ->post('/transactions', [TransactionController::class, 'createTransaction']);
+
+(
+    new App(
+        $router,
+        ['uri' => $_SERVER['REQUEST_URI'], 'method' => $_SERVER['REQUEST_METHOD']],
+        new Config($_ENV)
+    )
+)->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+
+
+essa primeira parte está meio pronta...
+
+
+
+
+
+
+
+
+
+
+
+
+mas os values ainda estão formatados meio errados,
+
+
+e  os values em 'amount' não estão green/red dependendo se são 
+
+VALORES NEGATIVOS OU POSITIVOS....
+
+
+
+
+
+
+
+
+
+
+
+OK.. AGORA DEI UMA AJUSTADA, E FUNCIONOU...
+
+
+
+
+
+
+
+
+
+
+
+AGORA SÓ PRECISO FAZER O UPLOAD DA TRANSACTION,
+
+READ DA TRANSACTION 
+
+E ENTÃO 
+
+UPLOAD 
+
+DA TRANSACTION 
+
+PARA DENTRO 
+
+
+
+DA DATABASE...
+
+
+
+
+
+
+
+
+
+DE ACORDO COM ESTA INSTRUCTION:
+
+
+
+
+
+
+
+
+
+
+
+
+Create a new route & controller that will let you upload the
+ transactions CSV file. The UI is not important, 
+ so you don't even need any CSS. If you want you
+  can use HomeController and simply add a new method
+   and route for it or create a new controller entirely.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AH, TAMBÉM FALTOU O 'FORMAT'  DA DATE...
+
+
+
+
+
+
+-> PODEMOS FORMATAR A DATE 
+
+
+com as helper functions também, tipo assim:
+
+
+
+          <?php foreach ($transactions as $transaction): ?>
+                <tr>
+                    <td><?= formatDate($transaction['DATE']); ?></td>
+                    <td><?php echo $transaction['CHECK_NUMBER']; ?></td>
+                    <td><?php echo $transaction['DESCRIPTION']; ?></td>
+                    <td> <?php if ($transaction['AMOUNT'] < 0): ?>
+                            <span style="color: red;">
+                                <?= formatDollarAmount($transaction['AMOUNT']) ?>
+                            </span>
+                        <?php elseif ($transaction['AMOUNT'] > 0): ?>
+                            <span style="color: green;">
+                                <?= formatDollarAmount($transaction['AMOUNT']) ?>
+                            </span>
+                        <?php else: ?>
+                            <?= formatDollarAmount($transaction['AMOUNT']) ?>
+                        <?php endif ?>
+                    </td>
+
+                </tr>
+            <?php endforeach; ?>
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA FALTOU A PARTE DO UPLOAD TRANSACTION...
+
+
+
+
+
+
+
+
+
+PAGE DE 'localhost:8000/create-transaction'....
+
+
+
+
+
+
+
+
+
+
+-> JÁ TENHO O INPUT FIELD 
+
+
+E 
+
+O BUTTON PARA FAZER UPLOAD:
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Upload Transaction</title>
+</head>
+
+<body>
+    <h1>Upload Transaction</h1>
+    <form action="/transaction" method="post" enctype="multipart/form-data">
+        <label for="transaction">Choose your transaction:</label>
+        <br>
+        <br>
+        <input type="file" name="file" />
+        <br>
+        <br>
+        <button type="submit">Upload</button>
+    </form>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+AGORA TENHO QUE CRIAR A LÓGICA DO MODEL, QUE 
+VAI FAZER O ACTUAL UPLOAD DESSA FILE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AGORA É A PARTE _ REALMENTE __ DIFÍCIL...
+
+
+
+
+
+
+
+
+
+
+
+-> TEMOS QUE:
+
+
+
+
+
+1) PASSAR A FILE .csv em 1 request...
+
+
+
+
+2) ler a file .csv, com 'fgetcsv' ou algo do gênero....
+
+
+
+3) converter o csv em 1 array, dentro da memory do php... (no controller, provavelmente)
+
+
+
+
+4) inserir esse array de rows do csv, para dentro da database... (dentro do model...)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ALGO ASSIM:
+
+
+
+
+
+
+
+
+
+    public function createTransaction(array $transactionArray): void
+    {
+
+        if (empty($transactionArray) || count($transactionArray) < 1) {
+            throw new \Exception('No transactions were provided in the document.');
+        }
+
+        // Prepare a statament:
+        $stmt = $this->db->prepare('INSERT INTO transactions (DATE, CHECK_NUMBER, DESCRIPTION, AMOUNT) VALUES (?, ?, ?, ?)');
+
+        // For each transaction in the $transactionArray, execute an insert statement:
+        foreach ($transactionArray as $transaction) {
+            $stmt->execute([$transaction['DATE'], $transaction['CHECK_NUMBER'], $transaction['DESCRIPTION'], $transaction['AMOUNT']]);
+        }
+
+        echo 'Successfully uploaded transactions!';
+    }
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O CONTROLLER FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public function createTransaction(): void
+    {
+        $transactionModel = new \App\Models\Transaction();
+
+
+        echo var_dump($_FILES['file']);
+
+        $filePath = STORAGE_PATH . '/' . $_FILES['file']['name'];
+
+        move_uploaded_file($_FILES['file']['tmp_name'], $filePath);
+
+        $transactions = [];
+
+        if (!file_exists($filePath)) {
+            trigger_error('File "' . $filePath . '" does not exist', E_USER_ERROR);
+        }
+
+        $file = fopen($filePath, 'r'); // Will be stored in 'resource' format.
+
+        fgetcsv($file); // Skip the first line (read it, discarding it).
+
+        // Read csv, line by line, and store each line in an array.
+        while (($line = fgetcsv($file)) !== false) {
+
+            $transaction = extractTransaction($line);
+
+            $transactions[] = $transaction;
+        }
+
+        unlink($filePath);
+
+        print_r($transactions);
+
+        $transactionModel->createTransaction($transactions);
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+AGORA SÓ PRECISO 
+
+
+
+
+FAZER COM QUE ESSE METHOD DO MODEL REALMENTE FAÇA UPLOAD 
+
+
+DESSA DATA, COMO ARRAY, à DATABASE...
+
+
+
+
+
+
+
+
+
+
+
+
+CONSEGUI... TERMINEI..
+
+
+
+
+
+
+
+
+
+
+
+
+O CONTROLLER FICOU ASSIM:
+
+
+
+
+
+
+
+
+
+
+    public function createTransaction(): void
+    {
+        // No file uploaded error
+        if ($_FILES['file']['error'] == 4) {
+            throw new NoFileSentException();
+        } else if ($_FILES['file']['error'] > 0) { // Generic Error
+            throw new \Exception('File upload failed.');
+        }
+
+        $filePath = STORAGE_PATH . '/' . $_FILES['file']['name'];
+
+        move_uploaded_file($_FILES['file']['tmp_name'], $filePath);
+
+        $transactions = [];
+
+        if (!file_exists($filePath)) {
+            trigger_error('File "' . $filePath . '" does not exist', E_USER_ERROR);
+        }
+
+        $file = fopen($filePath, 'r'); // Will be stored in 'resource' format.
+
+        fgetcsv($file); // Skip the first line (read it, discarding it).
+
+        // Read csv, line by line, and store each line in an array.
+        while (($line = fgetcsv($file)) !== false) {
+
+            $transaction = extractTransaction($line);
+
+            $transactions[] = $transaction;
+        }
+
+        unlink($filePath);
+
+        $transactionModel = new \App\Models\Transaction();
+
+        $transactionModel->createTransaction($transactions);
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+E 
+
+
+
+O MODEL 
+
+FICOU ASSIM:
+
+
+
+
+
+
+
+
+    public function createTransaction(array $transactionArray): void
+    {
+
+        if (empty($transactionArray) || count($transactionArray) < 1) {
+            throw new \Exception('No transactions were provided in the document.');
+        }
+
+        // Prepare a statament:
+        $stmt = $this->db->prepare('INSERT INTO transactions (DATE, CHECK_NUMBER, DESCRIPTION, AMOUNT) VALUES (?, ?, ?, ?)');
+
+        // For each transaction in the $transactionArray, execute an insert statement:
+        foreach ($transactionArray as $transaction) {
+            $formattedDate = \DateTime::createFromFormat('d/m/Y', $transaction['date'])->format('Y-m-d');
+
+            $stmt->execute([$formattedDate, $transaction['checkNumber'], $transaction['description'], $transaction['amount']]);
+        }
+
+        echo 'Successfully uploaded transactions!';
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
