@@ -2350,3 +2350,8 @@ FICOU ASSIM:
 
 
 CERTO...
+
+
+
+
+Bonus: Allow multiple file uploads so that more than one CSV file can be uploaded at the same time.
