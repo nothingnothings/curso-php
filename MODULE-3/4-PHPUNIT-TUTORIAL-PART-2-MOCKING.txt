@@ -1,0 +1,2640 @@
+
+
+
+
+
+
+
+
+
+
+
+
+NA AULA ANTERIOR, APRENDEMOS A ESCREVER UNIT TESTS 
+USANDO 
+
+PHPUNIT...
+
+
+
+
+
+
+
+--> ESCREVEMOS UNIT TESTS PARA A CLASS BÁSICA DE 'Router',
+
+ QUE NÃO TINHA DEPENDENCIES:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+
+namespace Tests\Unit;
+
+
+use App\Exceptions\RouteNotFoundException;
+use App\Router;
+use PHPUnit\Framework\TestCase;
+
+
+// assertEquals() --> uses loose comparison (==)
+// assertSame() --> uses strict comparison (===)
+
+class RouterTest extends TestCase
+{
+
+    private Router $router;
+
+    // This method will always be called before each test (gotten from PHPUnit).
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->router = new Router();
+    }
+
+
+    /** @test */
+    public function it_registers_a_route(): void
+    {
+        // Given that we have a router object 
+        // $router = new Router(); // ? MOVED INTO 'setUp' method.
+
+        // When we call a register method and provide the arguments
+        $this->router->register('get', '/users', ['Users', 'index']);
+
+        $expected = [
+            'get' => [
+                '/users' => ['Users', 'index'],
+            ]
+        ];
+
+        // Then we assert that the route was registered.
+        $this->assertSame($expected, $this->router->routes());
+    }
+
+    /** @test */
+    public function it_registers_a_get_route(): void
+    {
+        // Given that we have a router object 
+        // $router = new Router(); // ? MOVED INTO 'setUp' method.
+
+        // When we call a get method and provide the arguments
+        $this->router->get('/posts', ['Posts', 'index']);
+
+        $expected = [
+            'get' => [
+                '/posts' => ['Posts', 'index'],
+            ]
+        ];
+
+        // Then we assert that the route was registered.
+        $this->assertSame($expected, $this->router->routes());
+    }
+
+    /** @test */
+    public function it_registers_a_post_route(): void
+    {
+        // Given that we have a router object 
+        // $router = new Router(); // ? MOVED INTO 'setUp' method.
+
+        // When we call a get method and provide the arguments
+        $this->router->post('/posts', ['Posts', 'create']);
+
+        $expected = [
+            'post' => [
+                '/posts' => ['Posts', 'create'],
+            ]
+        ];
+
+        // Then we assert that the route was registered.
+        $this->assertSame($expected, $this->router->routes());
+    }
+
+    /** @test */
+    public function it_returns_no_routes_when_router_is_created(): void
+    {
+        // Given that we have a router class and When we create an instance of it
+        $router = new Router();
+
+        $expected = [];
+
+        // Then we assert that the routes are empty.
+        $this->assertSame($expected, $this->router->routes());
+    }
+
+    /** @test
+     *  @dataProvider routeNotFoundCases
+     */
+    public function it_throws_route_not_found_exception(
+        string $requestUri, // Will be provided by the data provider method.
+        string $requestMethod
+    ): void {
+        // Simulate a users class:
+        $users = new class () {
+            // public function index(): bool
+            // {
+            //     return true;
+            // }
+
+            public function delete(): bool
+            {
+                return true;
+            }
+        };
+
+
+
+        // Given that we have a router object, and we register these routes
+        $this->router->post('/users', [$users::class, 'store']);
+        $this->router->get('/users', [$users::class, 'index']);
+        $this->router->delete('/users', [$users::class, 'delete']);
+
+        $this->expectException(RouteNotFoundException::class);
+
+        $this->router->resolve($requestUri, $requestMethod);
+    }
+
+    public function routeNotFoundCases(): array
+    {
+        return [
+            ['/aRequestUri', 'aRequestMethod'], // request uri doesnt exist, request method doesnt exist, class doesnt exist, method doesnt exist
+            ['/users', 'put'], // request uri exists, but request method doesnt exist, class doesnt exist, method doesnt exist
+            ['/invoices', 'post'], // request uri doesn't exist, but request method exists, class doesnt exist, method doesnt exist
+            ['/users', 'get'], // request uri exists, request method exists, class EXISTS, but method DOESN'T EXIST (index method)
+            ['/users', 'post'], // request uri exists, request method exists, class EXISTS, but method DOESN'T EXIST (store method)
+            ['/users', 'delete'], // request uri exists, request method exists, class EXISTS, AND METHOD EXISTS (This will result in a test failure, because the exception won't be thrown)
+        ];
+    }
+
+    /** @test */
+    public function it_resolves_route_from_a_closure(): void
+    {
+        // Given that we have a router object, and we register a route and a closure
+        $this->router->get('/users', fn() => [1, 2, 3]);
+
+        // When we resolve the route
+        $this->assertSame(
+            [1, 2, 3],
+            $this->router->resolve('/users', 'get')
+        );
+    }
+
+
+    /** @test */
+    public function it_resolves_route(): void
+    {
+
+        // Simulate a users class:
+        $users = new class () {
+            public function index(): array
+            {
+                return [1, 2, 3];
+            }
+        };
+
+
+        // Given that we have a router object, and we register a route and a closure
+        $this->router->get('/users', [$users::class, 'index']);
+
+        // When we resolve the route
+        $this->assertSame(
+            [1, 2, 3],
+            $this->router->resolve('/users', 'get')
+        );
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+MAS ESSA CLASS NÃO TINHA NENHUMA DEPENDENCY...
+
+
+
+
+
+
+
+
+
+MAS E SE PRECISARMOS ESCREVER 1 UNIT TEST 
+
+PARA 1 CLASS QUE POSSUI DEPENDENCIES, DEPENDE DE OUTRAS CLASSES?
+
+
+
+
+
+
+
+
+
+
+
+
+-->> PARA ISSO, PRECISAMOS USAR A FEATURE DE 'TEST DOUBLES'...
+
+
+
+
+
+
+-- 'TEST DOUBLES'
+
+
+
+
+-- 'STUBS'
+
+
+
+
+-- 'MOCKING'..
+
+
+
+
+
+
+
+
+
+
+
+
+
+''AS YOU KNOW, IN UNIT TESTS, WE TRY NOT TO RESOLVE DEPENDENCIES...''
+
+
+
+
+''INSTEAD, WE TRY TO REPLACE THE ORIGINAL CLASSES WITH TEST DOUBLES (fake objects),
+  WHICH CAN BE DONE BY _ MOCKING__...''
+
+
+
+
+
+
+''MOCKING'' ->  ISSO SIMPLESMENTE NOS DEIXA 'MOCK' AS DEPENDENCIES 
+                DAS CLASSES/METHODS  QUE ESTÃO SENDO TESTADAS...
+
+                TROCAMOS AS REAL CLASS DEPENDENCIES POR 
+                CLASSES FALSAS...
+
+
+
+
+
+
+--> O MOCKING PODE SER ESPECIALMENTE ÚTIL COM O MOCK DE:
+
+
+    -- DB CLASSES 
+
+
+    -- MODELS 
+
+
+
+    -- EMAIL AND SMS SENDING SERVICES 
+
+
+
+
+    -- API CALLS 
+
+
+
+
+
+
+E MT MAIS...
+
+
+
+
+
+
+
+
+
+
+--> NÃO QUEREMOS MANDAR SMS E EMAILS TODA VEZ QUE FAZEMOS TESTS...
+
+
+
+
+
+
+
+
+-> E COMO APIs 
+    NÃO FICAM GARANTIDAMENTE NO AR 100% DO TEMPO,
+
+    SEUS TESTS PODEM ÀS VEZES FALHAR/SUCCEED 
+
+    A DEPENDER DA API (se ela estiver down,
+     seu test vai fail....)
+
+
+
+
+
+
+
+
+--> TBM PODE DEMORAR 1 POUCO A REALIZAÇÃO DE 
+    API CALLS DENTRO DE SEUS TESTS, O QUE PODE SER 
+
+    BEM RUIM...
+
+
+    (LATENCY)..
+
+
+
+
+
+
+
+
+
+--> COMO EXEMPLO, TEMOS ESTE 'InvoiceService':
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+
+namespace App\Services;
+
+use App\Models\Invoice;
+
+class InvoiceService
+{
+
+    public function process(array $customer, float $amount): bool
+    {
+        $salesTaxService = new $salesTaxService();
+        $gatewayService = new PaymentGateWayService();
+        $emailService = new EmailService();
+
+
+        // 1. Calculate sales tax
+        $tax = $salesTaxService->calculate($amount, $customer);
+
+        // 2. Process invoice
+        if (!$gatewayService->charge($customer, $amount, $tax)) {
+            return false;
+        }
+
+        // 3. Send receipt
+        $emailService->send($customer, 'receipt');
+
+        return true;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> esse é um service QUE TEM 1 METHOOD DE 'PROCESS',
+
+QUE PROCESSA OS INVOICES...
+
+
+
+
+
+
+
+
+
+-> PASSAMOS ALGUMA INFO DE CUSTOMER,
+
+JUNTO COM O AMOUNT...
+
+
+
+
+
+
+
+
+
+-> É UM EXEMPLO SIMPLES,
+
+
+EM 1 APP DE VERDADE,
+
+VC USARIA 
+
+
+OBJECTS EM VEZ DE ARRAYS, NO LUGAR DE '$customer'...
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS EM 1 CENÁRIO TÍPICO DE 
+PROCESS,
+
+VC 
+
+PRECISARIA 
+
+
+
+CALCULAR 'SALES TAX'...
+
+
+
+
+
+
+
+
+-> ISSO SERIA FEITO 
+
+    POR ALGO COMO UMA 'SALES TAX API',
+
+
+    UMA CALL A 1 SERVICE QUE FARIA ISSO POR VOCE... (etapa 1)
+
+
+
+
+
+
+
+
+--> AÍ, COM ISSO, VC PRECISARIA 
+    PROCESSAR O INVOICE (etapa 2),
+
+    COM 1 GATEWAY (como o 'Stripe', 'Paddle', ou qualquer outro gatewayService)
+
+    (outra conexão, com outra API)...
+
+
+
+--> POR FIM, DEPOIS DO connect com a API,
+    vc faria o
+
+    SEND DO RECEIPT... (Etapa 3)....
+
+
+        (
+            OUTRO CONNECT,
+            DESSA VEZ USANDO O EMAIL SERVICE.'
+        )
+
+
+
+
+
+
+
+
+-> E É ESSE O EXEMPLO QUE QUEREMOS SIMULAR, AQUI...
+
+
+
+
+
+
+
+
+
+TEMOS 3 SERVICES,
+
+DE:
+
+1) SALESTAX 
+
+2) GATEWAY 
+
+3) EMAIL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE O PROCESSAMENTO DO INVOICE DÁ PROBLEMA (return false),
+
+a execução é interrompida...
+
+
+
+
+
+
+
+
+-- É CLARO QUE NÃO QUEREMOS FAZER API CALLS DE VERDADE,
+    para esses 3 services...
+
+
+
+
+
+
+
+
+-> É EM CASOS COMO ESSES QUE O MOCKING PODE NOS AJUDAR...
+
+
+
+
+
+
+
+
+
+
+
+
+MAS COMO PODEMOS CRIAR MOCKS?
+
+
+
+---> DENTRO DO FOLDER DE 'Unit',
+
+dentro de 'tests',
+
+CRIAMOS 
+
+1 FOLDER DE NOME 'Services'...
+
+
+
+
+
+
+
+
+
+--> AÍ ADICIONAMOS A CLASS DE 
+
+'InvoiceServiceTest'...
+
+
+
+
+
+
+
+
+
+
+
+
+O CÓDIGO COMEÇA ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+
+namespace Tests\Unit\Services;
+
+use App\Models\Invoice;
+use App\Services\InvoiceService;
+use PHPUnit\Framework\TestCase;
+use App\Services\EmailService;
+use App\Services\PaymentGateWayService;
+use App\Services\SalesTaxService;
+
+class InvoiceServiceTest extends TestCase
+{
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+PRIMEIRAMENTE, O QUE QUEREMOS TESTAR?
+
+
+
+
+
+
+
+
+
+'''WE WANT TO TEST THAT AN INVOICE IS PROCESSED SUCCESSFULLY,
+    AND WE DON'T CARE FOR THE ACTUAL SEND OR NOT OF AN EMAIL,
+
+    OR IF THE TAX WAS CALCULATED OR NOT... WE JUST WANT TO KNOW 
+    IF THE 
+    INVOICE WAS PROCESSED SUCCESFULLY...''
+
+
+
+
+
+
+
+POR ISSO QUE ESCREVEMOS O METHOD DE 'it_processes_invoice()':
+
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+
+namespace Tests\Unit\Services;
+
+use App\Models\Invoice;
+use App\Services\InvoiceService;
+use PHPUnit\Framework\TestCase;
+use App\Services\EmailService;
+use App\Services\PaymentGateWayService;
+use App\Services\SalesTaxService;
+
+class InvoiceServiceTest extends TestCase
+{
+
+    /** @test */
+    public function it_processes_invoice(): void
+    {
+
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> certo...
+
+
+
+
+MAS PARA TESTAR SE 
+
+ISSO VAI PROCESSAR CORRETAMENTE,
+
+
+O METHOD DE 
+
+
+'process()', lá em InvoiceService,
+
+
+DEVERÁ RETORNAR __TRUE__...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO FUNCIONAR, O method de '->charge',
+
+em gatewayService,
+
+
+DEVE RETORNAR TRUE TAMBÉM...
+
+
+
+
+
+
+
+
+
+
+
+É POR ISSO QUE PODEMOS ESCREVER O ESBOÇO DO TEST ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+    /** @test */
+    public function it_processes_invoice(): void
+    {
+        // Given that we have an invoice service object
+
+        // When process() is called 
+
+        // Then we assert that the invoice is processed successfully.
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... INSTANCIAMOS ESSE OBJECT...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+    /** @test */
+    public function it_processes_invoice(): void
+    {
+        // Given that we have an invoice service object
+        $invoiceService = new InvoiceService();
+
+        // When process() is called
+        $invoiceService->process($customer, $amount);
+
+        // Then we assert that the invoice is processed successfully.
+    }
+
+
+
+
+
+
+
+
+
+
+ 
+
+OK... AÍ QUEREMOS 'ASSERT' 
+
+
+QUE A INVOICE FOI PROCESSADA CORRETAMENTE...
+
+
+
+
+
+
+--> PARA FAZER ESSE ASSERT,
+
+BASTA COLOCAR TIPO:
+
+
+
+
+$result = $invoiceService->process($customer, $amount);
+
+
+
+
+
+
+
+
+
+
+DEPOIS, FAZEMOS O ASSERT COM 
+
+
+
+'$this->assertTrue($result);'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+class InvoiceServiceTest extends TestCase
+{
+    /** @test */
+    public function it_processes_invoice(): void
+    {
+        // Given that we have an invoice service object
+        $invoiceService = new InvoiceService();
+
+        //  When process() is called
+        $result = $invoiceService->process($customer, $amount);
+
+        // Then assert that the invoice is processed successfully.
+        $this->assertTrue($result);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+PARA OS VALUES, PODEMOS ESCREVER TIPO ASSIM:
+
+
+
+
+
+
+$customer = [
+    'name' =>  'Gio'
+];
+
+$amount = 300;
+
+
+
+
+
+
+
+
+
+
+CÓDIGO COMPLETO:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+
+namespace Tests\Unit\Services;
+
+use App\Services\InvoiceService;
+use PHPUnit\Framework\TestCase;
+
+
+class InvoiceServiceTest extends TestCase
+{
+    /** @test */
+    public function it_processes_invoice(): void
+    {
+
+        // data for the invoice
+        $customer = ['name' => 'Gio'];
+        $amount = 300;
+
+        // * Given that we have an invoice service object
+        $invoiceService = new InvoiceService();
+
+        // *  When process() is called
+        $result = $invoiceService->process($customer, $amount);
+
+        // * Then assert that the invoice is processed successfully.
+        $this->assertTrue($result);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+TESTAMOS ISSO, E OBSERVAMOS SE FICA COMO SUCCESS...
+
+
+
+
+
+COM ESTE CÓDIGO:
+
+
+./vendor/bin/phpunit tests/Unit/Services/InvoiceServiceTest.php
+
+
+
+
+AO RODAR O TEST, FICAMOS COM ESTE ERROR:
+
+
+
+
+
+
+1) Tests\Unit\Services\InvoiceServiceTest::it_processes_invoice
+Failed asserting that false is true.
+
+
+
+
+
+
+
+
+
+
+
+
+--> 'FAILED ASSERTING THAT FALSE IS TRUE'...
+
+
+
+
+
+
+
+
+
+--> ESSE TEST DEMOROU 1 POUCO....
+
+
+
+
+
+
+-_> MAS AÍ RODAMOS DE NOVO...
+
+AÍ GANHAMOS 'SUCCESS'...
+
+
+
+
+
+
+
+
+
+-> ISSO ACONTECEU POR CONTA DESTE CÓDIGO,
+
+DENTRO DE 
+
+
+
+'PaymentGateWayService':
+
+
+
+
+
+        return (bool) mt_rand(0, 1);
+
+
+
+
+
+
+
+
+
+
+
+
+-->  EX:
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services;
+
+class PaymentGatewayService
+{
+    public function charge(array $customer, float $amount, float $tax): bool
+    {
+        sleep(1);
+
+        return (bool) mt_rand(0, 1);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+CADA VEZ QUE ELE EXECUTA,
+
+PODE OU NÃO 
+
+
+RETORNAR EM SUCCESS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+É ISSO QUE PODE ACONTECER,
+
+SE VC TENTAR TESTAR SUAS COISAS COM UMA API DE VERDADE, EM VEZ DE 1 MOCK...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR SIMULOU OS DELAYS 
+
+NO CALL DAS APIS por meio de 'sleep()'....
+
+
+
+
+
+
+
+
+demora 3 segundos para rodar os tests....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> API calls nem sempre serão bem sucedidas...
+
+
+
+
+
+
+
+
+
+-> O PROBLEMA É QUE, QUANDO RODAMOS OS TESTS,
+
+
+O METHOD DE 'process'
+
+acaba rodando 
+
+
+
+os methods de 'charge' 'calculate' 
+
+e etc 
+
+
+
+LÁ NOS OBJECTS DE VERDADE... E ISSO NÃO É IDEAL,
+
+
+
+PQ NÃO QUEREMOS ENVIAR API CALLS,
+
+ENVIAR EMAILS, ETC..
+
+
+
+
+
+
+
+
+--> A SOLUÇÃO PARA ISSO É FAZER __ fAKE__ DAS DEPENDENCIES,
+    SUBSTITUÍ-LAS POR 'TEST DOUBLES'...
+
+
+
+
+
+
+
+
+-> NÓS PODEMOS CRIAR 
+
+UM 'TEST DOUBLE'
+
+
+
+
+POR MEIO DO METHOD 
+
+'createMock'...
+
+
+
+
+
+
+
+--> VAMOS CRIAR MOCKS DAS 3 DEPENDENCIES,
+
+
+
+
+
+COM 1 CÓDIGO TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+    /** @test */
+    public function it_processes_invoice(): void
+    {
+
+        $salesTaxServiceMock = $this->createMock(SalesTaxService::class);
+
+        // data for the invoice
+        $customer = ['name' => 'Gio'];
+        $amount = 300;
+
+        // * Given that we have an invoice service object
+        $invoiceService = new InvoiceService();
+
+        // *  When process() is called
+        $result = $invoiceService->process($customer, $amount);
+
+        // * Then assert that the invoice is processed successfully.
+        $this->assertTrue($result);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+CRIAREMOS MAIS 2 MOCKS...
+
+
+
+
+
+
+
+        $salesTaxServiceMock = $this->createMock(SalesTaxService::class);
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+
+namespace Tests\Unit\Services;
+
+use App\Services\InvoiceService;
+use App\Services\SalesTaxService;
+use PHPUnit\Framework\TestCase;
+
+// This is an example of how to create mocks.
+class InvoiceServiceTest extends TestCase
+{
+
+
+    /** @test */
+    public function it_processes_invoice(): void
+    {
+
+        $salesTaxServiceMock = $this->createMock(SalesTaxService::class);
+        $gatewayServiceMock = $this->createMock(InvoiceService::class);
+        $emailServiceMock = $this->createMock(InvoiceService::class);
+
+        // data for the invoice
+        $customer = ['name' => 'Gio'];
+        $amount = 300;
+
+        // * Given that we have an invoice service object
+        $invoiceService = new InvoiceService();
+
+        // *  When process() is called
+        $result = $invoiceService->process($customer, $amount);
+
+        // * Then assert that the invoice is processed successfully.
+        $this->assertTrue($result);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> esses mock objects possuem methods...
+
+
+
+podemos escrever assim:
+
+
+
+
+$salesTaxServiceMock->calculate(25, []);
+
+
+
+
+
+
+
+
+
+OS ARGUMENTS PASSADOS 
+
+
+NÃO IMPORTAM... PQ OS METHODS DOS 
+
+OBJECTS 'MOCK' SEMPRE 
+RETORNAM 'NULL'...
+
+
+
+
+
+
+
+
+podemos dumpar esse value, com isto:
+
+
+ 
+
+
+         var_dump($salesTaxServiceMock->calculate(100, [])); // will return float(0)
+
+
+
+
+
+
+
+
+
+
+--> NO CASO, O QUE SERÁ RETORNADO POR '->calculate()'
+
+
+
+será 'float(0)'...
+
+
+
+
+
+
+
+
+
+
+--> A RAZÃO PARA ELE TER RETORNADO 'FLOAT(0)',
+
+EM VEZ DE 'NULL',
+
+É QUE 
+
+FIZEMOS O TYPEHINT DE 
+
+
+'float'
+
+
+lá 
+
+
+
+no method de 'calculate()',
+
+
+
+em 'SalesTaxService':
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services;
+
+class SalesTaxService
+{
+    public function calculate(float $amount, array $customer): float
+    {
+        sleep(1);
+
+        return $amount * 6.5 / 100;
+    }
+}
+
+
+
+
+
+
+
+
+
+-> OU SEJA, O QUE ESTÁ ACONTECENDO,
+AQUI,
+
+É 
+O 
+
+
+CAST DO VALUE DE 'null' 
+
+
+
+em 'FLOAT',
+
+
+e, quando castado como 'float',
+
+
+null sempre vira 0...
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE ESTAMOS FICANDO COM 0...
+
+
+
+
+
+
+--> SE RETIRAMOS O TYPEHINT DE 'float',
+
+TIPO ASSIM:
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services;
+
+class SalesTaxService
+{
+    public function calculate(float $amount, array $customer)
+    {
+        sleep(1);
+
+        return $amount * 6.5 / 100;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ ELE VAI RETORNAR 'NULL'...
+
+
+
+
+
+
+
+
+
+
+
+-> SE VC TIVER ESSE TYPEHINT, O METHOD MOCKADO VAI CONSIDERAR 
+
+O TYPEHINT, NA HORA DE RETORNAR O RESULTADO...
+
+
+
+
+
+
+
+
+
+OK.. MAS AGORA TESTAMOS SE TUDO FUNCIONA...
+
+
+
+SE FUNCIONA COM OS MOCKS:
+
+
+
+
+
+
+
+
+
+
+
+    /** @test */
+    public function it_processes_invoice(): void
+    {
+
+        $salesTaxServiceMock = $this->createMock(SalesTaxService::class); // Mock objects' methods will return 'null', by default.
+        $gatewayServiceMock = $this->createMock(InvoiceService::class);
+        $emailServiceMock = $this->createMock(InvoiceService::class);
+
+
+        var_dump($salesTaxServiceMock->calculate(100, [])); // will return float(0)
+
+        // data for the invoice
+        $customer = ['name' => 'Gio'];
+        $amount = 300;
+
+        // * Given that we have an invoice service object
+        $invoiceService = new InvoiceService();
+
+        // *  When process() is called
+        $result = $invoiceService->process($customer, $amount);
+
+        // * Then assert that the invoice is processed successfully.
+        $this->assertTrue($result);
+    }
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+OK... MAS ESTAMOS COM OS MESMO COMPORTAMENTOS DE ANTES...
+
+
+QUER DIZER QUE 
+
+OS METHODS 
+
+
+
+DOS OBJECTS ORIGINAIS AINDA ESTÃO SENDO EXECUTADOS...
+
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE OS METHODS DOS MOCKS NÃO ESTÃO 
+    TENDO PRECEDÊNCIA...
+
+
+
+
+
+
+
+
+--> QUAL É A RAZÃO DISSO? 
+
+
+
+
+
+
+
+''THE PROBLEM IS THAT __ _DEPENDENCIES_ ARE 
+    HARDCODED DIRECTLY IN THE METHOD,
+
+    RIGHT IN THESE LINES:
+
+
+
+class InvoiceService
+{
+
+    public function process(array $customer, float $amount): bool
+    {
+        $salesTaxService = new SalesTaxService();
+        $gatewayService = new PaymentGateWayService();
+        $emailService = new EmailService();
+
+
+
+
+
+
+
+
+
+
+
+        ''AND WHEN WE ARE CREATING FAKE OBJECTS 
+        OF THESE CLASSES, INSIDE OF OUR TEST,
+        IT IS NOT GOING TO MAGICALLY REPLACE 
+        THE INSTANCES OF THESE CLASSES WITH 
+        THE FAKE CLASSES...''
+
+
+
+
+
+        ''SO, INSTEAD OF HARDCODING DEPENDENCIES 
+
+        LIKE THIS:
+
+
+            public function process(array $customer, float $amount): bool
+             {
+        $salesTaxService = new SalesTaxService();
+        $gatewayService = new PaymentGateWayService(); 
+        $emailService = new EmailService();
+
+
+
+
+
+        AND THEN HACKING IT AWAY TO SOMEHOW 
+            'MOCK THEM' COM AS CLASSES FAKE''',
+
+
+
+            O QUE 
+
+            PODEMOS FAZER É USAR 
+
+
+            'DEPENDENCY INJECTION',
+
+            TUDO PARA DEIXAR 
+
+            O TESTING BEM MAIS FÁCIL...
+
+
+
+
+
+
+
+
+
+---> AÍ, COM ISSO, PODEMOS  
+    SIMPLESMENTE PASSAR OS 'TEST DOUBLES'/MOCKED OBJECTS 
+    NOS LUGARES 
+
+    EM QUE 
+
+    OS OBJECTS VERDADEIROS ERAM EXPECTED...
+
+
+
+
+
+
+
+--> PARA ISSO, O PROFESSOR DEFINE ESSAS DEPENDENCIES,
+    COMO ARGUMENTS,
+
+    NO CONTRUCTOR 
+
+    DE 
+
+    'invoiceService',
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+class InvoiceService
+{
+
+    public function __construct(
+        protected SalesTaxService $salesTaxService,
+        protected PaymentGatewayService $paymentGatewayService,
+        protected EmailService $emailService
+    ) { // Used for mocking (flexibility between real and mock objects)
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESSA É A PRIMEIRA ETAPA... AÍ,
+
+COM ISSO,
+
+SUBSTITUÍMOS 
+TODOS OS CALLS 
+
+
+
+DE ESSAS CLASSES,
+
+LÁ EM 'PROCESS':
+
+
+
+    public function process(array $customer, float $amount): bool
+    {
+        // * Instead of hardcoding this directly, we can use dependency injection with our real/mock objects:
+        // $salesTaxService = new SalesTaxService(); 
+        // $gatewayService = new PaymentGateWayService();
+        // $emailService = new EmailService();
+
+
+        // 1. Calculate sales tax
+        // $tax = $salesTaxService->calculate($amount, $customer);
+        $tax = $this->salesTaxService->calculate($amount, $customer);
+
+
+        // 2. Process invoice
+        // if (!$gatewayService->charge($customer, $amount, $tax)) {
+        if (!$this->paymentGatewayService->charge($customer, $amount, $tax)) {
+
+            return false;
+        }
+
+        // 3. Send receipt
+        // $emailService->send($customer, 'receipt');
+        $this->emailService->send($customer, 'receipt');
+
+
+        return true;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ESSA É A ETAPA 1...
+
+
+
+
+
+
+
+
+
+
+
+--> ''WE REMOVED THE HARDCODED 
+      DEPENDENCIES FROM THE process() method. Now it no longer 
+      cares ABOUT HOW THE SALESTAXSERVICE IS CREATED,
+      AND IT SIMPLY KNOWS THAT THIS OBJECT IS GIVEN TO IT,
+      AND THEN RUNS THE CALCULATE() METHOD ON IT...''
+
+
+    
+
+
+
+
+
+
+
+
+
+-> LÁ NO CÓDIGO DE TEST,
+
+PODEMOS PASSAR ESSAS FAKE CLASSES COMO ARGUMENT DE 'InvoiceService',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+// This is an example of how to create mocks.
+class InvoiceServiceTest extends TestCase
+{
+
+
+    /** @test */
+    public function it_processes_invoice(): void
+    {
+
+        $salesTaxServiceMock = $this->createMock(SalesTaxService::class); // Mock objects' methods will return 'null', by default.
+        $gatewayServiceMock = $this->createMock(PaymentGatewayService::class);
+        $emailServiceMock = $this->createMock(EmailService::class);
+
+
+        var_dump($salesTaxServiceMock->calculate(100, [])); // will return float(0)
+
+        // data for the invoice
+        $customer = ['name' => 'Gio'];
+        $amount = 300;
+
+        // * Given that we have an invoice service object
+        $invoiceService = new InvoiceService($salesTaxServiceMock, $gatewayServiceMock, $emailServiceMock);
+
+        // *  When process() is called
+        $result = $invoiceService->process($customer, $amount);
+
+        // * Then assert that the invoice is processed successfully.
+        $this->assertTrue($result);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... ISSO FAZ SENTIDO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+RE-RODAMOS O TEST...
+
+
+
+
+
+
+
+
+
+
+
+-> ELE AINDA VAI FALHAR, MAS AGORA NÃO VAI MAIS TOMAR 3 SEGUNDOS...
+
+
+
+
+
+
+---> ISSO QUER DIZER QUE ACABAMOS USANDO 
+
+    OS METHODS DOS MOCKS,
+
+    E NÃO 
+
+
+    DOS ORIGINAL OBJECTS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... ESSE É UM BOM SINAL... MAS O TEST AINDA ESTÁ FALHANDO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS AINDA TEMOS O DETALHE DE 
+
+
+'BY DEFAULT, ALL METHODS OF THE MOCK WILL RETURN 
+'null' or whatever the return type hint...'''
+
+
+
+
+
+
+
+
+
+
+--> COMO O TYPEHINT DE 'charge' é boolean,
+    ELE É RETORNADO COMO 'false'...
+
+
+
+
+
+
+--> POR ELE SER RETORNADO COMO 'false',
+
+
+NOSSA ASSERTION GERAL, USADA COM 
+
+
+'        $this->assertTrue($result); '',
+
+
+FALHA...
+
+
+
+
+
+
+
+
+
+--> PARA FAZER ESSE TEST FUNCIONAR,
+    PRECISAMOS 
+
+
+    FAZER 'STUB'
+     
+     DE NOSSO MOCKED OBJECT,
+
+    
+
+    PARA QUE ELE RETORNE 'true'
+
+    QUANDO 
+
+
+    O METHOD 
+
+
+    DE 'charge()'
+
+
+    é chamado, lá na class 
+
+    de 
+
+    'PaymentGateWayService'..
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS FAZER ISSO POR MEIO DO STUB DO METHOD DE 'charge'...
+
+
+
+
+
+
+
+--> PARA ISSO, VAMOS EM 'InvoiceServiceTest'
+
+
+
+
+
+E ESCREVEMOS ASSIM:
+
+
+
+
+
+$gatewayServiceMock->method('charge')->willReturn(true);
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO É CONFUSO...
+
+
+
+
+
+
+
+
+
+
+
+
+--> HÁ MAIS UM TEST QUE QUEREMOS ESCREVER...
+
+
+
+
+
+
+
+
+
+
+
+--> AINDA NÃO TESTAMOS SE O 'EMAIL' FOI SENT SUCCESSFULLY...
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE CRIAMOS 1 NOVO TEST,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+    /** @test */
+    public function it_sends_receipt_email_when_invoice_is_processed(): void
+    {
+        // TODO - These are MOCKS:
+        $salesTaxServiceMock = $this->createMock(SalesTaxService::class); // Mock objects' methods will return 'null', by default.
+        $gatewayServiceMock = $this->createMock(PaymentGatewayService::class);
+        $emailServiceMock = $this->createMock(EmailService::class);
+
+        // TODO -This is a STUB (it normally returns false, but we make it return true, for the test):
+        $gatewayServiceMock->method('charge')->willReturn(true);
+
+        var_dump($salesTaxServiceMock->calculate(100, [])); // will return float(0)
+
+        // data for the invoice
+        $customer = ['name' => 'Gio'];
+        $amount = 300;
+
+        // * Given that we have an invoice service object
+        $invoiceService = new InvoiceService($salesTaxServiceMock, $gatewayServiceMock, $emailServiceMock);
+
+
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok... e é claro que podemos outsourcear isso, para o method de 'setUp()',
+
+
+pq é código duplicado...
+
+
+
+
+
+
+
+
+
+
+
+
+mas, mais importante do que isso,
+
+
+como podemos 'ASSERT'
+
+
+que o email foi enviado corretamente?
+
+
+
+
+
+
+
+
+
+
+
+
+A CLASS DE EMAIL:
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services;
+
+class EmailService
+{
+    public function send(array $to, string $template): bool
+    {
+        sleep(1);
+
+        return true;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- PRECISAMOS FAZER 'ASSERT'
+
+
+    DE QUE _ O CALL DE 'send()"
+
+
+    foi actually realizado...
+
+
+
+
+
+
+
+--> É AQUI QUE 'MOCKING' REALMENTE VEM A CALHAR...
+
+
+
+
+
+
+--> PODEMOS SETTAR 'EXPECTATIONS'
+
+NO MOCKED OBJECT,  
+
+
+PARA DIZER COISAS COMO 
+
+
+
+
+
+'''EmailService CLASS IS EXPECTED TO CALL 
+    THE '->send()' method...'''
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, PODEMOS USAR O METHOD DE '->expects()',
+
+
+MAS COM ESTE FORMATO:
+
+
+
+
+
+
+
+
+$emailServiceMock->expects($this->once())->method('send')->with(['name' => 'Gio'], 'receipt');
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, ESTAMOS DIZENDO QUE _ ESPERAMOS QUE ESSA CLASS VÁ CHAMAR O METHOD DE 'send()',
+
+uma única vez,
+
+
+com os arguments de '['name' => 'Gio' ]' 
+
+
+e 'receipt'...
+
+
+
+
+
+
+
+
+
+
+
+
+E OS ARGUMENTS PASSADOS AO 'emailServiceMock'
+
+
+devem MATch OS ARGUMENTS QUE PASSAMOS AO METHOD DE 'process'..
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /** @test */
+    public function it_sends_receipt_email_when_invoice_is_processed(): void
+    {
+        // TODO - These are MOCKS:
+        $salesTaxServiceMock = $this->createMock(SalesTaxService::class); // Mock objects' methods will return 'null', by default.
+        $gatewayServiceMock = $this->createMock(PaymentGatewayService::class);
+        $emailServiceMock = $this->createMock(EmailService::class);
+
+        // TODO -This is a STUB (it normally returns false, but we make it return true, for the test):
+        $gatewayServiceMock->method('charge')->willReturn(true);
+
+        $emailServiceMock
+            ->expects($this->once())
+            ->method('send')
+            ->with(['name' => 'Gio'], 'receipt');
+
+        // * Given that we have an invoice service object
+        $invoiceService = new InvoiceService(
+            $salesTaxServiceMock,
+            $gatewayServiceMock,
+            $emailServiceMock
+        );
+
+        // data for the invoice
+        $customer = ['name' => 'Gio'];
+        $amount = 300;
+
+        // * When process() is called
+        $result = $invoiceService->process($customer, $amount);
+
+        // * Then assert invoice is processed successfully.
+        $this->assertTrue($result);
+    }
+
+
+
+
+
+
+
+
+-------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+ 
+ OK... ESSA FOI A INTRODUÇÃO AO PHPUNIT E TESTING...
+
+
+
+
+
+
+TESTS TE AJUDAM A ESCREVER CÓDIGO MELHOR...
+
+
+
+
+
+
+
+
+
+SE OS TESTS FICAM MT COMPLICADOS,
+
+
+COM MTOS MOCKS,
+
+
+
+O PROFESSOR ACHA MELHOR MUDAR O METHOD EM SI...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> FIZEMOS 1 REFACTOR NESSA SECTION, EM QUE 
+    USAMOS DEPENDENCY INJECTION 
+
+    EM VEZ DE HARDCODAR  AS DEPENDENCIES...
+
+
+
+
+ISSO DEIXOU O WRITE DE UNIT TESTS BEM MAIS FÁCIL...
+
+
+
+
+
+
+
+FALAREMOS SOBRE DEPENDENCY INJECTION NO PRÓXIMO VIDEO...
