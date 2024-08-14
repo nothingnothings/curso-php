@@ -2406,3 +2406,2574 @@ a versão do professor de routes começa assim:
   FEITA A MUDANÇA NA CLASS DE 'Router',
 
   PROSSEGUIMOS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  --> existirão cases em que vamos querer 
+    PREPARAR A DATA/OBJECTS 
+
+    ANTES __ DOS TESTS SEREM EXECUTADOS...
+
+
+
+
+
+
+
+
+
+
+--> POR EXEMPLO,
+
+    EM TODOS ESSES TESTS, ESTAMOS CRIANDO 1 INSTANCE DE 'ROUTER'
+
+    E AÍ RODANDO OS TESTS...
+
+
+
+
+
+
+    OU SEJA, ESTAMOS REPETINDO CÓDIGO...
+
+
+
+
+
+
+
+--> ISSO GERALMENTE NÃO É UM PROBLEMA QUANDO 
+    TEMOS 1 OBJECT SIMPLES, COMO ESSE,
+
+    MAS _ ISSO PODE FICAR TRICKY SE VC 
+
+    TEM OBJECTS COMPLEXOS,
+
+
+    OBJECTS QUE POSSUEM DEPENDENCIES...
+
+
+
+
+    --> POR EXEMPLO, SE TIVÉSSEMOS OUTRAS DEPENDENCIES 
+        AO CONSTRUCTOR DE 'Router()',
+
+        ou então 
+
+        precisaríamos rodar outros methods para settupar 
+
+        o Router 
+
+        adequadamente... nesse caso,
+
+                        poderíamos fazer 
+                        'SHARE' do setup desse 
+                        object, ao longo 
+                    de todos nossos tests 
+
+                    de 'RouterTest',
+
+
+                    POR MEIO DE UM METHOD ESPECIAL DE 
+
+                    'TestCase' (a class  do PHPUNIT),
+
+                    chamada 
+
+
+                    de 
+
+                    'setUp()'...
+
+
+
+
+
+
+
+--> para DEFINIR ESSE METHOD, ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+protected function setUp(): void 
+{
+    parent::setUp();
+}
+
+
+
+
+
+
+
+
+
+
+
+--> ESSE METHOD É CHAMADO _ ANTES_ DE CADA TEST 
+
+
+    METHOD SER EXECUTADO...
+
+
+
+
+
+
+    // This method will always be called before each test (gotten from PHPUnit).
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->router = new Router();
+    }
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+COM ISSO, PODEMOS SIMPLESMENTE USAR '$this->router'
+
+em todos outros tests,
+
+pq ele já terá sido inicializado,
+
+por conta dessa function de 'setUp()'...
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+
+namespace Tests\Unit;
+
+
+use App\Router;
+use PHPUnit\Framework\TestCase;
+
+
+class RouterTest extends TestCase
+{
+
+    private Router $router;
+
+    // This method will always be called before each test (gotten from PHPUnit).
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->router = new Router();
+    }
+
+
+    /** @test */
+    public function it_registers_a_route(): void
+    {
+        // Given that we have a router object 
+        // $router = new Router(); // ? MOVED INTO 'setUp' method.
+
+        // When we call a register method and provide the arguments
+        $this->router->register('get', '/users', ['Users', 'index']);
+
+        $expected = [
+            'get' => [
+                '/users' => ['Users', 'index'],
+            ]
+        ];
+
+        // Then we assert that the route was registered.
+        $this->assertEquals($expected, $this->router->routes());
+    }
+
+    /** @test */
+    public function it_registers_a_get_route(): void
+    {
+        // Given that we have a router object 
+        // $router = new Router(); // ? MOVED INTO 'setUp' method.
+
+        // When we call a get method and provide the arguments
+        $this->router->get('/posts', ['Posts', 'index']);
+
+        $expected = [
+            'get' => [
+                '/posts' => ['Posts', 'index'],
+            ]
+        ];
+
+        // Then we assert that the route was registered.
+        $this->assertEquals($expected, $this->router->routes());
+    }
+
+    /** @test */
+    public function it_registers_a_post_route(): void
+    {
+        // Given that we have a router object 
+        // $router = new Router(); // ? MOVED INTO 'setUp' method.
+
+        // When we call a get method and provide the arguments
+        $this->router->post('/posts', ['Posts', 'create']);
+
+        $expected = [
+            'post' => [
+                '/posts' => ['Posts', 'create'],
+            ]
+        ];
+
+        // Then we assert that the route was registered.
+        $this->assertEquals($expected, $this->router->routes());
+    }
+
+    /** @test */
+    public function it_returns_no_routes_when_router_is_created(): void
+    {
+        // Given that we have a router class and When we create an instance of it
+        // $router = new Router();
+
+        $expected = [];
+
+        // Then we assert that the routes are empty.
+        $this->assertEquals($expected, $this->router->routes());
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+RE-RODAMOS OS TESTS, E TUDO FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+
+TAMBÉM PODERÍAMOS USAR 1 METHOD CHAMADO 
+
+
+DE 
+
+
+
+'tearDown'..
+
+
+
+
+
+
+
+
+
+
+
+
+'TEARDOWN' ->  ESSE METHOD É 
+                    CHAMADO AO FINAL
+                    DE CADA TEST,
+
+                    MESMO QUANDO OS TESTS FALHAM...
+
+
+                --> ESSE METHOD É USADO PARA FAZER 
+                    CLEAN UP DE  __HEAVy__ OBJECTS,
+                    OU RESOURCES EXTERNOS, QUE FORAM 
+                    CRIADOS NO METHOD DE 'setUp()'...
+
+                
+
+                -> NESSE NOSSO EXEMPLO, NÃO PRECISAMOS DESSE 
+                METHOD PQ ESTAMOS TRABALHANDO COM 1 ÚNICO OBJECT,
+                SEM DEPENDENCIES...
+
+
+
+
+
+
+
+
+
+
+--> OK... MAS AGORA VAMOS PARA O METHOD DE 'resolve()',
+    QUE TEM 1 POUCO MAIS DE LÓGICA....
+
+
+
+
+
+
+--> ''THE FIRST TEST THAT MAKES SENSE IS TO TEST 
+    THAT A 'RouteNotFoundException' is thrown..
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEVEMOS ANALISAR O CÓDIGO DE 'resolve()', que é este:
+
+
+
+
+
+
+
+    public function resolve(string $requestUri, string $requestedMethod)
+    {
+
+        // * The first part of the request URI is the route (the second part is the query string/parametrs)
+        $route = explode('?', $requestUri)[0];
+
+        // * Find the action for the route, in the routes array.
+        $action = $this->routes[$requestedMethod][$route] ?? null;
+
+        if (!$action) {
+            // Throw custom exception.
+            throw new RouteNotFoundException();
+        }
+
+
+        if (is_callable($action)) {
+            return call_user_func($action, $route);
+        }
+
+        // * If it is not callable, it must be an array:
+        if (is_array($action)) {
+            [$class, $method] = $action;
+            if (class_exists($class)) {
+
+                $class = new $class;
+
+                if (method_exists($class, $method)) {
+                    return call_user_func_array([$class, $method], []);
+                }
+
+            }
+
+
+        }
+
+        throw new RouteNotFoundException();
+
+    }
+
+
+
+
+
+
+
+
+--> PERCEBEMOS  QUE 
+
+'RouteNotFoundException'
+
+
+
+PODE SER THROWN POR DIVERSAS RAZÕES...
+
+
+
+
+
+
+
+
+
+RAZÃO 1 -> 'ACTION IS NOT SET'..
+
+
+
+
+
+ex:
+
+
+        if (!$action) {
+            // Throw custom exception.
+            throw new RouteNotFoundException();
+        }
+
+
+
+
+
+
+
+ISSO PODE ACONTECER QUANDO 
+
+O REQUEST METHOD QUE ESTÁ SENDO USADO 
+
+É ERRADO, OU A ROUTE É ERRADA:
+
+
+
+        // * Find the action for the route, in the routes array.
+        $action = $this->routes[$requestedMethod][$route] ?? null;
+
+
+
+
+
+
+
+
+RAZÃO 2 --> ''THE CLASS DOESN'T EXIST, 
+              THE METHOD DOESN'T EXIST, ETC...''
+
+
+
+
+            
+            ex:
+
+
+
+
+
+
+
+
+        // * If it is not callable, it must be an array:
+        if (is_array($action)) {
+            [$class, $method] = $action;
+            if (class_exists($class)) {
+
+                $class = new $class;
+
+                if (method_exists($class, $method)) {
+                    return call_user_func_array([$class, $method], []);
+                }
+
+            }
+
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR VAI ESCREVER OS TESTS...
+
+
+
+
+
+
+
+
+
+
+'''we could write a separate unit test for each of these 
+scenarios, where the RouteNotFoundException is thrown,
+OR WE COULD SIMPLY USE SOMETHING CALLED A 'DATA PROVIDER',
+TO THEN PROVIDE DIFFERENT CASES TO THE UNIT TEST... 
+THEN PHPUNIT WILL RUN THE TESTS, FOR ALL GIVEN CASES...'''
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE CRIAMOS UM 
+
+UNIT TEST 
+
+DE 
+
+
+
+
+public function it_throws_route_not_found_exception(): void 
+{
+    $this->router->post('/users', ['Users', 'store']);
+    $this->router->get('/users', ['Users', 'index']);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESSE É O COMEÇO, O 'GIVEN'...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+    /** @test */
+    public function it_throws_route_not_found_exception(): void
+    {
+        // Given that we have a router object, and we register these routes
+        $this->router->post('/users', ['Users', 'store']);
+        $this->router->get('/users', ['Users', 'index']);
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+AGORA VAMOS TESTAR O METHOD DE 'resolve()',
+
+que precisa 
+
+
+de uma url que não existe....
+
+
+
+
+
+--> O PROFESSOR VAI FAZER PASS DE uma '$requestUri' e um '$requestMethod'..
+
+
+TIPO ASSIM:
+
+
+
+
+    /** @test */
+    public function it_throws_route_not_found_exception(): void
+    {
+        // Given that we have a router object, and we register these routes
+        $this->router->post('/users', ['Users', 'store']);
+        $this->router->get('/users', ['Users', 'index']);
+
+        $this->router->resolve($requestUri, $requestMethod);
+    }
+
+
+
+
+
+-> O PROFESSOR EXPLICA QUE NÃO VAI FAZER O HARDCODE DISSO,
+    PQ AÍ ESTARÍAMOS FAZENDO TEST DE APENAS 'A SINGLE USE-CASE'...
+
+
+
+
+-> PARA FAZER O TEST DE DIFERENTES VALUES INVÁLIDOS (para fazer o throw da exception),
+    o professor vai usar 
+    aquilo que é chamado de 
+
+    'Data Provider'...
+
+
+
+
+
+
+
+
+
+
+
+-> MAS ANTES DE FAZER ISSO, 
+    PRECISAMOS 
+    'ASSERT' QUE UMA EXCEPTION VAI SER THROWN...
+
+
+
+
+
+
+
+
+--> PARA DIZER QUE 'WE EXPECT THAT A EXCEPTION WILL BE THROWN',
+
+
+PRECISAMOS 
+
+
+DO METHOD  '$this->expectException()'
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+    /** @test */
+    public function it_throws_route_not_found_exception(): void
+    {
+        // Given that we have a router object, and we register these routes
+        $this->router->post('/users', ['Users', 'store']);
+        $this->router->get('/users', ['Users', 'index']);
+
+        $this->expectException();
+
+        $this->router->resolve($requestUri, $requestMethod);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+--> TEMOS OUTRAS OPTIONS, COMO 'expectExceptionMessage'
+ 
+ e 'expectExceptionCode',
+
+
+
+ MAS POR ENQUANTO, NOS IMPORTAMOS APENAS 
+
+
+ COM 'expectException()', 
+
+
+ PQ SÓ NOS IMPORTAMOS COM A CLASS 
+
+
+ DE 
+
+ 'RouteNotFoundException'...
+
+
+
+
+É POR ISSO QUE ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /** @test */
+    public function it_throws_route_not_found_exception(): void
+    {
+        // Given that we have a router object, and we register these routes
+        $this->router->post('/users', ['Users', 'store']);
+        $this->router->get('/users', ['Users', 'index']);
+
+        $this->expectException(RouteNotFoundException::class);
+
+        $this->router->resolve($requestUri, $requestMethod);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+
+OUTRO DETALHE:
+
+
+
+'''THIS expectException() method MUST 
+    BE CALLED __ BEFORE_  CALLING THE __ METHOD 
+    THAT ACTUALLY THROWS THE EXCEPTION'''
+
+    (pq é ELE QUE vai capturar a exception,
+    e impedir a exception de ser interrompida, com o throw de essa 
+    exception)
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA QUE TEMOS 
+      NOSSOS TESTS SETTADOS APROPRIADAMENTE,
+
+      E ESTAMOS 'ASSERTING' QUE 
+      UMA 
+
+      EXCEPTION VAI SER THROWN,
+
+
+
+      A ÚNICA COISA QUE NOS RESTA É PROVIDENCIAR 
+
+      O 'DATA PROVIDER'
+
+      nesse method,
+
+
+
+      em que vamos colocar os parameters de '$requestUri' e '$requestMethod'...
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+
+
+
+-> AQUI, O PROFESSOR NOS RELATA QUE 
+    UM TEST METHOD PODE ACEITAR 
+
+    X NUMBER OF ARGUMENTS... 
+
+
+    E ESSE NÚMERO DE ARGUMENTS É 
+    DECLARADO POR MEIO DO 
+
+    METHOD DE 'dataProvider'...
+
+
+
+
+
+--> DIGAMOS, POR EXEMPLO,
+    QUE 
+    ESSE TEST METHOD VAI 'EXPECT'
+
+
+
+    OS PARAMETERS '$requestUri' e '$requestMethod'...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+    /** @test */
+    public function it_throws_route_not_found_exception(
+        string $requestUri, // Will be provided by the data provider method.
+        string $requestMethod
+    ): void {
+        // Given that we have a router object, and we register these routes
+        $this->router->post('/users', ['Users', 'store']);
+        $this->router->get('/users', ['Users', 'index']);
+
+        $this->expectException(RouteNotFoundException::class);
+
+        $this->router->resolve($requestUri, $requestMethod);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    É CLARO QUE ISSO AINDA NÃO VAI FUNCIONAR,
+    PQ AINDA NÃO FORNECEMOS O DATA PROVIDER EM SI...
+
+
+
+
+
+
+
+
+-> PARA PROVIDENCIAR O DATA PROVIDER,
+    VC DEVE USAR, NOVAMENTE,
+
+    A NOTATION, naquela parte de '@test'...
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /** @test
+     *  @dataProvider provider
+     */
+    public function it_throws_route_not_found_exception(
+        string $requestUri, // Will be provided by the data provider method.
+        string $requestMethod
+    ): void {
+        // Given that we have a router object, and we register these routes
+        $this->router->post('/users', ['Users', 'store']);
+        $this->router->get('/users', ['Users', 'index']);
+
+        $this->expectException(RouteNotFoundException::class);
+
+        $this->router->resolve($requestUri, $requestMethod);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DE '@dataProvider',
+
+
+DEVEMOS 
+
+
+ESPECIFICAR 
+
+
+'''THE METHOD NAME WHOSE RETURN WILL BE PASSED, AS ARGUMENTS,
+   TO THE TEST METHOD...'''
+
+
+
+
+
+
+
+
+
+
+
+-> NO CASO, escrevemos 'routeNotFoundCases'...
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+    /** @test
+     *  @dataProvider routeNotFoundCases
+     */
+    public function it_throws_route_not_found_exception(
+        string $requestUri, // Will be provided by the data provider method.
+        string $requestMethod
+    ): void {
+        // Given that we have a router object, and we register these routes
+        $this->router->post('/users', ['Users', 'store']);
+        $this->router->get('/users', ['Users', 'index']);
+
+        $this->expectException(RouteNotFoundException::class);
+
+        $this->router->resolve($requestUri, $requestMethod);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE ESSE METHOD,
+
+'routeNotFoundCases',
+
+
+NÃO EXISTE... AINDA TEMOS QUE O CRIAR...
+
+
+
+
+
+
+
+
+
+
+
+A DEFINIÇÃO DE 1 DATA PROVIDER METHOD, LÁ DOS DOCS DO PHPUNIT,
+
+É:
+
+
+
+
+''A data provider method must be public and either RETURN AN ARRAY OF ARRAYS 
+or an OBJECT  that implements the ITERATOR interface and yields an ARRAY for EACH 
+ITERATION STEP. For each array that is part of the collection, the test method 
+will be called with the contents of the array as its arguments...''
+
+
+
+
+
+
+
+
+
+
+-> VAMOS CRIAR ESSE METHOD TIPO ASSIM:
+
+
+
+
+
+
+
+
+public function routeNotFoundCases(): array
+{
+
+}
+
+
+
+
+
+
+
+
+-> ESSE METHOD DEVE RETORNAR UM 'ARRAY OF ARRAYS'...
+
+
+
+ISSO QUER DIZER QUE O RETURN TYPE SERÁ ASSIM:
+
+
+
+
+
+
+
+public function routeNotFoundCases(): array
+{
+
+    return [
+        []
+    ]
+}
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+    public function routeNotFoundCases(): array
+    {
+        return [
+            [],
+            []
+        ];
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+ESSES VALUES DE ARRAY, DENTRO DO ARRAY,
+
+CADA UM DELES É UM 'INDIVIDUAL CASE'..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> E TUDO QUE VC PROVIDENCIA COMO VALUE,
+DENTRO DESSES ARRAYS,
+
+SERÁ PROVIDENCIADO, COMO CASES, 
+
+
+AO METHOD DE 'it_throws_route_not_found_exception'...
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE PODEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+
+    public function routeNotFoundCases(): array
+    {
+        return [
+            ['/aRequestUri', 'aRequestMethod'], // request uri doesnt exist, and request method doesnt exist.
+            ['/users', 'put'], // request uri exists, but request method doesnt exist. 
+            ['/invoices', 'post'] // request uri doesn't exist, but request method exists.
+        ];
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, NO CASO, ELES SERÃO USADOS COM O TEST METHOD DE ANTES:
+
+
+
+
+    /** @test
+     *  @dataProvider routeNotFoundCases
+     */
+    public function it_throws_route_not_found_exception(
+        string $requestUri, // Will be provided by the data provider method.
+        string $requestMethod
+    ): void {
+        // Given that we have a router object, and we register these routes
+        $this->router->post('/users', ['Users', 'store']);
+        $this->router->get('/users', ['Users', 'index']);
+
+        $this->expectException(RouteNotFoundException::class);
+
+        $this->router->resolve($requestUri, $requestMethod);
+    }
+
+
+
+
+
+
+---------------------------
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+    /** @test
+     *  @dataProvider routeNotFoundCases
+     */
+    public function it_throws_route_not_found_exception(
+        string $requestUri, // Will be provided by the data provider method.
+        string $requestMethod
+    ): void {
+        // Given that we have a router object, and we register these routes
+        $this->router->post('/users', ['Users', 'store']);
+        $this->router->get('/users', ['Users', 'index']);
+
+        $this->expectException(RouteNotFoundException::class);
+
+        $this->router->resolve($requestUri, $requestMethod);
+    }
+
+    public function routeNotFoundCases(): array
+    {
+        return [
+            ['/aRequestUri', 'aRequestMethod'], // request uri doesnt exist, and request method doesnt exist.
+            ['/users', 'put'], // request uri exists, but request method doesnt exist. 
+            ['/invoices', 'post'], // request uri doesn't exist, but request method exists.
+            ['/users', 'get']
+        ];
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E ISSO FUNCIONA, ESSES TESTS FUNCIONAM (realmente será feito o throw da exception)
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS QUEREMOS CHECAR SE O THROW DE 'RouteNotFoundException'
+
+    ACONTECE TBM QUANDO 
+
+
+
+    A CLASS OU O METHOD NÃO EXISTEM ('clasts_exists()' e 'method_exists()')...
+
+
+
+
+
+
+
+
+
+
+O QUE PODEMOS FAZER, AQUI,
+
+
+É USAR 'ANON CLASSES' 
+
+
+
+PARA KIND OF SIMULAR 1 CONTROLLER...
+
+
+
+
+
+
+
+
+--> DIGAMOS QUE, DENTRO DESSA SIMULATED CLASS,
+TEMOS 1 METHOD DE 'delete()'...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+$users = new class() {
+    public function delete(): bool {
+        return true;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ USAMOS ISSO, NO LUGAR DO REGISTER DAS CLASSES, TIPO ASSIM:
+
+
+
+
+
+
+
+    /** @test
+     *  @dataProvider routeNotFoundCases
+     */
+    public function it_throws_route_not_found_exception(
+        string $requestUri, // Will be provided by the data provider method.
+        string $requestMethod
+    ): void {
+        // Simulate a users class:
+        $users = new class () {
+            public function delete(): bool
+            {
+                return true;
+            }
+        };
+
+
+
+        // Given that we have a router object, and we register these routes
+        $this->router->post('/users', [$users::class, 'store']);
+        $this->router->get('/users', ['Users', 'index']);
+
+        $this->expectException(RouteNotFoundException::class);
+
+        $this->router->resolve($requestUri, $requestMethod);
+    }
+
+    public function routeNotFoundCases(): array
+    {
+        return [
+            ['/aRequestUri', 'aRequestMethod'], // request uri doesnt exist, and request method doesnt exist.
+            ['/users', 'put'], // request uri exists, but request method doesnt exist. 
+            ['/invoices', 'post'], // request uri doesn't exist, but request method exists.
+            ['/users', 'get'],
+            ['/users', 'post']
+        ];
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS É CLARO QUE ESSA CLASS DE 'users' fake, que criamos agora,
+
+NÃO TEM 
+
+ESSE METHOD DE 'store'.... ela tem apenas 'delete'...
+
+
+
+
+
+
+
+
+É POR ISSO QUE O TEST VAI 'FAIL',
+
+pq 
+
+
+
+NÓS NÃO TEMOS ESSE METHOD DE 'store'...
+
+
+
+
+
+
+
+
+
+
+--> o test dá sucesso,
+    pq realmente será feito o throw de uma EXCEPTION,
+
+    quando o case da route for de 
+
+
+    ''             ['/users', 'post']           ''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+    /** @test
+     *  @dataProvider routeNotFoundCases
+     */
+    public function it_throws_route_not_found_exception(
+        string $requestUri, // Will be provided by the data provider method.
+        string $requestMethod
+    ): void {
+        // Simulate a users class:
+        $users = new class () {
+            // public function index(): bool
+            // {
+            //     return true;
+            // }
+
+            public function delete(): bool
+            {
+                return true;
+            }
+        };
+
+
+
+        // Given that we have a router object, and we register these routes
+        $this->router->post('/users', [$users::class, 'store']);
+        $this->router->get('/users', [$users::class, 'index']);
+
+        $this->expectException(RouteNotFoundException::class);
+
+        $this->router->resolve($requestUri, $requestMethod);
+    }
+
+    public function routeNotFoundCases(): array
+    {
+        return [
+            ['/aRequestUri', 'aRequestMethod'], // request uri doesnt exist, request method doesnt exist, class doesnt exist, method doesnt exist
+            ['/users', 'put'], // request uri exists, but request method doesnt exist, class doesnt exist, method doesnt exist
+            ['/invoices', 'post'], // request uri doesn't exist, but request method exists, class doesnt exist, method doesnt exist
+            ['/users', 'get'], // request uri exists, request method exists, class EXISTS, but method DOESN'T EXIST (index method)
+            ['/users', 'post'] // request uri exists, request method exists, class EXISTS, but method DOESN'T EXIST (store method)
+        ];
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, TODOS OS TESTS DÃO SUCCESS,
+
+PQ TODOS ESSES CASES, EM 'routeNotFoundCases()',
+
+
+
+RESULTARAM NO THROW DE 'RouteNotFoundException'...
+
+
+
+
+
+
+
+
+
+
+
+SE VC TIVER 1 CASE VÁLIDO, COMO ESTE:
+
+
+            ['/users', 'delete'], // request uri exists, request method exists, class EXISTS, AND METHOD EXISTS (This will result in a test failure, because the exception won't be thrown)
+
+
+
+
+
+
+
+
+
+
+O TEST FALHA E INDICA O CASE QUE FALHOU:
+
+
+
+
+
+
+1) Tests\Unit\RouterTest::it_throws_route_not_found_exception with data set #5 ('/users', 'delete')
+Failed asserting that exception of type "App\Exceptions\RouteNotFoundException" is thrown.
+
+FAILURES!
+Tests: 10, Assertions: 10, Failures: 1.
+
+
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------
+
+
+
+
+
+
+
+
+
+
+VC TAMBÉM PODE DEFINIR DATA PROVIDERS EXTERNAMENTE,
+
+ 
+E AÍ REFERENCIÁ-LOS,
+
+
+
+lá em 
+
+
+'@dataProvider'....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- ''DATA PROVIDERS ARE COOL,
+    BUT DON'T TRY TO USE THEM FOR EVERYTHING... ''
+
+
+
+
+
+    ''DON'T OVERUSE THEM...
+
+    TRY TO LOOK AT YOUR CODE, AND SEE IF 
+    A DATA PROVIDER MAKES SENSE FOR THOSE 
+    METHODS...''
+
+
+
+
+
+
+-- É ÚTIL PARA COISAS 
+    COMO VALIDATION...
+
+
+
+    PQ VC VAI QUERER PROVIDENCIAR 
+    VALID DATA, E ENTÃO GARANTIR QUE TUDO 
+    'PASSES'...
+
+    OU ENTÃO QUER PROVIDENCIAR INVALID DATA,
+    E AÍ 
+
+    GARANTIR QUE TUDO FAZ 'FAIL'...
+
+    (TIPO O QUE ESTAMOS FAZENDO AQUI, COM OS CASES DE 
+    THROW DE 'routeNotFound'...)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> É CLARO QUE ESSA CLASS DE 'Router' não é perfeita...
+
+
+
+
+
+
+
+-> é só um exemplo simples de router... o professor 
+    decidiu usá-la 
+
+    para escrever tests pq era melhor do que 
+    escrever 
+    tests para 
+    1 exemplo foobar...
+
+
+
+
+
+
+
+--> EM 1 APP DE VERDADE,
+    VC TERÁ 
+
+    1 ROUTER MAIS COMPLEXO,
+
+
+    PQ VC VAI QUERER RESOLVE METHODS DIFERENTES,
+
+    COMO 'PUT' E 'DELETE'....
+
+
+
+
+    VC TAMBÉM 
+
+    VAI QUERER ACEITAR ARGUMENTS NAS ROUTES,
+    QUE VC PASSARIA AOS CONTROLLERS E ETC...
+
+
+    ( E TAMBÉM PODERÍAMOS ESTAR FAZENDO THROW DE DIFERENTES TIPOS DE EXCEPTIONS,
+    
+    E AÍ DIFERENTES TIPOS DE TESTS, PARA TESTAR DIFERENTES TIPOS DE CASES...)
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VAMOS ESCREVER MAIS ALGUNS TESTS, AGORA PARA O METHOD 
+    DE 'resolve()'...
+
+
+
+
+
+
+
+
+
+
+-> ATÉ AGORA, TESTAMOS AS FAILURES....
+
+
+
+
+
+
+--> MAS AINDA NÃO TESTAMOS 
+
+    ESTAS PARTES AQUI:
+
+
+
+            if (is_callable($action)) {
+            return call_user_func($action, $route);
+        }
+
+
+
+
+
+
+
+
+E AQUI:
+
+
+
+
+
+
+
+
+          if (method_exists($class, $method)) {
+                    return call_user_func_array([$class, $method], []);
+                }
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+AS PARTES 
+
+EM QUE 
+
+
+
+
+
+AS COISAS ACTUALLY 'DÃO SUCESSO',
+
+
+e em que 
+
+os methods adequados são executados...
+
+
+
+
+
+
+
+
+
+-> OS TESTS SERÃO:
+
+
+
+
+''TEST IF IT RESOLVES PROPERLY, WHEN THE ACTION IS CALLABLE''..
+
+
+
+
+
+--> É POR ISSO QUE ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+public function it_resolves_route_from_a_closure(): void 
+{
+    $this->router->get('/users', fn() => [1, 2, 3]);
+}
+
+
+
+
+
+
+
+
+
+
+In PHP,  a closure is a callable class, to which you've bound your parameters manually.
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+    public function it_resolves_route_from_a_closure(): void
+    {
+        // Given that we have a router object, and we register a route and a closure
+        $this->router->get('/users', fn() => [1, 2, 3]);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ESSE É O 'GIVEN'..
+
+
+
+
+
+
+-> '''SO, WHEN WE ACTUALLY CALL THE RESOLVE() METHOD 
+     AND PASS THE CORRECT REQUESTURI AND REQUESTMETHOD,
+    
+    WE WANT TO ENSURE THAT '[1, 2, 3]' is the value that gets resolved ..''
+
+
+
+
+
+
+
+
+    POR ISSO ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+    public function it_resolves_route_from_a_closure(): void
+    {
+        // Given that we have a router object, and we register a route and a closure
+        $this->router->get('/users', fn() => [1, 2, 3]);
+
+        // When we resolve the route
+        $this->assertEquals(
+            [1, 2, 3],
+            $this->router->resolve('/users', 'get')
+        );
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+SE RODAMOS O TEST, GANHAMOS OUTRO SUCCESS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AGORA VAMOS ESCREVER O ÚLTIMO TEST,
+
+QUE VAI 
+
+
+
+
+''TEST 
+    THAT A ROUTE IS ACTUALLY RESOLVED PROPERLY''..
+
+
+
+
+
+
+
+
+
+
+
+--> VAMOS USAR OUTRA ANON FUNCTION PARA ISSO, TIPO ASSIM:
+
+
+
+
+
+    /** @test */
+    public function it_resolves_route(): void
+    {
+
+        // Simulate a users class:
+        $users = new class () {
+            public function index(): array
+            {
+                return [1, 2, 3];
+            }
+        };
+
+
+        // Given that we have a router object, and we register a route and a closure
+        $this->router->get('/users', [$users::class, 'index']);
+
+        // When we resolve the route
+        $this->assertEquals(
+            [1, 2, 3],
+            $this->router->resolve('/users', 'get')
+        );
+    }
+
+
+
+
+
+
+
+
+
+OK... TODOS OS TESTS PASSARAM..
+
+
+
+
+
+
+
+
+
+
+ANTES DE ACABAR A AULA, O PROFESSOR QUER FALAR SOBRE O METHOD DE 
+
+
+'assertEquals()'...
+
+
+
+
+
+
+
+
+
+
+
+--> ESSE METHOD __ NÃO FAZ_ STRICT COMPARISON...
+
+
+
+
+
+
+-> ISSO PODE RESULTAR, EM CERTOS CASOS,
+    EM 'FALSE POSITIVES' --> ISSO PODE TE
+                            DAR A IMPRESSÃO 
+                            DE QUE VC 
+
+                            N TEM BUGS,
+
+                            QUANDO NA VERDADE VC TEM...
+
+
+
+
+
+
+
+POR EXEMPLO,
+
+'assertEquals()'
+
+ainda vai 
+
+considerar 
+
+'['1', 2, 3]' 
+
+
+
+como IGUAL 
+
+
+A 
+
+'[1,2,3]',
+
+
+
+
+
+
+MESMO QUE, TECNICAMENTE,
+
+ESSES 2 VALUES SEJAM DIFERENTES...
+
+
+
+
+
+
+
+
+
+NESSE EXEMPLO, NÃO FAZ DIFERENÇA... MAS PODE FAZER, EVENTUALMENTE...
+
+
+
+
+
+--> PQ O TEST PODE RESULTAR EM FALSOS POSITIVOS...
+
+
+
+
+
+
+PODE PENSAR QUE '0' é 'bool(false)',
+
+por exemplo...
+
+
+ 
+ EX:
+
+
+
+
+new class() {
+    public function index(): bool
+    {
+        return false;
+    }
+}
+
+ $this->assertEquals(
+    0,
+    $this->router->resolve('/users', 'get')
+ );
+
+
+
+
+
+ ISSO VAI RESULTAR EM 'PASSING',
+
+ MAS OS VALUES NÃO SÃO IGUAIS,
+
+
+ DEVERIA TER FALHADO...
+
+
+
+
+
+
+
+ ---> É MELHOR USAR STRICT COMPARISONS, SEMPRE (quase sempre)..
+
+
+
+
+
+
+
+
+
+ -> PARA QUE VC USE STRICT COMPARISON, EM VEZ DE LOOSE COMPARISON,
+    
+
+    VC DEVE USAR O METHOD 'assertSame()'...
+
+
+
+
+
+
+--> 'assertSame()',
+    ALÉM DE COMPARAR O VALUE, COMPARA TAMBÉM __ O TYPE_...
+
+
+
+    E É POR ISSO QUE É INFINITAMENTE MELHOR DO QUE O 
+
+
+    'assertSame'...
+
+
+
+
+
+
+
+
+    -> com o 'assertSame',
+
+    o error fica 
+
+
+    'Failed asserting that false is IDENTICAL to 0'....
+
+
+    (pq não são idênticos, de fato)...
+
+
+
+
+
+
+
+
+'assertSame' 
+
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+
+// assertEquals() --> uses loose comparison (==)
+// assertSame() --> uses strict comparison (===)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+- o professor usa 'assertSame()'
+
+    NA GRANDE MAIORIA DOS CASOS,
+
+    E RECOMENDA QUE UTILIZEMOS..
+
+
+
+
+
+
+
+
+
+-> A ÚNICA OBSERVAÇÃO DO PROFESSOR SOBRE ISSO 
+
+
+É 
+
+
+
+''''IF YOU ARE GOING TO COMPARE THE VALUES OF 2 OBJECTS,
+    USE THE assertEquals(), IF YOU DON'T WANT TO COMPARE THAT 
+    THE 
+    OBJECT IS THE SAME...''''
+
+
+
+
+
+
+
+
+
+
+
+
+CÓDIGO FINAL:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+
+namespace Tests\Unit;
+
+
+use App\Exceptions\RouteNotFoundException;
+use App\Router;
+use PHPUnit\Framework\TestCase;
+
+
+// assertEquals() --> uses loose comparison (==)
+// assertSame() --> uses strict comparison (===)
+
+class RouterTest extends TestCase
+{
+
+    private Router $router;
+
+    // This method will always be called before each test (gotten from PHPUnit).
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->router = new Router();
+    }
+
+
+    /** @test */
+    public function it_registers_a_route(): void
+    {
+        // Given that we have a router object 
+        // $router = new Router(); // ? MOVED INTO 'setUp' method.
+
+        // When we call a register method and provide the arguments
+        $this->router->register('get', '/users', ['Users', 'index']);
+
+        $expected = [
+            'get' => [
+                '/users' => ['Users', 'index'],
+            ]
+        ];
+
+        // Then we assert that the route was registered.
+        $this->assertSame($expected, $this->router->routes());
+    }
+
+    /** @test */
+    public function it_registers_a_get_route(): void
+    {
+        // Given that we have a router object 
+        // $router = new Router(); // ? MOVED INTO 'setUp' method.
+
+        // When we call a get method and provide the arguments
+        $this->router->get('/posts', ['Posts', 'index']);
+
+        $expected = [
+            'get' => [
+                '/posts' => ['Posts', 'index'],
+            ]
+        ];
+
+        // Then we assert that the route was registered.
+        $this->assertSame($expected, $this->router->routes());
+    }
+
+    /** @test */
+    public function it_registers_a_post_route(): void
+    {
+        // Given that we have a router object 
+        // $router = new Router(); // ? MOVED INTO 'setUp' method.
+
+        // When we call a get method and provide the arguments
+        $this->router->post('/posts', ['Posts', 'create']);
+
+        $expected = [
+            'post' => [
+                '/posts' => ['Posts', 'create'],
+            ]
+        ];
+
+        // Then we assert that the route was registered.
+        $this->assertSame($expected, $this->router->routes());
+    }
+
+    /** @test */
+    public function it_returns_no_routes_when_router_is_created(): void
+    {
+        // Given that we have a router class and When we create an instance of it
+        $router = new Router();
+
+        $expected = [];
+
+        // Then we assert that the routes are empty.
+        $this->assertSame($expected, $this->router->routes());
+    }
+
+    /** @test
+     *  @dataProvider routeNotFoundCases
+     */
+    public function it_throws_route_not_found_exception(
+        string $requestUri, // Will be provided by the data provider method.
+        string $requestMethod
+    ): void {
+        // Simulate a users class:
+        $users = new class () {
+            // public function index(): bool
+            // {
+            //     return true;
+            // }
+
+            public function delete(): bool
+            {
+                return true;
+            }
+        };
+
+
+
+        // Given that we have a router object, and we register these routes
+        $this->router->post('/users', [$users::class, 'store']);
+        $this->router->get('/users', [$users::class, 'index']);
+        $this->router->delete('/users', [$users::class, 'delete']);
+
+        $this->expectException(RouteNotFoundException::class);
+
+        $this->router->resolve($requestUri, $requestMethod);
+    }
+
+    public function routeNotFoundCases(): array
+    {
+        return [
+            ['/aRequestUri', 'aRequestMethod'], // request uri doesnt exist, request method doesnt exist, class doesnt exist, method doesnt exist
+            ['/users', 'put'], // request uri exists, but request method doesnt exist, class doesnt exist, method doesnt exist
+            ['/invoices', 'post'], // request uri doesn't exist, but request method exists, class doesnt exist, method doesnt exist
+            ['/users', 'get'], // request uri exists, request method exists, class EXISTS, but method DOESN'T EXIST (index method)
+            ['/users', 'post'], // request uri exists, request method exists, class EXISTS, but method DOESN'T EXIST (store method)
+            ['/users', 'delete'], // request uri exists, request method exists, class EXISTS, AND METHOD EXISTS (This will result in a test failure, because the exception won't be thrown)
+        ];
+    }
+
+    /** @test */
+    public function it_resolves_route_from_a_closure(): void
+    {
+        // Given that we have a router object, and we register a route and a closure
+        $this->router->get('/users', fn() => [1, 2, 3]);
+
+        // When we resolve the route
+        $this->assertSame(
+            [1, 2, 3],
+            $this->router->resolve('/users', 'get')
+        );
+    }
+
+
+    /** @test */
+    public function it_resolves_route(): void
+    {
+
+        // Simulate a users class:
+        $users = new class () {
+            public function index(): array
+            {
+                return [1, 2, 3];
+            }
+        };
+
+
+        // Given that we have a router object, and we register a route and a closure
+        $this->router->get('/users', [$users::class, 'index']);
+
+        // When we resolve the route
+        $this->assertSame(
+            [1, 2, 3],
+            $this->router->resolve('/users', 'get')
+        );
+    }
+
+}
+
+
+
+
+
+
+
+
+
+NO PRÓXIMO VIDEO, VEREMOS COISAS COMO 'TEST DOUBLES',
+
+'STUBS'
+
+E
+
+'MOCKING'...
