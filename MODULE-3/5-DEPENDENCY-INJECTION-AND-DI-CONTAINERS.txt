@@ -1,0 +1,1306 @@
+ 
+
+
+
+
+
+
+
+NOS ÚLTIMOS VIDEOS, COBRIMOS:
+
+
+
+
+
+
+1) OS BASICS DE TESTING 
+
+
+
+
+2) PHPUnit 
+
+
+
+
+3) WROTE SOME UNIT TESTS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> TAMBÉM FIZEMOS 1 POUCO DE REFACTORING,
+
+    EM QUE USAMOS ''DEPENDENCY INJECTION'' EM VEZ 
+
+    DO HARDCODING DE DEPENDENCIES,
+
+    TUDO PARA DEIXAR 
+
+    O TESTING MAIS FÁCIL...
+
+
+
+
+
+
+
+
+
+--> NESSE VÍDEO, E NOS PRÓXIMOS,
+    COBRIREMOS:
+
+
+
+
+
+
+
+
+    -- DEPENDENCY INJECTION (DI)
+
+
+
+
+    -- DEPENDENCY INJECTION CONTAINERS
+
+
+
+
+
+    -- AUTOWIRING 
+
+
+
+    -- REFLECTION API...
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS O QUE É 'DEPENDENCY INJECTION'?
+
+
+
+
+
+
+
+
+
+--> NA WIKIPEDIA, TEMOS ESTA DEFINIÇÃO:
+
+
+
+
+
+
+
+
+
+
+'''In software engineering, dependency injection is a technique 
+    in which an OBJECT receives OTHER OBJECTS that it depends on, called 
+    DEPENDENCIES. Typically, the receiving object is called a CLIENT,
+    and the passed-in ("injected") object is called a SERVICE. The code
+    that passes the service to the client is called the INJECTOR. Instead 
+    of the client specifying WHICH service it will use, the INJECTOR 
+    tells the CLIENT what service to use. The 'injection' refers to the 
+    passing of a dependency (a service) into the client that uses it...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AGORA VEREMOS O PROBLEMA, E COMO A DEPENDENCY INJECTION O SOLUCIONA...
+
+
+
+
+
+
+
+TEMOS TIPO ISTO:
+
+
+
+
+
+
+
+
+
+class InvoiceService
+{
+    
+    protected PaymentGateWayService $gatewayService;
+    protected SalesTaxService $salesTaxService;
+    protected EmailService $emailService;
+
+
+    public function __construct() 
+    {
+        $this->gatewayService = new PaymentGateWayService();
+        $this->salesTaxService = new SalesTaxService();
+        $this->emailService = new EmailService();
+    }
+
+
+    ...
+
+}
+
+
+
+
+
+
+
+
+
+O PROBLEMA, AQUI, É QUE ESTAMOS 
+
+FAZENDO 
+O 
+
+__HARD CODE__ 
+
+
+DESSAS CLASSES DENTRO DO CONSTRUCTOR,
+
+EM QUE 
+
+
+A 'invoiceService' class é responsável 
+
+
+PELO CREATE DAS DEPENDENCIES...
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO CRIA VÁRIOS PROBLEMAS:
+
+
+
+-- GENERATES TIGHT COUPLING 
+
+
+-- HARDER TO TEST 
+
+
+-- HARDER TO MAINTAIN
+
+
+
+
+
+
+
+
+
+
+
+--> EM VEZ DA CLASS DE 'InvoiceService'
+    SER APENAS RESPONSÁVEL PELO CREATE DESSAS DEPENDENCIES,
+    QUE 
+
+    NÃO SÃO PROPRIAMENTE DELA,
+
+
+    PODEMOS INVERTER TUDO,
+
+    FAZER COM QUE SEJAM PASSADAS 
+
+    COMO PARAMETERS DO CONSTRUCTOR,
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+class InvoiceService
+{
+    public function __construct(
+    protected PaymentGateWayService $gatewayService;
+    protected SalesTaxService $salesTaxService;
+    protected EmailService $emailService;
+    ) {
+
+    }
+}
+
+
+
+
+
+
+
+
+
+CERTO... ISSO FAZ SENTIDO...
+
+
+
+
+
+PASSAMOS 
+
+OS PARAMETERS COMO VALUES DO CONSTRUCTOR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''DEPENDENCY INJECTION 
+    IS BASICALLY A FORM OF _ INVERSION _ OF CONTROL (IOC)'''
+
+
+
+
+
+
+
+''IOC'' -> É UM GENERAL PRINCIPLE,
+            E PODE SER APLICADO A MUITAS COISAS,
+            NÃO SÓ APENAS A DEPENDENCY INJECTION...
+
+
+
+
+
+
+
+''IOC'' -> COM ISSO, O FLOW OF CONTROL É INVERTIDO...
+            
+            'INSTEAD OF A CLASS BEING RESPONSIBLE FOR CREATING OBJECTS,
+            THE OUTER CODE IS RESPONSIBLE FOR PROVIDING THE DEPENDENCIES TO 
+            THE CLASS'...
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+HÁ DIFERENTES TIPOS DE DEPENDENCY INJECTION,
+
+COMO 
+
+
+'SETTER INJECTION',
+
+
+
+
+'METHOD INJECTION' 
+
+E ETC...
+
+
+
+
+
+
+
+
+
+
+
+--> A QUE O PROFESSOR NOS MOSTROU É CHAMADA DE 'Constructor Injection',
+
+    E É O QUE FOCAREMOS, NESSA LESSON...
+
+
+
+
+
+
+
+
+
+--> DEPENDENCY INJECTION, ALÉM DE 
+
+    OUTROS BENEFITS,
+
+
+    DEIXA 
+    FÁCIL O WRITE DE TESTS...
+
+
+
+
+
+
+
+
+
+-> NA ÚLTIMA AULA,
+
+
+COM DEPENDENCY INJECTION,
+
+
+NOS TORNAMOS CAPAZES 
+
+
+DE CRIAR TEST DOUBLES E PASSÁ-LOS COMO DEPENDENCIES EM VEZ DAS CLASSES ORIGINAIS,
+
+
+COM UM CÓDIGO COMO ESTE:
+
+
+
+
+
+
+
+       // TODO - These are MOCKS:
+        $salesTaxServiceMock = $this->createMock(SalesTaxService::class); // Mock objects' methods will return 'null', by default.
+        $gatewayServiceMock = $this->createMock(PaymentGatewayService::class);
+        $emailServiceMock = $this->createMock(EmailService::class);
+
+
+        // * Given that we have an invoice service object
+        $invoiceService = new InvoiceService( $salesTaxServiceMock, 
+                                              $gatewayServiceMock,
+                                              $emailServiceMock);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> também podemos utilizar INTERFACES,
+
+
+
+E, ENTÃO, EM VEZ 
+
+
+DE ACEITAR CLASSES COMO ARGUMENTS NO CONSTRUCTOR,
+
+
+
+
+
+PODEMOS ACEITAR IMPLEMENTATIONS DAQUELAS CLASSES,
+
+EM VEZ DAS CLASSES ESTRITAS..
+
+
+
+TIPO ASSIM:
+
+
+
+class InvoiceService
+{
+
+
+    public function __construct(
+            protected PaymentGateWayServiceInterface $gatewayService;
+    ) 
+    {
+
+    }
+
+
+    ...
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA QUE SABEMOS DEPENDENCY INJECTION,
+
+
+
+DEVEMOS ENTENDER QUAL É O ROLE DE 'Dependency Injection Containers'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+DI CONTAINERS:
+
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA VAMOS SAIR DA CLASS DE 'INVOICESERVICE',
+    PARA 
+
+    IR '1 NIVEL ACIMA',
+
+
+
+
+    1 NIVEL EM QUE PRECISAMOS DE 1 OBJECT DA CLASS DE 'INVOICESERVICE' EM SI...
+
+
+
+
+
+    NO CASO, ISSO PODE SER UM CONTROLLER, OU QUALQUER OUTRA CLASS 
+
+    QUE PRECISA DE 1 OBJECT DA CLASS DE 'INVOICESERVICE'....
+
+
+
+
+
+
+
+
+
+DIGAMOS QUE TEMOS ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+
+class InvoiceController 
+{
+    public function store()
+    {
+
+        $name = $_POST['name'];
+        $amount = $_POST['amount'];
+
+        $invoiceService = new InvoiceService(
+            new SalesTaxService(),
+            new PaymentGatewayService(),
+            new EmailService()
+        );
+
+        $invoiceService->process(['name' => $name], $amount);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+DIGAMOS QUE TEMOS 1 INVOICE CONTROLLER, COM ESSE METHOD 
+
+DE 
+'store',
+
+
+QUE 
+
+
+
+
+''PROCESSES AN INVOICE, AFTER THE USER SUBMITS A FORM...'''
+
+
+
+
+
+
+O USER PREENCHE UMA FORM, COM 1 POUCO DE INFO... E AÍ 
+
+FAZEMOS ISSO DE FORMA SIMPLES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O METHOD DE 'store'
+
+
+É O 
+
+METHOD EM QUE PRECISAMOS 
+
+
+DO OBJECT DA CLASS DE 'INVOICESERVICE',
+
+
+PQ PRECISAMOS 
+
+
+
+__PROCESSAR_ A INVOICE.. ( com $invoiceService->process())..
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE ESTAMOS CRIANDO UM NOVO 
+    OBJECT DE '$invoiceService'..
+
+
+
+
+
+--> MAS POR PRECISARMOS _ PASSAR_ AS DEPENDENCIES MANUALMENTE,
+        NÓS _ TAMBÉM ESTAMOS CRIANDO ESSAS DEPENDENCIES,
+
+        E PASSANDO-AS PARA 'InvoiceService':
+
+
+
+
+    
+    
+
+
+        $invoiceService = new InvoiceService(
+            new SalesTaxService(),
+            new PaymentGatewayService(),
+            new EmailService()
+        );
+
+
+
+
+
+
+
+
+
+
+
+
+OK, MAS QUAL É O PROBLEMA, AQUI? 
+
+
+
+
+
+
+
+
+
+
+
+--> Acho que o problema é que 
+
+o controller de 'InvoiceController'
+
+ESTÁ FAZENDO COISAS DEMAIS (instanciando 3 classes, antes de passá-los a outra instance de outra class...)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+----> O PROBLEMA É:
+
+
+
+
+''''WHILE __ InvoiceService IS __ LOOSELY_ COUPLED 
+    AND USES DEPENDENCY INJECTION, _ THE CONTROLLER ITSELF 
+    IS __ TIGHTLY COUPLED, AND WE ARE STILL HARDCODING THE DEPENDENCIES....''
+
+
+
+
+    E, PIOR AINDA, 
+
+
+    '''IN ADDITION TO HARDCODING THESE 3 DEPENDENCIES, 
+        WE ARE ALSO HARDCODING THE __ 'InvoiceService'
+        CLASS __ AS A __dEPENDENCY ITSELF...''
+
+
+
+
+
+
+
+--> AGORA IMAGINE QUE 'PaymentGateWayService' TEM SUAS 
+    PRÓPRIAS DEPENDENCIES... AÍ O CÓDIGO FICARIA AINDA MAIS CLUTTERED,
+    TIPO ASSIM:
+
+
+
+
+
+    
+        $invoiceService = new InvoiceService(
+            new SalesTaxService(),
+            new PaymentGatewayService(
+                new ApiService(),
+                new Logger()
+            ),
+            new EmailService()
+        );
+
+
+
+
+
+
+
+
+
+
+
+AÍ PRECISARÍAMOS CRIAR ESSAS DEPENDENCIES TAMBÉM,
+
+E TAMBÉM PRECISARÍAMOS 'PASS THEM DOWN'...
+
+
+
+
+
+
+
+
+
+
+
+--> E, PARA SER HONEST,
+    ISSO NÃO É TÃO RUIM (obviamente... pq mtos apps são assim)...
+
+
+
+
+
+
+
+--> NA MAIOR PARTE DOS APPS,
+     VC 
+
+     TERÁ, COM CERTEZA,
+
+
+     'CLASSES THAT HAVE DEPENDENCIES WITH THEIR OWN DEPENDENCIES, ETC ETC...'
+
+
+
+
+
+
+--> THE NESTING OF DEPENDENCIES CAN BE PRETTY DEEP...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA CONSERTAR ESSE PROBLEMA, DEVEMOS USAR DEPENDENCY INJECTION NO CONTROLLER 
+TAMBÉM...
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+class InvoiceController 
+{
+
+
+
+    public function __construct(
+        private InvoiceService $invoiceService
+    ) {
+
+    }
+
+
+    public function store() {
+
+        $name = $_POST['name'];
+        $amount = $_POST['amount'];
+
+        $this->invoiceService->process(
+            ['name' => $name],
+            $amount
+        )
+    }
+}
+
+
+
+
+
+
+
+
+
+
+OK... ISSO É DEPENDENCY INJECTION...
+
+
+
+
+
+
+
+
+COM ISSO, ESTAMOS 
+
+
+FAZENDO ACCEPT 
+
+
+DA CLASS DE 'invoiceService'
+
+
+DIRETAMENTE NO CONSTRUCTOR,
+
+
+
+E AÍ 
+
+
+
+ESTAMOS PASSANDO APENAS OS PARAMETERS 
+
+
+DE 'process',
+
+dentro dessa class,
+que foi colocada 
+
+no constructor...
+
+
+
+
+
+
+
+
+
+
+COM ISSO, NOSSO method de 'store()'
+
+ficou bem mais clean...
+
+
+
+
+
+
+
+
+
+
+
+--> sim...
+
+    MAS É CLARO QUE 
+
+
+    AS DEPENDENCIES 
+
+    DEVEM SER PUXADAS DE ALGUM LUGAR... SÓ NÃO SEI DE ONDE...
+
+
+
+
+
+
+
+
+
+----> 'THINGS WON'T MAGICALLY WORK, 
+        UNLESS YOU ARE USING A FRAMEWORK LIKE LARAVEL...''
+
+
+
+
+
+
+--> FALAREMOS SOBRE ESSA 'MAGIC' MAIS TARDE..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... MAS PARA ENTENDER ESSA DEPENDENCY INJECTION DE AGORA,
+    DE 'InvoiceController',
+
+
+    DEVEMOS ZOOM OUT MAIS UM NÍVEL ACIMA,
+
+
+    NO ARQUIVO DE 'Router.php', 
+
+
+    EM QUE TÍNHAMOS/TEMOS O METHOD DE 
+
+
+    'resolve()',
+
+    QUE TEM ESTE FORMATO:
+
+
+
+
+
+
+
+    public function resolve(string $requestUri, string $requestedMethod)
+    {
+
+        // * The first part of the request URI is the route (the second part is the query string/parametrs)
+        $route = explode('?', $requestUri)[0];
+
+        // * Find the action for the route, in the routes array.
+        $action = $this->routes[$requestedMethod][$route] ?? null;
+
+        if (!$action) {
+            // Throw custom exception.
+            throw new RouteNotFoundException();
+        }
+
+
+        if (is_callable($action)) {
+            return call_user_func($action, $route);
+        }
+
+        // * If it is not callable, it must be an array:
+        if (is_array($action)) {
+            [$class, $method] = $action;
+            if (class_exists($class)) {
+                $class = new $class();
+                if (method_exists($class, $method)) {
+                    return call_user_func_array([$class, $method], []);
+                }
+            }
+        }
+
+        throw new RouteNotFoundException();
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CRIAMOS UMA CLASS DE ROUTER BÁSICA,
+
+ANTERIORMENTE,
+
+QUE FAZ 
+
+O HANDLE 
+
+
+
+DA PARTE DE 'CONTROLLER RESOLVING',
+
+E QUE 
+
+FAZ 
+
+
+O MAP DAS ROUTES A CONTROLLER ACTIONS...
+
+
+
+
+
+
+
+
+
+
+--> A PARTE EM QUE AS CONTROLLER INSTANCES 
+
+    SÃO CRIADAS É BASICAMENTE AQUI:
+
+
+
+
+
+$class = new $class();
+
+
+
+
+
+
+
+
+
+
+
+O PROBLEMA, NO CASO, É QUE 
+
+__ NÃO PODEMOS PASSAR AS HARDCODED DEPENDENCIES
+
+DENTRO DESSA CLASS... ISSO É PQ _ OS OUTROS CONTROLLERS PODEM 
+TER 
+
+DEPENDENCIES DIFERENTES,
+ 
+
+ OU ENTÃO 
+
+
+'THEY MAY HAVE NO DEPENDENCIES AT ALL''..
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS DEVEMOS ESQUECER SOBRE O 'CONTROLLER' OU O 'ROUTER',
+
+POR ENQUANTO...
+
+
+
+            -> MESMO SE TIVÉSSEMOS ALGUMA MANEIRA 
+               DE FAZER PASS DOWN DE DEPENDENCIES,
+               AINDA TERÍAMOS A MESMA ISSUE 
+               (
+                ficaríamos com o create manual de dependencies 
+                pra caramba,
+
+                mas, dessa vez, no method de 'resolve()'...
+               )
+
+
+
+
+
+
+--> MAS ENTÃO QUAL É A SOLUTION???
+
+
+
+
+
+
+
+
+--> A SOLUTION É PRECISAMENTE 'DEPENDENCY INJECTION CONTAINERS'...
+
+
+
+
+
+
+
+
+
+
+-> ESSE 'DEPENDENCY INJECTION CONTAINER'
+
+É SIMPLESMENTE UMA CLASS QUE 
+
+__ TEM INFO _ SOBRE OUTRAS CLASSES___...
+
+
+
+
+
+
+-> esse tipo de class nos deixa SUBSTITUIR COISAS COMO 
+
+___ISTO:
+
+
+
+
+
+   $invoiceService = new InvoiceService(
+            new SalesTaxService(),
+            new PaymentGatewayService(
+                new ApiService(),
+                new Logger()
+            ),
+            new EmailService()
+        );
+
+
+
+
+
+
+POR ISTO:
+
+
+
+
+
+$invoiceService = $container->get(InvoiceService::class);
+
+
+
+
+
+
+
+
+
+
+
+
+->  '''SO, IF WE NEED AN OBJECT 
+        OF THE 'InvoiceService' class,
+        WE SIMPLY ASK THE CONTAINER 
+         __ TO _GIVE_ US THAT OBJECT,
+          AND THEN 
+
+          _____ HAVE_ THE CONTAINER_ FIGURE OUT 
+          HOW TO RESOLVE _ THE 
+          DEPENDENCIES _ PROPERLY...''
+
+
+
+
+
+
+
+
+
+
+
+
+--> HÁ DIFERENTES MANEIRAS 
+    DE IMPLEMENTAR 'DEPENDENCY INJECTION CONTAINERS',
+
+
+
+    MAS EXISTE 
+
+
+    O
+
+
+    PSR-11,
+
+
+    QUE FOI PROJETADO PARA PROVIDENCIAR UMAS 
+    GUIDELINE/COMMON INTERFACE,
+
+
+    QUE 
+
+    PODE SER IMPLEMENTADA EM FRAMEWORKS, LIBRARIES 
+
+    E CODEBASES...
+
+
+
+
+
+
+
+
+--> FAREMOS ISSO NA PRÓXIMA AULA,
+    VAMOS:
+
+
+
+
+1) IMPLEMENT A SIMPLE CONTAINER...
+
+
+
+
+2) SEE HOW IT WORKS 
+
+
+
+
+3) HOW TO USE IT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VEREMOS COISAS TAMBÉM 
+
+    COMO 'AUTO-WIRING'
+
+    'REFLECT API' 
+
+
+    E COMO IOC CONTAINER FUNCIONA NO LARAVEL (como exemplo de dependency injection)...
+
+    
