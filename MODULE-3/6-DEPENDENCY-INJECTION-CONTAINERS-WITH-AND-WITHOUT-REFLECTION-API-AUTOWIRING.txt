@@ -1,0 +1,5765 @@
+
+
+
+
+
+
+
+
+
+NA ÚLTIMA AULA,
+ 
+ FALAMOS SOBRE 
+
+
+ DEPENDENCY INJECTION E DEPENDENCY INJECTION CONTAINERS...
+
+
+
+
+
+
+
+
+
+
+-> NESSA AULA, VEREMOS COMO IMPLEMENTAR 1 
+
+
+DI CONTAINER SIMPLES...
+
+
+
+
+
+
+
+
+
+
+
+-> DI CONTAINER ---> É APENAS UMA CUSTOM CLASS 
+                     QUE TEM INFO SOBRE 
+                     OUTRAS CLASSES, O QUE 
+                     A PERMITE 
+
+                     __ FAZER RESOLVE DE CLASSES, COM SUAS DEPENDENCIES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NO EXEMPLO DA ÚLTIMA AULA,
+
+
+
+
+
+A UTILIZAÇÃO DE UM DI CONTAINER 
+
+FAZ COM QUE 
+
+ESTA ESCRITA AQUI:
+
+
+
+
+
+   $invoiceService = new InvoiceService(
+            new SalesTaxService(),
+            new PaymentGatewayService(
+                new ApiService(),
+                new Logger()
+            ),
+            new EmailService()
+        );
+
+
+
+
+
+
+
+
+
+
+
+
+POSSA SER SIMPLIFICADA, NESSA ESCRITA AQUI:
+
+
+
+
+
+$invoiceService = $container->get(InvoiceService::class);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS COMO ISSO É POSSÍVEL?
+
+
+
+
+
+
+
+
+--> PARA QUE ISSO FUNCIONE, PRECISAMOS ACTUALLY
+    BUILD UM DI CONTAINER...
+
+
+
+
+-> PRECISAMOS BUILDAR UM DI CONTAINER 
+
+    E 'TELL IT HOW IT SHOULD RESOLVE THE CLASSES AND ITS DEPENDENCIES (args dos constructors)''
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, USAREMOS 
+    O 'PSR-11',
+
+
+
+    'PSR-11 ---> CONTAINER INTERFACE',
+
+
+
+    QUE É UMA INTERFACE 
+    DE CONTAINERS,
+
+
+
+    PARA IMPLEMENTAR UM  CONTAINER SIMPLES...
+
+
+
+
+
+
+
+
+
+
+
+
+-> ELE PROVIDENCIA INTERFACES E GUIDELINES NECESSÁRIAS...
+
+
+
+
+
+
+
+
+
+
+--> O PSR-11 É O QUE A MAIOR PARTE DOS FRAMEWORKS E LIBRARIES UTILIZAM
+    PARA _ PROVIDENCIAR DI CONTAINER FUNCTIONALITY, COM ALGUMAS FEATURES 
+    ADICIONAIS...
+
+
+
+
+
+
+--> JÁ EXISTEM CENTENAS DE IMPLEMENTAÇÕES DE DI CONTAINER 
+    QUE VC PODERIA USAR,
+
+
+    COMO 
+
+
+
+    'PHP-DI',
+
+
+    OU, ENTÃO,
+
+
+    FRAMEWORKS COMO LARAVEL (o laravel tem 1 implementação de DI container out of the box)
+
+
+
+
+
+
+
+
+
+
+LARAVEL --> USA O 'LARAVEL SERVICE CONTAINER'...
+
+
+
+
+laravel.com/docs/container
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+ISSO FAZ SENTIDO...
+
+
+
+
+
+
+
+APESAR DE CADA IMPLEMENTAÇÃO SER DIFERENTE,
+
+A MAIN IDEA CONTINUA A MESMA...
+
+
+
+
+
+
+
+
+-> VAMOS IMPLEMENTAR UM DI CONTAINER BEM SIMPLES... 
+
+
+
+
+
+
+
+
+--> ESSE CONTAINER NÃO DEVE SER USADO EM PRODUCTION...
+
+
+
+
+
+
+
+-> ELE EXISTIRÁ APENAS PARA DEMONSTRAR COMO 
+   DI CONTAINERS FUNCIONAM...
+
+
+
+
+
+
+
+
+
+QUANTO AO NOSSO CÓDIGO, É O MESMO DAS AULAS DE TESTING,
+
+
+
+
+
+COM ESTA ESTRUTURA:
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+namespace App\Services;
+
+class InvoiceService
+{
+    public function __construct(
+        protected SalesTaxService $salesTaxService,
+        protected PaymentGatewayService $gatewayService,
+        protected EmailService $emailService
+    ) {
+    }
+
+    public function process(array $customer, float $amount): bool
+    {
+        // 1. calculate sales tax
+        $tax = $this->salesTaxService->calculate($amount, $customer);
+
+        // 2. process invoice
+        if (! $this->gatewayService->charge($customer, $amount, $tax)) {
+            return false;
+        }
+
+        // 3. send receipt
+        $this->emailService->send($customer, 'receipt');
+
+        return true;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+TEMOS ESSA CLASS AÍ,
+
+
+
+
+COM 3 DEPENDENCIES 
+(salesTaxService, paymentGatewayService e emailService)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+-> VAMOS IMPLEMENTAR UM DI CONTAINER SIMPLES, QUE 
+
+VAI NOS AJUDAR A 'RESOLVE' ESSAS DEPENDENCIES, COM MENOS CÓDIGO...
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO,
+
+    A PRIMEIRA COISA QUE PRECISAMOS FAZER É INSTALAR,
+
+    COM O COMPOSER,
+
+
+
+
+    A DEPENDENCY DE 'CONTAINER' do psr,
+
+
+
+
+QUE PODE SER INSTALADA COM ESSE CÓDIGO (rodando no docker container em que temos o composer, no nosso caso):
+
+
+
+
+
+composer require psr/container
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+PS D:\PROJETO20-PHP-FROM-THE-GROUND-UP> docker exec -it programwithgio-app bash
+root@833a71a3fef5:/var/www# composer require psr/container
+./composer.json has been updated
+Running composer update psr/container
+Loading composer repositories with package information
+Updating dependencies
+Lock file operations: 1 install, 0 updates, 0 removals
+  - Locking psr/container (2.0.2)
+Writing lock file
+Installing dependencies from lock file (including require-dev)
+Package operations: 1 install, 0 updates, 0 removals
+  - Downloading psr/container (2.0.2)
+  - Installing psr/container (2.0.2): Extracting archive
+Generating optimized autoload files
+Class Model located in ./app/Models/Model.php does not comply with psr-4 autoloading standard (rule: App\ => ./app). Skipping.
+6 packages you are using are looking for funding.
+Use the `composer fund` command to find out more!
+No security vulnerability advisories found.
+Using version ^2.0 for psr/container
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... DEPOIS DE ISSO SER INSTALADO,
+
+CRIAMOS UMA NOVA CLASS,
+
+
+
+DE NOME 'Container',
+
+
+no root do app,
+que vai 
+
+ficar com nosso Container...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA USAR A INTERFACE DE CONTAINERS,
+
+ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App;
+
+
+use Psr\Container\ContainerInterface;
+
+
+
+
+
+
+
+
+
+
+AÍ, PARA IMPLEMENTAR, ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App;
+
+
+use Psr\Container\ContainerInterface;
+
+
+class Container implements ContainerInterface
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-_> AINDA PRECISAMOS DEFINIR VÁRIOS METHODS...
+
+
+
+
+
+
+SÃO 'get'
+
+' 
+
+'has'...
+
+
+
+
+
+
+
+SUAS IMPLEMENTAÇÕES BÁSICAS SÃO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App;
+
+
+use Psr\Container\ContainerInterface;
+
+
+class Container implements ContainerInterface
+{
+
+
+    public function get(string $id)
+    {
+
+    }
+
+    public function has(string $id): bool
+    {
+        return false;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+MAS AGORA PRECISAMOS DA LÓGICA..
+
+
+
+
+SE CLICAMOS NA INTERFACE DE 'ContainerInterface',
+
+
+ficamos com isto:
+
+
+
+
+
+    /**
+     * Finds an entry of the container by its identifier and returns it.
+     *
+     * @param string $id Identifier of the entry to look for.
+     *
+     * @throws NotFoundExceptionInterface  No entry was found for **this** identifier.
+     * @throws ContainerExceptionInterface Error while retrieving the entry.
+     *
+     * @return mixed Entry.
+     */
+    public function get(string $id);
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * Returns true if the container can return an entry for the given identifier.
+     * Returns false otherwise.
+     *
+     * `has($id)` returning true does not mean that `get($id)` will not throw an exception.
+     * It does however mean that `get($id)` will not throw a `NotFoundExceptionInterface`.
+     *
+     * @param string $id Identifier of the entry to look for.
+     *
+     * @return bool
+     */
+    public function has(string $id): bool;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    resumo:
+
+
+
+
+
+
+''THE GET METHOD IS BASICALLY USED TO GET/RESOLVE 
+    THE CLASS FROM THE CONTAINER...''
+
+
+
+
+''THE HAS METHOD IS USED TO CHECK 
+    IF THERE IS A BINDING, OR IF A
+    CLASS OR ENTRY EXISTS, IN THE CONTAINER''...
+
+
+
+
+
+
+e '$id'  se refere, nesse caso,
+
+
+
+AO 'IDENTIFIER' DAQUELA 'SOMETHING' QUE QUEREMOS RESOLVE....
+
+
+
+NO NOSSO CASO, E NA MAIOR PARTE DOS CASOS, O identifier/$id 
+
+'REFERS' AO __ FULLY QUALIFIED CLASSNAME QUE ESTAMOS QUERENDO RESOLVE...
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK, MAS ONDE ESTÁ O METHOD  DE 'set()'?
+
+
+
+
+
+
+
+-> BEM, A INTERFACE DE CONTAINER 
+
+    NÃO TEM METHOD DE 'set()'...
+
+
+
+
+
+
+    --> UÉ, MAS ENTÃO COMO SETTAMOS NOSSAS BINDINGS/ADICIONAMOS 
+    ENTRIES AO CONTAINER?
+
+
+
+
+
+
+
+
+
+--> SE VISUALIZAMOS A PÁGINA DE 'META' 
+    NA DOCUMENTATION DO PSR-11,
+
+
+
+    VEREMOS ISTO:
+
+
+
+
+
+
+''How entries are set in the container and how they are configured 
+    is OUT OF THE SCOPE of this PSR. This is what makes 
+    every container implementation unique. Some containers have no 
+    configuration at all (they rely on autowiring), others rely on PHP code 
+    defined via callback, others on configuration files... This standard 
+    ONLY FOCUSES ON HOW ENTRIES ARE __ FETCHED...''
+
+
+
+
+
+
+
+
+
+
+
+e isso é único:
+
+
+
+
+
+
+-- DIFFERENT METHODS OF SETTING OR STORING ENTRIES...
+
+
+
+
+
+-- SOME USE CALLBACKS 
+
+-- SOME ARE CONFIG-BASED 
+
+-- SOME USE FACTORIES 
+
+-- SOME USE ANNOTATIONS,
+
+
+ETC...
+
+
+
+
+
+
+
+-> POR EXISTIREM DIFERENTES MANEIRAS DE 
+    DEFINIR/SETTAR ENTRIES,
+
+    ISSO EXISTE FORA DO ESCOPO DO 'PSR-11'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> ok... quer dizer que precisamos IMPLEMENTAR ESSES 2 METHODS,
+
+
+OS METHODS DE 'get()' e 'has()',
+
+que sempre existirão nessa class..
+
+
+
+
+
+
+
+
+
+--> TAMBÉM PRECISAMOS DEFINIR E PROVIDENCIAR ALGUMA IMPLEMENTATION 
+PARA O METHOD DE 'set',
+
+
+    PQ ISSO É REALMENTE NECESSÁRIO (e sempre difere, 
+    de 1 implementation para outra)...
+
+
+
+
+
+
+
+
+--> OK.. CONFORME MENCIONADO ANTERIORMENTE,
+    O 'DI CONTAINER'
+
+
+    É APENAS UMA 'CLASS QUE TEM INFO SOBRE OUTRAS CLASSES'...
+
+
+
+
+
+
+
+
+
+
+--> AGORA SABEMOS QUE ELE PRECISA 
+    DESSES 2 METHODS, 'GET' E 'HAS'...
+
+
+
+
+
+
+
+
+-> OK... E A DATA STRUCTURE QUE PODEMOS USAR 
+PARA ARMAZENAR ENTRIES/BINDINGS PODE SER 1 ARRAY..
+
+
+
+
+
+
+POR ISSO ESCREVEMOS ASSIM:
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App;
+
+
+use Psr\Container\ContainerInterface;
+
+
+class Container implements ContainerInterface
+{
+    private array $entries = [];
+
+    public function get(string $id)
+    {
+
+    }
+
+    public function has(string $id): bool
+    {
+        return false;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O METHOD DE 'has' é fácil de implementar,
+
+    pq NÓS SABEMOS QUE ELE DEVE RETORNAR TRUE SE A ENTRY EXISTE,
+
+
+    E FALSE OTHERWISE..
+
+
+
+
+
+
+
+    PARA ISSO, PODEMOS USAR A FUNCTION DE 'isset()',
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App;
+
+
+use Psr\Container\ContainerInterface;
+
+
+class Container implements ContainerInterface
+{
+    private array $entries = [];
+
+    public function get(string $id)
+    {
+
+    }
+
+    public function has(string $id): bool
+    {
+       return isset($this->entries[$id]);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+
+
+DEPOIS DISSO, PODEMOS IMPLEMENTAR O METHOD DE 'set()'...
+
+
+
+
+
+ESSE METHOD VAI EXIGIR 2 ARGUMENTS:
+
+
+
+
+
+
+
+1) IDENTIFIER ($id), que será o fully qualified classname...
+
+
+
+
+
+
+2) A IMPLEMENTATION/RESOLVER DAQUELA CLASS...
+
+
+
+
+
+
+
+
+
+
+--> VAMOS USAR O CALLBACK-BASED BINDING,
+    POR ENQUANTO,
+
+    PARA O SEGUNDO PARAMETER...
+
+
+
+
+--> VAMOS CHAMAR O SEGUNDO PARAMETER DE '$concrete'..
+
+
+
+
+ 
+--> vc também pode pensar no segundo parameter 
+    como uma FACTORY, FACTORY QUE É RESPONSÁVEL 
+    PELO CREATE DO OBJECT DA CLASS (qualquer class)
+    QUE VC QUER FAZER 'GET', DO CONTAINER...
+
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+
+
+
+public function set(string $id, callable $concrete) 
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+--> FAZER UMA IMPLEMENTAÇÃO DO METHOD DE SET É COISA SIMPLES
+    PARA NOSSO SIMPLE DI CONTAINER,
+
+
+    PQ APENAS PRECISAMOS ADICIONAR A ENTRY,
+
+    DESSE OBJECT,
+
+
+
+    AO ARRAY DE '$entries'...
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE ESCREVEMOS TIPO ASSIM:
+
+
+
+
+
+
+public function set(string $id, callable $concrete) 
+{
+$this->entries[$id] = $concrete;
+}
+
+
+
+
+
+
+
+
+
+
+FINALMENTE, PRECISAMOS IMPLEMENTAR O METHOD DE 'get()'...
+
+
+
+
+
+
+
+
+
+
+
+---> DE ACORDO COM O PSR-11,
+
+
+
+    ''IF ENTRY IS NOT FOUND,
+      THE get() method MUST 
+      THROW  
+
+      A 'NotFoundException'...''
+
+
+
+
+
+
+
+--> TIPO ASSIM:
+
+
+
+
+
+    public function get(string $id)
+    {
+
+        if (!$this->has($id)) {
+
+        }
+    }
+
+
+
+
+
+
+
+
+
+O PSR-11 TAMBÉM PROVIDENCIA INTERFACES PARA AS EXCEPTIONS...
+
+
+É POR ISSO QUE PODEMOS CRIAR NOSSAS PRÓPRIAS CUSTOM 
+EXCEPTIONS, E AÍ IMPLEMENTAR ESSAS INTERFACES...
+
+
+
+
+
+
+
+
+
+
+tipo uma custom exception de 
+
+
+
+''NotFoundException()''....
+
+
+
+
+
+
+
+
+
+
+
+--> CRIAMOS ESSA CLASS, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+declare(strict_types=1);
+
+namespace App\Exceptions\Container;
+
+use Psr\Container\NotFoundExceptionInterface;
+
+
+class NotFoundException extends NotFoundExceptionInterface
+{
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---> AÍ, LÁ NO METHOD,
+
+
+
+ESCREVEMOS ASSIM:
+
+
+
+
+
+
+        if (!$this->has($id)) {
+            throw new NotFoundException('Class ' . $id . ' not found');
+        }
+
+
+
+
+
+
+
+
+
+
+
+-> NÃO PRECISAMOS DE CONSTRUCTOR NA EXCEPTION CUSTOM...
+
+
+
+
+
+
+
+
+
+--> MESMO ASSIM, DEIXEI ELA ASSIM:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+
+declare(strict_types=1);
+
+namespace App\Exceptions\Container;
+
+use Psr\Container\NotFoundExceptionInterface;
+
+
+class NotFoundException implements NotFoundExceptionInterface
+{
+    private $message;
+    private $code;
+    private $file;
+    private $line;
+    private $previous;
+    private $id;
+    private $level;
+
+
+    public function __construct(string $id)
+    {
+        $this->id = $id;
+    }
+
+    public function getMessage(): string
+    {
+        return sprintf('Identifier "%s" is not defined.', $this->id);
+    }
+
+    public function getIdentifier(): string
+    {
+        return $this->id;
+    }
+
+    public function getLevel(): int
+    {
+        return $this->level;
+    }
+
+    public function getMessageLevel(): int
+    {
+        return $this->level;
+    }
+
+    public function getCode(): int
+    {
+        return $this->code;
+    }
+
+    public function getFile(): string
+    {
+        return $this->file;
+    }
+
+    public function getLine(): int
+    {
+        return $this->line;
+    }
+
+
+    public function getTrace(): array
+    {
+        return debug_backtrace();
+    }
+
+    public function getTraceAsString(): string
+    {
+        return implode("\n", array_map(function ($trace) {
+            return "{$trace['file']}({$trace['line']}): {$trace['function']}()";
+        }, $this->getTrace()));
+    }
+
+    public function __toString(): string
+    {
+        return __CLASS__ . ": [{$this->code}]: {$this->message}\n";
+    }
+
+
+    public function getPrevious(): \Throwable
+    {
+        return $this->getPrevious();
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> LÁ NO METHOD DE 'get()',
+
+
+ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+    public function get(string $id)
+    {
+
+        if (!$this->has($id)) {
+            throw new NotFoundException('Class ' . $id . ' not found');
+        }
+
+        $entry = $this->entries[$id];
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, CONSEGUIMOS FAZER 'GET' DA ENTRY,
+
+
+LÁ NO ARRAY DE ENTRIES...
+
+
+
+FINALMENTE,
+
+
+COMO SABEMOS QUE AS ENTRIES 
+
+SÃO CALLABLE (por conta do typehinting de 'callable $concrete'),
+
+
+
+    PODEMOS SIMPLESMENTE 
+
+
+
+
+RETORNAR O VALUE DO CALLBACK,
+TIPO ASSIM:
+
+
+
+
+
+    public function get(string $id)
+    {
+
+        if (!$this->has($id)) {
+            throw new NotFoundException('Class ' . $id . ' not found');
+        }
+
+        $entry = $this->entries[$id];
+
+
+        return $entry($this);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COMO ARGUMENTO DO CALLBACK, PASSAMOS 
+    A CURRENT INSTANCE DO PRÓPRIO CONTAINER...
+
+
+    --> COM ISSO, ''THE CALLBACK WILL HAVE ACCESS TO 
+                    THE CONTAINER INSTANCE, SO THAT IT 
+                    CAN GET ANY NEEDED DEPENDENCIES, FROM 
+                    WITHIN ITSELF (the callback)''....
+
+
+
+
+
+
+-> O QUE ESTÁ FALTANDO, AGORA,
+    É O BIND/ADD DE CLASSES/ENTRIES AO CONTAINER...
+
+
+
+
+
+
+
+
+-> VAMOS REGISTRAR NOSSAS CLASSE/ENTRIES 
+
+    LÁ DO ARQUIVO DE 'App.php',
+
+    PARA ESSE EXEMPLO...
+
+
+
+
+
+
+
+--> ABRIMOS A CLASS DE 'App.php',
+    que é a main class que faz bootstrap de nosso app...
+
+
+
+
+
+
+---> NESSA CLASS, 
+    O PROFESSOR ADICIONA UMA NOVA PRIVATE PROPERTY,
+
+    DE NOME 'CONTAINER'...
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+class App
+{
+    private static DB $db;
+    private static Container $container;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO, VAMOS SETTAR ESSE CONTAINER DA MESMA FORMA QUE SETTAMOS O DB,
+
+como uma STATIC PROPERTY, dentro do App itself...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+class App
+{
+    private static DB $db;
+    private static Container $container;
+
+    public function __construct(protected Router $router, protected array $request, protected Config $config)
+    {
+        static::$db = new DB($config->db ?? []);
+        static::$container = new Container();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... ENTÃO, LOGO ABAIXO DA INSTANCIAÇÃO 
+    DO CONTAINER,
+
+    PODEMOS ADICIONAR/BINDAR 
+
+    AS CLASSES, AO NOSSO CONTAINER..
+
+
+
+
+
+
+
+
+PODERÍAMOS TAMBÉM OUTSOURCEAR ESSES CALLS 
+TODOS EM 1 METHOD SEPARADO, PARA DEIXAR MAIS LEGÍVEL (tipo '$this->bindClasses()', ou algo assim),
+
+MAS, PARA ESSE EXEMPLO,
+
+VAMOS MANTER TUDO ISSO DENTRO DO CONSTRUCTOR (isso pq vamos refatorar esse código mais tarde,
+de qualquer forma...)
+
+
+
+
+
+
+
+
+
+--> VAMOS USAR A CLASS DE 'InvoiceService'
+
+
+
+COMO EXEMPLO...
+
+
+
+
+
+
+
+
+--> ESSA CLASS TEM ESTE FORMATO:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+namespace App\Services;
+
+class InvoiceService
+{
+    public function __construct(
+        protected SalesTaxService $salesTaxService,
+        protected PaymentGatewayService $gatewayService,
+        protected EmailService $emailService
+    ) {
+    }
+
+    public function process(array $customer, float $amount): bool
+    {
+        // 1. calculate sales tax
+        $tax = $this->salesTaxService->calculate($amount, $customer);
+
+        // 2. process invoice
+        if (! $this->gatewayService->charge($customer, $amount, $tax)) {
+            return false;
+        }
+
+        // 3. send receipt
+        $this->emailService->send($customer, 'receipt');
+
+        return true;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESSA CLASS TEM 3 DEPENDENCIES, DENTRO DO CONSTRUCTOR DELA 
+
+(EmailService, PaymentGatewayService e  SalesTaxService)..
+ 
+
+
+
+
+é por isso que QUEREMOS ADICIONAR 
+
+'InvoiceService'
+
+
+
+COMO 1 DAS ENTRIES 
+
+
+__ DO CONTAINER... ----> FAREMOS ISSO PARA QUE, MAIS TARDE,
+
+                        CONSIGAMOS PEGAR 
+
+                        ESSE 'InvoiceService' object,
+
+
+                        LÁ DO CONTAINER...
+
+
+
+
+
+-> FAZEMOS ISSO POR MEIO DO CALL DO METHOD DE '->set()',
+    e aí passamos a class de 'InvoiceService',
+
+
+    tipo assim:
+
+
+
+
+
+
+    public function __construct(protected Router $router, protected array $request, protected Config $config)
+    {
+        static::$db = new DB($config->db ?? []);
+        // Initializes the container, sets it as a static property of our app.
+        static::$container = new Container();
+
+        // Adds entries/classes to the container, for further use.
+        static::$container->set(InvoiceService::class);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE ESSE method de 'set()'
+
+
+EXIGE UM SEGUNDO PARAMETER,
+
+
+DE TYPE 'callable',
+
+
+
+QUER SERÁ 
+
+UMA ANON FUNCTION 
+
+
+COM O NOSSO PRÓPRIO 'Container'
+
+
+
+
+COMO PARAMETER.. 
+
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+function(Container $c) {
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+E, COMO RETURN TYPE DE ESSA FUNCTION,
+
+RETORNAREMOS O PRÓPRIO 'InvoiceService'...
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+
+            function (Container $c) {
+                return new InvoiceService();
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+NO CASO, ESSE CALLBACK É 
+
+A __ PRÓPRIA 'RESOLVER FUNCTION'...
+
+
+
+
+
+É ISSO QUE BASICAMENTE 'TELLS OUR CONTAINER 
+                            ""HOW THE CLASS WE ARE TRYING TO GET 
+                            THE CLASS FROM THE CONTAINER SHOULD BE 
+                            INSTANTIATED/HOW OBJECTS FROM THAT CLASS MUST 
+                            BE CREATED...''
+
+                        
+
+
+                        QUER DIZER QUE ESSA FUNCTION PASSADA COMO PARAMETER 
+                        É BASICAMENTE UMA _FACTORy__...
+
+
+
+
+                        --> MAS COMO ESTAMOS RETORNANDO 'InvoiceService()',
+
+
+
+                        AINDA PRECISAMOS PASSAR AS DEPENDENCIES DE ESSE 
+                        'InvoiceService'...
+
+
+
+
+
+
+                        --> É PQ ELE TEM 3 DEPENDENCIES... 
+
+
+                        SalesTaxService, EmailService, PaymentGatewayService...
+
+
+
+
+
+                    ---> MAS POR TERMOS ACESSO AO CONTAINER  DE DENTRO 
+                        DESSE CALLBACK, PODEMOS SIMPLESMENTE FAZER GET,
+                        DE ESSAS DEPENDENCIES, DO PRÓPRIO CONTAINER 
+                        EM SI...
+
+
+
+                    TIPO ASSIM:
+
+
+
+
+
+    
+
+
+
+        // Adds entries/classes to the container, for further use.
+        static::$container->set(
+            InvoiceService::class,
+            function (Container $c) {
+                return new InvoiceService(
+                    $c->get(SalesTaxService::class),
+                    $c->get(PaymentGatewayService::class),
+                    $c->get(EmailService::class),
+                );
+            }
+        );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+
+
+
+ISSO VAI ADICIONAR 
+
+
+ESSA ENTRY, de 'InvoiceService',
+
+
+DENTRO DO CONTAINER...  
+
+
+
+
+
+
+
+
+
+
+--> E DEVEMOS FAZER A MESMA COISA COM AS DEPENDENCIES 
+    DE 'InvoiceService',
+
+    ou seja,
+
+
+    SalesTaxService,
+    PaymentGatewayService
+    
+    E 
+
+    EmailService..
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class App
+{
+    private static DB $db;
+    private static Container $container;
+
+    public function __construct(protected Router $router, protected array $request, protected Config $config)
+    {
+        static::$db = new DB($config->db ?? []);
+        // Initializes the container, sets it as a static property of our app.
+        static::$container = new Container();
+
+        // Adds entries/classes to the container, for further use.
+        static::$container->set(
+            InvoiceService::class,
+            function (Container $c) {
+                return new InvoiceService(
+                    $c->get(SalesTaxService::class),
+                    $c->get(PaymentGatewayService::class),
+                    $c->get(EmailService::class),
+                );
+            }
+        );
+
+        // Add the dependencies of the 'InvoiceService' to the container as well:
+        static::$container->set(
+            SalesTaxService::class,
+            function (Container $c) {
+                return new SalesTaxService();
+            }
+        );
+
+        static::$container->set(
+            PaymentGatewayService::class,
+            function (Container $c) {
+                return new PaymentGatewayService();
+            }
+        );
+
+        static::$container->set(
+            EmailService::class,
+            function (Container $c) {
+                return new EmailService();
+            }
+        );
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE ISSO 'DOES NOT LOOK GOOD'...
+
+
+
+
+
+
+
+
+APESAR DE ISSO FUNCIONAR, REALMENTE,
+
+__ ISSO NÃO TEM 1 APARÊNCIA BOA...
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR EXPLICA QUE HÁ MTAS DIFERENTES MANEIRAS DE 
+    IMPLEMENTAR DI CONTAINERS...
+
+    
+    (
+        tipo escrever apenas 
+
+        'static::$container->set(SalesTaxService)'' 
+    )
+
+
+
+
+
+--> mas isso não importa, pq vamos refatorar isso tudo de qualquer forma...
+
+
+
+
+
+
+
+
+
+-> A ÚNICA COISA QUE O PROFESSOR QUERIA FAZER, COM O WRITE ABSURDO DESSE CÓDIGO,
+    É NOS MOSTRAR QUE DI CONTAINERS FUNCIONAM,
+    QUANDO OS ESCREVEMOS DESSA FORMA..
+
+
+
+
+
+
+
+
+
+
+--> OK... MAS AGORA DEVEMOS TESTAR ISSO..
+
+
+
+
+
+
+--> DIGAMOS QUE QUEREMOS CONSEGUIR UMA _ INSTANCE__ 
+DA CLASS 
+
+
+DE 'InvoiceService',
+
+
+MAS DE DENTRO DO CONTROLLER DE 'HomeController'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS COMO PODEMOS FAZER ISSO?
+
+
+
+ 
+
+
+
+
+
+
+--> BEM, NOSSO CONTAINER ESTÁ ATUALMENTE MARCADO COMO 
+'PRIVATE PROPERTY' 
+
+
+DE 'App.php'...
+
+
+
+
+
+
+
+--> para facilitar nossa vida, definimos
+
+a property de '$container'
+
+
+como 'PUBLIC',
+
+por enquanto...
+
+
+
+
+
+
+EX:
+
+
+
+class App
+{
+    private static DB $db;
+    // private static Container $container;
+    public static Container $container;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Services\InvoiceService;
+use App\View;
+
+class HomeController
+{
+    public function index(): View
+    {
+        // Example of how to use the 'InvoiceService' from the container:
+        \App\App::$container->get(InvoiceService::class)->process([], 25);
+
+
+        return View::make('index');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+com isso,
+
+
+
+conseguimos basicamente chamar este method, da class de 'InvoiceService':
+
+
+
+   public function process(array $customer, float $amount): bool
+    {
+
+        // 1. Calculate sales tax
+        $tax = $this->salesTaxService->calculate($amount, $customer);
+
+
+        // 2. Process invoice
+        if (!$this->paymentGatewayService->charge($customer, $amount, $tax)) {
+
+            return false;
+        }
+
+        // 3. Send receipt
+        $this->emailService->send($customer, 'receipt');
+
+
+
+
+        echo 'Invoice has been processed<br />';
+
+        return true;
+    }
+
+
+
+
+
+----------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+O ECHO DE 'Invoice has been processed' será printado,
+PQ ESSE METHOD REALMENTE SERÁ CHAMADO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AÍ ABRIMOS O BROWSER E TESTAMOS ISSO...
+
+
+
+
+
+FIQUEI COM ESTE Error:
+
+
+
+
+
+
+
+
+
+
+Fatal error: Uncaught Error: Call to a member function process()
+ on null in /var/www/app/Controllers/HomeController.php:15 Stack trace:
+  #0 [internal function]: App\Controllers\HomeController->index() 
+  #1 /var/www/app/Router.php(54): call_user_func_array(Array, Array) #2 /var/www/app/App.php(70): App\Router->resolve('/', 'get') #3 /var/www/public/index.php(27): App\App->run() #4 {main} thrown in /var/www/app/Controllers/HomeController.php on line 15
+
+
+
+
+
+
+
+consertei o error, era o method de 'get()' do container,
+
+que estava com o return 
+
+do call da entry com o pass da instance faltando:
+
+
+
+
+
+
+        if (!$this->has($id)) {
+            throw new NotFoundException('Class ' . $id . ' not found');
+        }
+
+        $entry = $this->entries[$id];
+
+        return $entry($this);
+    }
+
+
+
+
+
+REALMENTE, NO BROWSER, ENCONTRAMOS ESTE PRINT:
+
+
+
+
+
+
+Invoice has been processed
+Home Page
+
+
+
+
+
+
+
+
+
+
+CERTO... ISSO FUNCIONOU, A INVOICE FOI PROCESSADA... 
+
+
+
+ISSO QUER DIZER QUE O METHOD DE 'process()' 
+
+
+FOI CHAMADO...
+
+
+
+
+
+
+
+
+
+
+'''WITH THIS, 
+    WE WERE ABLE TO GET 
+    THE 'InvoiceService' CLASS 
+
+    OUT OF THE CONTAINER, WITHOUT NEEDING TO CREATE 
+    A INSTANCE OF THE 'InvoiceService' class inside of our 
+    controller... our controller, with this, GOT 
+    MUCH SLIMMER... 
+
+
+
+    OUR CONTROLLER NOW ''DOES NOT NEED TO KNOW HOW OUR 
+    INVOICESERVICE CLASS IS CREATED'', E ''DOES NOT NEED TO 
+    CREATE INSTANCES OF ALL THE DEPENDENCIES OF THE InvoiceService''...
+
+
+
+
+'''
+
+
+BASICAMENTE, O CONTROLLER NÃO É MAIS OBRIGADO A INSTANCIAR 'InvoiceService'
+
+e todas as dependencies de 'InvoiceService'...
+
+
+
+
+
+
+
+
+
+
+
+-> COM ISSO, ESTAMOS APENAS 
+
+''ASKING THE CONTAINER TO GET US THE INSTANCE OF THE InvoiceService,
+    and it DOES EXACTLY THAT''...
+
+
+
+
+
+
+
+E ISSO É NADA MAU,
+
+
+
+PQ TEMOS A BASIC CONTAINER FUNCTIONALITY FUNCIONANDO...
+
+
+
+
+
+
+
+
+
+--. É UM CONTAINER BÁSICO, SEM MTAS 
+
+FEATURES,
+
+
+MAS AINDA É UM CONTAINER...
+
+
+
+
+
+
+
+
+
+
+''''THIS IS __ A __ CONFIGURATION-BASED
+    DI CONTAINER'''
+
+
+    (Because we have to do some initial set up in the 
+    App class  and REGISTER THE CLASSES, WITH THEIR FACTORIES...)
+ 
+
+ 
+
+
+
+
+
+-> '''AND YOU SHOULD NOT WORRY ABOUT 
+    THIS STATIC PUBLIC ACCESS TO THE PROPERTY 'container' 
+    in the app, with the 'App::$container->get(ClassName::class)->process()',
+
+
+     BECAUSE THIS IS JUST A TEMPORARY THING, TO SHOW THAT OUR CONTAINER 
+     WORKS...  and we are going to REFACTOR THAT...''
+
+
+    
+
+
+
+
+
+-> '''WHILE THIS IS A WORKING CONTAINER, 
+    YOU MIGHT NOT WANT TO REGISTER AND CONFIGURE EVERY SINGLE 
+    DEPENDENCY IN YOUR APP... EVEN IF WE INTRODUCE SOME SORT OF 
+    CONFIG FILES AND WROTE A PARSER THAT WILL DYNAMICALLY REGISTER 
+    THE DEPENDENCIES, YOU WOULD STILL NEED  ___ TO _ DEFINE AND 
+    PROVIDE __ THE __ INITIAL SETUP WITHIN THE CONFIG FILE''...
+
+
+
+
+
+--> ''YES, OUR CONTAINER DOES NOT HAVE FANCY FEATURES LIKE 
+     CACHING, ALIASING, SINGLETON SUPPORT, AUTOWIRING AND OTHER 
+     THINGS, OUR CONTAINER STILL WORKS, IN ITS BASIC FORM''...
+
+
+
+
+
+
+
+
+--> MAS PODEMOS MELHORAR ESSE CONTAINER, 
+
+    MELHORAR UM POUCO, ''ADD THE AUTOWIRING FEATURE'',
+
+    PARA NOS LIVRARMOS DA PARTE 
+
+    DE 'REGISTERING' ,
+
+
+    que é todo este código aqui:
+
+
+
+
+
+
+
+        // Adds entries/classes to the container, for further use.
+        static::$container->set(
+            InvoiceService::class,
+            function (Container $c) {
+                return new InvoiceService(
+                    $c->get(SalesTaxService::class),
+                    $c->get(PaymentGatewayService::class),
+                    $c->get(EmailService::class),
+                );
+            }
+        );
+
+        // Add/register the dependencies of the 'InvoiceService' to the container as well:
+        static::$container->set(
+            SalesTaxService::class,
+            function (Container $c) {
+                return new SalesTaxService();
+            }
+        );
+
+        static::$container->set(
+            PaymentGatewayService::class,
+            function (Container $c) {
+                return new PaymentGatewayService();
+            }
+        );
+
+        static::$container->set(
+            EmailService::class,
+            function (Container $c) {
+                return new EmailService();
+            }
+        );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O AUTOWIRING PODE NOS AJUDAR A REMOVER TODO ESSE CÓDIGO...
+E ISSO É ÓTIMO (a não ser que queiramos todo esse 'explicit binding')
+
+
+
+
+
+
+
+
+--> MAS NÃO QUEREMOS TODO ESSE 'EXPLICIT BINDING'...
+
+
+
+
+
+-> ''WHAT WE WANT, IN THIS CASE, IS TO GET RID OF THIS AND 
+    __ EXPECT__ THE CONTAINER __ TO AUTOMATICALLY FIGURE OUT 
+
+    HOW _ TO RESOLVE __ THE CLASSES AND ALL OF THEIR DEPENDENCIES''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, VAMOS ATÉ O CÓDIGO DE 'App' (a class),
+    e aí 
+
+    REMOVEMOS 
+
+
+    A PARTE DE 
+
+
+
+    'static::$container = new Container()' 
+
+
+
+    E TODA AQUELA PARTE DE 
+
+
+
+    ''
+
+        // Adds entries/classes to the container, for further use.
+        static::$container->set(
+            InvoiceService::class,
+            function (Container $c) {
+                return new InvoiceService(
+                    $c->get(SalesTaxService::class),
+                    $c->get(PaymentGatewayService::class),
+                    $c->get(EmailService::class),
+                );
+            }
+        );
+
+        // Add/register the dependencies of the 'InvoiceService' to the container as well:
+        static::$container->set(
+            SalesTaxService::class,
+            function (Container $c) {
+                return new SalesTaxService();
+            }
+        );
+
+        static::$container->set(
+            PaymentGatewayService::class,
+            function (Container $c) {
+                return new PaymentGatewayService();
+            }
+        );
+
+        static::$container->set(
+            EmailService::class,
+            function (Container $c) {
+                return new EmailService();
+            }
+        );
+''
+
+
+, DENTRO DO CONSTRUCTOR:
+
+
+
+
+
+
+    public function __construct(protected Router $router, protected array $request, protected Config $config)
+    {
+        static::$db = new DB($config->db ?? []);
+        // Initializes the container, sets it as a static property of our app // ! (without autowiring).
+        // static::$container = new Container();
+
+        // // Adds entries/classes to the container, for further use.
+        // static::$container->set(
+        //     InvoiceService::class,
+        //     function (Container $c) {
+        //         return new InvoiceService(
+        //             $c->get(SalesTaxService::class),
+        //             $c->get(PaymentGatewayService::class),
+        //             $c->get(EmailService::class),
+        //         );
+        //     }
+        // );
+
+        // // Add/register the dependencies of the 'InvoiceService' to the container as well:
+        // static::$container->set(
+        //     SalesTaxService::class,
+        //     function (Container $c) {
+        //         return new SalesTaxService();
+        //     }
+        // );
+
+        // static::$container->set(
+        //     PaymentGatewayService::class,
+        //     function (Container $c) {
+        //         return new PaymentGatewayService();
+        //     }
+        // );
+
+        // static::$container->set(
+        //     EmailService::class,
+        //     function (Container $c) {
+        //         return new EmailService();
+        //     }
+        // );
+
+        
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    -> CERTO...
+
+
+
+
+
+
+
+
+
+AGORA É O PRÓPRIO CONTAINER QUE VAI FAZER ESSE AUTO-RESOLVE 
+
+
+DAS CLASSES E DE TODAS AS DEPENDENCIES DELAS...
+
+
+
+
+
+
+
+
+
+
+--> AÍ, COM ISSO, LÁ EM 'HomeController', 
+    em vez DE ACESSARMOS O CONTAINER ESTATICAMENTE,
+
+    COM ALGO COMO 
+
+
+    A ANTIGA ESCRITA DE 
+
+
+'
+\App\App::$container->get(InvoiceService::class)->process([], 25);
+
+',
+
+
+
+
+
+
+
+o que podemos escrever é algo ASSIM:
+
+
+
+
+
+
+
+
+
+
+class HomeController
+{
+    public function index(): View
+    {
+        // * Example of how to use the 'InvoiceService' from the container (calling method from the InvoiceService class):
+        // ! This example is WITHOUT AUTOWIRING
+        // \App\App::$container->get(InvoiceService::class)->process([], 25);
+
+
+        // * Example of container access, but with autowiring:
+        (new Container())->get(InvoiceService::class)->process([], 25);
+
+        return View::make('index');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, CONSEGUIMOS 'GET AN INSTANCE OF THE CONTAINER',
+
+
+E AÍ 
+
+PEGAR ESSA CLASS DE 'invoiceService',
+
+
+de dentro do container...
+
+
+
+
+
+
+
+
+
+
+--> CERTO... MAS SE SALVAMOS ISSO E RECARREGAMOS A PÁGINA DO SERVER,
+
+FICAMOS COM 1 ERROR IMEDIATO...
+
+
+
+
+
+
+
+
+
+-- FICAMOS COM 1 ERROR PQ, É CLARO, 
+    __ ESTAMOS COM AQUELE 
+
+    CASE DE 'NotFoundException',
+
+
+    EM QUE 
+
+
+    '''IF THE ENTRY DOES NOT EXIST IN THE $entries 
+    array, this exception will be thrown''...
+
+
+
+
+
+    E ISSO ERA ESPERADO POR NÓS... PQ VAMOS CONSERTAR ISSO...
+
+
+
+
+
+
+
+
+
+
+
+--> PARA FAZER COM QUE A ESCRITA DE 
+
+
+
+
+''''
+
+        (new Container())->get(InvoiceService::class)->process([], 25);
+
+
+''
+
+FUNCIONE,
+
+PRECISAMOS IMPLEMENTAR ALGO CHAMADO 
+
+
+DE 'AUTOWIRING'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''AUTOWIRING'''' --> THIS FEATURE 
+
+
+                        '''ALLOWS CONTAINER TO RESOLVE CLASSES, WITH THEIR DEPENDENCIES,
+                            WITHOUT HAVING EXPLICIT BINDINGS...''
+
+                        
+
+
+                        ''IN OTHER WORDS, WHEN WE TRY TO GET THE 
+                        'InvoiceService'  CLASS OUT OF THE CONTAINER,
+
+                        THE CONTAINER HAS TO FIGURE OUT ''HOW TO CREATE 
+                        INSTANCE OF InvoiceService'', and also ''HOW TO 
+                        RESOLVE THE DEPENDENCIES OF THE InvoiceService''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> para isso, VAMOS EXAMINAR A IMPLEMENTAÇÃO DO METHOD DE 'get()' novamente,
+    para então a alterarmos e conseguir implementar autowiring..
+
+
+
+
+
+
+
+ATUALMENTE, O CÓDIGO ESTÁ ASSIM:
+
+
+
+
+
+
+
+
+    public function get(string $id)
+    {
+
+        if (!$this->has($id)) {
+            throw new NotFoundException('Class ' . $id . ' not found');
+        }
+
+        $entry = $this->entries[$id];
+
+        return $entry($this);
+    }
+
+
+
+
+
+
+
+
+
+''RIGHT NOW, IF THE ENTRY IS NOT FOUND,
+    IT IS SIMPLY THROWING AN EXCEPTION (NotFoundException)''...
+
+
+
+        if (!$this->has($id)) {
+            throw new NotFoundException('Class ' . $id . ' not found');
+        }
+
+        $entry = $this->entries[$id];
+
+        return $entry($this);
+
+
+
+
+''BUT WE __ NEED __ TO GIVE THE CONTAINER '''ANOTHER CHANCE'''
+  TO TRY _ AND__ RESOLVE THE CLASS ON ITS OWN, WITHOUT THROWING THE EXCEPTION''...
+
+
+
+
+
+
+
+
+
+--> ''SO INSTEAD OF THROWING THE EXCEPTION IN THIS PLACE,
+      IF THE ENTRY IS FOUND AND THERE IS 
+
+      EXPLICIT BINDING, JUST DO THE THING WE WERE DOING BEFORE (take the entry and call the callback function)...''
+
+    
+
+    TIPO ASSIM:
+
+
+
+
+        if ($this->has($id)) {
+                $entry = $this->entries[$id];
+
+                return $entry($this);
+        }
+
+
+
+
+
+
+
+
+COM ISSO, BASICAMENTE CHECAMOS SE HÁ 'EXPLICIT BINDING' OU NÃO...
+
+
+
+
+
+
+
+
+ESSA PARTE FARÁ EXATAMENTE O QUE ESTÁVAMOS FAZENDO ANTES...
+
+
+(if we have explicit binding, we will simply call the callback function...)
+
+
+
+
+
+
+
+
+''BUT IF THERE IS __ NO BINDING___,
+    WE WILL JUST CALL SOME KIND OF 'resolve()' method,
+
+    WHICH WILL DO THE AUTOWIRING ITSELF, 
+    AND WILL TRY TO RESOLVE THE CLASS ON ITS OWN...''
+
+
+
+
+
+        if ($this->has($id)) {
+                $entry = $this->entries[$id];
+
+                return $entry($this);
+        }
+
+        return $this->resolve($id); //EIS O CÓDIGO EM QUESTÃO.
+
+
+
+
+
+
+
+(BASICAMENTE, ESTAMOS DANDO AO 
+CONTAINER OUTRA CHANCE PARA _ FAZER O RESOLVE DA REQUESTED CLASS)...
+
+
+
+
+
+
+
+
+CÓDIGO ATÉ AGORA:
+
+
+
+
+
+
+    // * With autowiring:
+    public function get(string $id)
+    {
+
+        // * If there is an explicit entry/binding for the given class, we use it:
+        if ($this->has($id)) {
+            $entry = $this->entries[$id];
+
+            return $entry($this);
+        }
+
+        // * If there is no explicit entry/binding for the given class, we try to resolve it (the autowiring itself, via a custom method):
+        return $this->resolve($id);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+-> devemos criar esse method de 'resolve()',
+
+
+E DEIXÁ-LO PUBLIC, TIPO ASSIM:
+
+
+
+
+
+    public function resolve(string $id)
+    {
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+--> certo... mas para implementarmos autowiring,
+    PRECISAMOS PRIMEIRAMENTE ENTENDER O QUE 
+    
+
+    ESTÁVAMOS FAZENDO, NOVAMENTE:
+
+
+
+
+
+
+
+
+
+
+ 
+
+'''IF WE GO BACK TO THE HOMECONTROLLER,
+WE HAVE THIS:
+
+
+
+
+
+        (new Container())->get(InvoiceService::class)->process([], 25);
+
+
+
+
+
+
+
+IF WE TRY TO GET THE 'InvoiceService' CLASS FROM THE _CONTAINER,
+
+__ WE WANT THE __ CONTAINER TO CREATE _ A NEW INSTANCE __
+
+OF THE 
+
+'InvoiceService' class... 
+
+
+AND IT ALSO NEEDS TO PASS DOWN THE DEPENDENCIES PROPERLY... AND, TO DO THAT,
+
+THE CONTAINER NEEDS TO RESOLVE THE DEPENDENCIES _ AS WELL_.... AND THIS 
+
+NEEDS TO HAPPEN __rECURSIVELY, BECAUSE EACH DEPENDENCY 
+CAN HAVE ITS 
+
+OWN DEPENDENCIES, AND SO ON...
+
+
+
+
+
+
+
+
+
+''''THIS MEANS THAT WE NEED A WAY TO 
+    INSPECT/INTROSPECT THE _ __CLASS STRUCTURE
+    __ FROM WITHIN THE _ CODE...'''''
+
+
+
+
+
+''SO WE NEED TO BE ABLE TO:
+
+
+1) READ THE 'InvoiceService' class's structure 
+
+
+
+2) FIND OUT IF THIS CLASS HAS A CONSTRUCTOR...
+
+
+3) IF IT DOES HAVE A CONSTRUCTOR, WE NEED TO FIND OUT 
+    IF IT HAS ANY DEPENDENCIES...
+ 
+
+
+
+4) BASED ON THAT INFO, WE CAN TRY TO RESOLVE 
+    THE DEPENDENCIES....
+
+
+5) FINALLY, WE CAN PASS THOSE DEPENDENCIES TO THE CLASS
+    THAT WE WERE TRYING TO RESOLVE, IN THE END...
+
+
+
+
+''
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, FELIZMENTE,
+O PHP TEM UMA 
+
+API CHAMADA DE 'REFLECTION API',
+
+
+
+QUE TE DEIXA 
+
+
+''INTROSPECT CLASSES'',
+
+PARA ENTÃO 'DO SOME MAGIC WITH THEM'...
+
+
+
+
+
+
+
+--> E É ISSO QUE FAREMOS, AGORA...
+
+
+
+
+
+
+
+--> ''WE WILL USE THE REFLECTION API, TO BE ABLE TO 
+    IMPLEMENT AUTOWIRING IN OUR CONTAINER...''
+
+
+
+
+
+
+
+
+
+
+
+
+-----> PARA ISSO, PRECISAMOS 'WRITE DOWN' 
+
+    AS STEPS QUE PRECISAMOS FAZER,
+
+    PARA 
+
+    CONSEGUIR IMPLEMENTAR O METHOD DE 'resolve':
+
+
+
+
+
+
+
+
+
+    public function resolve(string $id)
+    {
+       // 1. We need to inspect the class that we are trying to get from the container
+
+       // 2. We need to inspect the constructor of the class 
+
+       // 3. We need to inspect the constructor's parameters (dependencies)
+
+       // 4. If the constructor parameter is a class, then we need to try and resolve that class, using the container as a param...
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+PRECISAMOS IMPLEMENTAR ESSAS  
+
+
+'4 SIMPLE STEPS'...
+
+
+
+
+
+
+
+
+
+
+
+-> PODE PARECER NADA SIMPLES,
+
+MAS NÃO É TÃO RUIM...
+
+
+
+
+
+
+
+
+
+
+
+
+-> É CLARO QUE HÁ MAIS ETAPAS NO MEIO,
+    COMO 'ERROR HANDLING' E ETC...
+
+
+
+
+
+    MAS VAMOS FAZER ISSO 
+    A MEDIDA QUE VAMOS ESCREVENDO O CÓDIGO PARA CADA ETAPA...
+
+
+
+
+
+
+
+
+
+
+--> COMEÇAMOS COM 
+
+O 
+
+'INSPECT THE CLASS THAT WE ARE TRYING TO GET FROM THE CONTAINER'...
+
+
+
+
+
+
+
+
+
+
+-> PARA CONSEGUIR FAZER ISSO,
+    PODEMOS USAR A REFLECTION API,
+
+    COMO O PROFESSOR MENCIONOU ANTES...
+
+
+
+
+
+
+
+--> PODEMOS FAZER ISSO TIPO ASSIM:
+
+
+
+
+        $reflectionClass = new \ReflectionClass();
+
+
+
+
+
+
+
+
+
+
+ISSO VAI NOS DAR 1 REFLECTIONCLASS....
+
+
+
+
+
+
+
+
+
+-> MAS PRECISAMOS PASSAR 1 CLASS COMO PARAMETER....
+
+NO CASO,
+
+A CLASS PASSADA 
+
+SERÁ 
+
+A CLASS QUE VAMOS QUERER 'RESOLVE'...
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+    public function resolve(string $id)
+    {
+        // 1. We need to inspect the class that we are trying to get from the container (using reflection api):
+
+        $reflectionClass = new ReflectionClass($id);
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+MAS ANTES DE PROSSEGUIRMOS PARA A ETAPA 2,
+
+
+
+
+PRECISAMOS FAZER 1 PEQUENA SUB-STEP, DE ERROR HANLDING,
+
+PARA 
+
+CHECAR SE ''IS THE CLASS ACTUALLY INSTANTIABLE''...
+
+
+
+
+
+
+
+(PQ SE ESSA CLASS FOR 1 ABSTRACT CLASS OU INTERFACE,
+VAI CAUSAR 1 UNCAUGHT ERROR...
+)
+
+
+
+
+
+
+
+--> MAIS TARDE FALAREMOS SOBRE 'INTERFACES' E SOBRE COMO 
+PODEMOS FAZER RESOLVE DELAS, DE DENTRO DO CONTAINER....
+
+
+
+
+
+
+
+ENTRETANTO, POR ENQUANTO, 
+NÃO TEMOS SUPORTE A ISSO... PQ O CONTAINER 
+_ NÃO VAI SABER 
+
+''HOW TO CREATE AN INSTANCE OF A INTERFACE''...
+
+
+
+
+
+
+
+---> E É POR ISSO QUE 'CLASS WILL NEED TO BE INSTANTIABLE''...
+
+
+
+
+
+
+
+
+
+
+-> PARA CHECAR SE A CLASS É INSTANCIÁVEL, USAMOS O METHOD DE 
+
+'->isInstantiable()', dentro da reflectionClass,
+
+TIPO ASSIM:
+
+
+
+
+
+    public function resolve(string $id)
+    {
+        // 1. We need to inspect the class that we are trying to get from the container (using reflection api):
+
+        $reflectionClass = new ReflectionClass($id);
+
+        if (!$reflectionClass->isInstantiable()) {
+            throw new ContainerException('Class ' . $id . ' is not instantiable');
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AINDA NÃO TEMOS ESSA CLASS DE 'ContainerException',
+    MAS VAMOS CRIAR UMA PARA ELA...
+
+
+
+    (CONFORME MENCIONADO ANTERIORMENTE,
+    
+    O PSR-11 PROVIDENCIA AS INTERFACES PARA AS EXCEPTIONS...
+    
+    TEMOS 1 INTERFACE PARA A EXCEPTION DE 'NotFoundException',
+
+    E OUTRA PARA 
+
+    'ContainerException'...
+    )
+
+
+
+
+
+
+
+
+
+-> PODEMOS IMPLEMENTAR ESSAS INTERFACES,
+
+
+
+EM UMA NOVA CLASS, CHAMADA DE 'ContainerException'...
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php
+
+
+namespace App\Exceptions;
+use Psr\Container\ContainerExceptionInterface;
+
+class ContainerException extends \Exception implements ContainerExceptionInterface
+{
+}
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+AÍ FECHAMOS ISSO,
+
+E AÍ COLOCAMOS 1 MESSAGE GENÉRICA,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+    public function resolve(string $id)
+    {
+        // 1. We need to inspect the class that we are trying to get from the container (using reflection api):
+        $reflectionClass = new ReflectionClass($id);
+
+        if (!$reflectionClass->isInstantiable()) {
+            throw new ContainerException('Class ' . $id . ' is not instantiable');
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+certo... depois disso, 
+
+temos a etapa 2...
+
+
+
+
+
+
+
+
+
+A ETAPA 2 É 
+
+
+
+
+''WE need to inspect the constructor of the class'' (para ver se há alguma dependency)...
+
+
+
+
+
+
+
+
+
+
+
+PARA FAZER ISSO, 
+PODEMOS/DEVEMOS 
+
+
+
+
+''GET THE CONSTRUCTOR FROM THE ReflectionClass's object,
+    BY CALLING THE '->getConstructor()' method...'''
+
+
+
+''THEN WE CAN STORE THAT CONSTRUCTOR, IN ANOTHER VARIABLE'...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+    public function resolve(string $id)
+    {
+        // 1. We need to inspect the class that we are trying to get from the container (using reflection api):
+
+        $reflectionClass = new ReflectionClass($id);
+
+        if (!$reflectionClass->isInstantiable()) {
+            throw new ContainerException('Class ' . $id . ' is not instantiable');
+        }
+
+        // 2. We need to inspect the constructor of the class 
+        $constructor = $reflectionClass->getConstructor();
+
+        if (!$constructor) {
+            throw new ContainerException('Class ' . $id . ' has no constructor');
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    --> SE INSPECIONAMOS 'getConstructor()',
+
+
+    FICAMOS COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+	/**
+	 * Gets the constructor of the reflected class.
+	 * @return ReflectionMethod|null A ReflectionMethod object reflecting the class' constructor, or `null` if the class has no constructor.
+	 */
+	function getConstructor() { /* function body is hidden */ }
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA, É UM METHOD QUE RETORNA OU UM  OBJECT 
+DE 
+
+'ReflectionMethod',
+
+
+ou 
+
+'null',
+
+
+SE NÃO EXISTE CONSTRUCTOR NA GIVEN CLASS...
+
+
+
+
+
+
+
+
+
+
+--> ''IF THERE IS NO CONSTRUCTOR, THIS MEANS THAT 
+    WE HAVE NO DEPENDENCIES... AND IF THERE IS NO DEPENDENCIES,
+    THIS MEANS THAT WE CAN JUST RETURN A NEW INSTANCE OF THAT GIVEN CLASS''..
+
+
+    (ou seja, não usaremos o throw de 1 exception, quando isso acontecer)...
+
+
+
+
+--> PODEMOS ESCREVER ESSE IF TIPO ASSIM:
+
+
+
+        if (!$constructor) {
+            // If there is no constructor, we can just return a new instance of the class, without any dependencies/arguments.
+            return new $id();
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O CÓDIGO, ATÉ AGORA:
+
+
+
+
+
+
+
+
+    public function resolve(string $id)
+    {
+        // 1. We need to inspect the class that we are trying to get from the container (using reflection api):
+
+        $reflectionClass = new ReflectionClass($id);
+
+        if (!$reflectionClass->isInstantiable()) {
+            throw new ContainerException('Class ' . $id . ' is not instantiable');
+        }
+
+        // 2. We need to inspect the constructor of the class 
+        $constructor = $reflectionClass->getConstructor();
+
+        if (!$constructor) {
+            // If there is no constructor, we can just return a new instance of the class, without any dependencies/arguments.
+            return new $id();
+        }
+
+
+
+
+
+
+
+
+
+
+poderíamos ter escrito isso de forma alternativa,
+com '$reflectionClass->newInstance()',
+
+mas o professor acha que 'return new $id();' é mais conciso e legível...
+    
+
+
+
+
+
+
+
+
+-> OK... AGORA TEMOS O PASSO 3:
+
+
+
+
+
+
+
+''INSPECT THE CONSTRUCTOR's parameters (dependencies)''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ESSA ETAPA, PRECISAMOS INSPECIONAR OS PARAMETERS...
+
+
+
+
+
+
+-> PODEMOS USAR O METHOD DE '->getParameters()',
+    dentro do object ReflectionClass (reflection api),
+
+
+    TIPO ASSIM:
+
+
+
+
+        // 3. We need to inspect the constructor's parameters (dependencies)
+        $constructorParameters = $constructor->getParameters();
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS ANTES 
+
+
+DE EXAMINARMOS A ETAPA 4,
+
+
+PRECISAMOS DE MAIS UM HANDLING, AQUI...
+
+
+
+
+
+
+
+
+
+
+--> ''WE NEED TO CHECK 
+    IF THERE ARE ANY PARAMETERS IN THE CONSTRUCTOR''
+
+    (ISSO PQ CLASSES PODEM TER CONSTRUCTORS SEM QUAISQUER PARAMETERS... TIPO ''__construct(){}'' )
+
+
+
+
+
+
+
+
+--> NESSES CASOS, EM QUE 'THERE ARE NO PARAMETERS IN THE CONSTRUCTOR',
+
+podemos só fazer o return simples do object, como antes...
+
+tipo assim:
+
+
+
+
+
+
+        // 3. We need to inspect the constructor's parameters (dependencies)
+        $constructorParameters = $constructor->getParameters();
+
+        if (count($constructorParameters) === 0) {
+            return new $id();
+        }
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+se ele retorna algo que NÃO É UM EMPTY ARRAY,
+
+
+SIGNIFICA QUE TEMOS ALGUNS PARAMETERS,
+
+QUE PRECISAM SER RESOLVED...
+
+
+
+
+
+
+ISSO É VISTO NA ETAPA 4,
+
+QUE É:
+
+
+
+
+
+
+
+''If the constructor parameter is a class, 
+then we need to try and resolve that class, using the CONTAINER as a PARAM''
+
+
+
+
+
+
+
+
+
+
+
+-> para implementar essa etapa 4,
+talvez seja 
+
+necessário fazer 'foreach'
+
+por dentro de cada element em 'getParameters',
+
+para aí rodar 'is_class',
+ou algo assim...
+
+
+
+
+
+
+
+
+
+
+
+
+--> A ETAPA 4, NO CASO, 
+
+É A 'RECURSIVE STEP',
+
+de nossa function...
+
+
+
+
+
+e é a step mais difícil de entender...
+
+
+
+
+
+'''WE NEED TO DO THIS FOR EACH PARAMETER''...
+
+
+
+
+
+
+
+
+
+-> ''STEP 4 IS WHERE WE ARE GOING TO BUILD THE DEPENDENCIES,
+    SO WE NEED SOME SORT OF __ VARIABLE_ TO STORE _ 
+    THESE DEPENDENCIES THAT WE WILL PASS TO THE OBJECT OF THE CLASS''...
+
+
+
+
+
+-> PARA ISSO, teremos 1 empty array, e aí vamos usar 
+1 loop para ir por dentro de cada parameter,
+
+para aí 
+
+'RESOLVE THE CLASS PROPERLY' e então 'ADD THE DEPENDENCY 
+                                        INTO THE ARRAY 
+                                        OF 'dependencies' ''....
+
+
+
+
+
+--> PODERÍAMOS TAMBÉM USAR 'array_map()',
+
+
+
+    E PASSAR A CALLBACK FUNCTION E O ARRAY DE 'PARAMETERS'...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+$dependencies = array_map(function(\ReflectionParameters $parameter) {
+
+
+}, $parameters);
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, DENTRO DESSA CALLBACK FUNCTION ,
+
+
+
+
+É O LOCAL EM QUE 
+
+''WE NEED TO RESOLVE THE DEPENDENCY''...
+
+
+
+
+
+
+
+
+
+
+E FAREMOS ISSO POR MEIO DO GET DO NAME E TYPE DE CADA PARAMETER DA 
+
+
+DAQUELE PARAMETER (que pode ser uma class)..
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // * 4. If the constructor parameter is a class, then we need to try and resolve that class, using the container as a param...
+        $dependencies = array_map(function (\ReflectionParameter $parameter) {
+
+            // Get the parameter name and type, store them in variables:
+            $parameterName = $parameter->getName();
+            $parameterType = $parameter->getType();
+
+        }, $constructorParameters);
+
+
+
+
+
+
+
+
+
+
+
+-> é claro que, antes de rodar a última parte desse array_map,
+
+PRECISAMOS 
+
+CHECAR SE 
+
+AQUELE PARAMETER ($parameter) 
+
+REALMENTE 
+
+É UMA CLASS, com dependencies internas...
+
+
+
+
+
+
+-> PARA ISSO, PRECISAMOS DE UM IF PARA 
+
+
+''CHECK IF THE PARAMETER IS ACTUALLY TYPEHINTED''..
+
+
+
+
+
+''BECAUSE IF THERE IS _ NO TYPEHINT,    
+    WE CAN'T FIGURE OUT WHAT CLASS TO 
+    ACTUALLY RESOLVE''
+
+
+
+
+
+
+
+
+ISSO PQ, SEM TYPEHINTING, o container não vai 
+saber qual será o type de cada dependency...
+
+
+
+
+
+
+
+
+-> PRECISAMOS TER TYPEHINTING, PARA SERMOS CAPAZES DE 'RESOLVE' AS CLASSES...
+
+
+
+
+
+
+
+
+
+
+-> E, SE TIVERMOS ALGUM CASE EM QUE NÃO HÁ TYPEHINTING, DEVEMOS FAZER 
+THROW DE UMA EXCEPTION.... é assim que vamos handlar...
+
+
+
+
+
+
+
+
+
+--> O METHOD DE 'getType()'
+    RETORNA 
+
+    ISTO:
+
+
+
+
+
+
+	/**
+	 * Gets a parameter's type
+	 * Gets the associated type of a parameter.
+	 * @return ReflectionType|null Returns a ReflectionType object if a parameter type is specified, `null` otherwise.
+	 */
+	function getType() { /* function body is hidden */ }
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+ELE PODE RETORNAR 'ReflectionType'
+
+ou 'null',
+
+
+SE NÃO HÁ TYPEHINT ALGUM...
+
+
+
+
+
+
+
+
+
+ESCREVEMOS 1 IF PARA FAZER THROW DE 'ContainerException',
+
+CASO NÃO EXISTA TYPEHINT para essa dependency...
+
+
+
+
+
+FICA TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+        // * 4. If the constructor parameter is a class, then we need to try and resolve that class, using the container as a param...
+        $dependencies = array_map(function (\ReflectionParameter $parameter) use ($id) {
+
+            // Get the parameter name and type, store them in variables:
+            $parameterName = $parameter->getName();
+            $parameterType = $parameter->getType();
+
+            if (!$parameterType) {
+                return new ContainerException('Failed to resolve class' . $id . ' because parameter ' . $parameterName . ' is missing a typehint');
+            }
+
+        }, $constructorParameters);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok... agora, se passamos por esse if de '$parameterType',
+
+
+
+isso quer dizer que 
+
+
+
+
+nosso parameter ESTÁ TYPEHINTADO... PQ SE NÃO TIVÉSSEMOS ISSO,
+
+JÁ TERÍAMOS ENTRADO NAQUELE BLOCK E FEITO O THROW DA EXCEPTION...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK.... 
+
+
+
+
+
+
+'''IF IT IS A TYPEHINT,
+WHAT IF IT IS ONE OF THE BUILT-IN 
+TYPES, LIKE THE SCALAR (int, float, bool) TYPES????'''
+
+
+
+
+
+''IF IT IS A SCALAR TYPE, THIS IS NOT A CLASS,
+ AND WE CANNOT INSTANTIATE IT''..
+
+
+
+
+
+
+ ''THAT'S WHY WE NEED TO ADD THE HANDLING FOR THIS CASE''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA IMPLEMENTAR ISSO CORRETAMENTE,
+
+    DEVEMOS EXAMINAR A ABSTRACT CLASS 
+
+    DE 
+
+    'ReflectionType'...
+
+
+
+
+
+
+
+---> SE VISUALIZAMOS ESSA CLASS,
+
+TEMOS ISTO:
+
+
+
+
+
+
+
+abstract class ReflectionType {
+
+
+    public allowsNull(): bool 
+    public __toString(): string
+}
+
+
+
+
+
+
+
+
+
+
+-> OU SEJA, TEM 2 METHODS,
+
+'allowsNull()'
+
+
+e '__toString()"...
+
+
+
+
+
+
+
+
+
+-> AÍ, NO CHANGELOG, TEMOS ISTO:
+
+
+
+
+
+
+'PHP8 ---> ''ReflectionType has become abstract and ReflectionType::isBuiltIn() has been MOVED to ReflectionNamedType::isBuiltIn()''...
+
+
+
+
+
+
+
+
+
+
+
+QUER DIZER QUE ESSE METHOD DE 'isBuiltIn()'
+
+SÓ EXISTE 
+
+
+EM 'ReflectionNamedType'...
+
+
+
+
+
+
+
+
+
+
+-> SE TIVERMOS UM UNION TYPE,
+    VAMOS FAZER THROW DE 1 EXCEPTION, TAMBÉM....
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+            // IF the parameter has a typehint of union type, we throw an exception
+            if ($parameterType instanceof \ReflectionUnionType) {
+                throw new ContainerException('Failed to resolve class' . $id . ' because parameter ' . $parameterName . ' uses union types');
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+    OK... 
+
+
+
+
+
+
+
+AGORA QUE TEMOS O REFLECTION UNION TYPE HANDLING,
+
+
+PRECISAMOS DE HANDLING PARA OS CASES EM QUE 
+
+
+
+
+''THE TYPE IS NOT A BUILT-IN TYPE...''
+
+
+
+
+
+
+
+''IF IT IS NOT A BUILT-IN TYPE,
+    THEN WE CAN TRY TO RESOLVE THAT,
+
+    AS A CLASS...''
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+if ($parameterType instanceof \ReflectionNamedType && !$parameterType->isBuiltin()) {
+
+    // Try to resolve this class...
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E , SE PASSAMOS POR ESSE BLOCK,
+QUEREMOS FAZER O THROW DE ERROR GENÉRICO:
+
+
+
+
+
+
+            throw new ContainerException('Failed to resolve class' . $id . ' because of invalid parameter' . $parameterName);
+
+
+
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+
+
+            if ($parameterType instanceof \ReflectionNamedType && !$parameterType->isBuiltin()) {
+
+                // Try to resolve this class...
+
+            }
+
+            throw new ContainerException('Failed to resolve class' . $id . ' because of invalid parameter' . $parameterName);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... E É DENTRO DESSE IF BLOCK,
+
+
+
+que a maior parte da mágica acontecerá... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> A ETAPA 4:
+
+
+
+
+
+
+ * 4. If the constructor parameter is a class, then
+  we need to try and resolve that class, using the container as a param...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok...
+
+
+
+
+''WE KNOW THAT THE TYPE IS NOT A BUILT-IN TYPE...
+    SO WE CAN TRY TO RESOLVE THAT TYPE __ fROM WITHIN THE 
+    CONTAINER''...
+
+
+
+
+
+
+--> ''SO WE CAN TRY USING THE '->get()' METHOD FROM THE CONTAINER,
+        AND THEN PASS THE NAME OF THE '$parameterType',
+        LIKE THIS:''
+
+
+    
+
+
+
+
+
+
+            if ($parameterType instanceof \ReflectionNamedType && !$parameterType->isBuiltin()) {
+
+                return $this->get($parameterType->getName());
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+-> esse 'getName' VAI  RETORNAR COISAS COMO 
+
+
+'SalesTaxService',
+
+
+'PaymentGatewayService',
+
+'EmailService',
+
+etc...
+
+
+
+
+
+
+
+BASICAMENTE, É O NOME DOS TYPES DOS PARAMETERS...
+
+
+(essentially,  the 'fully qualified class names'')...
+
+
+
+
+
+
+-----> e, com isso, estamos 'RECURSIVELY TRYING TO RESOLVE THOSE DEPENDENCIES...''
+
+
+
+
+
+
+--> SE 'SalesTaxService' tivesse DEPENDENCIES PRÓPRIAS,
+    A RECURSION ACONTECERIA NOVAMENTE, 
+    SEGUINDO ESSAS MESMAS ETAPAS,
+    OVER AND OVER....
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... AGORA QUE TEMOS ESSAS DEPENDENCIES,
+
+
+''WE CAN SIMPLY CREATE THE NEW INSTANCE OF THE CLASS THAT 
+    WE ARE TRYING TO GET FROM THE CONTAINER'',
+
+
+PASSANDO ESSAS DEPENDENCIES COMO ARGUMENTS,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+        // * 5. We can now create a new instance of the class, using the resolved dependencies:
+        return $reflectionClass->newInstanceArgs($dependencies);
+
+
+
+
+
+
+
+
+--> usamos esse method, 'newInstanceArgs()',
+
+
+
+que NOS DEIXA 
+
+
+
+CRIAR 1 NOVA INSTANCE DA CLASS QUE FOI 'REFLETIDA',
+
+
+PASSANDO ARGUMENTS COMO PARAMETERS... (aí passamos as dependencies)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+
+
+-> CONTAINERS MAIS FEATURE-COMPLETE POSSUEM MAIS CÓDIGO E PODEM PARECER 
+    MAIS COMPLICADOS,
+
+    MAS, ESSENCIALMENTE, A MAIOR PARTE DELES FAZ ALGO SEMELHANTE A ISSO...
+
+
+
+
+
+
+--> MAS, NOVAMENTE, REPARE QUE ISSO NÃO DEVE SER USADO EM PRODUCTION,   
+    PQ NÃO TEM 1 MONTE DE FEATURES QUE VC GOSTARIA DE TER, 
+
+    COMO:
+
+
+    -- CACHING 
+
+    -- SINGLETON SUPPORT 
+
+    -- SUPPORT FOR OPTIONAL, REGULAR AND VARIADIC PARAMETERS 
+
+    -- NÃO CONSIDERA ALGUNS EDGE CASES...
+
+
+
+
+
+
+
+
+-> ESSA AULA SERVIU APENAS PARA DEMONSTRAR COMO UM DI CONTAINER 
+    FUNCIONA, POR TRÁS DAS SCENES,
+    QUANDO VC TIRA TODAS SUAS FANCY FEATURES...
+
+
+
+
+
+
+
+
+-> PODERÍAMOS TAMBÉM OUTSOURCEAR A PARTE INTEIRA 
+
+
+DE 
+
+
+''
+
+
+$dependencies = array_map(function (\ReflectionParameter $parameter) use ($id) {
+
+            // Get the parameter name and type, store them in variables:
+            $parameterName = $parameter->getName();
+            $parameterType = $parameter->getType();
+
+            if (!$parameterType) {
+                throw new ContainerException('Failed to resolve class' . $id . ' because parameter ' . $parameterName . ' is missing a typehint');
+            }
+
+            // IF the parameter has a typehint of union type, we throw an exception
+            if ($parameterType instanceof \ReflectionUnionType) {
+                throw new ContainerException('Failed to resolve class' . $id . ' because parameter ' . $parameterName . ' uses union types');
+            }
+
+            if ($parameterType instanceof \ReflectionNamedType && !$parameterType->isBuiltin()) {
+
+                return $this->get($parameterType->getName());
+            }
+
+            throw new ContainerException('Failed to resolve class' . $id . ' because of invalid parameter' . $parameterName);
+
+
+        }, $constructorParameters);
+
+
+
+
+'',
+
+
+
+
+
+EXTRAIR ESSA PARTE DE 'DEPENDENCY RESOLVING' 
+
+PARA 1 METHOD PRÓPRIO,
+
+
+
+E AÍ TALVEZ 
+
+FAZER 1 CLEAN UP DO THROWING DAS EXCEPTIONS, PARA TER 
+MESSAGES 
+
+MAIS CORRETAS,
+
+
+
+MAS ISSO VAI ALÉM DESSA AULA...
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA DEVEMOS TESTAR ISSO, PARA VER SE AINDA FUNCIOAN...
+
+
+
+
+
+
+
+
+NO HOMECONTROLLER, TEMOS ISTO:
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Container;
+use App\Services\InvoiceService;
+use App\View;
+
+class HomeController
+{
+    public function index(): View
+    {
+        (new Container())->get(InvoiceService::class)->process([], 25);
+
+        return View::make('index');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ainda estamos tentando pegar uma instance da 
+class de 'InvoiceService'...
+
+
+
+
+
+
+
+
+--> AGORA TESTAMOS, PARA VER SE ISSO FUNCIONA,
+    COM NOSSA IMPLEMENTAÇÃO ATUAL 
+
+    DO AUTOWIRING... 
+
+
+
+
+
+
+
+
+
+--> E ISSO REALMENTE FUNCIONA,
+
+ENXERGAMOS 
+
+
+'Invoice has been processed'...
+
+
+
+
+
+
+
+-> ISSO SIGNIFICA QUE NOSSO DI CONTAINER FUNCIONA COMO O EXPECTED,
+
+    MESMO SEM TER 'EXPLICIT BINDINGS' (ou seja,
+    não tivemos que fazer aquele setup, que havíamos feito anteriormente...
+    agora ele 'simply works'...)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... MAS AGORA, APESAR DE TERMOS 
+    1 CONTAINER AUTÊNTICO, COM AUTOWIRING,
+
+    _ AINDA ''DOESN'T FEEL OR LOOK RIGHT''...
+
+
+
+
+
+-> ISSO É POR CONTA DESTE CÓDIGO:
+
+
+
+
+
+
+        (new Container())->get(InvoiceService::class)->process([], 25);
+
+
+
+
+
+
+
+
+
+
+
+-> NÓS AINDA ESTAMOS 
+
+FAZENDO:
+
+
+1) O INSTANTIATE DE 'Container' manualmente..
+
+
+
+
+2) TENTANDO FAZER O GET DA CLASS DO CONTAINER, DIRETAMENTE...
+
+
+
+
+
+
+
+
+
+
+--> O QUE QUEREMOS FAZER, EM VEZ DISSO, 
+
+
+É 
+
+
+
+''''INJECT THE InvoiceService CLASS,
+    WITHIN THE CONSTRUCTOR OF THE CONTROLLER...''''
+
+
+
+
+
+
+(aquela coisa, de passar as dependencies de cima para baixo)...
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, TEMOS QUE REFORMATAR O CÓDIGO DE HOMECONTROLLER, QUE ESTÁ ASSIM:
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Container;
+use App\Services\InvoiceService;
+use App\View;
+
+class HomeController
+{
+    public function index(): View
+    {
+
+        (new Container())->get(InvoiceService::class)->process([], 25);
+
+        return View::make('index');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+PARA ALGO COMO ISTO, COM USO DO CONSTRUCTOR DELE:
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Container;
+use App\Services\InvoiceService;
+use App\View;
+
+class HomeController
+{
+
+    public function __construct(private InvoiceService $invoiceService) {
+
+    }
+
+
+    public function index(): View
+    {
+
+        $this->invoiceService->process([], 25);
+
+        return View::make('index');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSE É O IDEAL SCENARIO, O QUE REALMENTE QUEREMOS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO NÃO VAI FUNCIONAR AGORA, E O PROFESSOR VAI NOS MOSTRAR 
+A RAZÃO DE ISSO NÃO FUNCIONAR... MAS É ASSIM QUE 
+QUEREMOS QUE 
+FIQUE,
+
+NO FUTURO...
+
+
+
+
+
+
+
+
+
+--> PQ, COM ISSO, TEREMOS 1 VERY NICE CONTROLLER,
+    QUE NÃO TERÁ HARD-CODED DEPENDENCIES, 
+    E QUE 
+
+    ESTARÁ USANDO 'DEPENDENCY INJECTION',
+
+    
+    E COM O QUAL USAREMOS DI CONTAINER 
+    PARA AUTOMATICAMENTE 
+    
+    INJETAR AS DEPENDENCIES, NO CONSTRUCTOR...
+
+
+
+
+
+
+
+
+-> MAS SE TENTAMOS EXECUTAR ESSE CÓDIGO, COM ESSE CONSTRUCTOR AÍ,
+
+FICAMOS 
+
+
+
+COM UM 
+ERROR 
+
+
+DE 
+
+
+
+
+
+'UncaughtArgumentCountError: Too few arguments to __construct(){}'...
+
+
+
+'0 passed'...
+
+
+
+
+
+
+
+
+
+
+
+-> A RAZÃO PARA ISSO É,
+LÁ EM 
+'Router',
+
+
+A CLASS DE Router.php,
+
+
+
+A MANEIRA PELA QUAL IMPLEMENTAMOS 
+
+
+
+O NOSSO ROUTER, 
+
+
+
+LÁ NO METHOD DE 'resolve()':
+
+
+
+
+
+
+
+
+
+
+    public function resolve(string $requestUri, string $requestMethod)
+    {
+        $route = explode('?', $requestUri)[0];
+        $action = $this->routes[$requestMethod][$route] ?? null;
+
+        if (! $action) {
+            throw new RouteNotFoundException();
+        }
+
+        if (is_callable($action)) {
+            return call_user_func($action);
+        }
+
+        [$class, $method] = $action;
+
+        if (class_exists($class)) {
+            $class = new $class();
+
+            if (method_exists($class, $method)) {
+                return call_user_func_array([$class, $method], []);
+            }
+        }
+
+        throw new RouteNotFoundException();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+NESSE METHOD AÍ,
+
+
+
+
+A PARTE EM QUE CRIAMOS A CONTROLLER INSTANCE
+
+É AQUI:
+
+
+
+
+        if (class_exists($class)) {
+            $class = new $class();
+
+            if (method_exists($class, $method)) {
+                return call_user_func_array([$class, $method], []);
+            }
+        }
+
+
+
+
+
+
+
+-> OU SEJA,
+
+ESTAMOS CRIANDO A CLASS,
+
+
+MAS 
+
+SEM PASSAR QUAISQUER ARGUMENTS...
+
+
+
+
+
+
+
+
+
+-> MAS AGORA QUE TEMOS UM WORKING DI CONTAINER,
+    EM VEZ DE INSTANCIAR O CONTROLLER SEM PASSAR COISA ALGUMA,
+
+
+
+    ''WE CAN ACTUALLY GET THE CONTROLLER FROM THE CONTAINER,
+    AND THEN _ HAVE__ THE CONTAINER_ RESOLVE ALL THE DEPENDENCIES''...
+
+
+
+    ''TO DO THAT, ALL WE NEED TO DO IS HAVE A WAY TO ACCESS 
+    THE __CONTAINER __ INSTANCE, FROM WITHIN THE ROUTER CLASS''...
+
+
+
+
+
+    ''WE CAN PASS THE CONTAINER, AS A DEPENDENCY, TO THE ROUTER CLASS,
+    AND THEN USE THE CONTAINER, instead of '$class = new $class()'...''
+
+
+
+
+
+
+
+LIKE THIS:
+
+
+
+
+
+$class = $this->container->get($class);
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, LÁ DE 'public/index.php',
+
+ESCREVERÍAMOS ASSIM (down the tree):
+
+
+
+
+
+
+
+
+
+
+
+$container = new Container();
+$router = new Router($container);
+
+$router
+    ->get('/', [HomeController::class, 'index']);
+
+(new App(
+    $router,
+    ['uri' => $_SERVER['REQUEST_URI'], 'method' => $_SERVER['REQUEST_METHOD']],
+    new Config($_ENV)
+))->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, EM 'Router.php':
+
+
+
+
+
+
+class Router
+{
+    private array $routes = [];
+
+    public function __construct(private Container $container)
+    {
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, FINALMENTE, NO METHOD DE 'resolve()'
+
+DO ROUTER:
+
+
+
+
+
+
+
+
+
+    public function resolve(string $requestUri, string $requestMethod)
+    {
+        $route = explode('?', $requestUri)[0];
+        $action = $this->routes[$requestMethod][$route] ?? null;
+
+        if (!$action) {
+            throw new RouteNotFoundException();
+        }
+
+        if (is_callable($action)) {
+            return call_user_func($action);
+        }
+
+        [$class, $method] = $action;
+
+        if (class_exists($class)) {
+            // $class = new $class(); // * Without Container
+            $class = $this->container->get($class); // * With Container
+
+            if (method_exists($class, $method)) {
+                return call_user_func_array([$class, $method], []);
+            }
+        }
+
+        throw new RouteNotFoundException();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    MAIS PROPRIAMENTE, ESTA LINHA:
+
+
+
+
+
+
+
+            $class = $this->container->get($class); // * With Container
+
+
+
+
+
+
+
+
+CERTO...  AÍ,
+
+LÁ EM 'HomeController',
+
+ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+class HomeController
+{
+    public function __construct(private InvoiceService $invoiceService)
+    {
+
+    }
+
+    public function index(): View
+    {
+        $this->invoiceService->process([], 25);
+
+
+        return View::make('index');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+
+NOSSO 'HomeController'
+
+
+FICOU BEM MAIS CLEAN...
+
+
+
+
+
+''WITH THIS, EVERYTHING IS BACK TO NORMAL,
+AND OUR CONTROLLER AND CODE IN GENERAL LOOKS MUCH BETTER''..
+
+
+
+
+
+
+
+-> NA PRÓXIMA AULA, FALAREMOS MAIS 
+SOBRE DI CONTAINERS...
+
+
+FALAREMOS TAMBÉM SOBRE COMO PODEMOS FAZER TYPEHINT DE INTERFACES
+COMO DEPENDENCIES E FAZER OS CONTAINERS NOS DAREM A PROPER IMPLEMENTATION 
+DESSAS INTERFACES...
