@@ -1,0 +1,1782 @@
+
+
+
+
+
+
+--> NA ÚLTIMA AULA, APRENDEMOS SOBRE COMO FUNCIONAM 
+
+
+
+DEPENDENCY INJECTION CONTAINERS...
+
+
+
+
+
+
+
+
+
+
+AÍ IMPLEMENTAMOS UM DI CONTAINER BEM SIMPLES,
+
+SEGUINDO O PSR-11...
+
+
+
+
+
+
+
+
+
+
+
+-> TEMOS, AGORA, 1 DI CONTAINER QUE FUNCIONA,
+    MAS ELE AINDA ESTÁ 
+    SEM VÁRIAS FEATURES,
+
+    AS QUAIS SERIAM NECESSÁRIAS EM 1 REAL APP...
+
+
+
+    (como caching, singleton support, interface support, optional parameters, etc)...
+
+
+
+
+
+
+
+
+
+
+
+--> NESSA AULA, VAMOS IMPLEMENTAR 'INTERFACE SUPPORT',
+    pq 
+
+
+    ''WHAT IF YOU WANTED TO INJECT AN INTERFACE AS 
+    A DEPENDENCY, 
+    AND NOT AN IMPLEMENTATION??''
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO PQ, LÁ EM  'InvoiceService',
+
+a class,
+
+
+TEMOS 
+O INJECT 
+
+
+
+DE CONCRETE IMPLEMENTATIONS 
+
+
+
+(
+
+
+    como visto no constructor,
+    com este código:
+
+
+            public function __construct(
+        protected SalesTaxService $salesTaxService,
+        protected PaymentGatewayService $gatewayService,
+        protected EmailService $emailService
+    ) { 
+    }
+
+
+
+)
+
+
+
+
+
+
+
+
+
+
+ESSES PARAMETERS AÍ SÃO IMPLEMENTAÇÕES CONCRETAS...
+
+
+
+
+
+
+
+
+CERTO, MAS E SE GOSTARÍAMOS DE FAZER ALGO COMO 
+
+
+
+'PaymentGatewayServiceInterface',
+
+em vez de 
+
+'PaymentGatewayService'?
+
+
+
+
+
+
+
+
+
+-> BEM, PARA DEMONSTRAR ISSO, 
+    O PROFESSOR VAI CRIAR 
+
+
+    A INTERFACE DE 'PaymentGatewayServiceInterface'....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CRIAMOS COM ESTE FORMATO, BASICAMENTE:
+
+
+
+
+
+<?php
+
+namespace App\Interfaces;
+
+interface PaymentGatewayServiceInterface
+{
+    public function charge(array $customer, float $amount, float $tax): bool;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> TEMOS ESSE ÚNICO METHOD, 
+
+
+de 'charge'..
+
+
+
+
+
+
+
+
+
+
+
+CERTO... 
+
+
+
+
+
+ISSO FEITO, VAMOS IMPLEMENTAR ESSA INTERFACE 
+
+NO SERVICE DE 'PaymentGatewayService'.....
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services;
+use App\Interfaces\PaymentGatewayServiceInterface;
+
+class PaymentGatewayService implements PaymentGatewayServiceInterface
+{
+    public function charge(array $customer, float $amount, float $tax): bool
+    {
+        // sleep(1);
+
+        return (bool) 1;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... ATÉ AÍ, NADA DE  MAIS...
+
+
+
+
+
+
+
+
+
+
+
+ENTÃO ABRIMOS O BROWSER...
+
+
+
+
+AÍ FICAMOS IMEDIATAMENTE COM UM ERROR,
+
+
+COMO ESPERÁVAMOS...
+
+
+
+
+
+
+
+
+
+O ERROR É ESTE:
+
+
+
+
+
+
+
+''''PaymentGatewayServiceInterface is not 
+    instantiable''''
+
+
+
+
+
+
+
+
+
+
+
+-> E ISSO FAZ TOTAL SENTIDO,
+    PQ TÍNHAMOS ADICIONADO ESSE CHECK
+    NA ÚLTIMA AULA,
+
+    QUANDO ESCREVEMOS O CONTAINER...
+
+
+
+
+
+
+
+
+
+NESTA PARTE AQUI:
+
+
+
+
+
+
+    public function resolve(string $id)
+    {
+        // * 1. We need to inspect the class that we are trying to get from the container (using reflection api):
+
+        $reflectionClass = new ReflectionClass($id);
+
+        if (!$reflectionClass->isInstantiable()) {
+            throw new ContainerException('Class ' . $id . ' is not instantiable');
+        }
+
+
+
+
+
+
+
+
+
+--> BASICAMENTE, CHECAMOS SE A CLASS É REALMENTE INSTANCIÁVEL...
+
+
+
+
+
+
+
+
+-> COMO INTERFACES NÃO SÃO INSTANCIÁVEIS,
+FICAMOS COM ESSE ERROR...
+
+
+
+
+
+
+
+ 
+
+
+
+--> PARA CONSERTAR ISSO, PRECISAMOS _ BIND__ 
+    A INTERFACE, __MANUALMENTE__,
+
+    E AÍ 
+
+    'TELL OUR CONTAINER WHAT CONCRETE CLASS TO RESOLVE,
+    WHEN A INTERFACE DEPENDENCY IS REQUESTED''...
+
+
+
+
+
+
+
+-> PODEMOS FAZER BIND DE NOSSAS CLASSES ''FROM WITHIN THE APP CLASS''
+    JUSTAMENTE PQ A CLASS DE 'App' É 
+
+    'KINDOF' A NOSSA CLASS 'BOOTSTRAPPER' para o nosso projeto...
+
+
+
+
+
+
+
+
+
+--> LÁ EM 'App.php',
+
+
+temos este código:
+
+
+
+
+
+class App
+{
+    private static DB $db;
+
+    public function __construct(protected Router $router, protected array $request, protected Config $config)
+    {
+        static::$db = new DB($config->db ?? []);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok... aí, no caso,
+
+
+
+EM VEZ DE CRIARMOS 1 PROPERTY STATIC PARA 
+
+O CONTAINER,
+
+
+VAMOS 
+
+
+ACEITAR O CONTAINER COMO 1 DEPENDENCY, ATRAVÉS DO CONSTRUCTOR,
+
+TIPO ASSIM:
+
+
+
+
+
+
+class App
+{
+    private static DB $db;
+
+    public function __construct(protected Container $container, protected Router $router, protected array $request, protected Config $config)
+    {
+        static::$db = new DB($config->db ?? []);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO, 
+
+
+VAMOS BINDAR A INTERFACE A 1 IMPLEMENTATION...
+
+
+
+
+COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+$this->container->set(PaymentGatewayServiceInterface::class, fn(Container $c) => $c->get(PaymentGatewayService::class));
+
+
+
+
+
+
+
+
+--> COM ISSO, VAMOS BASICAMENTE PEGAR A IMPLEMENTATION 'PADRÃO' DE 
+
+
+'PaymentGatewayService',
+
+
+
+quando o classname (fully qualified class name) 
+
+FOR IGUAL AO CLASSNAME DE NOSSA INTERFACE...
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+class App
+{
+    private static DB $db;
+
+    public function __construct(protected Container $container, protected Router $router, protected array $request, protected Config $config)
+    {
+        static::$db = new DB($config->db ?? []);
+
+        $this->container->set(
+            PaymentGatewayServiceInterface::class,
+            fn(Container $c) => $c->get(PaymentGatewayService::class)
+        );
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+class App
+{
+    private static DB $db;
+
+
+    public function __construct(protected Container $container, protected Router $router, protected array $request, protected Config $config)
+    {
+        static::$db = new DB($config->db ?? []);
+
+        $this->container->set(
+            PaymentGatewayServiceInterface::class,
+            fn(Container $c) => $c->get(PaymentGatewayService::class)
+        );
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS QUANDO TENTAMOS ENTRAR EM HOME, NO BROWSER,
+
+FICAMOS 
+
+
+
+COM ESTE ERROR: 
+
+
+
+
+''Uncaught TypeError: __contruct():  Argument ($container) Must be 
+                                        of type App\Container,
+                                        but 
+                                        "App\Router" was given...
+
+
+
+                                    
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO TAMBÉM É EXPECTED,
+    PQ ESTAMOS FAZENDO 'ACCEPT' DA DEPENDENCY EM 
+
+
+
+
+''
+
+    public function __construct(
+        protected Container $container,
+        protected Router $router,
+        protected array $request,
+        protected Config $config
+    ) {
+        static::$db = new DB($config->db ?? []);
+
+        $this->container->set(
+            PaymentGatewayServiceInterface::class,
+            fn(Container $c) => $c->get(PaymentGatewayService::class)
+        );
+    }
+
+
+
+'',
+
+
+
+
+mas não estamos 
+PASSANDO ESSA DEPENDENCY DE 'Container'
+quando 
+
+ESTAMOS  
+
+INSTANCIANDO A CLASS DE 'App'
+
+
+DENTRO DE 
+
+'index.php',
+
+nesta linha:
+
+
+
+
+(new App(
+    $router,
+    ['uri' => $_SERVER['REQUEST_URI'], 'method' => $_SERVER['REQUEST_METHOD']],
+    new Config($_ENV)
+))->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> BASTA PASSAR O ARGUMENTO ALI, SEM PROBLEMAS, TIPO ASSIM:
+
+
+
+
+
+
+$container = new Container(); // * Container Example
+$router = new Router($container); // * Container Example
+
+$router
+    ->get('/', [HomeController::class, 'index']);
+
+(new App(
+    $container,
+    $router,
+    ['uri' => $_SERVER['REQUEST_URI'], 'method' => $_SERVER['REQUEST_METHOD']],
+    new Config($_ENV)
+))->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+COM ISSO, TUDO FUNCIONA NOVAMENTE...
+
+
+
+
+
+
+
+
+
+
+
+''WITH THIS, WE WERE ABLE TO INJECT A INTERFACE 
+     AS ONE OF THE DEPENDENCIES OF OUR CLASS''
+
+
+     '''...AND IT GETS RESOLVED, FROM THE CONTAINER,
+        TO A CONCRETE IMPLEMENTATION, BASED ON WHAT 
+        WE HAVE __ BOUND__, on our class of 'App'''....
+
+
+
+
+
+
+
+
+
+    OU SEJA,
+
+
+    BASEADO NESTE TRECHO:
+
+
+
+            $this->container->set(
+            PaymentGatewayServiceInterface::class,
+            fn(Container $c) => $c->get(PaymentGatewayService::class)
+        );
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> E VC VERÁ ALGO SIMILAR A ISSO EM FRAMEWORKS 
+    COMO LARAVEL E OUTROS FRAMEWORKS (que possuem dependency injection 
+    containers),
+
+
+    EM QUE VC PRECISA 'DO A LITTLE BIT OF SETUP'...
+
+
+
+
+
+
+
+
+
+--> MAS DEVEMOS FAZER ISSO 1 POUCO MELHOR, AGORA... REFORMAT...
+
+
+
+
+
+
+
+--> O PROFESSOR NÃO QUER TER DE USAR 'CLOSURES' (aquilo de 'fn() => ')
+    DENTRO DESSE 
+
+    CALL de '$this->container->set()'...
+
+
+
+
+
+-> EM VEZ DE USAR CLOSURES,
+
+
+O PROFESSOR 
+
+QUER SER 
+CAPAZ 
+
+
+DE ESCREVER ALGO COMO 
+
+
+
+
+''''
+
+$this->container->set(
+                           PaymentGatewayServiceInterface::class,
+                            PaymentGatewayService::class);
+
+
+
+
+
+
+
+'''''
+
+
+
+
+
+
+
+ELE QUER TER 1 CÓDIGO COMO ESSE, COM ESSE FORMATO,
+
+E QUE AINDA FUNCIONE 
+
+
+
+(basicamente,
+
+bindando o value de 'PaymentGatewayServiceInterface' 
+
+A UM OUTRO VALUE, O VALUE DE 'PaymentGatewayService'...)
+
+
+
+
+(ele está trocando 1 nome por outro, basicamente... trocando A INTERFACE pela IMPLEMENTAÇAÕ DA CLASSE)...
+
+
+
+
+
+
+
+
+''WE ARE BINDING THIS INTERFACE, IN THE CONTAINER,
+    TO 
+
+    __ A CONCRETE_ IMPLEMENTATION (o service de 'PaymentGatewayService')...''
+
+
+
+
+
+
+
+''and we are trying to do this WITHOUT 
+    THE PASS OF ANY CLOSURES...'' 
+
+
+
+
+
+
+''AND THIS IS NOT GOING TO WORK, CURRENTLY, 
+    BECAUSE...''
+
+
+
+''...BECAUSE, IF WE GO TO THE 'set()' method 
+    OF THE Container,
+
+    WE SEE THIS:''
+
+
+
+
+
+
+
+    public function set(string $id, callable $concrete): void
+    {
+        $this->entries[$id] = $concrete;
+    }
+
+
+
+
+
+
+
+
+
+
+-> COMO VC PODE VER,
+ESTAMOS 
+
+DEFININDO 
+
+
+O PARAMETER DE '$concrete' (a implementação CONCRETA)
+
+
+
+como 
+
+
+sendo 
+
+'callable', o type 'callable'...
+
+
+
+
+
+
+
+
+
+-> COMO ESTÁ COMO 'CALLABLE',
+    ISSO VAI _ FAIL_...
+
+
+
+
+
+
+
+
+
+-> PARA QUE ISSO FUNCIONE, PRECISAMOS FAZER 1 POUCO DE REFACTORING....
+
+    (
+        para casos como esse que estamos vendo agora, 
+
+        em que 
+
+        ''THE FULLY QUALIFIED CLASSNAME''
+
+        IS PASSED,
+
+        INSTEAD OF A VALUE OF 'callable' type...
+    )
+
+
+
+
+
+
+
+
+
+
+--> GRAÇAS AO PHP8,
+
+    PODEMOS USAR UNION TYPES,
+
+    PARA SIMPLESMENTE DEFINIR O TYPE 
+
+    COMO 
+
+    callable|string
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+aí, isso feito,
+
+
+quando estivermos pegando a class do container,
+
+
+PODEMOS 
+
+
+REFATORAR  ESTE TRECHO:
+
+
+
+
+
+
+    public function get(string $id)
+    {
+
+        if ($this->has($id)) {
+            $entry = $this->entries[$id];
+
+            return $entry($this);
+        }
+
+        return $this->resolve($id);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+REFATORAR ESSE TRECHO, PARA QUE ELE CHEQUE 
+
+SE O PARAMETER DE 'string'
+
+REALMENTE É DO TYPE DE 'callable'...
+
+
+
+
+
+
+
+
+-. PARA ISSO, SIMPLESMENTE COLOCAMOS UM CHECK DE 
+
+
+
+'if (is_callable())'...
+
+
+
+SE ESSE FOR O CASO,
+
+FAZEMOS O QUE ESTÁVAMOS FAZENDO ANTES...
+
+
+
+CASO CONTRÁRIO,
+
+PODEMOS 
+
+''ASSUME THAT IT IS A FULLY QUALIFIED CLASSNAME, INSTEAD OF A CALLABLE'''
+
+
+
+
+
+
+
+
+
+
+--> ELE PODERIA SER UM ALIAS, NO ENTANTO.... ENTRETANTO,
+    NÓS NÃO IMPLEMENTAMOS SUPORTE PARA ALIASES, POR ISSO 
+    NÃO VAMOS CONSIDERAR ESSE USE-CASE...
+
+
+
+
+    FICA TIPO ASSIM:
+
+
+
+
+
+    // * With autowiring:
+    public function get(string $id)
+    {
+
+        // * If there is an explicit entry/binding for the given class, we use it:
+        if ($this->has($id)) {
+            $entry = $this->entries[$id];
+
+            if (is_callable($entry)) {
+                return $entry($this);
+            }
+
+                // DO SOMETHING ELSE.
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS NESSE CASO,
+
+DE 'FULLY QUALIFIED CLASSNAME',
+
+
+PRECISAMOS 
+
+
+RECORRER AO 'REFLECTION-API-BASED AUTOWIRING',
+
+
+
+PARA CONSEGUIR QUE O CONTAINER 
+
+
+'''FIGURE OUT HOW TO RESOLVE THIS CLASS AUTOMATICALL...''
+
+
+
+
+
+
+
+
+E FAZEMOS ISSO EXATAMENTE NA ÚLIAMA LINHA,
+
+COM 
+
+'$this->resolve($id)'...
+
+
+
+
+
+
+
+Ex:
+
+
+
+
+
+
+
+
+    // * With autowiring:
+    public function get(string $id)
+    {
+
+        // * If there is an explicit entry/binding for the given class, we use it:
+        if ($this->has($id)) {
+            $entry = $this->entries[$id];
+
+            // Interfaces lesson:
+            if (is_callable($entry)) {
+                return $entry($this);
+            }
+        }
+
+        // * If there is no explicit entry/binding for the given class, we try to resolve it (the autowiring itself, via a custom method):
+        return $this->resolve($id);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''AND, IF IT IS __NOT CALLABLE, 
+WE CAN ASSUME THAT IT IS A FULLY QUALIFIED CLASSNAME...''
+
+
+
+
+
+
+
+
+
+
+-> CERTO... E SE ELE É REALMENTE UM FULLYQUALIFIED CLASSNAME,
+
+
+
+
+PRECISAMOS FAZER 'DEFER' 
+
+DE VOLTA AO 
+
+'REFLECTION-API-BASED AUTOWIRING',
+
+PARA FAZER COM QUE 
+
+O CONTAINER 
+
+
+'FIGURE OUT'
+
+
+HOW TO RESOLVE THIS CLASS AUTOMATICALLY...
+
+
+
+
+
+
+
+E ISSO É/ERA FEITO AQUI,
+
+NESTE TRECHO:
+
+
+
+
+
+
+        return $this->resolve($id);
+
+
+
+
+
+
+
+-> COM ESSE METHOD DE 'resolve()' passando o '$id',
+
+    FAZÍAMOS COM QUE O CONTAINER 
+
+    TENTE 'figure this out'...
+
+
+
+
+
+
+
+
+
+-> PARA CONSEGUIRMOS HANDLAR AS INTERFACES,
+
+O QUE PODEMOS FAZER 
+
+
+
+É ALTERAR 
+
+
+
+
+O '$id',
+
+
+FAZER COM QUE ELE VIRE O VALUE DE '$entry',
+
+
+
+PARA QUE ENTÃO O 'resolve()' seja chamado em cima de '$entry',
+
+e não o value anterior de '$id'...
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+    // * With autowiring:
+    public function get(string $id)
+    {
+
+        // * If there is an explicit entry/binding for the given class, we use it:
+        if ($this->has($id)) {
+            $entry = $this->entries[$id];
+
+
+            // if it is callable (like a class), we call it, using the container as a param:
+            if (is_callable($entry)) {
+                return $entry($this);
+            }
+            // TODO Interfaces lesson:
+            // If it is not callable (like a interface identifier, fully qualified class name), we use it as is:
+            $id = $entry;
+        }
+
+        // * If there is no explicit entry/binding for the given class, we try to resolve it (the autowiring itself, via a custom method):
+        return $this->resolve($id);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA, ESTA PARTE AQUI:
+
+
+
+
+
+
+            $id = $entry;
+
+
+
+
+
+
+
+
+
+
+
+REFRESHAMOS A PAGE, E TUDO FUNCIONA COMO ANTES,
+
+MAS AGORA 
+
+COM ESSE REFACTOR...
+
+
+
+
+
+
+
+
+
+
+
+
+LÁ NO APP,
+
+
+
+
+RECAPITULANDO,
+
+
+TEMOS ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+class App
+{
+    private static DB $db;
+
+
+    public function __construct(
+        protected Container $container,
+        protected Router $router,
+        protected array $request,
+        protected Config $config
+    ) {
+        static::$db = new DB($config->db ?? []);
+
+        // With refactoring (we remove the closure from the second parameter):
+        $this->container->set(
+            PaymentGatewayServiceInterface::class,
+            PaymentGatewayService::class
+        );
+    }
+
+
+
+
+
+-------------------------
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA O PROFESSOR RECAPITULA A RAZÃO DE ISSO FUNCIONAR:
+
+
+
+
+
+
+
+
+-- COMEÇAMOS DO COMEÇO:
+
+
+
+
+
+
+'''WE ARE AT THE INVOICESERVICE,
+    AND WE ARE _ _INJECTING AN INTERFACE, INSTEAD OF A CLASS, AS A DEPENDENCY'''
+
+
+
+
+(este código):
+
+
+
+
+
+
+class InvoiceService
+{
+    public function __construct(
+        protected SalesTaxService $salesTaxService,
+        protected PaymentGatewayService $gatewayService,
+        protected EmailService $emailService
+    ) {
+
+
+
+
+
+
+
+
+
+estamos injetando essa interface, como dependency...
+
+
+
+
+
+
+
+
+
+A ESSE PONTO,
+
+'THE CONTAINER IS GOING TO BE RESPONSIBLE
+    FOR _ RESOLVING THIS __ INTERFACE, FROM THE __CONTAINER...''
+
+
+
+
+
+
+
+
+
+
+
+--> ''SO WE OPEN THE CONTAINER, 
+        AND THE FIRST THING THAT IT DOES 
+
+
+        IS 
+
+
+        THIS CHECK:
+
+
+
+
+
+
+    public function get(string $id)
+    {
+
+        if ($this->has($id)) { //// CHECKS IF THE BINDING EXISTS, IN THE ENTRIES...
+            $entry = $this->entries[$id];
+
+
+
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+-> OU SEJA, ESSE CHECK VERIFICA SE O BINDING EXISTE,
+    DENTRO DAS 'ENTRIES'...
+
+
+    -> NO NOSSO CASO,
+        ESSE BINDING EXISTE PQ 
+
+        _ NÓS TÍNHAMOS SETTADO-O lá em 'App',
+        COM 
+        ESTE CÓDIGO:
+
+
+    $this->container->set(
+            PaymentGatewayServiceInterface::class,
+            PaymentGatewayService::class
+        );
+
+
+
+
+    
+    OU SEJA, TÍNHAMOS BINDADO ISSO MANUALMENTE, 
+    DENTRO DO 'App.php'...
+
+
+
+
+
+-> AQUI, ESTAMOS BASICAMENTE DIZENDO 
+
+''PaymentGatewayServiceInterface'' ESTÁ _ BOUND__ 
+
+à 1 implementação concreta, que é 'PaymentGatewayService'...
+
+
+
+
+
+
+
+
+--> O QUE ACONTECE, AQUI, É QUE 
+QUANDO 
+
+''WE ASK THE CONTAINER TO GIVE US AN INSTANCE OF THIS 
+INTERFACE (PaymentGatewayServiceInterface), __ IT __ NEEDS__ TO RETURN __ AN INSTANCE 
+OF THE 'PaymentGatewayService''''
+
+
+
+
+
+
+
+
+
+
+-> ISSO QUER DIZER QUE,
+
+NAQUELA LINHA DE 
+
+
+
+
+'$entry = $this->entries[$id];',
+
+
+
+
+CADA 'entry' naquele array 
+
+É SIMPLESMENTE 
+
+
+UM DE VÁRIOS 
+
+'FULLY QUALIFIED CLASS NAMES'... no caso,
+
+
+
+
+essa entry será 'PaymentGatewayService',
+
+e não 'PaymentGatewayServiceInterface'...
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+O PRÓXIMO CHECK É 
+
+
+
+'if (is_callable($entry))'..
+
+
+
+
+
+- COMO ESSE VALUE, DO CLASSNAME,
+
+NÃO É CALLABLE,
+
+
+
+ESSE IF BLOCK É PULADO...
+
+
+
+
+
+
+
+-> A PARTE QUE É EXECUTADA, ENTÃO,
+
+
+É 
+
+
+
+'$id = $entry;'
+
+
+
+
+
+
+
+--> COM ISSO, o '$id' 
+
+ACABA SENDO DEFINIDO COMO 
+
+
+O PRÓPRIO 'fully qualified classname'... (PaymentGatewayService, e não o PaymentGatewayServiceInterface)
+
+
+
+
+
+
+
+
+
+-> DEPOIS DISSO, É EXECUTADO 
+
+
+"return $this->resolve($id)",
+
+
+que faz 
+
+COM QUE ENTRE EM JOGO O REFLECTION-BASED 
+
+
+AUTOWIRING,
+
+desse method de 'resolve()'...
+
+
+
+
+
+
+
+
+
+
+POR FIM, O QUE É EXECUTADO, 
+
+
+
+É ESTA PARTE AQUI:
+
+
+
+
+
+
+
+
+
+        $reflectionClass = new ReflectionClass($id);
+
+        // * 2. We need to inspect the constructor of the class 
+        $constructor = $reflectionClass->getConstructor();
+
+        if (!$constructor) {
+            // If there is no constructor, we can just return a new instance of the class, without any dependencies/arguments.
+            return new $id();
+        }
+
+
+
+
+
+
+
+
+
+com isso, um novo object de 'PaymentGatewayService'
+é criado,
+ e a execuçÃO ACABA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS AGORA QUE FIZEMOS ISSO FUNCIONAR,
+E SABEMOS COMO ISSO FUNCIONA,
+
+PQ DIABOS USARÍAMOS INTERFACES EM VEZ DE CONCRETE CLASSES? QUE BENEFÍCIOS 
+
+GANHAMOS COM O INJECT DE 1
+
+INTERFACE, EM VEZ DE 1 DIRECT IMPLEMENTATION?
+
+
+
+
+
