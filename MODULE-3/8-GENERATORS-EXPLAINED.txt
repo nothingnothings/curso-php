@@ -1,0 +1,4832 @@
+
+
+
+
+
+
+
+
+
+
+
+--> OK... 
+
+
+
+
+
+-> NÓS JÁ COBRIMOS 'ITERATORS'
+
+     E COMO PODEMOS FAZER ITERATE EM OBJECTS,
+
+
+
+     LÁ NA LESSON '2.22'...
+
+
+
+
+
+
+
+
+--> AQUELE VÍDEO VAI NOS AJUDAR A ENTENDER ESTA LESSON MELHOR...
+
+
+
+
+
+
+
+
+
+
+--> NESSA LESSON, VEREMOS ALGO CHAMADO DE 'GENERATORS'...
+
+
+
+
+
+
+
+
+
+
+''GENERATOR OBJECTS ARE RETURNED FROM __ GENERATORS...'
+
+
+
+-> GENERATOR OBJECTS __ CANNOT _ BE INSTANTIATED VIA 'new'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> GENERATORS -> EM TERMOS SIMPLES, 
+
+
+
+
+''THEY LET US ITERATE OVER LARGE SETS OF DATA 
+    WITHOUT CONSUMING MUCH MEMORY...''
+
+
+
+
+
+
+
+
+
+
+
+DEVEMOS CHECAR OS DOCS DO PHP SOBRE GENERATORS:
+
+
+
+
+  
+
+
+
+  ''Generators provide an EASY WAY to implement SIMPLE ITERATORS 
+    without the OVERHEAD or COMPLEXITY of implementing a class that 
+    implements the ITERATOR interface.''
+
+
+
+''A generator allows you to write code that uses 'foreach' to iterate 
+  over a set of data WIHOUT NEEDING to BUILD AN ARRAY in memory, which 
+  may cause you to exceed a memory limit, or require a considerable amount 
+  of processing time to generate. Instead, you can write a generator function, which 
+  IS THE SAME AS A NORMAL FUNCTION, except that INSTEAD OF 'return'ING once, a 
+  GENERATOR CAN ___YIELD__ as many times as it needs in order to PROVIDE THE 
+  VALUES TO BE ITERATED OVER...''
+
+
+
+
+
+''A simple example of this is to reimplement the range() function as a GENERATOR. The 
+  standard range() function has to generate an array with EVERY VALUE in it and RETURN IT,
+  which can result in LARGE ARRAYS. For example, calling range(0, 1000000) will result 
+  in WELL OVER 100MB of memory being used.''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PROFESSOR:
+
+
+
+
+
+''THIS KIND OF MAKES SENSE, 
+  BUT WHEN YOU READ IT FOR THE FIRST TIME, YOU MIGHT NOT UNDERSTAND RIGHT AWAY''..
+
+
+
+
+
+
+
+
+
+
+
+
+  -- TO BETTER UNDERSTAND WHAT THEY ARE,
+  LET'S DO A COUPLE OF EXAMPLES...
+
+
+
+
+
+
+
+
+
+
+
+
+--> FAREMOS ESSE EXEMPLO DA DOCUMENTATION,
+
+
+DE 'range()'..
+
+
+
+
+
+
+
+
+
+-> VAMOS VOLTAR A ESSA DEFINITION, DE TEMPOS EM TEMPOS,
+
+    PARA ENTENDER BEM COMO ELE FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, O PROFESSOR CRIOU UMA NOVA ROUTE,
+
+
+
+COM UM NOVO CONTROLLER, DE NOME 'GeneratorExampleController.php'...
+
+
+
+
+
+
+
+
+
+
+
+
+O NOSSO CÓDIGO:
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+use App\App;
+use App\Config;
+use App\Container;
+use App\Controllers\GeneratorExampleController;
+use App\Controllers\HomeController;
+use App\Router;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+define('STORAGE_PATH', __DIR__ . '/../storage');
+define('VIEW_PATH', __DIR__ . '/../views');
+
+$container = new Container();
+$router    = new Router($container);
+
+$router
+    ->get('/', [HomeController::class, 'index'])
+    ->get('/examples/generator', [GeneratorExampleController::class, 'index']);
+
+(new App(
+    $container,
+    $router,
+    ['uri' => $_SERVER['REQUEST_URI'], 'method' => $_SERVER['REQUEST_METHOD']],
+    new Config($_ENV)
+))->run();
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ TEMOS O CONTROLLER:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Models\Ticket;
+use Generator;
+
+class GeneratorExampleController
+{
+    public function __construct(private Ticket $ticketModel) {}
+
+    public function index() {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TEMOS ESSA ROUTE, QUE CARREGA ESSE INDEX METHOD...
+
+
+
+
+
+
+--> VAMOS COMEÇAR COM O EXEMPLO DE 'RANGE'...
+
+
+
+
+
+
+
+-->  range()...
+
+
+
+
+
+
+
+
+
+
+
+-> ESSA RANGE FUNCTION CRIA 1 ARRAY 
+
+DA PROVIDED RANGE/SIZE,
+
+
+E AÍ PREENCHE ESSE ARRAY COM NÚMEROS...
+
+
+
+
+
+
+
+
+
+
+
+-> VAMOS CRIAR 1 RANGE DE NUMBERS,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+public function index() 
+{ 
+  $numbers = range(1, 10);
+
+  echo '<pre>';
+  print_r($numbers);
+  echo '</pre>';
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... FICAMOS COM 1 ARRAY COM 10 ELEMENTOS NELE...
+
+
+
+
+
+
+
+
+
+-> E ISSO É PRINTADO NA NOSSA PAGE...
+
+
+
+
+
+
+
+
+
+''THE THING, HERE, IS THAT THIS ARRAY __ IS _ BUILT IN  
+  __MEMORY__ ONCE THE 'range()' function IS CALLED...''
+
+
+
+
+''THIS MEANS THAT IT _ CONSUMES AND USES THE MEMORY IT NEEDS 
+__ TO BUILD THAT ARRAY...''
+
+
+
+
+''BUILDING AN ARRAY OF 10 NUMBERS IS NOT REALLY A MEMORY-INTENSIVE 
+OPERATION...''
+
+
+
+
+
+
+
+
+--> BUT AS YOU CAN IMAGINE, AS YOU PASS IN LARGER NUMBERS,
+    AND LARGER ARRAYS ARE CREATED, YOU EVENTUALLY RUN OUT OF MEMORY...
+
+
+
+
+
+
+
+
+
+
+
+
+
+  --> VAMOS TESTAR ALGUNS NUMBERS...
+
+
+
+
+
+
+  DIGAMOS QUE QUEREMOS 10.000...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Models\Ticket;
+use Generator;
+
+class GeneratorExampleController
+{
+    public function __construct(private Ticket $ticketModel) {}
+
+    public function index()
+    {
+        $numbers = range(1, 10_000);
+
+        echo '<pre>';
+        print_r($numbers);
+        echo '</pre>';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS, 1 MILHAO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM 1 MILHAO,
+
+
+FUNCIONA, MAS DEMORA 1 POUCO PARA ACABAR,
+
+PQ ELE PRECISA PRINTAR TODOS ESSES NUMBERS...
+
+
+
+(IT WILL BE 'SLOWLY PRINTING THOSE NUMBERS UP')....
+
+
+
+
+
+
+mas se colocamos um número grande, como 30 milhoes,
+
+ficamos 
+
+
+com 1 erro de out of memory:
+
+
+
+
+Fatal error: Allowed memory size of 134217728 bytes exhausted (tried to allocate 1073741832 bytes) in /var/www/app/Controllers/GeneratorExampleController.php on line 15 
+
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE TUDO ISSO DEPENDE DE ALGUNS FACTORS:
+
+
+
+
+
+
+1) ''THE MEMORY LIMIT THAT WAS SET, ON THE ENVIRONMENT''...
+
+
+
+
+
+
+2) ''THE MEMORY EACH ELEMENT CONSUMES''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> NOSSO ARRAY É BEM SIMPLES,
+    CONTÉM APENAS NUMBERS,
+
+
+    POR ISSO ELE NÃO CONSUME TANTA MEMORY...
+
+    
+
+
+
+    ___--> ENTRETANTO,
+          EM APPS DE VERDADE,
+          VC 
+
+
+          PODE 'RUN OUT OF MEMORY'
+
+
+
+          COM MT MENOS DATA... MT MENOS OBJECTS, POR EXEMPLO...
+
+
+
+
+
+
+
+        --> EX:
+
+
+            ''10_000 FULLY HYDRATED
+              MODELS/OBJECTS/ENTITIES, WITH 
+              ENOUGH DATA,
+
+              CAN CONSUME YOUR MEMORY MUCH SOONER...''
+
+
+
+
+
+
+
+
+
+
+
+    
+  
+
+
+--> É CLARO QUE EXISTÉM VÁRIAS SOLUTIONS PARA ESSE TIPO DE PROBLEMA..
+
+
+
+
+
+
+
+
+
+
+POSSÍVEIS SOLUTIONS:
+
+
+
+
+
+
+
+
+1) PAGINATION:
+
+
+
+
+
+
+--> FAZEMOS ISSO PARA QUE NÃO SELECIONEMOS MAIS DO QUE 
+    ''A SET AMOUNT OF RECORDS''...
+
+
+
+
+
+
+
+
+
+
+
+2) FILTERING:
+
+
+
+--> ADICIONAR FILTERS, PARA QUE FAÇAMOS O 'NARROW DOWN' 
+    DA QUANTIDADE DE RECORDS QUE SÃO SELECIONADAS...
+
+
+
+
+
+
+
+
+
+3) NARROW SELECTION:
+
+
+
+
+-> SELECT ONLY THE DATA THAT WE NEED...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSAS SOLUTIONS SÃO FINE, E FUNCIONAM EM MTOS DOS CASOS...
+
+
+
+
+
+
+
+--> ENTRETANTO, EM ALGUNS CASOS, VC REALMENTE 
+  VAI PRECISAR 
+
+  CONSEGUIR PROCESSAR QUANTIDADES ABSURDAS DE ENTRIES...
+
+
+
+
+
+
+
+
+
+
+
+--> ''YOU WILL NEED TO LOOP OVER A LARGE DATASET, WHICH WILL CONSUME 
+  A LOT OF MEMORY''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA CONSEGUIRMOS USAR A FEATURE DE GENERATORS,
+
+  A PRIMEIRA COISA QUE PRECISAMOS FAZER É __ DEIXAr__ DE LADO 
+
+
+  A FUNCTION DE 'range()',
+
+
+  pq ela NÃO SERVE...
+
+
+
+
+
+
+
+
+
+
+
+-> ''''INSTEAD OF USING THE __ BUILT-IN RANGE() function,
+      WE WILL USE _a __ CUSTOM  range() FUNCTION, WHICH  WE ARE 
+      GOING TO IMPLEMENT 
+      AS _ A GENERATOR FUNCTION...'''
+
+
+
+
+
+
+
+
+
+
+--> WE ARE GOING TO CALL THIS CUSTOM range() FUNCTION 
+
+
+''lazyRange()''...
+
+
+
+
+
+
+
+
+
+-> NO NOSSO EXEMPLO, O PROFESSOR VAI IMPLEMENTAR ESSE METHOD range() customizado
+  DENTRO DO CONTROLLER DE GeneratorExampleController,
+
+  mas ele PODERIA SER IMPLEMENTADO COMO 1 HELPER FUNCTION, OU FAZER  
+  PARTE DE 1 CLASS SEPARADA, ETC... MAS O PROFESSOR QUERIA DEIXAR 
+  ESSE EXEMPLO SIMPLES,
+
+  POR ISSO VAMOS ESCREVER NO CONTROLLER DE GeneratorExampleController...
+
+
+
+
+
+
+
+O FORMATO BÁSICO 
+
+DO METHOD 
+
+
+será:
+
+
+
+ 
+
+
+
+
+
+
+private function lazyRange(int $start, int $end) 
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+É O MESMO FORMATO DA FUNCTION DE 'range()'
+
+
+comum...
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PRIMEIRO PARAMETER É 
+
+
+
+'start',
+
+
+
+E O ÚLTIMO PARAMTER 
+
+
+É 
+
+
+
+'END'..........
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA INÍCIO DE CONVERSA, USAREMOS UM FOR LOOP...
+
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+private function lazyRange(int $start, int $end) 
+{
+
+for($i=start; $i <= $end; $i++) {
+
+}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, DENTRO DO LOOP, PARA CADA ITERATION,
+
+
+QUEREMOS 
+
+'RETURN THE VALUE',
+
+
+para que ele seja armazenado em 1 array...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ALGO ASSIM:
+
+
+
+
+
+
+
+
+    // same parameters as range(), but works differently (uses generators)
+    private function lazyRange(int $start, int $end)
+    {
+        $numbers = [];
+
+        for ($i = $start; $i <= $end; $i++) {
+            $numbers[] = $i;
+        }
+
+        return $numbers;
+    }
+
+
+
+
+
+
+
+
+    ISSO FARIA COM QUE ESSES NUMBERS FOSSEM 'PUSHED' 
+
+    A ESSE ARRAY...
+
+
+
+
+
+
+    MAS ISSO TERIA OS MESMOS MEMORY PROBLEMS,
+
+    PQ 
+
+    ESTAMOS 
+
+    ''ESSENTIALLY DOING THE SAME THING AS THE 'range()' function''...
+
+
+
+
+
+
+
+
+
+
+
+
+  SE REFRESHARMOS A PAGE,
+
+
+  COM 1 CALL DE 
+
+
+
+
+  '$numbers = $this->lazyRange(1, 30_000_000);',
+
+
+
+
+
+  AINDA FICAREMOS COM O MESMO ERROR DE MEMORY LIMIT excedido...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  OK... QUER DIZER QUE 
+
+
+
+  ISSO __ NÃO FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+--. PARA QUE ISSO FUNCIONE,
+
+E PARA QUE CONSIGAMOS IMPLEMENTAR 
+
+
+UM 'GENERATOR',
+
+
+
+PRECISAMOS 
+
+
+
+USAR A KEYWORD DE 'yield',
+
+em vez de 'return',
+
+EM CADA ITERATION...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+        $numbers = [];
+
+        for ($i = $start; $i <= $end; $i++) {
+            yield $i;
+        }
+
+
+
+
+
+
+
+
+
+--> é claro que isso só vai fazer yield do value,
+sem assigná-lo a coisa alguma...
+
+
+
+
+
+
+
+
+
+-> 'return' TAMBÉM 
+  NÃO FUNCIONARIA,
+
+  PQ 
+
+
+  'return' IMPEDE A EXECUTION E RETORNA O VALUE...
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS COMO PODEMOS 
+
+'CONVERT THIS INTO A GENERATOR FUNCTION'?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VOLTAMOS AOS DOCS,
+
+E AÍ 
+TEMOS ESTE TRECHO:
+
+
+
+
+
+
+
+
+''Instead, you can write a GENERATOR FUNCTION, which is the SAME AS A NORMAL FUNCTION,
+  except that INSTEAD OF RETURNING ONCE, a generator can 'YIELD' as many times as it needs in 
+  order to PROVIDE THE VALUES TO BE ITERATED OVER''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A KEYWORD É 'yield'...
+
+
+
+
+
+
+
+
+NOS DOCS, TEMOS ISTO, SOBRE 'yield':
+
+
+
+
+
+
+
+
+
+
+
+
+''''The heart of a generator function is the '''yield''' keyword. In its simplest 
+    form, a YIELD statement looks much like a return statement, except that INSTEAD OF STOPPING 
+    execution of the function and returning, 'yield' instead provides a VALUE to the code 
+    looping over the generator, and PAUSES execution of the generator function...''
+
+
+
+
+
+
+
+
+o exemplo:
+
+
+
+
+
+
+
+
+function generate_one_to_three() {
+  for ($i = 1; $i <= 3; $i++) {
+    // Note that $i is PRESERVED between yields.
+    yield $i;
+  }
+} 
+
+
+
+
+
+
+
+
+
+a parte importante é 
+
+
+'PAUSES EXECUTION OF THE GENERATOR FUNCTION'...
+
+
+
+
+
+
+
+
+
+QUER DIZER QUE 
+
+
+
+'''YIELD''' -> PAUSES GENERATOR FUNCTION 
+
+
+''''RETURN'''' --> STOPS FUNCTION EXECUTION...
+
+
+
+
+
+
+
+
+
+
+NOSSO CÓDIGO:
+
+
+
+        $numbers = [];
+
+        for ($i = $start; $i <= $end; $i++) {
+            yield $i;
+        }
+
+
+
+
+
+
+
+
+
+EM VEZ DE STOPPAR A EXECUTION, COMO O 'return'
+statement faria,
+ 
+
+ 'IT WILL STOP THE EXECUTION OF THE GENERATOR FUNCTION,
+ UNTIL THE NEXT TIME THE GENERATOR FUNCTION NEEDS TO RUN''...
+
+
+
+
+
+
+
+
+
+
+ E É POR ISSO QUE O PROFESSOR INCLUI A KEYWORD de 'lazy' 
+ no method.. 
+
+ É PQ 
+ ESTAMOS KIND OF 'LAZY LOADING', 'lazily generating the data'...
+
+
+
+
+
+ 
+
+
+
+--> ISSO QUER DIZER QUE 
+  __ NÃO ESTAMOS __ CARREGANDO _ TUDO 
+
+  DE 1 VEZ SÓ NA MEMORY....
+
+
+
+
+
+
+
+
+
+--> EM VEZ DISSO, ESTAMOS FAZENDO ESSE 'LOAD' 
+
+  __ 'ON DEMAND'...
+
+
+
+
+
+
+
+
+
+
+
+--> testamos isso, NO BROWSER....
+
+
+
+
+
+FICAMOS COM ESTE OUTPUT:
+
+
+
+
+
+
+
+
+Generator Object
+(
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NÃO FICAMOS COM ERROR ALGUM,
+
+
+
+MAS __ NÃO FICAMOS COM 1 ARRAY PRINTADO NA TELA...
+
+
+
+
+
+
+
+
+
+
+-> EM VEZ DISSO, FICAMOS COM UM 'Generator Object'...
+
+
+
+
+
+
+
+um object de tipo 'Generator'...
+
+
+
+
+
+
+
+
+
+
+
+-> ABRIMOS OS DOCS DA CLASS DE 'Generator':
+
+
+
+
+
+ELA TEM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+class Generator implements Iterator {
+
+
+// Methods:
+
+public current(): mixed 
+public getReturn(): mixed 
+public key(): mixed 
+public next(): void 
+public rewind(): void 
+public send(mixed $value): mixed
+public throw (Throwable $exception): mixed 
+public valid(): bool
+
+}
+
+
+
+
+
+
+
+
+
+-> ISSO QUER DIZER QUE PODEMOS 'LOOP' POR DENTRO 
+  DO GENERATOR OBJECT COM 
+
+
+  O 'foreach' loop,
+
+  OU ENTÃO 
+
+  USAR 
+
+
+  ESSES METHODS DE 'Iterator' 
+
+
+  MANUALMENTE, nesse object...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA TESTAR ESSE OBJECT, 
+
+O PROFESSOR FAZ 1 PRINT 
+
+
+DA 
+
+
+CALL DE '->current()', 
+
+no  
+index...
+
+
+
+TIPO ASSIM:
+
+
+
+        $numbers = $this->lazyRange(1, 10_000);
+
+        echo $numbers->current();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E COMO SABEMOS QUE 'generator functions/methods' 
+
+RETORNAM INSTANCES DE 'Generator',
+
+
+
+PODEMOS COLOCAR O RETURN TYPE 
+
+DO METHOD DE 'lazyRange'
+
+
+
+como sendo '\Generator'
+
+
+
+
+EX:
+
+
+
+
+
+    // same parameters as range(), but works differently (uses generators)
+    private function lazyRange(int $start, int $end): Generator
+    {
+        // ! This is literally the same as range(), and will have memory issues:
+        // $numbers = [];
+
+        // for ($i = $start; $i <= $end; $i++) {
+        //     $numbers[] = $i;
+        // }
+
+        // return $numbers;
+
+        // * Generator Example:
+
+        $numbers = [];
+
+        for ($i = $start; $i <= $end; $i++) {
+            yield $i;
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  COMO PRINT DE '->current()',
+
+  ficamos com o value de 
+
+  '1'...
+
+
+
+
+
+
+
+  -> MAS AÍ O PROFESSOR USA O METHOD DE '$numbers->next()',
+
+  para AVANÇAR PARA A PRÓXIMA ENTRY,
+
+
+  NESSE GENERATOR OBJECT (Que implementa os methods de 'Iterator')..
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+class GeneratorExampleController
+{
+    public function __construct(private Ticket $ticketModel) {}
+
+    public function index()
+    {
+        $numbers = $this->lazyRange(1, 10_000);
+
+        echo $numbers->current();
+
+        $numbers->next();
+
+        echo $numbers->current();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+REFRESHAMOS A PAGE,
+
+E AÍ FICAMOS COM 
+
+
+12 
+
+
+
+
+(sinal que o 'next()' realmente funcionou)...
+
+
+
+
+
+
+
+
+
+
+
+-> '''SO YOU GET THE POINT:
+    AS YOU CAN SEE, THE DATA IS NOT BEING 
+    _BUILT UP__ IN MEMORY RIGHT AWAY... BUT, RATHER,
+    THE VALUES ARE YIELDED ONE-BY-ONE...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK.. RECAPITULANDO:
+
+
+
+
+
+1) WHEN THE LAZYRANGE METHOD IS CALLED, 
+  ___ NO __ CODE WITHIN IT IS _ ACTUALLY EXECUTED 
+
+
+  (
+
+    quer dizer que 
+
+    isso tudo:
+
+
+````````````````````````````
+            $numbers = [];
+
+        for ($i = $start; $i <= $end; $i++) {
+            yield $i;
+        }
+
+````````````````````````````
+
+        NÃO É EXECUTADO...
+  ) 
+
+
+
+
+
+
+
+
+
+para testar isso, basta adicionar 1 "echo 'Hello' ",
+
+
+sem mais nada,
+
+no nosso código...
+
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+
+    public function index()
+    {
+        $numbers = $this->lazyRange(1, 10_000);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    ISSO NÃO VAI PRINTAR COISA ALGUMA,
+    O QUE QUER DIZER QUE O CÓDIGO DENTRO DE 'lazyRange()'
+
+    NÃO FOI EXECUTADO...
+
+  
+
+
+
+
+
+
+
+
+2) ''THE CODE WITHIN THE LAZYRANGE GENERATOR FUNCTION 
+    __ONLY __ GETS EXECUTED __ __WHEN/IF __ THE ITERATOR 
+    METHODS (como 'current()' e 'next()') ARE CALLED,  
+    OR WHEN WE __ LOOP_ OVER IT... (com o 'for', por exemplo)''''
+
+
+
+
+
+3) WHEN THESE CONDITIONS ARE MET, 
+  IT WILL THEN ''START EXECUTING THE CODE,
+              UNTIL __ THE FIRST "yield" STATEMENT IS 
+              REACHED...''
+
+
+
+
+
+4) WHEN THE 'yield' statement is reached,
+   IT WILL __ PAUSE__ THE EXECUTION AND 
+   THE __ VALUE THAT WAS __ YIELDED_ 
+   CAN __ THEN BE_ FETCHED_ BY THE 
+   'current()' method...
+
+  
+
+
+
+5) TO RESUME THE EXECUTION, THE 'next()' method 
+  NEEDS TO BE CALLED... IT WILL RESUME THE EXECUTION UNTIL 
+  THE NEXT 'yield' statement is reached... (then it will pause again, until 'current()' is called again)
+
+
+
+
+
+
+
+
+
+
+PARA DEBUGGAR ISSO, 
+
+O PROFESSOR RODA ESTE CÓDIGO:
+
+
+
+
+
+    public function index()
+    {
+
+        $numbers = $this->lazyRange(1, 10_000);
+
+        echo $numbers->current();
+
+        $numbers->next();
+
+        echo $numbers->current();
+
+        $numbers->next();
+
+        echo $numbers->current();
+
+    }
+
+  
+
+
+
+
+
+    private function lazyRange(int $start, int $end): Generator
+    {
+        echo 'Hello';
+
+        for ($i = $start; $i <= $end; $i++) {
+            yield $i;
+        }
+    }
+
+
+
+
+
+
+  ISSO 
+
+
+  VAI PRINTAR 
+
+
+
+  'Hello123'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> RESUMINDO:
+
+
+''WHEN WE CALL ONE OF THE FUNCTIONS IN THE GENERATOR INSTANCE,
+  ONLY THEN IT STARTS EXECUTING THE CODE WITHIN 
+  THE 'GENERATOR METHOD' (no caso, 'lazyRange()')...'''
+
+
+
+
+
+''AFTER PRINTING THE HELLO (inside of the lazyRange), 
+  IT CONTINUES THE EXECUTION UNTIL IT REACHES THE 'yield'
+  statement... it then YIELDS the value of $i (1), and 
+  then PAUSES THE EXECUTION....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  quer dizer que o '$i' é o próprio generator...
+
+
+
+
+
+
+  pq é ele que é 'retornado/yielded',
+  
+
+
+  com o 'yield $i'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Role of $i: In the generator function, $i is simply a
+ variable used to keep track of the current value in the sequence that the
+  generator will yield. It's not the generator itself but rather the current 
+  value that is being produced by the generator at each step of iteration.
+
+Generator Object: When you call the generator function
+ (like rangeGenerator(1, 5)), it returns a generator object. 
+ This object is an instance of the Generator class and
+  is used to iterate over the values that the generator function yields.
+
+
+
+
+
+
+
+
+
+
+quer dizer que esta tralha:
+
+
+
+
+
+        for ($i = $start; $i <= $end; $i++) {
+            yield $i;
+        }
+
+
+
+
+
+
+
+    SÓ VAI FAZER COM QUE O 
+    CÓDIGO DO METHOD 'lazyRange' 
+
+    inteiro seja executado 
+
+    ___ SE __ algum dos methods de Iterator (como current, next, valid, etc)
+
+
+    FOR CHAMADO,
+
+
+
+    __ OU__,
+     
+
+     SE FIZERMOS 'loop'
+
+
+     POR CIMA DESSA TRALHA...
+
+
+
+    
+
+    (
+
+      quando dizemos loop, queremos dizer algo COMO
+
+
+      '
+function rangeGenerator($start, $end) {
+    for ($i = $start; $i <= $end; $i++) {
+        yield $i;
+    }
+}
+
+
+$gen = rangeGenerator(1, 5);
+
+// isto aqui
+foreach ($gen as $number) {
+    echo $number . ' ';
+}
+
+'
+
+    )
+
+
+
+
+
+
+
+
+  certo...
+
+
+
+
+
+
+A MORAL É QUE ''WE ARE ALWAYS INSIDE THE LOOP'',
+
+mas o loop vai ser pausado, de acordo com o call (ou não) de 'current()' e 'next()'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS SE NÃO CHAMAMOS '->current()',
+
+
+os values NÃO SÃO 'OBTIDOS'... 
+
+
+
+
+--> quando vc faz 'yield' de 1 value,
+  ele não é 'retornado'/obtido,
+
+  e sim é só 'engatilhado'... --> o que REALMENTE faz o value 
+                                  ser obtido é o call de 
+                                  '->current()'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+E ISSO CONTINUA PELO TEMPO NECESSÁRIO,
+
+
+ATÉ 
+
+
+
+''THERE ARE NO MORE YIELD STATEMENTS'',
+
+
+e aí 
+
+
+
+a execution ACABA... 
+
+
+
+
+
+
+
+
+
+
+
+OK... E, NESSE EXEMPLO, TEMOS O LOOP, CERTO?
+
+
+
+
+
+
+
+este loop:
+
+
+
+
+
+
+
+for ($i = $start; $i <= $end; $i++) {
+            yield $i;
+        }
+
+
+
+
+
+
+
+  
+
+
+PQ 
+
+
+''THIS IS HOW THE VALUES ARE BEING 'YIELD'ED,
+AT EACH ITERATION...''
+
+
+
+
+
+
+
+
+''BUT INSTEAD OF 
+
+  __ A FOR LOOP___, 
+  WE COULD HAVE MULTIPLE YIELD STATEMENTS,
+
+  LIKE THIS:''
+
+
+
+
+
+
+
+
+for ($i = $start; $i <= $end; $i++) {
+          
+
+          yield $start;
+          yield $end;
+        }
+
+
+
+
+
+
+
+
+
+
+
+-> COM ISSO, NÃO OCORRERÁ O INCREMENT DE COISA ALGUMA,
+
+E SIM SERÁ PRINTADO 
+
+'1' e '30 milhoes'...
+
+
+
+
+
+
+
+
+
+COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+private function lazyRange(int $start, int $end): Generator 
+{
+  for ($i = $start; $i <= $end; $i++) {
+          
+          echo 'Hello!';
+
+          yield $start;
+
+          echo 'World';
+
+          yield $end;
+        }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+E ESTE:
+
+
+
+
+
+
+
+
+    public function index()
+    {
+        $numbers = $this->lazyRange(1, 30_000_000);
+
+        echo $numbers->current();
+
+        $numbers->next();
+
+        echo $numbers->current();
+
+        $numbers->next();
+
+        echo $numbers->current();
+    }
+
+
+
+
+
+
+
+
+
+
+  O QUE SERÁ PRINTADO SERÁ APENAS 
+
+
+
+  Hello 
+  1 
+  World 
+  30000000
+
+
+
+
+
+  E, NADA MAIS DO QUE ISSO...
+
+
+
+
+
+
+  ISSO, NO CASO, É PQ TEMOS APENAS 2 'yield' STATEMENTS,
+
+  E NADA MAIS DO QUE ISSO (o código vai pausar/parar aí, não tem mais nada depois disso)...
+
+
+
+
+
+QUER DIZER QUE A EXECUÇÃO E PRINTS SERÃO ASSIM:
+
+
+
+
+    public function index()
+    {
+        // Nothing gets printed (no Iterator method, like current or next, called)
+        $numbers = $this->lazyRange(1, 30_000_000);
+
+        // Code until the first 'yield' statement is executed, print happens (Hello + 1)
+        echo $numbers->current();
+
+        // Proceeds the generator to the second yield statement....
+        $numbers->next();
+
+        // Code until the second 'yield' statement is executed, print happens ('World' + 3000000)
+        echo $numbers->current();
+
+        // Proceed to the third (non-existent) yield statement....
+        $numbers->next();
+
+        // No more 'yield' statements, so no code gets executed after the 'yield $end' (which is 'World + 3000000')
+        echo $numbers->current();
+    }
+
+
+
+
+private function lazyRange(int $start, int $end): Generator 
+{
+  for ($i = $start; $i <= $end; $i++) {
+          
+          echo 'Hello!';
+
+          yield $start;
+
+          echo 'World';
+
+          yield $end;
+
+          echo '!';
+        }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+SE COLOCAMOS MAIS UM ECHO, de '!', ao final, E REMOVERMOS O ÚLTIMO 'current()' (deixando apenas o 'next()', que vai RESUME THE EXECUTION)...
+
+
+
+
+acontece assim:
+
+
+
+
+
+
+
+
+    public function index()
+    {
+        // Nothing gets printed (no Iterator method, like current or next, called)
+        $numbers = $this->lazyRange(1, 30_000_000);
+
+        // Code until the first 'yield' statement is executed, print happens (Hello + 1)
+        echo $numbers->current();
+
+        // Proceeds the generator to the second yield statement, executes the code up until that point (prints 'World')
+        $numbers->next();
+
+        // The actual value is yielded/obtained, with the 'current()' method (prints '3000000', the '$end' value...)
+        echo $numbers->current();
+
+        // Proceed to the third (non-existent) yield statement, IF IT EXISTS. If it doesn't exist, execute the remaining code, the code that goes after the second 'yield' (the '!' gets printed)
+        $numbers->next();
+
+
+        // REMOVED - We don't need 'current()' to actually execute the code, 'next()' already does that for us.
+        // the 'current()' call will be blank, because we don't have anything after the second yield.
+        //  echo $numbers->current();
+    }
+
+
+
+
+private function lazyRange(int $start, int $end): Generator 
+{
+  for ($i = $start; $i <= $end; $i++) {
+          
+          echo 'Hello!';
+
+          yield $start;
+
+          echo 'World';
+
+          yield $end;
+
+          echo '!';
+        }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+O PRINT FICA ASSIM:
+
+
+
+  Hello 
+  1 
+  World 
+  30000000
+  !
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+esse era um dos tópicos confusos para o professor,
+
+quando ele aprendeu generators...
+
+
+
+
+
+
+
+
+current()
+When current() is Called: This method retrieves the current value from the generator without advancing it. When you call current(), the generator resumes execution up to the point where the value is yielded.
+
+Important: If current() is called and the generator hasn't yet reached a yield, it will execute the code in the generator up to the next yield or return. The output from the generator's code will be produced up to that point.
+
+next()
+When next() is Called: This method advances the generator to the next yielded value. When you call next(), the generator resumes execution from where it last yielded (or started if it’s the first call) and continues until it reaches the next yield or the end of the function.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... ACHO QUE FINALMENTE ENTENDI...
+
+
+
+
+
+
+
+
+--> CONTINUANDO..
+
+
+
+
+
+
+
+
+''YOU SHOULD HAVE NOTICED THAT THE 'lazyRange()' method/function 
+  DOES NOT HAVE ANY 'return' statements...''
+
+
+
+
+
+
+
+
+''ACTUALLY, GENERATOR FUNCTIONS/METHODS __ CAN HAVE_ RETURN 
+  STATEMENTS WITHIN THEM, INSTEAD OF ONLY 'yield'...''
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA TESTAR ISSO, O PROFESSOR USA 'return '!';' 
+
+
+
+AO FINAL,
+
+
+
+em vez de 'echo '!' '
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+private function lazyRange(int $start, int $end): Generator 
+{
+  for ($i = $start; $i <= $end; $i++) {
+          
+          echo 'Hello!';
+
+          yield $start;
+
+          echo 'World';
+
+          yield $end;
+
+          return '!';
+        }
+
+}
+
+
+
+
+
+
+
+
+-> MESMO QUE FAÇAMOS O RETURN DE '!',
+
+  ISSO NÃO VAI AFETAR O RETURN TYPE DO METHOD 'lazyRange()'
+
+  em si..
+
+
+  ELE VAI CONTINUAR SENDO 'GENERATOR'...
+
+
+
+
+
+
+
+
+--> 
+
+
+
+Ex:
+
+
+
+
+
+
+private function lazyRange(int $start, int $end): Generator 
+{
+  for ($i = $start; $i <= $end; $i++) {
+          
+          echo 'Hello!';
+
+          yield $start;
+
+          echo 'World';
+
+          yield $end;
+
+          return '!';
+        }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+-> AINDA VAI RETORNAR 1 INSTANCE DE 'GENERATOR'...
+
+
+
+
+
+
+
+
+-> O RETURNED VALUE DESSE METHOD,
+
+GENERATOR METHOD,
+'''CAN THEN BE ACCESSED 
+   BY USING _ ONE _ OF THE METHODS 
+   FROM __ THE _ GENERATOR OBJECT'''..
+
+
+
+
+
+
+
+
+-> OU SEJA,
+
+  CONSEGUIMOS ACTUALLY CONSEGUIR O VALUE DE '!',
+
+  de esse generator...
+
+
+
+  basta usarmos o method 
+
+  '->getReturn()'...
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+$numbers = $this->lazyRange(1, 30000000);
+
+
+echo $numbers->getReturn();   //// will echo '!', the returned value of the generator method...
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+CÓDIGO COMPLETO:
+
+
+
+
+
+
+
+
+
+
+    public function index()
+    {
+        // Nothing gets printed (no Iterator method, like current or next, called)
+        $numbers = $this->lazyRange(1, 30_000_000);
+
+        echo $numbers->getReturn();
+
+    }
+
+
+
+private function lazyRange(int $start, int $end): Generator 
+{
+  for ($i = $start; $i <= $end; $i++) {
+          
+          echo 'Hello!';
+
+          yield $start;
+
+          echo 'World';
+
+          yield $end;
+
+          return '!';
+        }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE INSPECIONAMOS
+
+
+
+ESSE METHOD DE 'getReturn()',
+
+
+FICAMOS COM ISTO:
+
+
+
+
+
+
+	/**
+	 * Get the return value of a generator
+	 * @return TReturn Returns the generator's return value once it has finished executing.
+	 */
+	function getReturn(): mixed { /* function body is hidden */ }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VEMOS QUE ELE RETORNA 'WHATEVER WAS PASSED TO THE RETURN,
+  OR 'null', if NOTHING....'
+
+
+
+
+
+
+
+
+
+--> ''THROWS AN __ EXCEPTION_ IF THE GENERATOR IS STILL VALID...''
+
+
+
+
+
+
+
+
+
+
+
+-> E ISSO É ALGO QUE DEVEMOS TER EM MENTE...
+
+
+
+
+
+PQ SE O GENERATOR AINDA ESTÁ RUNNING, 
+  AINDA ESTÁ 'VALID', 
+
+  SE VC FIZER O _ _RETURN__ DE ALGUM VALUE,
+
+
+  O GENERATOR VAI FAZER O __ THROW_ _DE UMA EXCEPTION (mesmo que vc n queira)...
+
+
+
+
+
+
+
+
+
+--> ISSO QUER DIZER QUE,
+
+  SE TENTAMOS RECARREGAR A PAGE,
+
+
+
+
+  ISSO AINDA VAI FUNCIONAR:
+
+
+
+
+
+    public function index()
+    {
+        // Nothing gets printed (no Iterator method, like current or next, called)
+        $numbers = $this->lazyRange(1, 30_000_000);
+
+        echo $numbers->getReturn();
+
+    }
+
+
+
+private function lazyRange(int $start, int $end): Generator 
+{
+  for ($i = $start; $i <= $end; $i++) {
+          
+          echo 'Hello!';
+
+          yield $start;
+
+          echo 'World';
+
+          yield $end;
+
+          return '!';
+        }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+E ISSO REALMENTE NÃO FAZ O THROW DE EXCEPTION ALGUMA...
+
+
+
+
+
+
+
+
+--> ISSO NÃO DEU O THROW DE EXCEPTION PQ:
+
+
+1) NÓS TEMOS 2 'YIELD' STATEMENTS...
+
+
+
+
+2) ESTAMOS FAZENDO 'ECHO' 
+  DE AMBOS YIELD STATEMENTS... 
+
+
+
+
+3) ISSO QUER DIZER QUE 'THE GENERATOR HAS FINISHED',
+   PQ ELE JÁ FEZ 'YIELD' DOS 2 VALUES, E JÁ ESTÁ PRONTO PARA 
+   FAZER O RETURN...
+
+
+
+(acessamos o return ao final...)
+
+
+
+
+
+
+
+
+
+MAS SE COLOCARMOS ESSE '->getReturn()'
+
+NO __ MEIO DAS CALLS DE 'next()' e 'current()',
+
+
+PARA QUE 
+
+ELE _ SEJA
+
+
+EXECUTADO __ ANTEs__ DO GENERATOR TERMINAR 
+
+DE EXECUTAR,
+
+
+
+AS COISAS VÃO MUDAR...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+    public function index()
+    {
+        $numbers = $this->lazyRange(1, 30_000_000);
+
+        echo $numbers->current();
+
+        $numbers->next();
+
+        echo $numbers->current();
+
+        echo $numbers->getReturn(); //// AQUI...
+
+        $numbers->next();
+
+    }
+
+
+private function lazyRange(int $start, int $end): Generator 
+{
+  for ($i = $start; $i <= $end; $i++) {
+          
+          echo 'Hello!';
+
+          yield $start;
+
+          echo 'World';
+
+          yield $end;
+
+          return '!';
+        }
+
+}
+
+
+
+
+
+
+
+
+
+
+COM ISSO,
+
+
+ESTAMOS 
+
+
+''RUNNING THE GETRETURN 
+  __ BEFORE __ WE RESUME THE EXECUTION,
+  AFTER THE LAST YIELD STATEMENT...''
+
+
+
+
+
+
+
+
+
+  SE RECARREGAMOS A PAGE,
+
+  FICAMOS COM 
+
+
+
+  'Fatal Error':
+
+
+
+  '''CANNOT GET THE RETURN VALUE OF A GENERATOR THAT 
+    __HASN'T RETURNED'''...
+
+
+
+
+
+  
+  isso acontece, no caso, 
+
+
+
+
+
+
+  PQ AQUELE 
+
+
+
+  STATEMENT 
+
+
+  DE 
+
+  'return '!';' 
+
+
+
+  AINDA NÃO FOI EXECUTADO....
+
+
+
+
+
+
+
+
+
+
+
+E ISSO FAZ TOTAL SENTIDO,
+
+ACONTECE PQ 
+
+
+A EXECUTION NÃO FOI RESUMIDA NO FINAL,
+
+
+
+PQ AQUELE CALL DE '$numbers->next()'
+
+
+
+NÃO FOI EXECUTADO ANTES DE '$numbers->getReturn()'...
+
+
+
+
+
+
+REVEJA:
+
+
+
+
+
+
+
+    public function index()
+    {
+        $numbers = $this->lazyRange(1, 30_000_000);
+
+        echo $numbers->current();
+
+        $numbers->next();
+
+        echo $numbers->current();
+
+        echo $numbers->getReturn(); //// AQUI...
+
+        $numbers->next();
+
+    }
+
+
+
+
+
+
+
+
+
+ISSO FAZ SENTIDO,
+
+
+PQ A EXECUTION CONTINUOU 'PAUSADA', TRAVADA 
+
+NO ÚLTIMO
+STATEMENT 
+
+DE 
+
+'yield $end;',
+
+
+
+
+QUE 
+
+
+
+
+EXISTE AQUI:
+
+
+
+
+
+
+
+  for ($i = $start; $i <= $end; $i++) {
+          
+          echo 'Hello!';
+
+          yield $start;
+
+          echo 'World';
+
+          yield $end; //AQUI
+
+          return '!';
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE O ÚLTIMO RETURN STATEMENT
+    nunca é alcançado... e por isso a exception acontece...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  --> O RETURN STATEMENT APENAS SERÁ ALCANÇADO 
+    ''WHEN WE HAVE RESUMED THE EXECUTION...'''
+
+
+
+    E ESSE RESUME DA EXECUTION SÓ VAI ACONTECER 
+
+    SE REALMENTE TIVERMOS UM CALL DE 'next()' ou 
+  
+    'current()'...
+
+
+
+    -> E SE ESSE RESUME ACONTECER (por meio de 'next()' ou 'current()'), ELE 
+      VAI RODAR TODO O RESTANTE DO CÓDIGO DENTRO 
+      DO GENERATOR, A NÃO SER QUE EXISTA ALGUM
+      OUTRO 'YIELD' dentro do código do generator...
+
+
+
+
+
+
+--> SE HÁ ALGUM OUTRO YIELD STATEMENT NO MEIO, 
+
+    ELE NOVAMENTE VAI 'PAUSE' THE EXECUTION, 
+
+    E AÍ 
+
+    ESSE 'return' não vai ser executado... que é o que aconteceu,
+    aqui... (ficou pausado no 'yield $end', logo antes do 'return '1' ')
+
+
+
+
+
+
+
+
+
+-> E É EXATAMENTE POR ISSO QUE 
+
+
+
+'->getReturn()'
+
+
+
+DEVE SER EXECUTADO __ OBRIGATORIAMENTE
+
+
+
+'AFTER __ THE GENERATOR HAS FINISHED RUNNING 
+THROUGH ALL THE YIELD STATEMENTS',
+
+
+
+DEPOIS DAQUELE '->next()',
+nesse caso:
+
+
+
+
+    public function index()
+    {
+        $numbers = $this->lazyRange(1, 30_000_000);
+
+        echo $numbers->current();
+
+        $numbers->next();
+
+        echo $numbers->current();
+
+        $numbers->next();
+
+        echo $numbers->getReturn(); //// COM ISSO, NÃO TEREMOS O THROW DA EXCEPTION.
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OUTRA COISA QUE O PROFESSOR QUER NOS MOSTRAR:
+
+
+
+
+
+
+
+
+'''WE CAN ALSO __ YIELD__ A KEY-VALUE PAIR...''' 
+
+
+
+
+
+
+
+
+
+
+
+--> PARA DEMONSTRAR, O PROFESSOR COMENTA TODO CÓDIGO PARA FORA,
+  E AÍ ESCREVE UM SIMPLES 
+  FOREACH LOOP:
+
+
+
+
+
+  
+    public function index()
+    {
+        $numbers = $this->lazyRange(1, 30_000_000);
+
+        foreach($numbers as $key => $number) {
+
+          echo $key . ': ' . $number . '<br />';
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> aí, lá no generator, colocamos o loop de volta, tipo assim:
+
+
+
+
+
+
+private function lazyRange(int $start, int $end): Generator 
+{
+
+  for ($i = $start; $i <= $end; $i++) {
+        yield $i;
+  }
+
+}
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+CÓDIGO COMPLETO:
+
+
+
+
+
+
+
+
+    public function index()
+    {
+        $numbers = $this->lazyRange(1, 30_000_000);
+
+        foreach($numbers as $key => $number) {
+
+          echo $key . ': ' . $number . '<br />';
+        }
+    }
+
+
+
+
+
+
+private function lazyRange(int $start, int $end): Generator 
+{
+
+  for ($i = $start; $i <= $end; $i++) {
+        yield $i;
+  }
+
+}
+
+
+
+
+
+
+
+
+AÍ, SE RECARREGAMOS A PAGE,
+
+
+
+
+FICAMOS COM 1 RESULT COMO ESTE:
+
+
+
+
+
+
+0: 1
+1: 2
+2: 3
+3: 4
+4: 5
+5: 6
+6: 7
+7: 8
+8: 9
+9: 10
+10: 11
+11: 12
+12: 13
+13: 14
+14: 15
+15: 16
+16: 17
+17: 18
+18: 19
+19: 20
+20: 21
+21: 22
+22: 23
+23: 24
+24: 25
+25: 26
+26: 27
+27: 28
+28: 29
+29: 30
+30: 31
+31: 32
+32: 33
+33: 34
+34: 35
+35: 36
+36: 37
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> COM ISSO, 
+
+
+
+  FICAMOS COM O PRINT ATÉ 30 MILHOES...
+
+
+
+
+
+
+
+
+
+
+
+-> WILL PRINT VALUES, AT EACH ITERATION, ALL THE WAY UP TO 30 MILLION...
+
+
+
+
+
+
+
+
+
+
+
+
+-> THIS WORKS...
+
+
+
+
+
+
+
+
+-> MAS 1 COISA QUE VC DEVE TER EM MENTE, AQUI,
+
+  SÃO __ AS KEYS__...
+
+
+
+
+
+
+
+
+'''THE KEYS, AS YOU CAN SEE,
+  ARE __ SEQUENTIALLY __NUMBERED,
+  STARTING FROM _ 0...''
+
+
+
+
+
+O QUE O PROFESSOR FARÁ É TROCAR A QUANTIDADE 
+
+DE NÚMEROS PARA APENAS 10...
+
+
+
+
+
+ex:
+
+    public function index()
+    {
+        $numbers = $this->lazyRange(1, 10);
+
+        foreach($numbers as $key => $number) {
+
+          echo $key . ': ' . $number . '<br />';
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---> AÍ O PROFESSOR MUDA A LÓGICA DO LAZYRANGE,
+
+
+PARA 
+
+
+
+QUE ELA FAÇA YIELD DE 
+
+
+
+1 'key-value' pair,
+
+
+e não 
+
+de 
+
+
+
+1 value simples...
+
+
+
+
+
+
+
+
+-> PARA ISSO, ELE ESCREVE ASSIM:
+
+
+
+
+  for ($i = $start; $i <= $end; $i++) {
+        yield $i * 5 => $i;
+  }
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, FICAMOS COM 1 RESULTADO ASSIM:
+
+
+
+
+
+
+
+
+5: 1
+10: 2
+15: 3
+20: 4
+25: 5
+30: 6
+35: 7
+40: 8
+45: 9
+50: 10
+
+
+
+
+
+
+
+
+
+ESTAMOS COM UM KEY-VALUE PAIR...
+
+
+
+
+
+
+
+-> AS KEYS ESTÃO MULTIPLICADAS POR 5...
+
+
+
+
+
+
+-> E ISSO ESTÁ FUNCIONANDO...
+
+
+
+
+
+
+
+RESUMINDO:
+
+
+
+''When KEYS ARE NOT SPECIFIED, 
+  THEY WILL __ SIMPLY __ BE 
+  SEQUENTIALLY NUMBERED INDEXES,
+  STARTING FROM 0''...
+
+
+
+
+
+
+
+
+
+
+
+--> MAS VC PODE ESPECIFICAR ISSO, FAZER 
+  COM QUE O YIELD faça return de 'custom keys' 
+
+  em vez de INDEXES COMUNS,
+
+
+  O QUE VAI TE DEIXAR FAZER COISAS COMO ASSOCIATIVE ARRAYS E ETC...
+
+
+
+
+
+
+
+
+
+-> COMO VC PODE VER,
+
+  RESOLVEMOS 
+
+
+  A MEMORY ISSUE 
+
+  QUE ESTÁVAMOS 
+
+  TENDO 
+
+  COM A BUILT-IN FUNCTION DE
+
+
+  'range()'...
+
+
+  (pq agora evitamos o build inteiro do array ''in memory at the same time'' )
+
+
+
+
+
+
+
+
+
+
+
+
+  --> ISSO PQ, QUANDO USAMOS GENERATORS,
+      O PHP NÃO FAZ O ACTUAL BUILD DO ARRAY INTEIRO
+
+      NA MEMÓRIA,
+
+      E SIM 
+
+
+
+      'YIELDS A SINGLE VALUE AT A TIME'...
+
+
+
+
+
+
+
+
+---> OK... ACABAMOS COM ESSE EXEMPLO.. AGORA 
+DEVEMOS VER OUTRO EXEMPLO,
+
+QUE USA DATABASE RECORDS/DATA-SET...
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR CRIOU UMA TABLE DE 'tickets',
+
+
+com + ou - 20.000 
+
+
+dummy records...
+
+
+
+
+
+
+
+
+-> E AÍ O PROFESSOR CRIOU 1 MODEL 
+
+
+DE NOME 'Ticket.php'
+
+
+QUE TEM 1 METHOD PARA FETCHEAR TODOS OS RECORDS...
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+namespace App\Models;
+
+
+
+class Ticket extends Model
+{
+    public function all(): array
+    {
+        $stmt = $this->db->query(
+            'SELECT id, title, content
+             FROM tickets'
+        );
+
+        return $this->fetchAll($stmt);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+--> ISSO FAZ FETCH DE TODOS OS RECORDS DA TABLE DE TICKETS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO... MAS O PROFESSOR TEM 1 MIGRATION, OU NÃO?
+
+
+
+
+
+
+
+
+
+--> TENTAMOS RETORNAR ESSA DATA, LÁ DA TABLE, PARA VER SE ISSO FUNCIONA,
+
+SEM USAR O GENERATOR..
+
+
+
+
+
+
+
+
+
+
+-> 10.000 RECORDS... É BASTANTE DATA...
+
+
+
+
+
+ESCREVEMOS TIPO ASSIM, NO CONTROLLER:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Models\Ticket;
+use Generator;
+
+class GeneratorExampleController
+{
+    public function __construct(private Ticket $ticketModel) {}
+
+  public function index() 
+  {
+    print_r($this->tickedModel->all());
+  }
+
+}
+
+
+
+
+
+
+
+
+ENTRAMOS NESSA PAGE,
+
+
+E AÍ 
+
+FICAMOS COM O FATAL ERROR...
+
+
+
+
+
+
+
+-> FICAMOS SEM MEMORY, MESMO TENDO APENAS 
+
+
+10.000 RECORDS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> GENERATORS NEM SEMPRE SÃO A SOLUÇÃO 
+    A MEMORY PROBLEMS COMO ESSES...
+
+
+
+
+
+
+
+    àS VEZES VC PODE RESOLVER O PROBLEMA DE MEMÓRIA 
+    COM PAGINATION,
+
+    OU REMOVENDO '*' do select, etc...
+
+
+
+
+
+
+
+  
+
+
+EX:
+
+
+SELECT id FROM tickets;
+
+
+
+
+
+
+
+-> AÍ PEGARÍAMOS APENAS O ID, BEM MENOS DATA...
+
+
+
+
+
+
+
+
+
+-> vou escrever 1 migration, em php, 
+
+para inserir data na minha table...
+
+
+
+
+
+
+-> PODERÍAMOS TER USADO 1 WHERE CLAUSE,
+  PARA APENAS SELECIONAR TICKETS 
+
+  PARA USERS 
+
+  ESPECÍFICOS, ETC...
+
+
+
+
+
+
+
+-> BASICAMENTE, VC DEVE TRY AND SOLVE THE PROBLEM 
+  __ ANTES_ DE RECORRER A GENERATORS...
+
+
+
+
+
+
+
+
+-. MAS EM ALGUNS CASES,
+
+EM QUE VC PRECISA REALMENTE 
+
+
+'ITERATE OVER LARGE DATA SETS',
+
+  em que vc poderia ter memory issues, 
+
+  GENERATORS PODEM SER UMA BOA SOLUTION...
+
+
+
+
+
+
+--> QUEREMOS FAZER ISSO FUNCIONAR, 
+
+
+
+
+
+
+COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+namespace App\Models;
+
+use App\Model;
+use Generator;
+
+class Ticket extends Model
+{
+    public function all(): Generator
+    {
+        $stmt = $this->db->query(
+            'SELECT id, title, content
+             FROM tickets'
+        );
+
+        return $this->fetchLazy($stmt);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+PODERÍAMOS TER LIMIT, WHERE, GROUP BY, OFFSET,
+
+ETC..
+
+
+
+
+
+
+
+MAS ESSE NÃO É O PONTO DESTE EXEMPLO...
+
+
+
+
+
+
+O PONTO É QUE àS VEZES VC PODE TER 1 LARGE DATASET QUE 
+
+PRECISA SER LOOPED OVER,
+
+PROBLEMA 
+
+
+QUE PODE SER RESOLVIDO COM GENERATORS...
+
+
+
+
+
+
+
+
+
+
+--> A PRIMEIRA COISA QUE DEVEMOS FAZER, AQUI,
+
+É DEIXAR DE USAR O METHOD PDO DE 
+
+
+'fetchAll()' --> PQ ESSE METHOD AÍ, POR SI SÓ,
+                SEMPRE FAZ O LOAD DE TUDO NA MEMORY,
+
+                E É O QUE CAUSA A MEMORY ISSUE...
+
+
+
+
+
+
+
+--> É POR ISSO QUE DEVEMOS USAR 'fetchLazy()'..
+
+
+
+
+
+
+
+
+
+
+
+--> SE EXAMINAMOS O OBJECT 'PDOStatement',
+
+
+temos isto:
+
+
+
+
+
+
+	function execute(array $params = null) { /* function body is hidden */ }
+
+	/**
+	 * Fetches the next row from a result set
+	 * Fetches a row from a result set associated with a PDOStatement object. The `mode` parameter determines how PDO returns the row.
+	 *
+	 * @param int $mode Controls how the next row will be returned to the caller. This value must be one of the `PDO::FETCH_*` constants, defaulting to value of `PDO::ATTR_DEFAULT_FETCH_MODE` (which defaults to `PDO::FETCH_BOTH`).
+	 *                  - `PDO::FETCH_ASSOC`: returns an array indexed by column name as returned in your result set
+	 *                 
+	 *                  - `PDO::FETCH_BOTH` (default): returns an array indexed by both column name and 0-indexed column number as returned in your result set
+	 *                 
+	 *                  - `PDO::FETCH_BOUND`: returns `true` and assigns the values of the columns in your result set to the PHP variables to which they were bound with the PDOStatement::bindColumn() method
+	 *                 
+	 *                  - `PDO::FETCH_CLASS`: returns a new instance of the requested class, mapping the columns of the result set to named properties in the class, and calling the constructor afterwards, unless `PDO::FETCH_PROPS_LATE` is also given. If `mode` includes PDO::FETCH_CLASSTYPE (e.g. `PDO::FETCH_CLASS |
+	 *                       PDO::FETCH_CLASSTYPE`) then the name of the class is determined from a value of the first column.
+	 *                 
+	 *                  - `PDO::FETCH_INTO`: updates an existing instance of the requested class, mapping the columns of the result set to named properties in the class
+	 *                 
+	 *                  - `PDO::FETCH_LAZY`: combines `PDO::FETCH_BOTH` and `PDO::FETCH_OBJ`, and is returning a PDORow object which is creating the object property names as they are accessed.
+	 *                 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE VER, TEMOS 
+
+
+
+AQUELE MODE DE 'FETCH_LAZY'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALÉM DISSO,
+
+
+É POSSÍVEL PERCEBER QUE 
+
+O 'PDOStatement'
+
+
+FAZ O IMPLEMENT DE 
+
+
+'IteratorAggregate':
+
+
+
+
+class PDOStatement implements IteratorAggregate, Traversable
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO QUER DIZER QUE ESSE OBJECT 
+
+
+'''CAN BE ITERATED OVER''',
+
+
+SEM PRECISAR 'FETCH EVERYTHING AT ONCE'''...
+
+
+
+
+
+
+
+
+--> ALTERNATIVAMENTE,
+  PODEMOS 'prepare()'
+
+
+  O STATEMENT,
+
+  E AÍ 
+
+  RODAR 
+
+  O METHOD DE 'fetch()',
+
+
+  DENTRO DO LOOP... (não vai ter problemas de memory)...
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, O PROFESSOR ESCREVE ASSIM (vamos 
+
+rodar 1 yield dentro do foreach statement....
+)
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+    public function all(): array
+    {
+        $stmt = $this->db->query(
+            'SELECT id, title, content
+             FROM tickets'
+        );
+
+       foreach($stmt as $ticket) {
+        yield $ticket;
+       }
+    }
+
+
+
+
+
+
+
+
+
+
+
+  COM ISSO, O METHOD DE 'all()'
+
+  NÃO RETORNA MAIS 1 ARRAY,
+
+  E SIM 
+
+  RETORNA UM 'GENERATOR OBJECT'...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+    public function all(): Generator
+    {
+        $stmt = $this->db->query(
+            'SELECT id, title, content
+             FROM tickets'
+        );
+
+       foreach($stmt as $ticket) {
+        yield $ticket;
+       }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, NO CONTROLLER,
+
+PODEMOS SIMPLSMENTE FAZER 'ITERATE OVER'
+ESSE RESULTADO,
+
+E AÍ PRINTAR 1 POUCO DO CONTEÚDO...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Models\Ticket;
+use Generator;
+
+class GeneratorExampleController
+{
+    public function __construct(private Ticket $ticketModel) {}
+
+  public function index() 
+  {
+
+    $tickets = $this->ticketModel->all();
+    
+    foreach($tickets as $ticket) {
+      echo $ticket['id']  . ': ' . substr($ticket['content'], 0, 15) . '<br />';
+    }
+  }
+
+}
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+
+
+ISSO FUNCIONA, E NÃO FICAMOS COM QUAISQUER MEMORY ISSUES...
+
+
+
+
+
+
+
+
+AÍ O PROFESSOR FAZ O OUTSOURCING,
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+class Ticket extends Model
+{
+    public function all(): Generator
+    {
+        $stmt = $this->db->query(
+            'SELECT id, title, content
+             FROM tickets'
+        );
+
+        return $this->fetchLazy($stmt);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+  esse method de 'fetchLazy'
+  é então criado no BASE MODEL,
+
+  tipo assim:
+
+
+
+
+
+
+
+
+  <?php declare(strict_types=1);
+
+namespace App;
+
+use PDOStatement;
+
+abstract class Model
+{
+    protected DB $db;
+
+    public function __construct()
+    {
+        $this->db = App::db();
+    }
+
+    public function fetchLazy(PDOStatement $stmt): \Generator
+    {
+        foreach ($stmt as $record) {
+            yield $record;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+    public function fetchLazy(PDOStatement $stmt): \Generator
+    {
+        foreach ($stmt as $record) {
+            yield $record;
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+  ISSO VAI FUNCIONAR COMO ANTES, O GENERATOR VAI FUNCIONAR COMO ANTES...
+
+
+
+
+
+
+
+  MAS AGORA, COM GENERATORS..
+
+
+
+
+
+
+
+
+
+
+  --> CLARO QUE ISSO NÃO LEVA EM CONSIDERAÇÃO EDGE CASES E OUTROS SCENARIOS...
+
+
+
+
+
+
+
+
+
+--> SE VC TRABALHAR COM LARAVEL NO FUTURO,
+
+VC VERÁ A UTILIZAÇÃO 
+
+
+DE GENERATORS 
+
+
+
+COM 
+
+
+
+'CURSOR METHOD'
+
+
+E 
+
+'LAZY COLLECTIONS'...
+
+
+
+
+
+
+
+
+
+--> ELES TAMBÉM PODEM SER USADOS COM LARGE FILES... 
+
+
+(
+
+  ''EM VEZ DE FAZER O READ E LOAD DA DATA NA MEMÓRIA,
+  VC 
+
+  PODE USAR GENERATORS PARA 'PARSE THE DATA ON-DEMAND'...''
+
+
+
+)
+
+
+
+
+
+
+
+
+
+
+
+--> VC TAMBÉM PODE USAR GENERATORS PARA 'HYDRATE' MODELS 
+  ON DEMAND, 
+
+  E TAMBÉM PARA MTOS OUTROS USE CASES...
+
+
+
+
+
+
+
+
+--> AGORA QUE SABEMOS 
+
+AS VANTAGENS DE GENERATORS,
+
+
+DEVEMOS VER 
+
+ALGUMAS DE SUAS DESVANTAGENS..
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK..
+
+
+
+
+
+
+--> DESVANTAGEM:
+
+
+
+
+1) VC NÃO PODE FAZER 'ITERATE OVER A GENERATOR 
+  MORE THAN ONCE''...
+
+
+
+
+
+
+
+
+imagine que vc tem algo como isto:
+
+
+
+
+
+$tickets = $this->ticketModel->all();
+
+
+
+
+
+
+
+
+
+
+
+ISSO VAI FUNCIONAR...
+
+
+
+
+
+
+
+MAS DIGAMOS QUE VC QUER 'ITERATE OVER' 
+
+ESSE GENERATOR, EM ALGUM OUTRO LOCAL DE NOSSO CÓDIGO,
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    $tickets = $this->ticketModel->all();
+    
+    foreach($tickets as $ticket) {
+      echo $ticket['id']  . ': ' . substr($ticket['content'], 0, 15) . '<br />';
+    }
+    
+    foreach($tickets as $ticket) {
+      echo $ticket['id']  . ': ' . substr($ticket['content'], 0, 15) . '<br />';
+    }
+
+
+
+
+
+
+
+
+
+  SE VC TENTA RODAR ESSA PARTE IGUAL AÍ, NOVAMENTE,
+
+
+  VAMOS FICAR COM 1 ERROR:
+
+
+
+
+
+  '''Cannot traverse an already closed Generator'''...
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2) VC NAO PODE 'REWIND' 
+  UM GENERATOR,
+
+
+  DEPOIS QUE ELE JÁ COMEÇOU... AO CONTRÁRIO DE ITERATORS COMUNS... PQ 
+
+  ITERATORS COMUNS PERMITEM 'rewind()'...
+
+
+
+
+
+
+
+
+
+
+
+  EX:
+
+
+
+      $tickets = $this->ticketModel->all();
+    
+    foreach($tickets as $ticket) {
+      echo $ticket['id']  . ': ' . substr($ticket['content'], 0, 15) . '<br />';
+    }
+    
+
+    $tickets->rewind(); ///THIS WILL RESULT IN AN ERROR/EXCEPTION
+
+
+
+
+
+
+  
+
+  CERTO... FAZ SENTIDO....
