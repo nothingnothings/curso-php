@@ -1760,7 +1760,31 @@ com isso, um novo object de 'PaymentGatewayService'
 
 
 
+o resumo, de toda a operação, é um 
 
+loop entre 
+
+
+'get->resolve->get->resolve->get->resolve',
+
+recursivamente, até esgotarem todas as dependencies...
+
+
+
+
+
+-> a parte mais importante do loop, dentro de 'resolve()',
+é esta:
+
+
+            if ($parameterType instanceof \ReflectionNamedType && !$parameterType->isBuiltin()) {
+
+                return $this->get($parameterType->getName());
+            }
+        
+
+    
+pq é isso que cria o loop entre 'get()->resolve()'...
 
 
 
@@ -1774,9 +1798,572 @@ PQ DIABOS USARÍAMOS INTERFACES EM VEZ DE CONCRETE CLASSES? QUE BENEFÍCIOS
 
 GANHAMOS COM O INJECT DE 1
 
-INTERFACE, EM VEZ DE 1 DIRECT IMPLEMENTATION?
+INTERFACE, EM VEZ DE 1 CONCRETE IMPLEMENTATION?
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA MELHOR DEMONSTRAR OS BENEFÍCIOS, O PROFESSOR 
+    RENOMEIA A CLASS DE 'PaymentGatewayServiceInterface',
+
+    para 
+
+    algo como 'StripePayment'...
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+class InvoiceService
+{
+    public function __construct(
+        protected SalesTaxService $salesTaxService,
+        protected StripePayment $paymentGateway,
+        protected EmailService $emailService
+    ) {
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+E AGORA CHAMAMOS A VARIABLE DE 'paymentGateway'...
+
+
+
+
+
+
+
+
+
+-> E TUDO VAI FUNCIONAR COMO ANTES... O QUE É FINE...
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS DIGAMOS QUE, 6 MESES DEPOIS, OU TALVEZ 1 ANO,
+
+
+O CHEFE VEM E DIZ 
+
+
+'''WE NEED TO CHANGE TO A NEW PAYMENT AGGREGATOR,
+LIKE PADDLE''...
+
+
+
+
+
+
+
+
+
+--> SE ESTAMOS USANDO ESSE NOME DE 'StripePayment'
+    aqui,
+    e estamos fazendo isso 
+
+    EM TODAS AS OUTRAS CLASSES 
+
+    QUE PRECISAM DO '$paymentGateway'
+
+
+
+    COMO 1 DEPENDENCY,
+
+
+    ESTAMOS 
+
+
+
+    'KINDOF' CRIANDO ESSE TIGHT COUPLING 
+
+
+    COM O 'StripePayment'... 
+
+
+
+
+
+
+--> MESMO QUE NÓS ESTEJAMOS USANDO DEPENDENCY INJECTION 
+    E TODAS ESSAS COISAS,
+
+    AINDA ESTAMOS COM 'TIGHT COUPLING'
+
+
+    COM ESSE GATEWAY ESPECÍFICO...
+
+
+
+
+
+    --> SE EVENTUALMENTE PRECISARMOS TROCAR PARA 1 OUTRO PAYMENT GATEWAY,
+    TEREMOS DE MUDAR 1 MONTE DE PARTES DO CÓDIGO... SERÍAMOS 
+
+    FORÇADOS A TROCAR 
+
+
+
+    ISSO, POR EXEMPLO,
+
+    PARA 'PaddlePayment'...
+
+
+
+
+
+
+    -> E, ENTÃO, ESSE PaddlePayment pode ter diferentes methods,
+
+
+    AÍ TERÍAMOS DE REFACTOR ESSES METHODS TAMBÉM...
+
+
+
+
+
+
+
+--> COMO RESULTADO DISSO, FICA BEM MAIS DIFÍCIL 
+    O MAINTAIN E EXTEND DESSA CODEBASE...
+
+
+
+
+-> E ESSE É UM DOS PROBLEMAS 
+    QUE 'INTERFACES' consertam....
+
+
+
+
+
+
+
+-> ''SO, INSTEAD OF HAVING OUR InvoiceService
+    __DEPEND__ ON THE 'StripePayment' or a 
+    SPECIFIC PAYMENTGATEWAY, 
+
+    WE __ CAN MAKE IT DEPEND ON SOME SORT OF ___ INTERFACE...'''
+
+
+
+
+
+''THIS WAY, THIS INVOICESERVICE CLASS _ WON'T CARE 
+    ABOUT WHAT THE UNDERLYING PAYMENT GATEWAY IS... ''  
+
+
+
+
+''ALL IT WILL CARE ABOUT IS, WHATEVER IT IS THAT IS BEING PASSED TO,
+ IT CONFORMS TO THE INTERFACE OR TO THE CONTRACT...''
+
+
+
+
+
+
+
+-> E É EXATAMENTE POR ISSO QUE 
+
+
+
+
+
+USARÍAMOS ALGO COMO 'PaymentGatewayInterface',
+
+
+E NÃO ALGO COMO 'StripePayment'......
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ DEFINIRÍAMOS TODOS OS METHODS NECESSÁRIOS DENTRO DESSE CONTRACT...
+
+
+
+    DEPOIS DISSO,
+
+    'StripePayment'
+
+    IMPLEMENTARIA ESSA INTERFACE,
+
+
+    MAS COM SUAS IMPLEMENTAÇÕES PRÓPRIAS DE 'charge', 'receive', etc, etc,
+
+    todos os methods, com implementações PRÓPRIAS,
+
+    ADEQUADAS AO STRIPE (mas que possuem a interface como 'base')...
+
+
+
+
+
+
+
+
+
+ESSA É A MORAL...
+
+
+
+
+
+
+
+-> POR FIM, 
+    NA NOSSA CLASS DE 'App',
+
+    NÓS FARÍAMOS,
+
+    NAQUELE CÓDIGO DE 
+
+
+
+$this->container->set(PaymentGatewayInterface::class, StripePayment::class);
+
+
+,
+
+
+
+O 
+
+__ ACTUAL ___ BIND__ 
+
+
+DE 
+'PaymentGatewayInterface'
+
+
+
+
+À ACTUAL CLASS DE 'StripePayment'...
+
+
+
+
+
+
+
+
+
+COM ISSO, 
+
+
+
+''IN WHATEVER PART OF THE CODE WHERE WE NEED ACCESS 
+TO THE PAYMENT GATEWAY, WE ARE NOT GOING TO HARDCODE 
+TO THE SPECIFIC __ PAYMENT GATEWAY (StripePayment),
+INSTEAD WE ARE SIMPLY GOING TO INTERFACE THE 'PaymentGatewayInterface'
+AS A _DEPENDENCY, AND THEN OUR CONTAINER 
+
+__ WILL BE ABLE TO RESOLVE THAT AS 'StripePayment:class' '''....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... FAZ MAIS SENTIDO...
+
+
+
+AÍ, EM 6 MESES, SE O NOSSO BOSS FALAR ALGO COMO 
+'PRECISAMOS TROCAR PARA 1 CLASS DE PaddlePayment',
+
+
+
+PODEMOS SIMPLESMENTE 
+
+
+
+
+
+IMPLEMENTAR A INTERFACE DE 'PaymentGatewayInterface'
+
+
+no PaddlePayment,
+
+
+
+
+PROVIDENCIAR AS IMPLEMENTAÇÕES PARA OS METHODS ('charge()'),
+
+
+E AÍ 
+
+
+
+SUBSTITUIR 
+
+
+O 'StripePayment::class'',
+
+
+
+lá na linha de 
+
+
+
+
+''$this->container->set(PaymentGatewayInterface::class, StripePayment::class);''
+
+
+
+
+
+POR 
+
+
+
+
+$this->container->set(PaymentGatewayInterface::class, PaddlePayment::class);
+
+
+
+
+
+
+
+
+
+'PaddlePayment'...
+
+
+
+
+
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+    public function __construct(
+        protected Container $container,
+        protected Router $router,
+        protected array $request,
+        protected Config $config
+    ) {
+        static::$db = new DB($config->db ?? []);
+
+        // Without refactoring:
+        // $this->container->set(
+        //     PaymentGatewayServiceInterface::class,
+        //     fn(Container $c) => $c->get(PaymentGatewayService::class)
+        // );
+
+        // With refactoring (we remove the closure from the second parameter):
+        $this->container->set(
+            PaymentGatewayServiceInterface::class,
+                // PaymentGatewayService::class
+                // StripePayment::class
+            PaddlePayment::class
+        );
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+COM ISSO, BASTA SWAPPAR A 'CONCRETE IMPLEMENTATION',
+
+
+LÁ NO NOSSO BINDING...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> E É ASSIM 
+
+QUE 
+
+
+
+O 'SERVICE CONTAINER'
+
+FUNCIONA,
+ 
+ POR TRÁS DAS SCENES,
+
+
+ NO LARAVEL 
+
+
+ E EM VÁRIAS OUTRAS DI CONTAINER IMPLEMENTATIONS...
+
+
+
+
+
+
+
+
+
+ --> E É CLARO QUE O CONTAINER DO LARAVEL POSSUI MTAS OUTRAS FEATURES,
+
+ MAS NÃO DEIXAM DE SER VARIAÇÕES DA MESMA COISA...
+
+
+
+
+
+ 'ON LARAVEL, THERE IS A METHOD CALLED 'bind()',
+     IT STILL DOES THE SAME THING, BUT WITH A LOT 
+     MORE FEATURES...''
+
+
+    
+
+
+
+
+
+
+O PROFESSOR PASSA UM EXERCISE:
+
+
+
+
+
+''READ LARAVEL'S DI CONTAINER IMPLEMENTATION CODE...''
+
+
+
+
+
+
+
+
+-> DEVEMOS VER SE HÁ ALGUMAS SEMELHANÇAS 
+COM A NOSSA 
+
+IMPLEMENTATION...
+
+
+
+
+https://github.com/laravel/framework/blob/8.x/src/Illuminate/Container/Container.php#L867
+
+
+
+
+
+
+EXERCISE 2:
+
+
+
+
+''WRITE FEW UNIT TESTS FOR CONTAINER.PHP''...
+
+
+
+
+
+
+
+OK.. TERMINAMOS O TÓPICO DE 
+    DEPENDENCY INJECTION E DI CONTAINERS...
+
+
+
+
+
+
+TEMOS MAIS TÓPICOS NOS PRÓXIMOS VIDEOS...
 
 

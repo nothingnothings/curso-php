@@ -6,7 +6,9 @@ namespace App;
 
 use App\Exceptions\RouteNotFoundException;
 use App\Interfaces\PaymentGatewayServiceInterface;
+use App\Services\PaddlePayment;
 use App\Services\PaymentGatewayService;
+use App\Services\StripePayment;
 
 
 class App
@@ -31,7 +33,9 @@ class App
         // With refactoring (we remove the closure from the second parameter):
         $this->container->set(
             PaymentGatewayServiceInterface::class,
-            PaymentGatewayService::class
+                // PaymentGatewayService::class
+                // StripePayment::class
+            PaddlePayment::class
         );
     }
 

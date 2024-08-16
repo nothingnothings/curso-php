@@ -31,30 +31,28 @@ class Container implements ContainerInterface
     // * With autowiring:
     public function get(string $id)
     {
-        echo 'EXECUTED   ';
-        echo $id;
-        echo '<br />';
 
+        // * If there is no explicit entry/binding for the given class, we immediately make the container try to resolve it (this is the autowiring itself, via this custom 'resolve' method):
+        if (!$this->has($id)) {
+            return $this->resolve($id);
+        } else {// * If there is an explicit entry/binding for the given class, we use it:
 
-        // * If there is an explicit entry/binding for the given class, we use it:
-        if ($this->has($id)) {
             $entry = $this->entries[$id];
 
+            echo $entry . '<br />';
 
             // if it is callable (like a closure), we call it:
             if (is_callable($entry)) {
                 return $entry($this);
             }
 
-            echo 'CLASS ';
-
             // TODO Interfaces lesson:
-            // If it is not callable (like a interface identifier, fully qualified class name), we use it as is:
+            // If it is not callable (like a interface's identifier, fully qualified class name), we use it as is:
             $id = $entry;
         }
 
-        // * If there is no explicit entry/binding for the given class, we try to resolve it (the autowiring itself, via a custom method):
         return $this->resolve($id);
+
     }
 
     public function has(string $id): bool
@@ -70,9 +68,7 @@ class Container implements ContainerInterface
 
     public function resolve(string $id)
     {
-        echo 'EXECUTED-2 ';
         // * 1. We need to inspect the class that we are trying to get from the container (using reflection api):
-
         $reflectionClass = new ReflectionClass($id);
 
         if (!$reflectionClass->isInstantiable()) {
@@ -123,9 +119,6 @@ class Container implements ContainerInterface
 
         // * 5. We can now create a new instance of the class, using the resolved dependencies:
         return $reflectionClass->newInstanceArgs($dependencies);
-
-
     }
-
 
 }

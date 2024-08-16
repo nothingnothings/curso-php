@@ -52,13 +52,13 @@ class Router
 
         [$class, $method] = $action;
 
-        echo 'ROUTER ';
+        // echo 'ROUTER ';
 
         if (class_exists($class)) {
+            echo 'THIS CLASS' . $class . '<br />';
             // $class = new $class(); // * Without Container
             $class = $this->container->get($class); // * With Container
-
-            echo 'POST ROUTER';
+            // echo 'POST ROUTER';
             if (method_exists($class, $method)) {
                 return call_user_func_array([$class, $method], []);
             }
