@@ -1,0 +1,3938 @@
+
+
+
+
+
+
+
+
+
+O PHP 8.1 FOI LANÇADO...
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR QUERIA FAZER ESTE VÍDEO,
+PARA MOSTRAR ALGUMAS DAS FEATURES NOVAS....
+
+
+
+--> QUER MOSTRAR ALGUMAS DAS NOVAS FEATURES, ASSIM COMO 
+    MOSTRAR ALGUMAS 
+
+    DAS BREAKING CHANGES...
+
+
+
+
+
+
+
+
+
+
+
+
+INSTALL PHP 8.1...
+
+
+
+
+
+
+
+
+
+
+--> A PRIMEIRA COISA QUE TEMOS QUE FAZER É INSTALAR A VERSÃO 8.1...
+
+
+
+
+
+
+
+
+
+
+-> LÁ NO DOCKER, ATÉ AGORA USAMOS A VERSÃO php:8.0.2-fpm....
+
+
+
+
+
+
+
+
+
+-> AGORA VAMOS INSTALAR O PHP 
+    versão 8.1....
+
+
+
+
+
+
+
+
+
+
+
+-> ESCREVEMOS TIPO ASSIM:
+
+
+
+FROM php:8.1
+
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    zip \
+    vim \
+    unzip
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+RUN docker-php-ext-install pdo pdo_mysql
+
+WORKDIR /var/www
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+8.1...
+
+
+
+
+
+
+
+
+
+--> A VERSÃO '8.1'
+
+
+AINDA NÃO FOI 'TAGGED',
+
+no momento do vídeo...
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE VAMOS USAR O 'LATEST RELEASE CANDIDATE',
+
+que é 
+
+o 
+
+rc6 
+
+
+
+'RELEASE-CANDIDATE' (abreviação, 'rc')..
+
+
+
+
+
+Release candidate é uma versão de um software que está
+ praticamente pronto para ser colocado no mercado. Também pode ser chamado ape.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--. OK... É POR ISSO QUE RODAMOS TIPO ASSIM:
+
+
+
+
+
+
+php:8.1.0RC6-fpm
+
+
+
+
+
+
+
+
+
+
+-> OK... AÍ RODAMOS 'docker-compose up -d --build'..
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR ACHA QUE 8.1-fpm 
+
+
+
+VAI FICAR DISPONÍVEL LOGO LOGO, NO DOCKERHUB...
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+FROM php:8.1-fpm
+
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    zip \
+    vim \
+    unzip
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+RUN docker-php-ext-install pdo pdo_mysql
+
+WORKDIR /var/www
+
+
+
+
+
+
+
+
+
+--> CERTO..
+
+
+
+
+
+AÍ RODAMOS docker exec -it programwithgio-app bash...
+
+
+
+
+-> RODAMOS php -v, para ver a version do php...
+
+
+
+ex:
+
+
+root@f4e788278f9b:/var/www# php -v
+PHP 8.1.29 (cli) (built: Aug 13 2024 02:34:07) (NTS)
+Copyright (c) The PHP Group
+Zend Engine v4.1.29, Copyright (c) Zend Technologies
+
+
+
+
+certo, funcionou...
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO...
+
+
+
+
+
+
+O PROFESSOR NOS FALA DAS FEATURES DO PHP 8.1...
+
+
+
+
+
+
+
+
+
+
+
+FEATURES:
+
+
+
+
+
+
+
+
+
+1) ARRAY UNPACKING, 'BUT WITH ___STRING__ KEYS__...'
+
+
+
+
+
+
+
+
+
+-->  EX:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+$array1 = [1, 2, 3];
+$array2 = [4, 5, 6];
+
+$array3 = [...$array1, ...$array2];
+
+print_r($array3);
+
+
+
+
+
+
+
+
+O RESULTADO FICA ASSIM:
+
+
+
+
+Array
+(
+    [0] => 1
+    [1] => 2
+    [2] => 3
+    [3] => 4
+    [4] => 5
+    [5] => 6
+)
+
+
+
+
+
+
+
+
+ISSO NÃO É UMA FEATURE NOVA... É CHAMADA DE 'ARRAY UNPACKING'...
+
+
+
+
+
+
+
+
+
+-> BASICAMENTE, VC PODE FAZER SPREAD OPERATOR 
+DOS ARRAYS, DENTRO DE 1 NOVO ARRAY...
+
+
+
+
+
+
+
+
+--> ANTES DO PHP 8.1,   
+
+    SÓ ERA POSSÍVEL CRIAR O ARRAY NOVO 
+
+
+    COM KEYS DE TIPO 'INDEX' comum (numbers, numeric)...
+
+
+
+
+
+
+
+
+
+--> MAS, AGORA, COM O PHP 8.1,
+
+    É POSSÍVEL FAZER ARRAY UNPACKING USANDO ASSOCIATIVE 
+    ARRAYS 
+
+
+    COM 
+
+
+    STRING KEYS...
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+// * This is an example of a COMMON array unpacking (without associative arrays, and without strings as keys). - This works on all php versions.
+// $array1 = [1, 2, 3];
+// $array2 = [4, 5, 6];
+
+// $array3 = [...$array1, ...$array2];
+
+// print_r($array3);
+
+// * This is an example of a ARRAY unpacking, but WITH associative arrays, with strings as keys. THIS WORKS ONLY ON PHP 8.1+.
+$array1 = ['a' => 1, 'b' => 2, 'c' => 3];
+$array2 = ['d' => 4, 'e' => 5, 'f' => 6];
+$array3 = [...$array1, ...$array2];
+print_r($array3);
+
+
+
+
+
+
+se rodamos no php 8.1,
+
+o print vai ficar assim:
+
+
+
+
+
+
+Array
+(
+    [a] => 1
+    [b] => 2
+    [c] => 3
+    [d] => 4
+    [e] => 5
+    [f] => 6
+)
+
+
+
+
+
+
+
+
+
+
+
+
+FICAMOS COM ESTE ERROR, SE TENTAMOS EXECUTAR COM 1 PHP ANTIGO (antes do php 8.1):
+
+
+
+
+Fatal error: Uncaught Error: Cannot unpack array with string keys in D:\PROJETO20-PHP-FROM-THE-GROUND-UP\MODULE-3\php-8.1\app\array-unpacking-example.php:15
+Stack trace:
+#0 {main}
+  thrown in D:\PROJETO20-PHP-FROM-THE-GROUND-UP\MODULE-3\php-8.1\app\array-unpacking-example.php on 
+line 15
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok...
+
+
+
+
+
+se rodamos isso dentro do nosso docker container,
+
+funciona sem problemas,
+
+justamente 
+
+
+
+PQ 
+
+ELE ESTARÁ NA VERSION 8.1..
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR ENTÃO NOS MOSTRA 1 SITE ÚTIL PARA RODAR SNIPPETS DE CODE 
+PHP,
+
+CHAMADO 
+
+
+DE 
+
+
+
+
+'3v4l.org'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ex:
+
+
+
+https://3v4l.org/
+
+
+
+
+
+
+
+
+
+-> VC PODE ESCOLHER QUALQUER VERSION DO PHP,
+
+PARA AÍ TESTAR CODE SNIPPETS E COMPATIBILITY...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VAMOS USAR 8.0,
+
+para mostrar que isso não funciona, essa feature de 'unpack array with string keys'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... O PROFESSOR ENTÃO NOS DÁ OUTRA DICA:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''NOTE THAT ARRAY UNPACKING WITH STRING KEYS WORKS 
+    __ SIMILARLY TO __ ARRAY_MERGE()...''
+
+
+
+
+
+
+
+
+
+''THE SIMILARITY IS THAT 
+    ""THEY WILL OVERRIDE, IF BOTH ARRAYS HAVE THE SAME 
+      STRING KEYS..."" ''
+
+
+
+
+
+
+
+
+-> TIPO ASSIM:
+
+
+
+
+$array1 = ['a' => 1, 'b' => 2, 'c' => 3];
+$array2 = [4, 'b' => 5, 6];
+$array3 = [...$array1, ...$array2];
+print_r($array3);
+
+
+
+
+
+
+
+
+
+
+
+NESSE EXEMPLO,
+
+
+QUANDO FIZERMOS O UNPACK 
+
+
+
+DOS 2 ARRAYS, O VALUE DE 'b' do SEGUNDO ARRAy 
+
+        VAI FAZER OVERWRITE DO VALUE DE 'b' DO PRIMEIRO ARRAY...
+
+
+
+
+
+
+
+
+
+OU SEJA, ISSO FUNCIONA DE FORMA SIMILAR AO 'ARRAY_MERGE'...
+
+
+
+
+
+
+
+
+
+--------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A PRÓXIMA FEATURE QUE DEVEMOS VER É 'ENUMERATIONS'...
+
+
+
+
+
+
+
+
+
+
+
+2) ENUMERATIONS: 
+
+
+
+
+
+--> FINALMENTE ESTAMOS FICANDO COM NATIVE ENUM SUPPORT NO PHP...
+
+
+
+
+
+
+
+--> É UMA DAS FEATURES NOVAS FAVORITAS DO PROFESSOR...
+
+
+
+
+
+
+
+
+--> ELE QUER NOS ENSINAR TUDO SOBRE ISSO...
+
+
+
+
+
+
+
+
+--> MAS ELE QUER SEPARAR 1 VÍDEO INTEIRO PARA ESSE TÓPICO...
+
+
+
+
+
+
+
+
+
+-> AGORA ELE SÓ VAI NOS MOSTRAR 1 INTRO RAPIDO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ENUMS:
+
+
+
+
+
+
+
+
+---> '''THEY BASICALLY LET YOU _ HAVE FIXED__ 
+        SETS__ OF POSSIBLE VALUES...'''
+
+
+
+
+
+
+
+
+
+
+na minha cabeça, enums possuem este formato:
+
+
+
+[val1, val2],
+
+
+
+MAS PODERIA ESTAR ERRADO...
+
+
+
+
+
+
+
+
+Ah... acho que me lembro...
+
+
+
+
+
+um value é associado como o outro, ou algo assim...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+->  EU JÁ VI CÓDIGOS COMO ESTE (como diz o professor):
+
+
+
+
+
+class PaymentStatus 
+{
+    public const PAID = 1;
+    public const VOID = 2;
+    public const DECLINED = 3;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+-> EM QUE TEMOS A DEFINÇÃO DE 'CONSTS,
+
+e aí 
+
+O USO DESSAS CONSTS,
+
+AO LONGO DE NOSSA CODEBASE,
+
+
+PARA SUBSTITUIR VALUES/STRINGS HARDCODADAS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> UM DOS PROBLEMAS COM ESSE APPROACH É:
+
+
+
+
+''''YOU CANNOT REALLY __ TYPEHINT THIS,
+    WHEN THIS IS PASSED AS AN ARGUMENT''''
+
+
+
+
+
+
+
+
+
+--> NO CASO, IMAGINE ESTE EXEMPLO:
+
+
+
+
+(index.php):
+
+
+
+
+<?php declare(strict_types=1);
+
+use PHP_8_1_Examples\Enum\Payment;
+use PHP_8_1_Examples\Enum\PaymentStatus;
+
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+$payment = new Payment();
+
+$payment->updateStatus(PaymentStatus::PAID);
+
+echo $payment->status() . PHP_EOL;
+
+
+
+
+
+
+(Payment.php):
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace PHP_8_1_Examples\Enum;
+
+class Payment
+{
+    private int $status;
+
+    public function updateStatus(int $status): Payment
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    public function status(): int
+    {
+        return $this->status;
+    }
+}
+
+
+
+
+
+
+
+
+
+(PaymentStatus.php):
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace PHP_8_1_Examples\Enum;
+
+class PaymentStatus
+{
+    public const PAID = 1;
+    public const VOID = 2;
+    public const DECLINEDD = 3;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NO CASO,
+
+
+
+
+
+NÓS SEMPRE ESTAMOS CHAMANDO O METHOD DE 'updateStatus'
+
+
+
+com 1 value NUMÉRICO,
+
+
+
+
+
+isso pq 
+
+'PaymentStatus' SÓ TEM AQUELAS 3 CONST...
+
+
+
+
+
+
+
+
+-> ENTRETANTO, AQUELA FUNCTION ,
+
+
+updateStatus,
+
+está com o argument TIPADO Como sendo de tipo 'int',
+
+
+E ISSO 
+
+_ NÃO NOS DIZ NADA 
+
+
+SOBRE QUE TIPO DE VALUES PODEM SER PASSADOS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+QUER DIZER QUE ISSO É RUIM DE LER...
+
+
+
+
+
+
+--> OUTRO PROBLEMA, NO CASO,
+
+É QUE QUALQUER OUTRO STATUS PODERIA SER PASSADO, AQUI,
+
+ALÉM DE 
+
+'1' '2' ou '3'.... E  ISSO AINDA PASSARIA, não iria fail.. a não ser que tenhamos alguma validation
+                                                                            EXPLÍCITA DENTRO 
+                                                                            DESSE METHOD,
+
+                                                                            PARA CHECAR 
+
+
+                                                                            POR 
+
+                                                                            1 2 ou 3...
+
+
+
+
+
+
+NO CASO, O QUE NÃO QUEREMOS É QUE O DEVELOPER SEJA CAPAZ DE 
+
+RODAR ALGO COMO 
+
+
+
+'''''
+$payment->updateStatus(5);
+'''''
+
+
+
+
+
+
+
+-> É POR ISSO QUE ENUMS SÃO ÚTEIS,
+    É PQ AÍ PODEREMOS TIPAR ISSO COMO 'PaymentEnums',
+
+    ou algo assim....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE DEVEMOS TIPAR O 'PaymentStatus
+    COMO ENUMS,,
+
+    para conseguirmos tipar o argument $status de 'updateStatus'...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace PHP_8_1_Examples\Enum;
+
+// ! Without enums:
+// class PaymentStatus
+// {
+//     public const PAID = 1;
+//     public const VOID = 2;
+//     public const DECLINED = 3;
+// }
+
+// With enums:
+class PaymentStatus {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E a sintaxe dos ENUMS É PARECIDA COM A SINTAXE DAS CLASSES...
+
+
+
+
+
+
+
+MAS, EM VEZ DE TER A KEYWORD DE 'Class', como nessa parte aí,
+
+
+TEMOS A KEYWORD DE 'enum',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+// With enums:
+enum PaymentStatus {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... E É POSSÍVEL 
+
+TER 
+
+
+AS CONSTANTS DENTRO Do 'enum' em si...
+
+
+
+isso ainda vai funcionar,
+
+MAS, EM VEZ DE 
+
+USAR CONSTANTS,
+
+
+
+
+VC PODE/DEVE 
+
+
+USAR ALGO CHAMADO DE 'CASES'...
+
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE SUBSTITUÍMOS TODAS AS CONSTS POR 'case'...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+// With enums (we use 'case', instead of 'const'):
+enum PaymentStatus {
+    case PAID = 1;
+    case VOID = 2;
+    case DECLINED = 3;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE VER, É PARECIDO COM 1 CLASS NORMAL...
+
+
+
+
+
+
+
+
+SEMELHANÇAS:
+
+
+
+
+1) IT HAS NAMESPACES 
+
+
+2) YOU CAN DECLARE STRICT TYPES 
+
+
+3) CAN BE AUTOLOADED 
+
+
+
+4) CAN IMPLEMENT INTERFACES 
+
+
+
+5) CAN HAVE METHODS...
+
+
+6) ETC...
+
+
+
+
+
+
+
+
+
+
+
+
+->_ MAS O QUE É 'case'?
+
+
+
+
+
+
+
+-- 'case'  -------> '''IT'S KINDA LIKE AN OBJECT OF THE __          
+                        ENUM CLASS ITSELF...''
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE 
+
+'PAID', esse case aí,
+
+
+
+é apenas um 
+
+
+OBJECT 
+
+da 'Class' de 'PaymentStatus'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE ISSO NÃO DEIXA DE SER UM PaymentStatus OBJECT...
+
+
+
+
+
+
+
+
+
+-> podemos testar isso, por meio do VAR_DUMP 
+    de 1 value,
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+var_dump(PaymentStatus::PAID);
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO, NO CASO,
+
+
+
+NOS PRINTA 
+
+
+
+
+ISTO AQUI:
+
+
+
+
+
+
+'enum(PHP_8_1_Examples\Enum\PaymentStatus::PAID
+)'
+
+
+
+
+
+
+
+
+
+
+-> QUER DIZER, ENTÃO, QUE ISSO É SIMPLESMENTE 
+    UM ENUM OBJECT, COM A CASE DE 'PAID'...
+
+
+
+
+
+
+
+
+-> MAS A COISA LEGAL, AQUI,
+
+    É QUE PODEMOS FAZER O SIMPLES TYPEHINT 
+
+    DAQUELE METHOD DE 'updateStatus()',
+
+
+    PARA DIZER QUE 
+
+    O 
+
+
+
+ARGUMENT PASSADO A ESSE METHOD __ DEVE_ SER 1 INSTANCE 
+
+
+DE 
+
+'PaymentStatus',
+
+de esse enum aí...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+    // * Example with enum usage ($status can be typed as an enum, like 'PaymentStatus')
+    public function updateStatus(PaymentStatus $status): Payment
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+
+
+
+
+    TIPO ALGO ASSIM...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+no caso, o código completo fica assim:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace PHP_8_1_Examples\Enum;
+
+class Payment
+{
+
+    // * With enums:
+    private PaymentStatus $status;
+
+
+
+    // * Example with enum usage ($status can be typed as an enum, like 'PaymentStatus')
+    public function updateStatus(PaymentStatus $status): Payment
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    public function status(): PaymentStatus
+    {
+        return $this->status;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO...
+
+
+
+
+
+AÍ, SE TENTARMOS PASSAR 1 ARGUMENT INVÁLIDO, COMO '5',
+
+FICAMOS IMEDIATAMENTE COM UM ERROR...
+
+
+
+
+-> FICAREMOS COM 1 ERROR JUSTAMENTE PQ TIPAMOS 
+    QUE O VALUE DEVERÁ SER DE TYPE 'PaymentStatus',
+
+    MAS ESTAMOS PASSANDO 1 INT...
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use PHP_8_1_Examples\Enum\Payment;
+use PHP_8_1_Examples\Enum\PaymentStatus;
+
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+$payment = new Payment();
+
+// $payment->updateStatus(PaymentStatus::PAID);  // Without enums.
+
+// $payment->updateStatus(5);  // Without enums - this is bad, will cause errors, which can be avoided by using enums.
+
+$payment->updateStatus(5);
+
+$payment->updateStatus(PaymentStatus::PAID);
+
+echo $payment->status() . PHP_EOL;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... COM ISSO, SOMOS __ FORÇADOS__ A USAR ALGUM DOS CASES,
+
+DENTRO DE 'PaymentStatus' enum...
+
+
+
+
+
+PRECISAMOS 
+
+
+USAR OS CASES COMO SE ESTIVÉSSEMOS USANDO CONSTANTS,
+
+
+TIPO ASSIM:
+
+
+
+$payment->updateStatus(PaymentStatus::PAID);
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESTAREMOS BASICAMENTE 
+    USANDO ISSO COMO SE FOSSE 1 CONSTANT DE UMA CLASS CHAMADA DE 'PaymentStatus',
+
+    apesar de ser, realmente,
+    um ENUM...
+
+
+
+
+
+
+
+
+
+
+
+
+---> OK... MAS É CLARO QUE SÓ ESCREVER OS NOMES DOS CASES NÃO É O SUFICIENTE...
+
+
+
+
+
+NÃO É O SUFICIENTE APENAS ESCREVER ALGO ASSIM:
+
+
+
+
+
+
+
+// With enums (we use 'case', instead of 'const'):
+enum PaymentStatus {
+    case PAID;
+    case VOID;
+    case DECLINED;
+}
+
+
+
+
+
+
+
+
+
+
+NÃO, PQ ISSO SERÁ 
+APENAS 1 OBJECT, O PRÓPRIO OBJECT DE 'PaymentStatus'...
+
+
+
+
+
+
+
+
+
+-> PARA QUE ISSO TENHA ALGUM PROPÓSITO,
+
+VC PRECISA DEFINIR 1 VALUE PARA CADA CASE...
+
+
+
+
+
+
+
+
+
+-> TIPO ALGO ASSIM:
+
+
+
+
+// With enums (we use 'case', instead of 'const'):
+enum PaymentStatus {
+    case PAID = 1;
+    case VOID = 2;
+    case DECLINED = 3;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ALÉM DISSO, CADA 
+
+'case' 
+DENTRO 
+
+
+
+DOS OBJECTS 'enum'
+
+
+POSSUI UMA PROPERTY DE nome '->name()',
+
+
+
+
+QUE SERVE PARA SIMPLESMENTE 'GET THE NAME OF THE CASE'...
+
+
+
+
+
+
+
+
+
+
+
+
+-> NO NOSSO CASO, SE QUISERMOS PEGAR O VALUE DE 'PAID' (a string 'PAID'),
+
+
+
+a partir do case de nome 'PAID',
+
+
+
+
+BASTA ESCREVER 
+
+
+
+
+
+ASSIM:
+
+
+
+
+
+
+echo $payment->status()->name . PHP_EOL;
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use PHP_8_1_Examples\Enum\Payment;
+use PHP_8_1_Examples\Enum\PaymentStatus;
+
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+$payment = new Payment();
+
+// $payment->updateStatus(PaymentStatus::PAID);  // Without enums.
+
+// $payment->updateStatus(5);  // Without enums - this is bad, will cause errors, which can be avoided by using enums.
+
+$payment->updateStatus(5);  // This will fail
+
+$payment->updateStatus(PaymentStatus::PAID);
+
+// echo $payment->status() . PHP_EOL;
+
+echo $payment->status()->name . PHP_EOL;  // each enum has a 'name' property, which can be used to get the NAME of the enum, as a string value.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO VAI PRINTAR 'PAID'...
+
+
+
+
+
+
+
+
+
+
+
+ALÉM DISSO,
+
+
+
+O PROFESSOR DESTACA:
+
+
+
+
+
+""" ''enum'' classes can have METHODS on THEM...  ''''
+
+
+
+
+
+
+--> QUER DIZER QUE PODEMOS ESCREVER/ADICIONAR METHODS DIRETAMENTE 
+    NOS NOSSOS ENUMS, E, ENTÃO,
+
+    FAZER __ CALL_ DE ESSES METHODS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> DIGAMOS QUE  
+    QUEREMOS 
+
+
+    ''A METHOD TO RETURN THE 
+        TEXTUAL REPRESENTATION OF
+        THE _ 'PaymentStatus'...''
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE O PROFESSOR ESCREVE ASSIM:
+
+
+
+
+
+
+public function text(): string 
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ, DENTRO DISSO, O PROFESSOR DECIDE USAR 1 MAGIC METHOD...
+
+
+
+
+
+
+
+
+
+--> ELE RODA 'return match($this)'...
+
+
+
+
+
+
+
+
+--> NO CASO, ELE USA '$this'
+
+PQ ESTAMOS DENTRO 
+DO OBJECT DE 
+
+'PAID' (o case de 'PAID')...
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+
+
+// With enums (we use 'case', instead of 'const'):
+enum PaymentStatus {
+    case PAID;
+    case VOID;
+    case DECLINED;
+
+
+    public function text(): string 
+    {
+
+        return match($this) {
+            self::PAID => 'Paid',
+            self::VOID => 'Void',
+            self::DECLINED => 'Declined'
+        };
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+COM ISSO, 
+
+
+
+
+
+
+
+BASTA CHAMAR ESSE METHOD,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+echo $payment->status()->text() . PHP_EOL;
+
+
+
+
+
+
+
+
+Ex:
+
+
+
+
+
+
+
+
+// With enums (we use 'case', instead of 'const'):
+enum PaymentStatus {
+    case PAID;
+    case VOID;
+    case DECLINED;
+
+    // Custom method example:
+    public function text(): string 
+    {
+        return match($this) {
+            self::PAID => 'Paid',
+            self::VOID => 'Void',
+            self::DECLINED => 'Declined'
+        };
+    }
+}
+
+
+
+
+
+
+
+
+ISSO É BOM, SIM, MAS 
+
+NOSSOS ENUM CASES 
+
+
+NÃO POSSUEM QUAISQUER DEFAULT VALUES ASSOCIADOS A ELES....
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA DEFINIRMOS DEFAULT VALUES, É A MESMA COISA DE SEMPRE,
+VISTA COM CONSTANTS,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+    case PAID = 1;
+    case VOID = 2;
+    case DECLINED = 3;
+
+
+
+
+
+
+
+
+
+
+--> A GRANDE VANTAGEM É QUE PODEMOS TIPAR...
+
+
+
+
+
+
+
+
+
+
+-> MAS SE TENTAMOS DEFINIR ESSES VALUES COMO OS VALUES DE NOSSOS 
+CASES,
+
+
+FICAMOS 
+
+
+
+COM 1 MENSAGEM DE ERROR NO VSCODE:
+
+
+
+
+
+
+''Case of non-backed enum MUST NOT HAVE A VALUE...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+''NON-BACKED'' --> É O TERMO-CHAVE, AQUI...
+
+                    VEREMOS MAIS INFO SOBRE 'BACKED' 
+
+                    E 'NON-BACKED' 
+
+                    ENUMS 
+
+                    NAQUELA AULA SEPARADA...
+
+
+
+
+
+
+
+-> BASICAMENTE, O QUE O VSCODE ESTÁ 
+    RECLAMANDO É 
+
+
+
+''' BECAUSE WE DEFINED THESE DEFAULT VALUES OF 
+    THE CASES, WE ACTUALLY NEED TO TELL __ THE 
+    enum class WHAT THE ACTUAL _ TYPES OF _ THE 
+    VALUES ARE...'''
+
+
+    '''AND YOU CANNOT HAVE MULTIPLE TYPES (union),
+     THEY MUST BE EITHER INTEGER OR  _STRING_...'' 
+
+
+
+
+
+
+A MANEIRA PARA DEFINIR/TELL QUAL SERÁ O TYPE DOS VALUES 
+DOS CASES 
+
+
+É 
+
+ESCREVER 
+
+
+'enum PaymentStatus: int',
+
+
+
+LÁ NA DEFINIÇÃO DO ENUM,
+
+TIPO ASSIM:
+
+
+
+
+
+enum PaymentStatus: int {
+    case PAID = 1;
+    case VOID = 2;
+    case DECLINED = 3;
+
+    // Custom method example:
+    public function text(): string 
+    {
+        return match($this) {
+            self::PAID => 'Paid',
+            self::VOID => 'Void',
+            self::DECLINED => 'Declined'
+        };
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+enum PaymentStatus: int {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COMO VC PODE VER,
+
+O UNDERLINING VAI SUMIR...
+
+
+
+
+
+
+
+
+
+
+
+OK... DEFINIDOS ESSES DEFAULT VALUES,
+
+A PERGUNTA AGORA É 
+
+
+
+
+'''HOW WE CAN ACTUALLY ACCESS THESE DEFALT VALUES???'''
+
+
+
+
+
+
+
+
+
+-> É POSSÍVEL ACESSAR ESSES VALUES 
+
+    POR MEIO 
+
+    DO ACCESS DA PROPERTY CHAMADA DE 
+
+
+
+    '->value()', no object de 'enum',
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+$payment->status()->value . PHP_EOL;
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+$payment = new Payment();
+
+$payment->updateStatus(PaymentStatus::PAID);
+
+echo $payment->status()->value . PHP_EOL;  // each enum has a 'value' property, which can be used to get the VALUE of the enum, as an integer value.
+
+
+
+
+
+
+
+
+
+
+NO CASO, RODAMOS O CÓDIGO E FICAMOS COM '1',
+
+que é o value de 'PAID'...
+
+
+
+
+
+
+
+-------------------
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, TEMOS OUTRA FEATURE... A DE 'READONLY PROPERTIES'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+3) READONLY PROPERTIES:
+
+
+
+
+
+
+
+
+
+
+--> É OUTRA DAS FEATURES FAVORITAS DO PROFESSOR...
+
+
+
+
+
+
+
+
+---> VC PODE, AGORA, MARCAR SUAS PROPERTIES COMO 
+
+    'READONLY',
+
+
+    O QUE SIGNIFICA QUE,
+
+
+    ''ONCE A PROPERTY HAS BEEN SET, FOR THE FIRST TIME,
+
+    IT __ CANNOT BE OVERWRITTEN AFTERWARDS...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O NOSSO CÓDIGO-EXEMPLO É TIPO ESTE:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use PHP_8_1_Examples\ReadOnlyProperty\Address;
+
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+$address = new Address(
+    '123 Main Street',
+    'Anytown',
+    'CA',
+    '90210',
+    'USA'
+);
+
+echo $address->getStreet() . PHP_EOL;
+
+
+
+
+
+
+
+
+
+
+
+Address.php:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace PHP_8_1_Examples\ReadOnlyProperty;
+
+class Address
+{
+    private string $street;
+    private string $city;
+    private string $state;
+    private string $postalCode;
+    private string $country;
+
+    public function __construct(string $street,
+        string $city,
+        string $state,
+        string $postalCode,
+        string $country)
+    {
+        $this->street = $street;
+        $this->city = $city;
+        $this->state = $state;
+        $this->postalCode = $postalCode;
+        $this->country = $country;
+    }
+
+    public function getStreet(): string
+    {
+        return $this->street;
+    }
+
+    public function getCity(): string
+    {
+        return $this->city;
+    }
+
+    public function getState(): string
+    {
+        return $this->state;
+    }
+
+    public function getPostalCode(): string
+    {
+        return $this->postalCode;
+    }
+
+    public function getCountry(): string
+    {
+        return $this->country;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+-> ANTES DO PHP8,
+
+UM 
+
+DTO (Data Transfer Object) TÍPICO,
+
+
+OU QUALQUER CLASS COM GETTERS,
+
+
+
+
+TERIA 
+
+1 FORMATO PARECIDO COM 
+
+
+O VISTO LOGO ACIMA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TEMOS 1 CLASS TÍPICA,
+
+    COM 1 MONTE DE PROPERTIES,
+
+    AÍ VC 
+    SETTA ESSAS PROPERTIES NO CONSTRUCTOR,
+
+    E AÍ 
+
+
+    VC TEM 1 MONTE DE GETTERS..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> JÁ NO PHP 8.0,
+
+BEM MAIS TARDE,
+
+
+AGORA 
+
+TEMOS 'PROMOTED PROPERTIES',
+
+O QUE QUER DIZER QUE 
+
+
+PODEMOS DEIXAR ESSE CÓDIGO INTEIRO BEM MAIS CONCISO,
+
+AO ESPECIFICAR TUDO NO CONSTRUCTOR,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace PHP_8_1_Examples\ReadOnlyProperty;
+
+class Address
+{
+    public function __construct(private string $street,
+        private string $city,
+        private string $state,
+        private string $postalCode,
+        private string $country) {}
+
+    public function getStreet(): string
+    {
+        return $this->street;
+    }
+
+    public function getCity(): string
+    {
+        return $this->city;
+    }
+
+    public function getState(): string
+    {
+        return $this->state;
+    }
+
+    public function getPostalCode(): string
+    {
+        return $this->postalCode;
+    }
+
+    public function getCountry(): string
+    {
+        return $this->country;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO,
+
+
+
+REMOVEMOS 1 BOA PARTE DE NOSSO BOILER PLATE CODE...
+
+
+
+
+
+
+
+
+
+
+
+-----> O PROBLEMA, AQUI, É QUE AINDA TEMOS 
+
+TODOS AQUELES GETTERS...
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE PODERÍAMOS MARCAR 
+ESSAS PROPERTIES COMO 'PUBLIC',
+
+
+PARA NOS LIVRAR DESSES GETTERS INTEIROS...
+
+
+
+
+
+
+
+--> MAS ISSO SERIA MT RUIM, PQ IRIA 'MESS UP THE ENCAPSULATION',
+
+    E PODERIA INTRODUZIR PROBLEMAS EM POTENCIAL,
+
+
+
+    EM QUE 
+
+    ''PEOPLE COULD CHANGE THE DATA OF THE OBJECT,
+    WHEN THAT SHOULD  NOT BE POSSIBLE/intended...''
+
+
+
+
+
+
+
+
+
+-> MAS O PHP 8.1
+    ADICIONOU A FEATURE DE 'READONLY' 
+
+    às PROPERTIES...
+
+
+
+
+
+
+
+
+--> É UMA FEATURE OPCIONAL...
+
+
+
+
+
+
+
+-> PODEMOS NOS LIVRAR DE TODOS AQUELES GETTERS INFERNAIS, TIPO ASSIM:
+
+
+
+
+
+
+
+// * With readonly properties:
+class Address
+{
+    public function __construct(
+        public readonly string $street,
+        public readonly string $city,
+        public readonly string $state,
+        public readonly string $postalCode,
+        public readonly string $country
+    ) {}
+
+    // * with readonly properties (no getter methods needed):
+} 
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO,
+    PODEMOS SAFELY 
+
+    DEIXAR NOSSAS PROPERTIES COMO 'public',
+
+    PQ MESMO 
+
+    ELAS SENDO ACESSADAS DO LADO DE FORA DIRETAMENTE,
+
+    ELAS NÃO PODERÃO SER MODIFICADAS...
+
+
+
+
+
+
+E PODEMOS CONTINUAR ACESSANDO ESSE VALUE, NORMALMENTE...
+
+
+ex:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use PHP_8_1_Examples\ReadOnlyProperty\Address;
+
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+$address = new Address(
+    '123 Main Street',
+    'Anytown',
+    'CA',
+    '90210',
+    'USA'
+);
+
+// echo $address->getStreet() . PHP_EOL; // * getter example (without readonly properties)
+
+echo $address->street;  // * readonly property example (there is no risk of changing the value of the property from outside, you can only access it).
+
+$address->street = '123 asdas';  // * This will not work, because the property is readonly.
+ 
+
+
+
+
+
+
+
+
+
+
+
+---------------------------
+
+
+
+
+
+
+
+
+
+se vc tenta modificar 1 readonly property,
+
+
+vc fica com este erro:
+
+
+'Error: Cannot modify readonly property'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO..
+
+
+
+
+
+
+
+
+
+
+''VC PODE USAR o modifier de 'readonly' tanto 
+    COM PROMOTED PROPERTIES, como COM PROPERTIES COMUNS..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OUTRO DETALHE:
+
+
+
+
+'''YOU CAN ONLY USE/WRITE THE 'readonly' keyword  
+   WHEN YOU HAVE A TYPED PROPERTY... IF THE PROPERTY IS NOT TYPED,
+   YOU CANNOT USE IT...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VC FICA COM O ERROR DE 
+
+
+''Readonly property must have type''...
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+OUTRA COISA QUE VC DEVE SABER:
+
+
+
+
+
+
+
+'''YOU __ CANNOT __ HAVE __ DEFAULT VALUES
+    WITH _ READONLY PROPERTIES'''...
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE ISTO AQUI É IMPOSSÍVEL:
+
+
+
+
+
+// * With readonly properties:
+class Address
+{
+
+        public readonly string $street;
+        public readonly string $city;
+        public readonly string $state;
+        public readonly string $postalCode;
+        public readonly string $country = 'US'; // This will throw an Exception.
+
+
+    public function __construct(
+
+    ) {}
+
+} 
+
+
+
+isso vai nos DAR O ERROR DE 
+
+
+
+
+''$country cannot have default value...'''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok... entretanto, por outro lado,
+
+
+É POSSÍVEL DEFINIR 'DEFAULT VALUES' 
+
+
+
+SE __ VC ESTÁ USANDO PROMOTED PROPERTIES,
+
+EM VEZ DE PROPERTIES NORMAIS...
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+// * With readonly properties:
+class Address
+{
+    public function __construct(
+        public readonly string $street,
+        public readonly string $city,
+        public readonly string $state,
+        public readonly string $postalCode,
+        public readonly string $country = 'US'; // This won't throw an Exception.
+    ) {}
+
+    // * with readonly properties (no getter methods needed):
+} 
+
+
+
+
+
+
+
+
+
+
+
+AGORA, SE RODAMOS O CÓDIGO, ISSO FUNCIONA....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''THE REASON THIS WORKS __ 
+    IS _ BECAUSE WE ARE SETTING THE DEFAULT VALUE
+     TO _ THE __ PARAMETER, 
+
+     __ AND__ NOT _ DIRECTLY TO THE PROPERTY...'''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------
+
+
+
+
+
+
+
+
+OK... DEPOIS DISSO, 
+
+
+
+TEMOS A QUARTA FEATURE, 
+
+
+
+
+
+
+
+
+
+'PURE INTERSECTION TYPES (&)'...
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+4) PURE INTERSECTION TYPES:
+
+
+
+
+
+
+
+
+-- ''AS YOU KNOW, PHP8 ADDED 
+    SUPPORT FOR UNION TYPES...''
+
+
+
+
+-- ''PHP 8.1 ADDED SUPPORT FOR 'INTERSECTION TYPES',
+    AS WELL''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ''WHEN YOU HAVE UNION TYPES,
+    _ ANY OF THE TYPES DESCRIBED WILL BE ACCEPTED_...'
+
+
+
+
+
+
+
+
+
+
+PARA ISSO, TEMOS ESTE EXEMPLO:
+
+
+
+
+
+
+
+(MyService.php):
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace PHP_8_1_Examples\IntersectionTypes;
+
+class MyService
+{
+    public function __construct(
+        private Syncable|Payable $entity
+    ) {}
+
+    public function handle()
+    {
+        $this->entity->pay();
+        $this->entity->sync();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NESSE CASO, SE VC FOR INSTANCIAR 'MyService',
+
+
+
+QUALQUER 1 DOS TYPES SERVIRIA... TANTO 'Syncable' como 'Payable'...
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+MAS O PROBLEMA É O METHOD DE 'handle()'...
+
+
+
+
+
+
+
+
+
+-> ESSE METHOD EXIGE 'pay' e 'sync'...
+
+
+
+
+
+
+-> aí, se tentarmos passar qualquer 1 desses objects, 
+    ainda ficaríamos com 1 incompatibilidade 
+
+
+
+    com o method de 'handle()'...
+
+
+
+
+
+
+
+
+
+--> PARA RESOLVER ISSO,
+    PODEMOS TIPAR COM OS 'INTERSECTION TYPES',
+
+
+
+    QUE É BASICAMENTE DIZER 
+
+    ''O PARAMETER PRECISA SER DE ESSES 2 TYPES/OBJECTS/INTERFACES 
+    PARA CONSEGUIR SER PASSADO COMO PARAMETER''...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace PHP_8_1_Examples\IntersectionTypes;
+
+class MyService
+{
+    public function __construct(
+        private Syncable&Payable $entity
+    ) {}
+
+    public function handle()
+    {
+        $this->entity->pay();
+        $this->entity->sync();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace PHP_8_1_Examples\IntersectionTypes;
+
+// Example of no intersection types:
+// class MyService
+// {
+//     public function __construct(
+//         private Syncable|Payable $entity
+//     ) {}
+
+//     public function handle()
+//     {
+//         // * any of the two classes will have problems, because one has sync, the other has pay, but no one has both.
+//         $this->entity->pay();
+//         $this->entity->sync();
+//     }
+// }
+
+// * Example of intersection types:
+class MyService
+{
+    public function __construct(
+        private Syncable&Payable $entity
+    ) {}
+
+    public function handle()
+    {
+        // * any of the two classes will have problems, because one has sync, the other has pay, but no one has both.
+        $this->entity->pay();
+        $this->entity->sync();
+    }
+}   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> basicamente, isso te deixa anotar de modo que 
+    o object terá de implementar ambas interfaces...
+
+
+
+
+
+
+
+
+-> SE ELE IMPLEMENTAR APENAS 1 ÚNICA INTERFACE, 
+    VAI FICAR COM 1 ERROR...
+
+
+
+
+
+
+
+
+
+
+--> ''THIS FEATURE ONLY COMES IN HANDY WHEN YOU ARE WORKING WITH INTERFACES...'''
+
+
+   ''PRIOR TO THIS FEATURE,
+
+    WHAT YOU WOULD NEED TO DO, TO SUPPORT SOMETHING LIKE THIS,
+    IS THE CREATION OF ANOTHER INTERFACE, THEN EXTEND THESE 2 INTERFACES 
+    AND THAT INTERFACE, AND THEN TYPEHINT THAT INTERFACE, as the type of the 
+    $entity''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR DESTACA:
+
+
+
+
+
+''YOU CANNOT USE THE INTERSECTION TYPES AND UNION TYPES 
+    AT THE SAME TIME...''
+
+
+
+
+
+
+    (vc não pode escrever algo como 
+    
+        Syncable&Payable|Invoice
+    )
+
+
+
+
+
+-> ALÉM DISSO,
+    APENAS CLASS TYPES 
+
+    SÃO SUPORTADOS 
+
+
+    PARA OS INTERSECTION TYPES...
+
+
+
+
+
+
+
+    -> QUER DIZER QUE NÃO PODEMOS 
+
+    FAZER ALGO COMO 
+
+
+
+    private int&array $entity;
+
+
+
+
+
+
+    --> E ISSO FAZ SENTIDO,
+        PQ O VALUE NÃO PODE SER TANTO ARRAY E INTERFACE,
+        AO MESMO TEMPO...
+
+
+
+----------
+
+
+
+
+
+
+
+
+AÍ TEMOS A 5a feature, chamada de 'NEVER RETURN TYPE'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+5) THE 'NEVER' RETURN TYPE:
+
+
+
+
+
+
+
+--> É UM NOVO RETURN TYPE...
+
+
+
+
+--> ELE INDICA QUE 
+    A FUNCTION/METHOD NUNCA VAI RETURN 1 VALUE... 
+
+
+
+
+
+-> ELE INDICA, NO CASO, QUE A FUNCTION/METHOD VAI __EXIT__ 
+    A EXECUTION OU:
+
+
+    A) VIA EXIT STATEMENT
+
+ 
+    B) VIA UMA EXCEPTION...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA EXEMPLIFICAR, O PROFESSOR TEM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+function foo(): never
+{
+    echo '1';
+}
+
+foo();
+
+echo 'I should *never* be printed';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> COM ISSO, 
+
+TEMOS ESSE TYPE DE 'never',
+
+
+E AÍ 
+
+
+ESTAMOS CHAMANDO ESSA FUNCTION,
+
+
+E DEPOIS 
+
+
+FAZENDO O ECHO DAQUELA MESSAGE...
+
+
+
+
+
+
+
+
+
+
+
+AO RODARMOS ISSO, FICAMOS COM ESTE ERROR:
+
+
+
+
+
+
+
+
+
+Fatal error: Uncaught TypeError: foo(): never-returning function must not implicitly return in /in/FplUr:6
+Stack trace:
+#0 /in/FplUr(8): foo()
+#1 {main}
+  thrown in /in/FplUr on line 6
+
+
+
+
+
+
+
+
+
+
+
+
+--> A PARTE DE 'I should never be printed'
+
+
+
+NÃO DEVE SER ALCANÇADA,
+
+
+QUANDO USAMOS O RETURN TYPE DE 'never'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO É PQ, QUANDO 'never' é UTILIZADO,
+
+ESPERA-SE QUE A EXECUTION SEJA IMEDIATAMENTE INTERROMPIDA...
+
+
+
+
+
+
+
+
+
+
+
+->  ''never-returning function must not implicitly return''
+
+
+
+
+
+
+
+
+''THIS JUST MEANS THAT WE ARE AT THE END OF THE FUNCTION...
+AND OUR FUNCTION, THE WHOLE FUNCTION, RETURNS NOTHING...
+
+TO CORRECTLY WRITE CODE FOR FUNCTIONS THAT RETURN 'never',
+
+YOU MUST USE OR 'exit' OR THROW AN EXCEPTION''....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+// ! This is wrong (we must or throw an exception, or run 'exit' in the function):
+// function foo(): never
+// {
+//     echo '1';
+// }
+
+// * This is correct (throw an exception):
+// function foo()
+// {
+//     echo '1';
+//     throw new Exception('generic exception');
+// }
+
+// * This is correct (exit):
+function foo()
+{
+    echo '1';
+    exit;
+}
+
+foo();
+
+echo 'I should *never* be printed';
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+ quais são os use-cases para isso?
+
+
+
+
+
+
+
+
+'THE USE-CASES ARE:
+
+
+
+
+A) YOU WANT TO REDIRECT THE USER AND EXIT RIGHT AFTER...
+
+
+
+B) YOU WANT TO EXIT AND STOP THE SCRIPT EXECUTION,
+    AND MAKE SURE THAT CODE DOES NOT CONTINUE EXECUTING AFTER....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    VOID VS NEVER:
+
+
+
+
+
+
+
+
+
+--> VOID NÃO RETORNA COISA ALGUMA, MAS NÃO PRECISA TER 'exit' ou 'exception'...
+
+
+
+
+--> COM 'VOID', SEU CÓDIGO CONTINUA EXECUTANDO 
+    DEPOIS QUE A FUNCTION/METHOD É EXECUTADO....
+
+
+
+
+
+
+--> JÁ 'never', quando seu return type é de 'never',
+
+    A FUNCTION 'IS EXPECTED TO __STOP THE EXECUTION ENTIRELY__''...
+
+
+--> QUER DIZER QUE 'NEVER' PARA TUDO, toda a execução...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, TEMOS A FEATURE DE 'ARRAY_IS_LIST'...
+
+
+
+
+
+
+
+
+
+
+
