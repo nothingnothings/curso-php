@@ -1,0 +1,1650 @@
+NESSA AULA, FALAREMOS SOBRE A CLASS DE 'Weakmap',
+QUE FOI INTRODUZIDA NO PHP8....
+
+ANTES DE COMEÇARMOS, O PROFESSOR QUER FAZER 1 REVIEW SOBRE: 
+
+
+
+1) HOW OBJECTS ARE STORED 
+
+2) WHAT HAPPENS WHEN YOU ASSIGN AN OBJECT TO ANOTHER VARIABLE.
+
+COBRIMOS ISSO NA AULA 2.16, EM QUE FALAMOS SOBRE OBJECT COMPARISONS, SOBRE 'HOW VARIABLES ARE STORED' (INCLUDING OBJECTS, AS ZVAL CONTAINERS) e etc.
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+<?php 
+
+declare(strict_types=1);
+
+use App\Invoice;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$invoice1 = new Invoice(); 
+$invoice2 = $invoice1;
+
+
+
+
+
+
+
+IN THIS EXAMPLE, WE ARE SIMPLY CREATING 
+
+A NEW OBJECT OF THE 'INVOICE' CLASS,
+
+AND THEN ASSIGNING IT TO THE INVOICE1 VARIABLE...
+
+
+
+
+
+
+
+
+-> AND, THEN, WE ARE ASSIGNING INVOICE1 AS THE VALUE OF INVOICE2...
+
+
+
+
+
+
+--> IN THIS CASE, WE ARE ONLY STORING THE POINTER, AND NOT A COPY OF 
+    THE ORIGINAL OBJECT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> FOR THE WEAKMAP EXAMPLE,
+
+    THE TEACHER IS NOT GOING TO USE ROUTING OR ANYTHING LIKE THAT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TEMOS 2 VARIABLES..
+
+
+
+
+
+
+
+
+
+
+$invoice1 
+
+
+
+$invoice2 
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSAS VARIABLES SIMPLESMENTE APONTAM 
+    PARA ALGUMA DATA STRUCTURE NA MEMORY...
+
+    ESSA DATA STRUCTURE É CHAMADA DE 'zval'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> esse 'zval' tem info como 'type' e 'value'..
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+
+
+                        zval
+
+$invoice1   --------->  TYPE    
+                        VALUE
+
+
+$invoice2   ----------->  TYPE 
+                          VALUE
+
+
+
+
+
+
+
+
+
+
+
+-> O PROBLEMA É QUE, QUANDO FAZEMOS 
+    STORE DE OBJECTS, ESSE CONTAINER 'ZVAL'
+
+    NÃO ARMAZENA O OBJECT DIRETAMENTE...
+
+
+
+
+
+
+
+-> EM VEZ DISSO, ELE ARMAZENA 'SOME SORT OF IDENTIFIER/ID 
+                                OF THE OBJECT',
+
+                                 O QUAL ENTÃO, AÍ SIM,
+                                 APONTA PARA ALGUM LUGAR NA MEMORY,
+
+                                 EM QUE ESSE OBJECT ESTÁ STORED...
+
+
+
+TIPO ASSIM:
+
+
+
+
+                        zval
+
+$invoice1   --------->  ID  --------------
+                                         I 
+                                         -----> [object storage location]
+                                         I 
+$invoice2   ----------->  ID  ------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ISSO QUER DIZER QUE, QUANDO DEFINIMOS 
+
+
+'invoice2' 
+
+
+
+
+como tendo o 'value' de invoice1,
+
+
+
+
+a variable 'invoice2'
+
+
+
+
+FICA 
+
+
+COM A CÓPIA DO MESMO 
+
+
+'OBJECT IDENTIFIER' (que aponta para o mesmo object, na memória)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSENCIALMENTE, INVOICE1 E INVOICE2 SÃO 
+
+    2 DIFERENTES VARIABLES,
+
+    MAS VÃO APONTAR PARA O MESMO OBJECT...
+
+
+
+
+
+
+
+
+
+
+--> OK... MAS AGORA DEVEMOS VER UM EXEMPLO COMPLEMENTAR:
+
+
+
+
+
+
+
+
+
+
+'''LET'S SAY THAT WE __ UNSET__ THE 
+    invoice1, with 'unset()'...'''
+
+
+
+''WHAT WILL HAPPEN WITH invoice2?
+  WILL IT ALSO GET UNSET, OR WILL IT STAY???''
+
+
+
+
+
+
+
+
+
+
+-> EU ACHO QUE A INVOICE2 VAI CONTINUAR EXISTINDO...
+
+    VAI CONTINUAR EXISTINDO, PQ É UMA CÓPIA DO POINTER,
+
+    E VAI CONTINUAR 
+
+
+    'POINTING' AO LOCAL DO OBJECT NA MEMORY..
+
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE ESCREVEMOS ASSIM:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+// require_once __DIR__ . './vendor/autoload.php';
+
+require_once './invoice.php';
+
+use App\Invoice;
+
+$invoice1 = new Invoice();
+$invoice2 = $invoice1;
+
+unset($invoice1);
+
+var_dump($invoice2);  // What happens to invoice2, after unsetting $invoice1?
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS O QUE ACONTECE, AQUI?
+
+
+
+
+
+
+
+
+
+
+
+
+
+FICAMOS COM ISTO:
+
+
+
+
+object(App\Invoice)#1 (2) {
+  ["amount":"App\Invoice":private]=>
+  int(100)
+  ["currency":"App\Invoice":private]=>
+  string(3) "USD"
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA...
+
+
+
+
+
+
+
+
+'''WHEN ONE OF TWO VARIABLES THAT ARE POINTING TO AN OBJECT 
+    GETS __ REMOVED/UNSET, 
+
+    THE OTHER VARIABLE __ KEEPS EXISTING...''
+
+
+
+
+
+
+
+''THIS MEANS THAT __ PHP __ WON'T GARBAGE __ COLLECT 
+    THE OBJECT... IT WILL KEEP ON EXISTING''...
+
+
+
+
+
+
+
+É POR ISSO QUE O PRINT RESULTOU NAQUELE OBJECT ALI....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok... eu estava certo...
+
+
+
+
+
+
+
+O QUE ACONTECE:
+
+
+
+1) A SEGUNDA REFERENCE (pointer), na variable $invoice2,
+    CONTINUARÁ EXISTINDO 
+
+
+
+
+
+2) O OBJECT VAI CONTINUAR EXISTINDO, TAMBÉM...
+
+
+
+
+
+
+
+
+
+
+
+PHP VAI APENAS FAZER O GARBAGE COLLECT 
+DESSE OBJECT DEPOIS QUE 
+
+TODAS AS REFERENCES FOREM UNSET/REMOVED...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR TESTA ISSO, COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+// require_once __DIR__ . './vendor/autoload.php';
+
+require_once './invoice.php';
+
+use App\Invoice;
+
+$invoice1 = new Invoice();
+$invoice2 = $invoice1;
+
+echo 'Unsetting Invoice 1' . PHP_EOL;
+unset($invoice1);
+
+var_dump($invoice2); 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... O INVOICE2 NÃO É DESTRUÍDO, ENTÃO...
+
+
+
+
+
+
+
+
+
+
+
+-->  AÍ O PROFESSOR ESCREVE ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+$invoice1 = new Invoice();
+
+echo 'Unsetting Invoice 1' . PHP_EOL;
+unset($invoice1);
+echo 'Invoice 1 was unset' . PHP_EOL;
+
+
+
+
+
+
+
+
+
+
+COM ISSO, FICAMOS COM ESTE PRINT:
+
+
+
+
+
+Unsetting Invoice 1 
+Invoice Destructor 
+Invoice 1 was unset
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> isso quer dizer que o INVOICE FOI 'GARBAGE COLLECTED'
+    apropriadamente, pq não há nenhuma outra reference 
+    a esse object de 'Invoice'... --> COMO NÃO HÁ MAIS REFERENCE 
+    ALGUMA,
+
+
+    O PHP FAZ O GARBAGE COLLECT DE ESSA VARIABLE...
+
+
+
+
+
+
+
+
+
+
+-> ''TO KINDOF HELP WITH CASES WHERE 
+
+        '''THE OBJECT IS NOT __ PREVENTED FROM BEING GARBAGE 
+            COLLECTED, WHILE RETAINING A REFERENCE'',
+
+            ''THE FEATURE OF WeakReference WAS 
+            INTRODUCED, IN PHP7.4''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---> ''''WHEN AN OBJECT ONLY __ HAS __
+            WEAK REFERENCES AND THE OBJECT IS 
+            UNSET, IT WILL BE GARBAGE COLLECTED...'''
+
+
+
+
+--> isso é ESPECIALMENTE ÚTIL PARA 
+    IMPLEMENTAÇÕES DE 'CACHING'...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+$invoice = new Invoice();
+
+
+$ref = WeakReference::create($invoice);
+
+
+
+var_dump($ref->get());
+unset($invoice);
+var_dump($ref->get());
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+$ref = WeakReference::create($invoice);
+This line creates a WeakReference to the 
+$invoice object and assigns it to the variable $ref. A 
+WeakReference allows you to reference an object without 
+preventing it from being garbage collected.
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+WAS THE OBJECT ACTUALLY DESTROYED?
+
+
+
+Yes, the object was eligible for destruction after the unset($invoice); statement. 
+Here’s a detailed explanation of why and how it happened:
+
+
+
+Object Creation and WeakReference:
+
+
+$invoice = new Invoice();
+$ref = WeakReference::create($invoice);
+
+
+At this point, $invoice holds a strong reference to an Invoice object, 
+and $ref holds a weak reference to the same object.
+
+
+
+Dumping the Object via WeakReference:
+
+var_dump($ref->get());
+This prints the Invoice object because $invoice still exists and the WeakReference points to it.
+
+
+
+
+
+
+Unsetting the Original Reference:
+
+unset($invoice);
+The unset function removes the strong reference to the Invoice 
+object held by $invoice. With no strong references remaining, the object
+ is eligible for garbage collection. However, the WeakReference still exists
+  and holds a weak reference to the object.
+
+
+
+Checking the WeakReference After Unset:
+
+
+var_dump($ref->get());
+
+
+The WeakReference does not keep the object alive; 
+it only provides a way to check if the object still exists. 
+After $invoice is unset, the Invoice object is no longer guaranteed to be in memory and will be
+ garbage collected. As a result, WeakReference::get() returns NULL because the object has been destroyed.
+
+In summary, the Invoice object gets destroyed once there are no
+strong references to it. The weak reference ($ref) does not prevent the object
+from being garbage collected, so after unsetting $invoice, the
+Invoice object is no longer available, and WeakReference::get() returns NULL.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA FAZ MAIS SENTIDO... MELHOR DO QUE A EXPLICAÇÃO HORRÍVEL DO PROFESSOR...
+
+
+
+
+
+
+
+
+
+ok, mas pq diabos isso seria 'good for caching'?
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+Weak references are particularly useful for caching because 
+they help manage memory more efficiently by allowing objects 
+to be garbage collected when they are no longer in use, while still enabling access 
+to them if they are still available.
+
+
+
+
+
+
+
+
+
+
+In some caching strategies, data needs to be refreshed or expired
+after a certain period. By using weak references, you can let objects expire naturally
+when they are no longer referenced strongly, which aligns well with cache expiration policies.
+
+
+Example Scenario
+Consider a caching system for database queries:
+
+Strong Reference Cache: If you use strong references to cache query results,
+the cache will retain results in memory as long as the cache itself exists,
+potentially using significant memory if there are many queries
+or if queries return large data sets.
+
+
+Weak Reference Cache: By using weak references, cached query results will only
+stay in memory if there are other strong references to them. If the system runs low on memory
+or if the data is no longer needed, the garbage collector will clean up these objects, helping 
+to manage memory usage more effectively.
+
+
+
+
+
+
+
+
+
+
+
+Here’s a simplified example of using weak references in a caching system:
+
+
+
+
+
+
+class Cache {
+    private $cache = [];
+
+    public function get($key) {
+        if (isset($this->cache[$key])) {
+            $weakRef = $this->cache[$key];
+            $object = $weakRef->get();
+            if ($object !== null) {
+                return $object;
+            }
+        }
+        return null; // Cache miss
+    }
+
+    public function set($key, $object) {
+        $this->cache[$key] = WeakReference::create($object);
+    }
+}
+
+// Usage
+$cache = new Cache();
+
+$expensiveObject = new ExpensiveObject();
+$cache->set('my_key', $expensiveObject);
+
+unset($expensiveObject); // Remove strong reference (expensiveObject will be garbage collected, in this case)
+
+$cachedObject = $cache->get('my_key');
+if ($cachedObject !== null) {
+    // Use the cached object
+} else {
+    // Re-create the object or handle cache miss (THIS WILL HAPPEN, IN THIS CASE)
+}
+
+
+
+
+
+
+
+
+
+
+
+Nesse exemplo, entraremos no 'else' case,
+
+pq não teremos mais nenhuma outra strong reference... só weak references, dentro daquele array de '$cache', dentro do Cache object.
+
+
+
+
+
+
+
+
+
+
+
+
+--> E O PHP8 
+
+LEVA WEAK REFERENCES A UM NOVO NÍVEL,
+
+
+
+
+POR MEIO DO INTRODUCE DA FEATURE DE 'WEAKMAP'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> NO CASO, É A CLASS DE 'WeakMap'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+WeakMap:
+
+
+
+
+
+
+
+
+--> É UMA __ CLASS_ QUE TE DEIXA _ TER ''COLLECTIONS OF WEAK REFERENCES'',
+
+    O QUE QUER DIZER QUE É UMA COLLECTION DE REFERENCES QUE TE AJUDAM 
+
+    A FAZER 'GARBAGE COLLECT' DOS SEUS OBJECTS,
+
+
+    ASSIM QUE TODAS AS STRONG REFERENCES DELES SÃO REMOVIDAS...
+
+
+
+
+
+
+
+
+
+
+
+--> NA DOCUMENTAÇÃO, TEMOS ISTO:
+
+
+
+
+
+
+
+
+'''A WeakMap is a MAP (or dictionary) that accepts OBJECTS as KEYS. However,
+    unlike the otherwise similar SplObjectStorage, an object in a key of WeakMap 
+    DOES NOT contribute toward the object's reference count. That is, if at any point 
+    the ONLY remaining reference to an object is one of THE KEYS of a WeakMap, the 
+    object will be __GARBAGE__ COLLECTED_ and REMOVED from the WeakMap. Its primary use 
+    case if for BUILDING CACHES of data derived from an object that DO NOT NEED TO LIVE LONGER 
+    THAN THE PARENT OBJECT ITSELF.''
+
+
+
+
+
+
+
+''WeakMap implements ArrayAccess, Iterator and Countable, so, in most cases, it can be used 
+    in the same fashion as an ASSOCIATIVE ARRAY''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO FAZ SENTIDO...
+
+
+
+
+
+
+
+
+'''A WEAKMAP IS _ BASICALLY A KEY-VALUE ARRAY STORE,
+    WHERE __ KEYS__ ARE OBJECTS (instead of being numeric or string)...''
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... MAS O QUE É ESSE 'SplObjectStorage'?
+
+
+
+
+
+
+
+
+
+-> o SplObjectStorage É BASICAMENTE UM 'HARD MAP',
+    QUE 
+
+
+    '''ALLOWS YOU TO USE __ OBJECTS__ AS KEYS__ TO _CREATE__ 
+    AN OBJECT MAP... '''
+
+
+        '''BUT IT HAS __ HARD REFERENCES, INSTEAD OF WEAK REFERENCES... THAT'S 
+        THE DIFFERENCE...''
+
+
+
+
+
+
+
+
+
+
+
+--> O PROBLEMA COM ISSO, 
+    COM 'SplObjectStorage',
+
+    É QUE 
+
+
+    __ QUANDO VC USA 1 OBJECT COMO 1 KEY, NELE,
+
+
+    ISSO_ CRIA _ UMA _ HARD__ REFERENCE__ A ESSE OBJECT...
+
+
+
+
+
+--> O PROBLEMA NO CASO,
+    EXISTE PQ 
+
+    '''WHEN THAT OBJECT IS SUPPOSED TO BE DESTROYED, SHOULD ALREADY BE DESTROYED (unset, or out of scope),
+        IT WON'T HAVE BEEN DESTROYED/GARBAGE COLLECTED, BECAUSE A REFERENCE WILL STILL BE PRESENT IN THE 
+        CODE (as one of the KEYS in the SplObjectStorage)... and this is very bad for memory managing/handling 
+        purposes...''
+
+
+
+
+
+
+
+-> OK... QUER DIZER QUE 'WeakMaps' SÃO A MESMA COISA QUE 'SplObjectStorage' HARD MAPS,
+    com a diferença de que SÃO COLLECTIONS DE WEAK REFERENCES... O QUE QUER DIZER QUE,
+    SE 
+    NÓS FIZERMOS 'UNSET' de alguma de suas keys, no lado de fora/dentro  da class em que 
+    foram definidas, 
+
+    ESSAS WEAK REFERENCES NÃO VÃO __ IMPEDIR__ O OBJECT unsettado __ DE SER GARBAGE COLLECTED...
+
+
+
+
+
+
+
+
+--> quer dizer que WeakMaps podem nos AJUDAR A RESOLVER MEMORY LEAKS...
+
+
+
+
+
+
+
+
+
+
+-> ''WEAKMAPS USE __ WEAK REFERENCES, SO THAT WHEN AN OBJECT FALLS OUT OF SCOPE (like it is UNSET),
+    IF THE ONLY REFERENCE OF THAT OBJECT IS IN THE WEAK MAPS, THEN IT WILL SIMPLY BE GARBAGE __ COLLECTED 
+    __ AND__ REMOVED, ALONG __ WITH ITS __VALUE___ (but not the key), FROM THE WEAKMAP (the value will be removed from the key->value entry, in the weakmap)''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... PARA DEMONSTRAR ISSO, DEVEMOS CRIAR 1 OBJECT 'WeakMap',
+
+    E AÍ ADICIONAR ALGUNS VALUES A ELE, USANDO O 
+
+    OBJECT DE 'Invoice' COMO KEY...
+
+
+
+
+
+
+
+
+
+
+
+
+-> para isso, o professor escreve assim:
+
+
+
+
+
+
+
+
+$invoice1 = new invoice();
+$map = new WeakMap(); // CREATES A NEW WEAKMAP
+
+
+$map[$invoice1] = ['a' => 1, 'b' => 2]; ///// ASSIGN THE 'Invoice' object ($invoice1) AS A KEY in the WeakMap, and assign it a value of '['a' => 1, 'b' => 2];'
+
+
+var_dump($map);
+var_dump(count($map));
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+// * Usage of WeakMaps:
+$invoice1 = new invoice();
+$map = new WeakMap();  // CREATES A NEW WEAKMAP
+
+$map[$invoice1] = ['a' => 1, 'b' => 2];  // / ASSIGNS THE 'Invoice' object ($invoice1) AS A KEY in the WeakMap, and assign it a value of '['a' => 1, 'b' => 2];'
+
+var_dump($map);
+var_dump(count($map));
+
+unset($invoice1);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... COM ESSE DUMP, FICAMOS COM ISTO:
+
+
+
+
+
+object(WeakMap)#2 (1) {
+  [0]=>
+  array(2) {
+    ["key"]=>
+    object(App\Invoice)#1 (2) {
+      ["amount":"App\Invoice":private]=>
+      int(100)
+      ["currency":"App\Invoice":private]=>
+      string(3) "USD"
+    }
+    ["value"]=>
+    array(2) {
+      ["a"]=>
+      int(1)
+      ["b"]=>
+      int(2)
+    }
+  }
+}
+int(1)
+
+
+
+
+
+
+COMO VC PODE VER, 
+
+
+O 
+
+WEAK MAP É APENAS 
+
+
+1 OBJECT,
+
+
+
+EM QUE:
+
+
+
+
+
+
+
+
+1) A KEY --> É O NOSSO INVOICE OBJECT EM SI....
+
+
+
+
+
+
+2) O VALUE --> É QUALQUER VALUE QUE SETTAMOS, ANTERIORMENTE ( no caso, aquele associative array de 'a' e 'b')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> E PODEMOS ACESSAR ESSE VALUE POR MEIO DO USO DE 
+'$invoice1'
+
+
+como key,
+
+
+
+COMO SE FOSSE QUALQUER OUTRO ARRAY...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+// * Usage of WeakMaps:
+$invoice1 = new invoice();
+$map = new WeakMap();  // CREATES A NEW WEAKMAP
+
+$map[$invoice1] = ['a' => 1, 'b' => 2];  // / ASSIGNS THE 'Invoice' object ($invoice1) AS A KEY in the WeakMap, and assign it a value of '['a' => 1, 'b' => 2];'
+
+var_dump($map[$invoice1]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> isso vai printar, realmente,
+
+aquele value de 
+
+
+''['a' => 1, 'b' => 2];  ''
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS AGORA DEVEMOS RODAR O 
+
+'unset()' em cima do '$invoice1',
+
+PARA VER O QUE ACONTECE, COM ESSE WEAKMAP...
+
+
+
+
+
+
+
+
+
+
+-> TIPO ASSIM:
+
+
+
+
+
+$invoice1 = new invoice();
+$map = new WeakMap(); // CREATES A NEW WEAKMAP
+
+
+$map[$invoice1] = ['a' => 1, 'b' => 2]; ///// ASSIGN THE 'Invoice' object ($invoice1) AS A KEY in the WeakMap, and assign it a value of '['a' => 1, 'b' => 2];'
+
+
+var_dump($map);
+unset($invoice1);
+var_dump($map);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> QUANDO ISSO ACONTECE, NOSSO WEAKMAP FICA ASSIM:
+
+
+object(WeakMap)#2 (0) {
+}
+
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE, QUANDO RODAMOS 'unset' em 1 object 
+    que foi assignado como uma das KEYS de 1 weakmap,
+
+    essa key do weakmap  TAMBÉM vai sumir/ser removida... e o 
+    value desse key-value pair TAMBÉM VAI SUMIR...
+
+
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA, REMOVEU A KEY E O VALUE...
+
+
+
+
+
+
+
+ 
+-> O OBJECT DE 'Invoice' foi GARBAGE COLLECTED E CLEANED UP...
+
+
+
+
+
+
+--> ''BECAUSE THE $invoice1 DID NOT HAVE 
+    ANY OTHER REFERENCES __ OTHER THAN THE REFERENCE (weak reference) IN THE 
+    WEAKMAP ITSELF, WHEN WE UNSET() ITS STRONG REFERENCE, PHP GARBAGE COLLECTED IT 
+    AND REMOVED ITS KEY FROM THE WEAKMAP, ALONG WITH ITS VALUE...''
+
+
+
+    ''THIS WOULDN'T HAVE HAPPENED WITH SplObjectStorage, 
+      BECAUSE THE REFERENCES IN THE SplObjectStorage (a HARD MAP) are STRONG 
+      REFERENCES, WHICH MEANS THE REFERENCES WOULD STILL EXIST, 
+      AND THE OBJECT WOULDN'T HAVE BEEN GARBAGE COLLECTED, AFTER THE 
+      UNSET OF THE "$invoice1" variable...''
+
+
+
+    É POR ISSO QUE O SplObjectStorage PODE CAUSAR MEMORY LEAKS NO SEU APP....
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK, MAS QUAIS SÃO OS USE-CASES PARA WEAKMAPS?
+
+
+
+
+
+
+
+
+
+-> PROFESSOR ESCLARECE:
+
+
+
+
+
+''THERE IS A GOOD CHANCE THAT YOU WON'T USE WEAKMAPS DIRECTLY...''
+
+
+
+''BUT YOU PROBABLY WILL USE FRAMEWORKS/PACKAGES THAT 
+    EMPLOY WEAKMAPS, BEHIND THE SCENES...''
+
+
+
+
+
+
+
+
+--> AINDA ASSIM,
+    WEAKMAPS PODEM SER USADOS PARA
+    IMPLEMENTAR:
+
+
+
+
+
+
+    1) CACHING 
+
+    2) MEMO-IZATION 
+
+    3) PREVENT MEMORY LEAKS IN LONG-RUNNING PROCESSES...
+
+    4) YOU CAN ALSO USE THEM 
+        TO ASSOCIATE OBJECTS WITH SOME ADDITIONAL VALUES/INFO,
+        INFO THAT IS NOT DIRECTLY AVAILABLE IN THE OBJECT...
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+HÁ 1 PUNHADO DE COISAS ADICIONAIS QUE VC DEVE SABER, SOBRE WEAK MAPS:
+
+
+
+
+
+
+
+
+1) vc NÃO PODE USAR 'NON-OBJECTS' COMO KEYS DE UM WEAKMAP... SE VC TENTAR ISSO, FICARÁ COM 1 EXCEPTION...
+
+
+
+
+tipo assim:
+
+
+
+
+
+$map['hello'] = 'world'; ///THIS WILL THROW AN EXCEPTION...
+
+
+
+
+
+
+ 
+2) VC TAMBÉM NÃO PODE FAZER APPEND (push) de 1 novo element     
+    no seu weakmap...
+
+
+    SE VC TENTAR ALGO COMO ISTO:
+
+
+
+
+$map[] = 'world';
+
+
+
+
+
+
+
+VC TAMBÉM FICA COM 1 EXCEPTION...
+
+
+
+
+
+3) TENTAR ACESSAR 1 KEY INEXISTENTE 
+    NO WEAKMAP TAMBÉM VAI FAZER O THROW DE 1 EXCEPTION,
+
+    TIPO ASSIM:
+
+
+
+
+
+(considerando que '$invoice2' nunca foi criado)...
+
+    echo $map[$invoice2];
+
+
+
+
