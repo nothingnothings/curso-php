@@ -1,0 +1,2235 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COVARIANCE E CONTRAVARIANCE...
+
+
+
+
+
+
+
+
+--> ESSES CONCEITOS PODEM SER CONFUSOS, NO INÍCIO...
+
+
+
+
+
+
+
+
+
+
+-> PODEM SER CONFUSOS PQ PODEM SER INTERPRETADOS 
+    DE DIFERENTES MANEIRAS, PARA DIFERENTES LANGUAGES,
+
+    ESPECIALMENTE LANGUAGES COM 'GENERICS SUPPORT'...
+
+
+
+
+
+
+--> NO VÍDEO DE HOJE, FALAREMOS SOBRE COVARIANCE E CONTRAVARIANCE..
+
+
+
+
+
+
+
+
+
+-> NO FINAL DO VIDEO, FALAREMOS SOBRE 1 DOS PRINÍCIPIOS 'SOLID',
+    E SOBRE COMO ELE SE RELACIONA COM O TÓPICO DE HOJE....
+
+
+
+
+
+    Single Responsibility
+    Open-Closed (open for extension, but closed for modification)
+    Liskov substitution (an object may be replaced by a sub-object, like a class that extends the first class, but without breaking the program)
+    Interface Segregation (don't keep interfaces that you don't use)
+    Dependency Inversion (high-level components shouldn't care about how low-level components do their job)
+
+
+
+
+
+
+
+
+
+
+
+
+
+A EXPLICAÇÃO É ASSIM:
+
+
+
+
+
+
+
+
+
+
+Class A 
+myMethod(T $param): T 
+
+
+
+
+Class B extends A
+myMethod(T $param): T
+
+
+
+
+
+
+--> ''WHEN YOU HAVE A CLASS 
+        THAT __ EXTENDS__ ANOTHER CLASS 
+
+        __ AND __ OVERRIDES THE METHOD OF THE PARENT CLASS,
+
+        CERTAIN TYPE CHECKING 
+
+
+        __ __ NEEDS TO HAPPEN,
+         TO MAKE SURE THAT 
+
+         THE __ OVERRIDING METHOD IS __ COMPATIBLE WITH 
+         THE METHOD THAT GOT OVERRIDEN...''
+
+
+
+
+
+
+
+
+(isso é basicamente uma implementação do 'LISKOV PRINCIPLE')...
+
+
+
+
+
+
+
+
+
+
+POR EXEMPLO,
+
+
+COM ESSAS 2 CLASSES:
+
+
+
+
+
+
+
+
+Class A 
+myMethod(T $param): T 
+
+
+
+
+Class B extends A
+myMethod(T $param): T
+
+
+
+
+
+
+
+
+
+'''THE CHILD'S METHOD MUST BE COMPATIBLE 
+    WITH THE PARENT'S METHOD'..
+
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE, NESSE CASO, O PARAMETER 
+E RETURN TYPE DO METHOD DA CHILD CLASS 
+
+SÃO __ COMPATÍVEIS __ COM OS PARAMETER E RETURN TYPES 
+
+
+DO METHOD DA PARENT CLASS 
+
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+''If the method of Class A accepts T $param and RETURNS T ,
+
+the method of Class B SHOULD accept and return COMPATIBLE VALUES...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ALGUMAS PROGRAMMING LANGUAGES EXIGEM 
+
+
+
+
+
+
+'''''EXACT COMPATIBILITY (ou 'type matching')'''' ENTRE 
+
+ESSES METHODS..
+
+
+
+
+
+ISSO É CHAMADO DE 
+
+''INVARIANCE''...
+
+
+
+
+
+
+
+''This exact compatibility required by a programming language 
+    is referred to as INVARIANCE''...
+
+
+
+
+
+
+
+
+
+
+-> NO ENTANTO, HÁ ALGUMAS LANGUAGES 
+QUE PERMITEM QUE VC FAÇA OVERRIDE... MAS __ SOMENTE__ 
+
+SE O TYPE __ DO METHOD QUE FAZ OVERRIDE 
+
+__ É __ MAIS GENÉRICO/MAIS ESPECÍFICO DO QUE O 
+
+TYPE DO METHOD DA PARENT CLASS...
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+''If the method of Class A accepts T $param and RETURNS T ,
+
+the method of Class B __CAN__ accept and return A MORE/LESS SPECIFIC TYPE...''
+
+
+
+
+
+
+
+
+----------------------------------------------------
+
+
+
+
+
+
+
+
+
+''VARIANCE'' --> isso 'ENSURES THE TYPE SAFETY',
+                    TUDO PARA QUE O COMPILER 
+                    SAIBA O QUE FAZER 
+
+                    QUANDO ENCONTRAR 
+
+                    1 CHILD CLASS QUE 
+
+                    'OVERRIDES' O METHOD DO PARENT,
+
+                    E QUE __ TEM 1 PARAMETER/RETURN TYPE 
+                    DIFERENTE...
+
+
+
+
+    --> O COMPILER TEM QUE SABER
+        ''HOW IT SHOULD RESPOND'' a situações 
+        como essas...
+
+
+
+
+
+
+
+
+-> 'IS IT GOING FROM LESS 
+    SPECIFIC TO MORE SPECIFIC RETURN TYPE??''
+
+
+    ''OR IS IT DOING VICE-VERSA, FOR THE PARAMETER TYPE??'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PHP, POR EXEMPLO:
+
+
+
+    -- ''ALLOWS OVERRIDING METHODS TO __ RETURN __ A MORE _ SPECIFIC TYPE...''
+
+            --> this is called 'RETURN TYPE COVARIANCE'...
+
+
+    -- ''ALLOWS US TO ACCEPT __ LESS SPECIFIC __ PARAMETER TYPES, in the 
+        child classes' methods...'''
+
+
+            --> this is called 'PARAMETER TYPE __ CONTRAVARIANCE____...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> DEVEMOS ANALISAR O EXEMPLO PROVIDENCIADO PELA DOCUMENTAÇÃO DO PHP...
+
+
+
+
+
+
+É ESTE:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+// require_once __DIR__ . '/../../vendor/autoload.php';
+
+require_once __DIR__ . '/Animal.php';
+require_once __DIR__ . '/Cat.php';
+require_once __DIR__ . '/Dog.php';
+require_once __DIR__ . '/AnimalShelter.php';
+require_once __DIR__ . '/Shelters.php';
+
+$kitty = (new CatShelter)->adopt('Ricky');
+$kitty->speak();
+echo PHP_EOL;
+
+$doggy = (new DogShelter)->adopt('Mavrick');
+$doggy->speak();
+echo PHP_EOL;
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+E ISSO PRINTA ASSIM:
+
+
+
+Ricky meows
+Mavrick barks
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> DEVEMOS FAZER 1 REVIEW RÁPIDO DESSAS CLASSES,
+    PARA AÍ EXPLICAR 
+
+
+    A COVARIANCE E CONTRAVARIANCE..
+
+
+
+
+
+
+
+
+
+
+
+
+-> PRIMEIRAMENTE, TEMOS A CLASS DE 'Animal',
+
+
+
+    QUE É UMA CLASS 'Abstract' Básica....
+
+
+
+
+
+
+
+
+
+--> ela tem apenas 1 abstract method básico, de 'speak':
+
+
+
+
+<?php
+
+abstract class Animal
+{
+    protected string $name;
+
+    public function __construct(string $name)
+    {
+        $this->name = $name;
+    }
+
+    abstract public function speak();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+    abstract public function speak();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> aí temos 2 CLASSES QUE FAZEM 'EXTEND' DE ESSA CLASS,
+    QUE SÃO 
+
+
+    'Dog' e 'Cat'..
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+class Dog extends Animal
+{
+    public function speak()
+    {
+        echo $this->name . ' barks';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+-> ELAS POSSUEM IMPLEMENTAÇÕES PRÓPRIAS DE 'SPEAK'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ, DEPOIS, TEMOS A INTERFACE DE 'AnimalShelter':
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+interface AnimalShelter
+{
+    public function adopt(string $name): Animal;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESSA INTERFACE É IMPLEMENTADA POR 
+    2 CLASSES,
+
+
+
+    'DogShelter'
+
+
+    e 
+
+    'CatShelter'...
+
+
+
+
+
+
+
+--> ESSA INTERFACE EXIGE A CRIAÇÃO DE 1 ÚNICO METHOD,
+
+
+'adopt()',
+
+
+que EXIGE 1 ÚNICO PARAMETER, de tipo 'string',
+
+
+E QUE __ DEVE, OBRIGATORIAMENTE,
+
+RETORNAR 1 
+OBJECT DE 'Animal'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE ESSE 'AnimalShelter'
+
+
+É IMPLEMNTADO DE MANEIRAS DIFERENTES, POR 'CatShelter' e 'DogShelter'...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+class CatShelter implements AnimalShelter
+{
+    public function adopt(string $name): Cat  // instead of returning class type Animal, it can return class type Cat
+    {
+        return new Cat($name);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O CATSHELTER RETORNA UM 'CAT' OBJECT,
+
+E O DOGSHELTER RETORNA UM 'DOG' OBJECT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> 
+
+
+
+
+'''YOU MUST NOTICE THE DIFFERENCE BETWEEN 
+    THE RETURN TYPES OF THE DOGSHELTER AND 
+    CATSHELTER...'''
+
+
+
+
+
+
+--> O DogShelter retorna 'Dog', que é uma class que FAZ EXTEND DA ABSTRACT CLASS DE 'Animal'...
+
+
+
+
+
+
+--> O FATO, AQUI, É QUE A INTERFACE DE 'AnimalShelter'
+
+    TEM UM OBJECT DE 'Animal' COMO RETURN TYPE....
+
+
+
+    QUER DIZER QUE O RETURN TYPE É MAIS __ AMPLO, menos específico...
+
+
+
+
+    E O RETURN TYPE DO 'DogShelter' é MAIS ESPECÍFICO...
+
+
+
+
+
+
+
+
+
+
+    PHP.NET:
+
+
+
+
+
+
+
+    ''COVARIANCE ALLOWS A CHILD'S METHOD TO RETURN A MORE __ SPECIFIC TYPE__ 
+    THAN THE RETURN TYPE OF ITS PARENT'S METHOD...''
+
+
+
+
+
+
+E É EXATAMENTE ISSO QUE ESTÁ ACONTECENDO, AQUI... TEMOS 
+
+1 CLASS METHOD QUE RETORNA 1 TYPE MAIS ESPECÍFICO, EM VEZ DE 1 TYPE 
+MAIS GENÉRICO...
+
+
+
+
+
+
+RODAMOS ISSO...
+
+
+
+
+
+
+
+
+
+E AÍ FICAMOS COM 
+
+
+
+
+Ricky meows
+Mavrick barks
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA,
+
+
+FICAMOS COM PRINTS DIFERENTES...
+
+
+
+
+
+
+
+
+ISSO É PQ O METHOD DE 'adopt()',
+
+    quando chamado em cima de 'CatShelter',
+
+    FAZ O RETURN DE UM CAT,
+
+    E O 
+
+
+    METHOD de 'adopt()'
+
+
+
+    DE DOGSHELTER 
+
+    faz o RETURN DE 1 DOG...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+RESUMINDO:
+
+
+
+
+
+
+
+
+'''WHAT COVARIANCE ALLOWS US TO DO 
+    IT LET _ US GO FROM ''LESS SPECIFIC TYPE'' TO ''A MORE SPECIFIC TYPE''..
+
+
+
+
+
+
+
+
+
+
+
+
+-> NA INTERFACE, TEMOS 1 MORE GENERIC TYPE (Animal)....
+
+
+-> AÍ, QUANDO IMPLEMENTAMOS ESSA INTERFACE EM 1 CONCRETE CLASS,
+    O RETURN TYPE 
+
+    DAQUELE METHOD __ PODE __SER MAIS ESPECÍFICO,
+
+    'BETTER TYPED',
+
+    EM VEZ DE 
+
+    SER 1 GENERIC TYPE..
+
+
+
+
+
+
+
+
+--> ISSO É PERMITIDO JUSTAMENTE 
+
+    PQ ''DOG IS STILL A CHILD _ OF THE ANIMAL CLASS''...
+
+
+
+
+
+
+
+quer dizer que esta call signature:
+
+'class Dog extends Animal' 
+
+É COMPATÍVEL COM 
+
+
+A SIGNATURE DO PARENT....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE 'COVARIANCE' FAZ SENTIDO...
+
+
+
+
+
+
+
+
+
+
+
+-> MAS AGORA DEVEMOS VER 1 EXEMPLO DE __ CONTRAVARIANCE...
+
+
+
+
+
+
+
+
+
+--> VAMOS USAR O MESMO EXEMPLO, MAS AGORA COM 
+
+CONTRAVARIANCE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ''WITH CONTRAVARIANCE,  
+      THE __ ARGUMENT TYPE OF THE CHILD CLASS 
+      CAN BE __ LESS SPECIFIC THAN 
+      THE ARGUMENT TYPE OF THE PARENT CLASS''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      -> TEMOS ALGUMAS MODIFICAÇÕES NAS CLASSES 
+      DOS ANIMALS....
+
+
+
+
+
+
+    -> E TEMOS, TAMBÉM, 2 NOVAS CLASSES,
+
+    'Food' e 'AnimalFood'...
+
+
+
+
+
+
+
+
+
+
+
+O CÓDIGO É TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+abstract class Animal
+{
+    protected string $name;
+
+    public function __construct(string $name)
+    {
+        $this->name = $name;
+    }
+
+    abstract public function speak();
+
+    public function eat(AnimalFood $food)
+    {
+        echo $this->name . ' eats ' . get_class($food);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> A CLASS DE FOOD É APENAS 1 CLASS VAZIA,
+
+    E A 'ANIMALFOOD' É APENAS 
+
+
+
+    1 CLASS QUE EXTENDE 'FOOD',
+    MAS TAMBÉM É VAZIA:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+abstract class AnimalFood extends Food {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+QUER DIZER QUE FOOD É UMA BASE CLASS..
+
+
+NÃO É UMA ABSTRACT CLASS, MAS É UMA BASE CLASS...
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ LÁ EM 'ANIMAL' TEMOS 
+O METHOD DE 
+
+'eat',
+
+QUE EXIGE 1 ARGUMENT DE 'AnimalFood':
+
+
+
+
+
+
+
+
+
+<?php
+
+abstract class Animal
+{
+    protected string $name;
+
+    public function __construct(string $name)
+    {
+        $this->name = $name;
+    }
+
+    abstract public function speak();
+
+    public function eat(AnimalFood $food)
+    {
+        echo $this->name . ' eats ' . get_class($food);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EM DOG,
+
+
+ENTRETANTO, O METHOD DE EAT TEM O PARAMTER TYPE DE 'FOOD',
+
+QUE É  __ MENOS ESPECÍFICO__ QUE 'ANIMALFOOD'...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+// require_once __DIR__ . '/../../vendor/autoload.php';
+
+require_once __DIR__ . '/Animal.php';
+require_once __DIR__ . '/Cat.php';
+require_once __DIR__ . '/Dog.php';
+require_once __DIR__ . '/AnimalShelter.php';
+require_once __DIR__ . '/Shelters.php';
+require_once __DIR__ . '/Food.php';
+require_once __DIR__ . '/AnimalFood.php';
+
+$kitty = (new CatShelter)->adopt('Ricky');
+$kitty->eat(new AnimalFood());
+echo PHP_EOL;
+
+$doggy = (new DogShelter)->adopt('Mavrick');
+$doggy->eat(new AnimalFood());
+echo PHP_EOL;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> E ISSO REALMENTE FUNCIONA..
+
+
+
+
+
+
+
+
+
+
+-> COM ISSO, FICAMOS COM 
+
+
+
+'MORE SPECIFIC TO _LESS SPECIFIC PARAMETER TYPES''...
+
+
+
+
+
+
+
+
+
+
+
+
+------> É BASICAMENTE O INVERSO 
+
+            DE COVARIANCE (pq covariance é 'less specific to more specific' )...
+
+
+
+
+
+
+
+
+
+
+DEFINIÇÃO DE CONTRAVARIANCE:
+
+
+
+
+
+
+''CONTRAVARIANCE ALLOWS A __PARAMETER TYPE__ TO BE 
+    _ LESS __ SPECIFIC__ in a child method, THAN 
+    OF ITS PARENT'''
+
+
+
+    (more generic in the method, than in its parent)..
+
+
+
+
+
+
+
+
+
+
+-> OK, E É EXATAMENTE ISSO QUE ESTÁ ACONTECENDO AQUI...
+
+
+
+
+
+
+
+
+
+
+
+
+alteramos 1 pouco nosso código:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+// require_once __DIR__ . '/../../vendor/autoload.php';
+
+require_once __DIR__ . '/Animal.php';
+require_once __DIR__ . '/Cat.php';
+require_once __DIR__ . '/Dog.php';
+require_once __DIR__ . '/AnimalShelter.php';
+require_once __DIR__ . '/Shelters.php';
+require_once __DIR__ . '/Food.php';
+require_once __DIR__ . '/AnimalFood.php';
+
+$kitty = (new CatShelter)->adopt('Ricky');
+$catFood = new AnimalFood();
+$kitty->eat($catFood);
+echo PHP_EOL;
+
+$doggy = (new DogShelter)->adopt('Mavrick');
+$dogFood = new Food();
+$doggy->eat(new Food());
+echo PHP_EOL;
+
+
+
+
+
+
+
+O RUN DO CÓDIGO FUNCIONA, MAS __ APENAS__ 
+
+
+EM VERSIONS DE PHP APÓS 7.4...
+
+
+
+
+
+
+
+
+COMO ESTOU COM UMA VERSAO ANTERIOR,
+
+NÃO FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+O ERRO SERÁ ESTE:
+
+
+
+
+
+
+''Warning: Declaration of Dog::eat(Food $food) should be compatible with Animal::eat(AnimalFood $food)
+
+
+
+
+
+
+
+
+BASICAMENTE, ELE APONTA QUE OS PARAMETERS NÃO SÃO COMPATÍVEIS,
+
+O PARAMETER DA CHILD CLASS É MAIS AMPLO DO QUE O DA PARENT CLASS...
+
+
+
+
+
+
+
+
+
+
+
+--> O SUPORTE PARA CONTRAVARIANCE 
+TYPES E RETURN TYPES FOI ADICIONADO SOMENTE 
+
+NO PHP 7.4...
+
+
+
+
+
+---------------------------------
+
+
+
+
+
+
+
+
+
+
+
+ok... com isso, estabelecemos que:
+
+
+
+
+
+
+
+
+-- 'COVARIANT RETURN TYPE' ->  ( MORE GENERAL -> LESS GENERAL )
+
+
+
+
+-- 'CONTRAVARIANT PARAMETER TYPE' --> (LESS GENERAL -> MORE GENERAL)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VC PODE ESTAR SE PERGUNTANDO...
+
+
+
+
+
+''OK, E COVARIANT ___PARAMETER___ TYPES, ELES EXISTEM TAMBÉM?''
+
+
+
+
+('CAN WE GO FROM MORE GENERAL TO LESS GENERAL, ON THE PARAMETER TYPES TOO??'')
+
+
+
+
+
+
+
+
+
+
+
+
+--> A RESPOSTA É __ ___  NO___.....
+
+
+
+
+
+--> COVARIANT RETURN TYPES NÃO SÃO SUPORTADOS 
+    NO PHP...
+
+
+
+
+
+
+
+--> ISSO FAZ SENTIDO, PQ TER ESSE TIPO DE SUPORTE PODERIA 
+INTRODUZIR BUGS E CONFUSÃO NO CÓDIGO...
+
+
+
+
+
+
+
+
+
+
+
+
+--> E ''CONTRAVARIANT RETURN TYPES'' TAMBÉM NÃO 
+    SÃO SUPORTADOS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+RESUMO:
+
+
+
+
+
+
+
+
+
+''GOING FROM LESS SPECIFIC TO MORE SPECIFIC IS _COVARIANCE...''
+
+
+
+
+
+''GOING FROM MORE SPECIFIC TO LESS SPECIFIC IS CONTRAVARIANCE...''
+
+
+
+
+
+
+
+
+
+
+PHP SUPPORTS:
+
+
+        -- COVARIANT RETURN TYPES 
+
+        -- CONTRAVARIANT PARAMETER TYPES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> o professor quer falar mais 1 coisa, antes de 
+    examinarmos a relação disso com os SOLID principles...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CLASS CONSTRUCTORS:
+
+
+
+--> ''THEY __ DON'T FOLLOW THE SAME RULES....'''
+
+
+
+--> ''THIS MEANS THAT YOU CAN OVERRIDE THE CONSTRUCTOR 
+    COMPLETELY, HAVE COMPLETELY DIFFERENT TYPES IN THE 
+    CHILD CLASS...''
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+class Food {
+
+    public function __construct(A $a) {
+
+    }
+}
+
+
+
+
+class AnimalFood extends Food 
+{
+
+
+    public function __construct(B $b, C $c) {
+
+        parent::__construct(new A());
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS VC TAMBÉM TEM QUE SABER ALGUMAS DAS COISAS QUE FORAM INTRODUZIDAS 
+COM O PHP 8.0 E 8.1....
+
+
+
+
+
+
+
+
+
+---> ESSAS COISAS SÃO OS 'UNION' E 'INTERSECTION' TYPES...
+
+
+
+
+
+
+
+
+
+--> '''IF YOU ARE USING _ UNION __ TYPES IN A BASE CLASS,
+    WHEN YOU REMOVE A TYPE __ WHILE OVERRIDING THAT METHOD 
+    IN A CHILD CLASS, IT MEANS COVARIANT (going from less specific to more specific)''
+
+
+
+
+
+
+
+''When using UNION TYPES in base class, it is COVARIANT 
+when you REMOVE a TYPE while OVERRIDING A METHOD, IN THE CHILD 
+CLASS''...
+
+
+EXAMPLE:
+
+
+
+class A {
+
+    public function run(): C|D 
+    {
+
+    }
+}
+
+
+class B extends A {
+    public function run(): C { // Covariance... (more general to less general).
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+-- 'THE SAME APPLIES TO INTERSECTIONS... BUT, INSTEAD OF REMOVING 
+    A TYPE, IT APPLIES TO WHENEVER ANOTHER TYPE IS ADDED (becomes MORE SPECIFIC, less general)...''
+
+
+
+
+-- ''When using INTERSECTION types in base class, it 
+    is COVARIANT when you ADD a type while overriding a method 
+    in the child class...''
+
+
+
+
+
+''an Intersection Type allows DECLARING A TYPE FOR A PARAMETER,
+    PROPERTY, or return types, and ENFORCE THAT VALUES BELONG 
+    TO ALL OF THE DECLARED CLASS/INTERFACE TYPES...''
+
+
+
+
+EX:
+
+
+
+
+class A {
+
+    public function run(): C
+    {
+
+    }
+}
+
+
+class B extends A {
+    public function run(): C&D { // Covariance... (more general to less general).
+
+    }
+}
+
+
+
+---------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CONTRAVARIANCE SERIA O EXATO OPOSTO...
+
+
+
+
+
+
+
+
+
+-- ''THE OPPOSITE GOES FOR CONTRAVARIANCE'' (less general to more general)...
+
+
+
+
+-- EXISTS ONLY WITH PARAMETER TYPES... DOES NOT EXIST WITH RETURN TYPES..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+->_ AGORA FALAMOS SOBRE O LISKOV SUBSTITUTION PRINCIPLE, QUE TEM RELAÇÃO COM ISSO AÍ...
+
+
+
+
+
+
+
+
+
+
+LSP 
+
+
+
+
+
+
+
+
+--> ''If it looks like a DUCK, QUACKS LIKE A DUCK, BUT NEEDS ___ BATTERIES (parameter),
+        YOU PROBABLY NEED A BETTER ABSTRACTION...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- ''AN OBJECT AND A SUB-OBJECT OR A CLASS 
+    AND A SUB-CLASS MUST BE INTERCHANGEABLE _WITHOUT 
+    BREAKING CODE''.
+
+
+
+
+
+
+
+-- ''WHEN THIS PRINCIPLE IS RESPECTED, IT GIVES US PROTECTION
+    AGAINST USING INHERITANCE THE WRONG WAY...
+
+
+    BECAUSE: IF WE EXTEND A CLASS AND THEN START CHANGING THINGS AROUND 
+    IN THE CHILD CLASS, LIKE OVERRIDE METHODS AND ETC, CHANGE TYPES HERE AND 
+    THERE, ADD MORE METHODS, DIVERGE FROM THE ACTUAL INHERITANCE,
+
+    THIS WOULD BREAK THE LISKOV PRINCIPLE, AND WE WOULD END UP USING INHERITANCE 
+    IN THE WRONG WAY...
+    ''
+
+
+    ''IF WE END UP BREAKING THE LISKOV PRINCIPLE, MAYBE IT IS BETTER TO USE 
+    ANOTHER STRATEGY, LIKE COMPOSITION, INSTEAD OF INHERITANCE...''
+
+
+
+
+
+
+
+-> O PROFESSOR, PARA DEMONSTRAR, 
+
+USA O EXEMPLO 
+
+
+
+DE CONTRAVARIANT MAIS UMA VEZ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+O EXEMPLO É ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+abstract class Animal
+{
+    protected string $name;
+
+    public function __construct(string $name)
+    {
+        $this->name = $name;
+    }
+
+    abstract public function speak();
+
+    public function eat(AnimalFood $food)
+    {
+        echo $this->name . ' eats ' . get_class($food);
+    }
+}
+
+
+
+<?php declare(strict_types=1);
+
+class Dog extends Animal
+{
+    public function speak()
+    {
+        echo $this->name . ' barks';
+    }
+
+    public function eat(Food $food)
+    {
+        echo $this->name . ' eats ' . get_class($food);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ESSE EXEMPLO, ESTAMOS INDO 
+
+DE 
+
+
+'MORE SPECIFIC' (AnimalFood)
+
+
+PARA 
+
+
+'LESS SPECIFIC' (Food)...
+
+
+
+
+QUER DIZER QUE ISSO É 'CONTRAVARIANCE'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... MAS A PERGUNTA, AQUI, É:
+
+
+
+'''IS IT TYPE-SAFE?'''
+
+
+
+
+
+
+--> A RESPOSTA É _ SIM_,
+
+
+PQ ISSO FUNCIONA...
+
+
+
+
+
+
+
+--> O PARAMETER TYPE É 'CONTRAVARIANT',
+    E, PORTANTO, TYPE-SAFE...
+
+
+
+
+
+
+
+
+--> MAS O QUE LSP TEM A VER, COM ISSO?
+
+
+
+
+
+
+
+
+
+->  SE ABRIMOS O INDEX.PHP,
+
+
+
+
+
+
+
+TEMOS ESTA SECTION:
+
+
+
+
+
+
+
+$banana = new Food();
+$doggy->eat($banana);
+
+
+
+
+
+
+
+
+
+
+--> SOMOS CAPAZES DE SUBSTITUIR O PARAMETER DE '$banana'
+
+
+
+POR QUALQUER OUTRA INSTANCE DE 'Food',
+
+E POR QUALQUER OUTRA INSTANCE DE 'AnimalFood',
+
+também...
+
+
+
+
+
+
+
+QUER DIZER QUE ISTO  TAMBÉM FUNCIONARIA:
+
+
+
+
+
+$catFood = new AnimalFood();
+$banana = new Food();
+$doggy->eat($catFood);
+
+
+
+
+
+
+
+
+
+
+
+
+POR OUTRO LADO, SE O PHP SUPORTASSE 
+
+'COVARIANT PARAMETER TYPES' (em que é 'more general to less general'),
+
+
+
+
+
+FICARÍAMOS COM ERRORS...
+
+
+
+
+
+
+ISSO QUEBRARIA O LSP... PQ NÃO SERÍAMOS MAIS CAPAZES 
+
+DE SUBSTITUIR O 
+
+OBJECT DE 'FOOD'...
+
+
+
+
+
+
+
+
+
+RESUMINDO:
+
+
+quando temos algo como isto:
+
+
+
+
+
+
+
+
+
+<?php
+
+abstract class Animal
+{
+    protected string $name;
+
+    public function __construct(string $name)
+    {
+        $this->name = $name;
+    }
+
+    abstract public function speak();
+
+    public function eat(AnimalFood $food)
+    {
+        echo $this->name . ' eats ' . get_class($food);
+    }
+}
+
+
+
+<?php declare(strict_types=1);
+
+class Dog extends Animal
+{
+    public function speak()
+    {
+        echo $this->name . ' barks';
+    }
+
+    public function eat(Food $food)
+    {
+        echo $this->name . ' eats ' . get_class($food);
+    }
+}
+
+
+
+
+
+
+
+
+
+AO FAZER O OVERRIDE DO PARAMETER TYPE DE 
+
+'AnimalFood' da base class 
+
+
+por 1 parameter type mais GENÉRICO, NA CHILD CLASS,
+
+
+
+
+NÃO ESTAMOS QUEBRANDO O LISKOV SUBSTITUTION PRINCIPLE,
+
+
+ISSO PQ 
+
+
+
+
+''''WE ARE NOT MODIFYING/NARROWING THE FUNCTIONALITY,
+    BUT __ EXTENDING IT...'''
+
+
+
+
+
+
+
+
+
+OK... É POR ISSO QUE O LSP 
+
+NÃO É BROKEN QUANDO TEMOS 
+
+
+CONTRAVARIANT PARAMETER TYPES...
+
+
+
+
+
+
+
+
+
+
+
+
+--> HÁ MAIS COISAS A SABER SOBRE LSP,
+
+mas esse é o básico...
