@@ -1,0 +1,2013 @@
+
+
+
+
+
+
+
+HOJE VEREMOS A FEATURE ADICIONADA NO PHP 8,
+
+
+OS 'ATTRIBUTES'...
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, ABRIMOS OS DOCS, E LEMOS A DEFINIÇÃO:
+
+
+
+
+
+
+
+
+
+
+
+
+ATTRIBUTES:
+
+
+
+
+
+
+-- Attributes offer the ability to add STRUCTURED, MACHINE-READABLE METADATA 
+INFORMATION on DECLARATIONS in code: Classes, methods, functions, parameters,
+properties and class constants can be the TARGET of an attribute. The metadata 
+defined by attributes can then be inspected, at runtime, using the REFLECTION 
+APIs...
+
+
+Attributes could, therefore, be thought of as a CONFIGURATION LANGUAGE 
+embedded directly into the code...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO PARECE BEM STRAIGHTFORWARD,
+    MAS NÃO É TANTO ASSIM..
+
+
+
+
+
+
+
+
+
+-> PARECEM SER UM CONCEITO SIMILAR A ANNOTATIONS (@)...
+
+
+
+
+
+
+
+
+
+--> ANNOTATIONS TAMBÉM PODEM 
+    SER USADAS PARA 
+
+
+
+    ''ADD METADATA'',
+
+
+
+E JÁ FORAM USADAS EM DIVERSOS FRAMEWORKS E PACKAGES,
+
+
+COMO 'DOCTRINE', 'SYMFONY', ETC...
+
+
+
+
+
+
+
+
+
+
+-> É CLARO QUE EXISTEM VÁRIAS DESVANTAGENS EM POTENCIAL,
+    NO USO DE ANNOTATIONS, COM O APPROACH DE ANNOTATIONS..
+
+
+
+
+
+
+
+
+
+
+
+
+-- VÁRIAS DESVANTAGENS, AINDA QUE ELAS 
+    SERÃO UTILIZADAS POR MTOS ANOS...
+
+
+
+
+
+
+
+
+
+--> DESVANTAGEM 1:
+
+
+
+
+
+''We ADD annotations ALONG WITH COMMENTS, 
+AND A WHOLE DOCBLOCK WITH ANNOTATIONS AND 
+COMMENTS  __ NO LONGER__ SERVES THE PURPOSE 
+OF "just providing information about the class/properties''...
+
+
+
+
+
+EX:
+
+
+class InvoiceController {
+
+    /**
+    * Processes the associated invoice payment 
+    * (... some other informational comments ...)
+    *
+    * @Route ('/invoices/${id}/process', 'POST')
+    */
+    protected function process()
+    {
+
+    }
+
+}
+
+
+
+
+--> QUANDO VC ADICIONA ANNOTATIONS,
+    ESSE BLOCO, QUE DEVERIA SER APENAS DE 'INFO',
+
+    PASSA 
+
+
+    A TER ALGUNS EFEITOS MALUCOS (behaviors),
+
+    QUANDO DEVERIA SER APENAS INFO ADICIONAL...
+
+
+
+
+
+
+
+
+--> DESVANTAGEM 2:
+
+
+
+--> PARA QUE ESSAS ANNOTATIONS TENHAM ALGUM EFEITO REAL,
+    SEMPRE 'SOME KIND OF PARSING NEEDS TO HAPPEN', para handlar 
+    essas complex annotations...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA CONSERTAR ISSO, CRIARAM UMA NOVA FEATURE DO 
+    PHP,
+
+
+    OS ATTRIBUTES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ''THERE IS A BETTER WAY, WHICH IS NOW DIRECTLY BUILT-IN, AS A FIRST-CLASS 
+CITIZEN, INTO PHP SINCE VERSION 8.0, WHICH IS __ ATTRIBUTES__...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ANNOTATION EXAMPLE:
+
+
+class InvoiceController extends AbstractController 
+{
+    /**
+    * @Route("/invoices", name="invoices_list")
+    */
+    public function index()
+    {
+        //...
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+    * @Route("/invoices", name="invoices_list")
+
+
+
+
+
+
+--> isso aí, essa __ANNOTATION__, É USADA 
+
+    PARA 'EMBED THE METADATA INTO THE CODE'...
+
+
+
+
+--> ESSE É UM EXEMPLO __ TIRADO __ DO FRAMEWORK 
+    DO 'SYMFONY'...
+
+
+
+--> ESSA METADATA, EMBEDADA NO CÓDIGO, 
+É ENTÃO 'PARSED' E _ USADA_ PARA REGISTRAR A ROUTE...
+
+
+
+
+
+
+
+
+
+-> MAS O SYMFONY JÁ ADICIONOU SUPORTE A ATTRIBUTES...
+
+    ESSE MESMO CÓDIGO,
+
+    COM ATTRIBUTES,
+
+
+    FICA TIPO ASSIM:
+
+
+
+
+
+
+
+    
+class InvoiceController extends AbstractController 
+{
+    
+    #[Route("/invoices", name="invoices_list")]
+    public function index()
+    {
+        //...
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE OBSERVAR, ATTRIBUTES E ANNOTATIONS 
+
+SÃO _ PARECIDOS_,
+
+
+MAS NÃO SÃO IGUAIS...
+
+
+
+
+
+
+--> ''THEY PROVIDE THE SAME FUNCTIONALITY: PROVIDING METADATA...''
+
+
+
+
+
+
+--> ''THE SAME FUNCTIONALITY, 
+        BUT __ ATTRIBUTES _ HAVE MORE FEATURES, AND PROVIDE A BETTER 
+        STRUCTURE AND VALIDATION...''
+
+
+
+
+
+
+
+
+    
+
+
+
+AGORA DEVEMOS CRIAR ALGUNS ATTRIBUTES,
+
+E EXAMINAR A SINTAXE...
+
+
+
+
+
+
+
+
+
+
+VAMOS USAR O MESMO CÓDIGO DE ROUTER DAS AULAS ANTERIORES...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+use App\App;
+use App\Config;
+use App\Container;
+use App\Controllers\GeneratorExampleController;
+use App\Controllers\HomeController;
+use App\Router;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+define('STORAGE_PATH', __DIR__ . '/../storage');
+define('VIEW_PATH', __DIR__ . '/../views');
+
+$container = new Container();
+$router    = new Router($container);
+
+$router
+    ->get('/', [HomeController::class, 'index'])
+    ->get('/examples/generator', [GeneratorExampleController::class, 'index']);
+
+(new App(
+    $container,
+    $router,
+    ['uri' => $_SERVER['REQUEST_URI'], 'method' => $_SERVER['REQUEST_METHOD']],
+    new Config($_ENV)
+))->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+É UM ROUTER SIMPLES...
+
+
+
+
+
+
+
+--> funciona por meio do register e resolve das routes...
+
+
+
+
+
+
+
+
+
+-> VAMOS PLAY AROUND COM NOSSA IMPLEMENTAÇÃO DE ROUTER,
+    PARA QUE ELE FUNCIONE COM ATTRIBUTES....
+
+
+
+
+
+--> ''THE GOAL IS TO NOT HAVE TO REGISTER 
+    ROUTES MANUALLY LIKE WE ARE DOING 
+
+    (
+        com este trecho:
+
+        '''
+
+        $router
+    ->get('/', [HomeController::class, 'index'])
+    ->get('/examples/generator', [GeneratorExampleController::class, 'index']);
+
+
+            ''''
+
+    ),
+
+
+    BUT, INSTEAD, EMBED THE ROUTE METADATA __ DIRECTLY WITHIN 
+    THE CONTROLLER METHODS...
+
+
+
+
+
+
+
+
+
+
+-> OK... A PRIMEIRA COISA QUE FAZEMOS É ABRIR 
+
+O CONTROLLER DE 'HomeController':
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+namespace App\Controllers;
+
+use App\Services\InvoiceService;
+use App\View;
+
+class HomeController
+{
+    public function __construct(private InvoiceService $invoiceService)
+    {
+    }
+
+    public function index(): View
+    {
+        $this->invoiceService->process([], 25);
+
+        return View::make('index');
+    }
+}
+
+
+
+
+
+
+
+
+
+-> TEMOS ESSE METHOD AÍ, DE 'index()'...
+
+
+
+
+
+
+
+
+
+
+--> QUEREMOS ADICIONAR O 'ATTRIBUTE METADATA'
+
+DIRETAMENTE A ESSE METHOD, NO HOME CONTROLLER...
+
+
+
+
+
+
+
+--> PARA ESCREVER A SINTAXE DE ATTRIBUTES, FAZEMOS ASSIM:
+
+
+
+
+
+
+
+#[] 
+
+
+
+
+
+
+
+
+
+
+--> DEPOIS DISSO, DENTRO DOS BRACKETS,
+
+    TEMOS QUE ESPECIFICAR 
+
+
+    ''THE ATTRIBUTE'S CLASS''...
+
+
+
+
+
+--> NO NOSSO CASO,
+    DEFINIMOS QUE TEREMOS ALGUM 
+
+
+    TIPO DE 'Route' attribute:
+
+
+
+
+
+
+
+
+
+#[Route] 
+
+
+
+
+
+
+
+
+--> CERTO... 
+
+
+
+
+
+
+
+
+--> AÍ, OPCIONALMENTE, PODEMOS USAR '()' 
+
+    E PASSAR CONSTRUCTOR ARGUMENTS...
+
+
+
+
+
+--> AÍ, NESSE SLOT, VAMOS PASSAR O 'ROUTE PATH',
+    COMO CONSTRUCTOR ARGUMENT...
+
+
+
+
+
+
+--> PRIMEIRAMENTE, COLOCAREMOS A ROUTE DE '/'... (home)..
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+    #[Route('/')]
+    public function index(): View
+    {
+        $this->invoiceService->process([], 25);
+
+        return View::make('index');
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COM ESSE ATTRIBUTE/ANNOTATION,
+    FAREMOS COM QUE 
+
+    O CONTROLLER DE 'HOME CONTROLLER'
+
+    FAÇA 
+
+    'LISTEN TO' 
+
+    A 
+    ESSA ROUTE ESPECÍFICA...
+
+
+
+
+
+
+
+
+
+-> DEPOIS DISSO, PRECISAMOS ACTUALLY CRIAR ESSA CLASS,
+    A CLASS DE 'Route',
+    referenciada nesse ATTRIBUTE...
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, CRIAMOS ESSA CLASS, DENTRO DO NAMESPACE DE 'Attributes',
+
+DENTRO DA PASTA DE 'Attributes',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Attributes;
+
+class Route
+{
+    public function __construct(public string $routePath, string $method = 'get') {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+-> ou seja,
+ 
+ terá 2 parameters,
+
+
+ o 'routePath' e o 'method'...
+
+
+
+
+ --> O VALUE DEFAULT SERÁ DE 'get'...
+
+
+
+
+
+
+
+
+
+ --> MAS É CLARO QUE ISSO AÍ 
+
+    _NÃO SERÁ UMA ATTRIBUTE CLASS, AINDA...
+
+
+
+
+
+
+
+
+
+--> NO CASO, ISSO AINDA É UMA REGULAR PHP CLASS...
+
+
+
+
+
+
+
+
+
+--> PARA __ FAZER_ COM QUE _ ISSO SEJA 
+    1 ATTRIBUTE CLASS,
+
+
+    PRECISAMOS __ ADICIONAR 
+
+
+    O ATTRIBUTE DE 'Attribute'
+
+    A ELA...
+
+
+
+
+
+--> NO CASO,
+
+    DEVEMOS ADICIONAR OUTRO 
+
+
+    "#[]",
+
+
+
+
+MAS NA CLASS EM SI...
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Attributes;
+
+// This is an example of how to create an attribute (and use it, in the HomeController.php file)
+
+#[\Attribute]
+class Route
+{
+    public function __construct(public string $routePath, string $method = 'get') {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+começamos assim, basicamente...
+
+
+
+
+
+
+
+
+
+
+--> ISSO FEITO,
+
+
+LÁ NO CONTROLLER DE HOMECONTROLLER,
+
+PODEMOS IMPORTAR ESSA CLASS,
+
+TIPO ASSIM:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Attributes;
+
+// This is an example of how to create an attribute (and use it, in the HomeController.php file)
+
+#[\Attribute]
+class Route
+{
+    public function __construct(public string $routePath, string $method = 'get') {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Services\InvoiceService;
+use App\View;
+
+class HomeController
+{
+    public function __construct(private InvoiceService $invoiceService) {}
+
+    #[Route('/')]
+    public function index(): View
+    {
+        $this->invoiceService->process([], 25);
+
+        return View::make('index');
+    }
+}
+
+
+
+
+
+
+
+MAS  ISSO NÃO É O BASTANTE...
+
+
+
+
+
+
+É PQ __ ATTRIBUTES 'ARE JUST METADATA'...
+
+
+
+
+
+
+
+
+
+
+
+--> WE NEED TO BUILD _ THE ACTUAL HANDLING 
+    ON WHAT TO DO WITH THIS METADATA...
+
+
+
+
+
+
+
+
+
+
+
+--> O QUE PRECISAMOS FAZER, PARA QUE ISSO FUNCIONE,
+
+É:
+
+
+
+
+
+''''WE NEED, SOME WAY OR ANOTHER, 
+    TO GET __ THE ROUTE ATTRIBUTES FROM __ ALL THE METHODS,
+    OF ALL THE CONTROLLERS, AND REGISTER THE ROUTES 
+    AUTOMATICALLY....''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> BASICAMENTE, PRECISAMOS GANHAR ACESSO ao 'Route' attribute...   
+    COM ACESSO A ESSE ATTRIBUTE, PRECISAMOS GANHAR 
+    ACESSO 
+
+    AO 'Route',
+
+
+
+    E AÍ, DE ALGUMA FORMA, REGISTRAR __ ESSA ROUTE (de '/'), 
+
+    COM O METHOD DE 'index()',
+
+    
+    NO CONTROLLER DE 
+
+    HOMECONTROLLER...
+
+
+
+
+
+
+--> BASICAMENTE, PRECISAMOS REPRODUZIR, COM ATTRIBUTES,
+ESTE CÓDIGO AQUI:
+
+
+
+$router
+    ->get('/', [HomeController::class, 'index'])
+    ->get('/examples/generator', [GeneratorExampleController::class, 'index']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS PRECISAMOS FAZER ISSO AUTOMATICAMENTE,
+    SEM MANUALMENTE REGISTRAR TODAS AS ROUTES...
+
+
+
+
+
+
+
+
+
+
+--> PARA ACESSAR ATTRIBUTES,
+    PRECISAMOS USAR A __ REFLECTION API_...
+
+
+
+
+
+
+
+
+
+
+--> SE ABRIMOS OS DOCS DE REFLECTION API,
+
+
+
+ENCONTRAMOS QUE 
+
+
+''ReflectionClass has a method called '::getAttributes()''...
+
+
+
+
+
+
+
+--> ESSE METHOD FAZ O RETURN DE 1 ARRAY __DE ATTRIBUTE 
+OBJECTS (no caso, 'ReflectionAttribute')..
+
+
+
+
+
+---> AÍ, COM ISSO,
+
+
+    PODEMOS CHAMAR OS METHODS DE '->getName()' 
+
+                                    E 
+
+                                '->getArguments()',
+
+                                nesse object, para 
+
+                                CONSEGUIRMOS FURTHER INFORMATION...
+
+
+
+
+
+
+
+
+
+--> OK... MAS A PERGUNTA É: ONDE DEVEMOS CONSTRUIR ESSA LÓGICA?
+
+
+
+
+
+
+
+
+
+
+
+
+--> O LUGAR MAIS ÓBVIO SERIA O NOSSO 'Router.php',
+    A CLASS,
+
+    pq 
+
+    É 
+
+    NESSE LOCAL QUE 
+
+    ESTAMOS CONSTRUINDO A ROUTING LOGIC..
+
+
+
+
+
+
+
+
+-> ATUALMENTE, O CÓDIGO DESSE ROUTER ESTÁ ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App;
+
+use App\Exceptions\RouteNotFoundException;
+
+class Router
+{
+    private array $routes = [];
+
+    public function __construct(private Container $container)
+    {
+    }
+
+    public function register(string $requestMethod, string $route, callable|array $action): self
+    {
+        $this->routes[$requestMethod][$route] = $action;
+
+        return $this;
+    }
+
+    public function get(string $route, callable|array $action): self
+    {
+        return $this->register('get', $route, $action);
+    }
+
+    public function post(string $route, callable|array $action): self
+    {
+        return $this->register('post', $route, $action);
+    }
+
+    public function routes(): array
+    {
+        return $this->routes;
+    }
+
+    public function resolve(string $requestUri, string $requestMethod)
+    {
+        $route = explode('?', $requestUri)[0];
+        $action = $this->routes[$requestMethod][$route] ?? null;
+
+        if (! $action) {
+            throw new RouteNotFoundException();
+        }
+
+        if (is_callable($action)) {
+            return call_user_func($action);
+        }
+
+        [$class, $method] = $action;
+
+        if (class_exists($class)) {
+            $class = $this->container->get($class);
+
+            if (method_exists($class, $method)) {
+                return call_user_func_array([$class, $method], []);
+            }
+        }
+
+        throw new RouteNotFoundException();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK...
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR EXPLICA QUE PODEMOS ADICIONAR 1 METHOD DENTRO DESSA CLASS,
+
+1 METHOD DE NOME 
+
+
+ 
+
+ 'registerRoutesFromAttributes() {}'
+
+
+
+
+
+
+
+
+
+
+
+
+
+ --> O PROFESSOR ESCREVE ASSIM:
+
+
+
+
+
+
+
+
+
+ public function registerRoutesFromControllerAttributes() {
+
+ }
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use App\Exceptions\RouteNotFoundException;
+
+class Router
+{
+    private array $routes = [];
+
+    public function __construct(private Container $container) {}
+
+    public function registerRoutesFromControllerAttributes() {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS PRECISAMOS DE ALGUM TRUQUE 
+
+PARA  
+
+CONSEGUIR 
+
+ACESSAR 
+
+TODOS OS CONTROLLERS DE NOSSO APP...
+
+
+
+
+
+--> PRECISAMOS ACESSAR TODOS ESSES CONTROLLERS PARA QUE 
+    CONSIGAMOS CRIAR 'ReflectionClass' objects (para que consigamos pegar os ReflectionAttribute dessas classes/controllers)...
+
+
+
+
+
+
+
+
+
+
+--> BEM, HÁ 
+    ALGUMAS MANEIRAS DE FAZER ISSO...
+
+
+
+
+
+
+
+
+    AS MANEIRAS SÃO:
+
+
+
+
+
+
+1) ''ITERATE OVER THE CONTROLLERS DIRECTORY, AND THEN GET ALL CONTROLLERS THAT WAY...''
+
+
+
+
+
+    --> OK... MAS, PARA ISSO, PRECISARÍAMOS GARANTIR QUE 
+        O RESULT SEJA CACHEADO EM ALGUM LUGAR, TUDO PARA QUE 
+        NÃO TENHAMOS QUE FAZER ISSO 'EVERY SINGLE TIME' que 1 request chega,
+
+        para que não enfrentemos performance issues... (pq, dependendo de nosso use-case,
+                                                        o folder de controllers pode ficar bem largo)
+
+
+
+2) ''WE CAN ACCEPT A LIST OF CONTROLLERS, VIA CONSTRUCTOR, 
+    WITHIN OUR ROUTER CLASS, OR VIA the registerRoutesFromControllerAttributes method...''
+
+
+
+        --> IN THIS CASE, THE TEACHER IS GOING TO ACCEPT IT IN THE METHOD...
+
+
+
+        --> WE ACCEPT AN ARRAY OF CONTROLLERS, IN THIS METHOD...
+
+
+
+        --> AND THEN WE CALL THAT METHOD, FROM 'index.php'...
+
+
+
+        TIPO ASSIM:
+
+
+
+
+
+    
+
+
+
+
+    public function registerRoutesFromControllerAttributes(array $controllers) {}
+
+
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Controllers\GeneratorExampleController;
+use App\Controllers\HomeController;
+use App\App;
+use App\Config;
+use App\Container;
+use App\Router;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+define('STORAGE_PATH', __DIR__ . '/../storage');
+define('VIEW_PATH', __DIR__ . '/../views');
+
+$container = new Container();
+$router = new Router($container);
+
+$router->registerRoutesFromControllerAttributes([
+    HomeController::class,
+    GeneratorExampleController::class,
+]);
+
+(new App(
+    $container,
+    $router,
+    ['uri' => $_SERVER['REQUEST_URI'], 'method' => $_SERVER['REQUEST_METHOD']],
+    new Config($_ENV)
+))->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+-> PASSAMOS NOSSOS CONTROLLERS LÁ...
+
+
+
+
+
+
+
+
+
+
+ 
+O PROFESSOR ESCLARECE QUE HÁ MTAS MANEIRAS DIFERENTES DE IMPLEMENTAR 
+
+ISSO... E ESTA IMPLEMENTAÇÃO NÃO DEVE SER USADA EM PRODUCTION....
+
+
+
+
+
+
+PQ ELA NÃO TEM VÁRIAS FEATURES, COMO:
+
+
+
+
+1) ROUTE PARAMETERS 
+
+
+2) GROUPING 
+
+
+3) MIDDLEWARE SUPPORT...
+
+
+
+
+
+
+
+
+
+-> PARA PRODUCTION, DEVEMOS USAR AS ROUTING LIBRARIES MAIS WELL-MAINTAINED 
+E USED...
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+--> ESTE É APENAS UM EXEMPLO DE COMO ATTRIBUTES PODEM SER USADOS...
+
+
+
+
+
+
+
+
+
+
+->  COMEÇAMOS COM ESTE CÓDIGO:
+
+
+
+
+    public function registerRoutesFromControllerAttributes(array $controllers) {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> e queremos LOOPAR POR DENTRO DE CADA CONTROLLER...
+
+
+
+
+
+
+
+
+-> PARA ISSO, USAMOS 'foreach()',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+    public function registerRoutesFromControllerAttributes(array $controllers) {
+
+        foreach($controllers as $controller) {
+            $reflectionController = new \ReflectionClass($controller);
+        }
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+--> CRIAMOS UM OBJECT DE 'ReflectionClass'
+
+
+para cada 
+
+
+CONTROLLER 
+
+
+
+QUE FOI PASSADO...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+    public function registerRoutesFromControllerAttributes(array $controllers)
+    {
+        // With this, we get access to each controller object of our app.
+        foreach ($controllers as $controller) {
+            $reflectionController = new \ReflectionClass($controller);
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+com isso, estamos usando a REFLECTION API...
+
+
+
+
+
+
+
+
+
+
+-> DEPOIS DISSO, O PROFESSOR DECIDE FAZER LOOP THROUGH ALL THE METHODS 
+OF EACH CONTROLLER,
+
+TIPO ASSIM:
+
+
+
+
+
+
+    public function registerRoutesFromControllerAttributes(array $controllers)
+    {
+        // With this, we get access to each controller object of our app.
+        foreach ($controllers as $controller) {
+            $reflectionController = new \ReflectionClass($controller);
+
+            foreach ($reflectionController->getMethods() as $method) {
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, PODEMOS USAR '$method->getAttributes()',
+
+PARA CONSEGUIR TODOS ATTRIBUTES DE CADA METHOD...
+
+
+
+ex:
+
+
+
+
+
+
+    public function registerRoutesFromControllerAttributes(array $controllers)
+    {
+        // * With this, we get access to each controller object of our app.
+        foreach ($controllers as $controller) {
+            $reflectionController = new \ReflectionClass($controller);
+
+            // * Get all methods, of each controller.
+            foreach ($reflectionController->getMethods() as $method) {
+                // * Get all attributes, of each method.
+                $attributes = $method->getAttributes();
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS 1 PROBLEMA, AQUI, É QUE 
+
+'getAttributes()'
+
+
+RETORNA __ TODOS __ OS ATTRIBUTES ASSOCIADOS COM CADA METHOD... 
+
+
+ENTRETANTO, NESSE CASO AQUI, SÓ NOS IMPORTAMOS COM OS METHODS RELACIONADOS COM 
+'Route' (Route-specific)..
+
+
+
+
+
+É POR ISSO QUE ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+    public function registerRoutesFromControllerAttributes(array $controllers)
+    {
+        // * With this, we get access to each controller object of our app.
+        foreach ($controllers as $controller) {
+            $reflectionController = new \ReflectionClass($controller);
+
+            // * Get all methods, of each controller.
+            foreach ($reflectionController->getMethods() as $method) {
+                // * Get all attributes related to the 'Route' attribute, routing-related, of each method.
+                $attributes = $method->getAttributes(Route::class);
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    --> ISSO É POSSÍVEL PQ A DEFINIÇÃO DE 
+
+    'getAttributes' é assim:
+
+
+
+
+
+
+    public function getAttributes(?string $name = null, int $flags = 0): array {}
+
+
+
+
+
+
+
+
+    ISSO SIGNIFICA QUE O PRIMEIRO PARAMETER É UM NAME,
+
+    É UM FULLY QUALIFIED CLASSNAME...
+
+
+
+
+
+
+--> ''THE NAME OF AN ATTRIBUTE CLASS'' -> é por isso que podemos PASSAR O CLASSNAME DE 
+
+'Route',
+
+
+aquela class lá, que criamos antes:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Attributes;
+
+// This is an example of how to create an attribute (and use it, in the HomeController.php file)
+
+#[\Attribute]
+class Route
+{
+    public function __construct(public string $routePath, string $method = 'get') {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK.... AGORA QUE TEMOS ACESSO A TODOS OS ROUTE ATTRIBUTES,
+
+PRECISAMOS FAZER LOOP POR CADA ROUTE ATTRIBUTE,
+
+
+
+''AND WE NEED TO CREATE AN INSTANCE OF THE ACTUAL ROUTE ATTRIBUTE CLASS,
+
+TO HAVE ACCESS TO ITS PROPERTIES AND METHODS''...
+
+
+
+
+
+ou seja,
+
+uma instance da class mostrada  acima...
+
+
+
+
+
+PRECISAMOS DE ACESSO A ELA PARA QUE TENHAMOS 
+ACESSO 
+
+AO '$routePath' e 
+
+ao 
+
+
+'$RouteMethod' parameters...
+
+
+
+
+
+
+
+PRECISAMOS ACESSAR ISTO:
+
+
+
+
+    public function __construct(public string $routePath, string $method = 'get') {}
+
+
+PARA QUE CONSIGAMOS 
+
+
+'REGISTER OUR ROUTES AUTOMATICALLY'....
+
+
+
+
+
+
+
+
+
+
+
+
+É POR ISSO QUE VAMOS RODAR TIPO 
+
+
+
+foreach($attributes as $attribute) {
+
+    $route = $attribute->newInstance();
+}
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+
+
+USAMOS 'newInstance()'
+
+PARA CRIAR 
+
+1 NOVA INSTANCE 
+
+
+
+DE CADA 'ATTRIBUTE'...
+
+
+
+
+(que será 1 object com routePath e routeMethod)...
+
+
+
+
+
+
+
+
+
+
+
+CERTO... 
+
+
+
+
+
+
+
+
+AÍ O PROFESSOR DESTACA:
+
+
+
+'''THE VALIDATION ON THE 
+    ATTRIBUTE CLASS __ DOES NOT _ HAPPEN 
+
+    UNTIL A _NEW _INSTANCE_ OF THE _ ATTRIBUTE 
+    IS CREATED....'''
+
+
+
+
+    ''THIS MEANS THAT IF WE DO SOME MISTAKE
