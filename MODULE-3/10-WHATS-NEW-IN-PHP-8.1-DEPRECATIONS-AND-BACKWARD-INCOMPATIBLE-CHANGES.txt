@@ -3924,7 +3924,33 @@ B) YOU WANT TO EXIT AND STOP THE SCRIPT EXECUTION,
 
 
 
-DEPOIS DISSO, TEMOS A FEATURE DE 'ARRAY_IS_LIST'...
+DEPOIS DISSO, A PRÓXIMA FEATURE É 
+
+A FUNCTION DE 
+
+
+'ARRAY_IS_LIST()'...
+
+
+
+
+
+
+
+
+
+-------------------------------------------
+
+
+
+
+
+
+
+
+
+
+6) ARRAY_IS_LIST();
 
 
 
@@ -3936,3 +3962,2203 @@ DEPOIS DISSO, TEMOS A FEATURE DE 'ARRAY_IS_LIST'...
 
 
 
+
+
+
+-> 'LISTS' SÃO CONSIDERADOS 
+    ARRAYS__ EM QUE 
+    AS KEYS COMEÇAM 
+
+    EM '0' E VÃO SENDO ORDENADOS NORMALMENTE 
+
+
+
+    (ordem 0123456789..., como arrays javascript comuns)...
+
+
+
+EX: ['a', 'b', 'c']; /// É UM ARRAY DE TIPO 'LIST'...
+    [1, 2, 3]; // É UM ARRAY DE TIPO 'LIST'...
+
+
+
+
+
+-> NO CASo,
+    
+    ASSOCIATIVE ARRAYS 
+
+    E 
+
+    'ARRAYS WITH UNORDERED KEYS' 
+
+
+NÃO SÃO CONSIDERADOS COMO arrays de tipo 'list'...
+
+
+
+EX:
+    ['firstName' => 'Gio']; // NÃO É UM ARRAY DE TIPO 'LIST'
+    ['a', 3 => 'b', 'c'];  // NÃO É UM ARRAY DE TIPO 'LIST'
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO EXEMPLO DISSO, O PROFESSOR TEM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+$list = ['a', 'b', 'c'];  // this is an array of type 'list'. It is considered a list.
+
+$list2 = [1, 2, 3];  // this is an array of type 'list'. It is considered a list.
+
+$notList = ['a' => 1, 'b' => 2, 'c' => 3];  // this is an ASSOCIATIVE ARRAY. It is NOT considered a list.
+
+$notList2 = ['a', 'b' => 2, 'c'];  // this is an UNORDERED ARRAY. It is NOT considered a list.
+
+var_dump(array_is_list($list));  // Will return true
+var_dump(array_is_list($list2));  // Will return true
+var_dump(array_is_list($notList));  // Will return false
+var_dump(array_is_list($notList2));  // Will return false
+
+// OUTPUT:
+// bool(true)
+// bool(true)
+// bool(false)
+// bool(false)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> isso é útil pq ÀS VEZES VC __ VAI QUERER 
+
+    __GARANTIR _ QUE 1 GIVEN ARRAY SERÁ UMA LIST...
+
+
+    COM ISSO, VC __ GARANTE QUE OS VALUES NO ARRAY 
+    TERÃO INDEXES/KEYS QUE SERÃO 'ORDERED SEQUENTIALLY'...
+
+
+
+
+
+
+
+
+--> EX: ''WHEN YOU USE THE 
+            ARRAY_FILTER() FUNCTION,
+
+            TO FILTER OUT THE VALUES,
+            
+            IT __ DOES _ NOT RE-ORDER 
+
+            THE VALUES... AND TO CHECK THAT
+            THEY ARE NOT RE-ORDERED,
+
+
+            WE CAN USE 'array_is_list()'... '''
+
+
+
+
+            ''AND IF WE FIND OUT THAT THE LIST 
+            IS NOT RE-ORDERED CORRECTLY,
+            WE CAN CORRECT THAT, BY 
+            USING THE 
+
+            array_values() function...'''
+        
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+$list = ['a', 'b', 'c'];  // this is an array of type 'list'. It is considered a list.
+
+$list2 = [1, 2, 3];  // this is an array of type 'list'. It is considered a list.
+
+$notList = ['a' => 1, 'b' => 2, 'c' => 3];  // this is an ASSOCIATIVE ARRAY. It is NOT considered a list.
+
+$notList2 = ['a', 'b' => 2, 'c'];  // this is an UNORDERED ARRAY. It is NOT considered a list.
+
+var_dump(array_is_list($list));  // Will return true
+var_dump(array_is_list($list2));  // Will return true
+var_dump(array_is_list($notList));  // Will return false
+var_dump(array_is_list($notList2));  // Will return false
+
+// OUTPUT:
+// bool(true)
+// bool(true)
+// bool(false)
+// bool(false)
+
+$list = array_filter($list, fn(string $value) => $value !== 'b');  // * 'array_filter()' will return an UNORDERED ARRAY, as the 'b' element will be removed, and the indexes won't be updated.
+
+var_dump(array_is_list($list));  // * This will return false, as the array is now an UNORDERED ARRAY.
+
+// TODO - To fix that, we can RE-ORDER THE ARRAY, using the function array_values():
+
+$list = array_values($list);  // * This will return an ORDERED ARRAY.
+
+var_dump(array_is_list($list));  // * Will return true
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... ISSO REALMENTE FUNCIONOU...
+
+
+
+
+
+
+
+
+O 'array_values()'
+
+RE-ORDENOU O ARRAY...
+
+
+
+
+
+
+AÍ, DEPOIS DISSO, USEI 'array_is_list()'
+
+PARA CHECAR 
+
+SE O NEGÓCIO FICOU REALMENTE UMA LIST, UMA 'ORDERED LIST'... UM 
+
+ARRAY ORDERED PROPERLY...
+
+
+
+
+
+
+
+
+------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, TEMOS A 7a nova feature, que é 
+
+
+
+'FIRST-CLASS CALLABLE SYNTAX'....
+
+
+
+
+
+
+
+
+
+
+
+
+7) FIRST-CLASS CALLABLE SYNTAX:
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O CÓDIGO-EXEMPLO É ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+function sum(float ...$num): float
+{
+    return array_sum($num);
+}
+
+$closure = Closure::fromCallable('sum');
+
+var_dump($closure);
+
+echo $closure(2, 5) . PHP_EOL;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EXPLICAÇÃO
+
+
+
+'''WE COULD CREATE CLOSURES 
+    FROM CALLABLES, BEFORE, BY CALLING THE 
+
+
+
+
+    ''::fromCallable()'' 
+
+    METHOD, ON THE 'Closure' CLASS...
+
+
+
+
+
+
+---> TIPO ASSIM:
+
+
+
+
+
+$closure = Closure::fromCallable('sum');
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS AGORA HÁ UMA 
+'FIRST-CLASS CALLABLE SYNTAX',
+
+
+QEU NOS DEIXA FAZER A MESMA COISA,
+ 
+
+
+
+
+MAS SEM TODO ESSE OVERHEAD 
+
+
+
+DE 
+
+
+
+
+TER DE ESCREVER 'Closure::' antes do call de 'fromCallable()'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NÓS COBRIMOS CLOSURES 
+    E CALLABLES 
+
+
+    __ NA PRIMEIRA PARTE DO CURSO...
+
+
+
+
+
+
+
+
+
+
+--> AÍ O PROFESSOR FAZ 1 VAR DUMP DA CLOSURE,
+
+
+E 1 ECHO DA CLOSURE DEPOIS 
+
+
+
+DE CHAMARMOS ELA, COM ALGUNS VALUES...
+
+
+
+
+
+
+
+
+EX:
+
+
+var_dump($closure);
+
+echo $closure(2, 5) . PHP_EOL;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> É CLARO QUE ESSA SINTAXE DE 
+
+'''
+$closure = Closure::fromCallable('sum');
+
+'''
+
+
+
+
+É A SINTAXE __ANTIGA_...
+
+
+
+
+
+
+
+
+
+A SINTAXE QUE É POSSÍVEL, AGORA,
+
+
+
+
+
+
+
+
+É ESCREVER SIMPLESMENTE ASSIM:
+
+
+
+
+
+
+
+
+
+$closure = sum(...);
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+function sum(float ...$num): float
+{
+    return array_sum($num);
+}
+
+$closure = Closure::fromCallable('sum');  // *Old Syntax/way of creating a Closure.
+
+$closure = sum(...);  // * New Syntax/way of creating a Closure.
+
+var_dump($closure);
+
+echo $closure(2, 5) . PHP_EOL;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+mas o que são closures?
+
+
+
+
+
+
+
+
+
+são isto:
+
+
+
+
+
+
+
+
+
+In PHP, a closure is a type of anonymous
+ function that can capture variables from its surrounding scope. 
+ Closures are particularly useful when you need to create a function that maintains
+  access to variables outside of its immediate scope, which is often useful in callbacks, 
+  functional programming, and working with higher-order functions.
+
+Here’s a basic overview of how closures work in PHP:
+
+Creating a Closure
+You can create a closure in PHP using the function keyword without giving the function a name:
+
+
+
+$myClosure = function($name) {
+    return "Hello, $name!";
+};
+
+
+
+
+
+
+
+
+
+PARA ACESSAR VARIABLES NO OUTSIDE SCOPE, COM CLOSURES, ESCREVEMOS ASSIM ('use'):
+
+
+
+
+
+$x = 1;
+
+
+// This type of anon function is called a closure. It is a function that has access to variables outside of its local scope (global scope, for example), with the 'use()' keyword.
+$sum5 = function (int|float ...$numbers) use ($x): void { // THIS WILL ALLOW US TO ACCESS A VARIABLE NOT DEFINED IN THIS SCOPE 
+    echo $x;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+BASICAMENTE, USAMOS CLOSURES QUANDO QUEREMOS 1 COMPORTAMENTO DE FUNCTION SIMILAR 
+
+AO VISTO NO JAVASCRIPT (em que podemos acessar variables externas a nossas functions)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+E, AGORA, PORTANTO,
+
+
+PARECE QUE PODEMOS 
+
+
+
+USAR 
+
+
+
+''''
+
+
+$closure = funcName(...); 
+
+
+''''
+
+
+
+
+
+
+
+PARA CRIAR CLOSURES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+You’re right, and I apologize for the 
+confusion earlier. PHP 8.1 introduced a new feature called "first-class callable syntax,"
+which allows you to reference functions or methods in a more concise way.
+This syntax lets you use 'function_name(...)' to create callable references,
+which is what you were referring to.
+
+
+
+
+
+
+
+
+
+
+
+
+
+PARECE QUE USAR 'use()' com essa sintaxe NÃO FUNCIONA...
+
+(quer dizer que o acesso a variables OUTSIDE THE SCOPE OF THE CLOSURE 
+    não funciona, com essa sintaxe... devemos usar a VELHA SINTAXE)
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, TEMOS A FEATURE 8...
+
+
+
+
+
+
+
+A FEATURE 8 É 
+
+
+
+
+
+''THE ABILITY TO USE THE 'new' KEYWORD _ ALSO __ IN INITIALIZERS....''
+
+
+
+
+
+
+
+
+-------------------------------
+
+
+
+
+
+
+
+
+
+
+8) 'new' KEYWORD IN INITIALIZERS:
+
+
+
+
+
+
+
+
+
+
+--> COMO VC SABE,
+    NÃO ERA POSSÍVEL __ USAR A KEYWORD DE 'new' QUANDO 
+
+    ERA O MOMENTO DE DEFINIR OS DEFAULT VALUES 
+
+    NO CONSTRUCTOR (com a feature das promoted properties, por exemplo)
+
+
+
+
+
+
+DESDE O PHP 8.1, ISSO É POSSÍVEL, MAS SOMENTE COM AS 
+PROMOTED PROPERTIES...
+ 
+
+
+
+
+
+
+
+eX:
+
+
+
+
+<?php declare(strict_types=1);
+
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+$customer = new Customer();
+
+var_dump($customer->address);
+
+
+
+
+E ISTO:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+class Customer
+{
+    // OLD SYNTAX
+    public function __construct(public ?Address $address = null) 
+    {
+        $this->address ??= new Address();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+BASICAMENTE, NESSE EXEMPLO:
+
+
+
+
+
+''WE HAVE A CUSTOMER CLASS, AND AN ADDRESS CLASS...''
+
+
+
+
+
+''THE POINT IS THAT, FROM WITHIN OUR CUSTOMER CLASS,
+    WE HAVE A CONSTRUCTOR __ WHERE __ 
+
+    WE ARE ACCEPTING AN OBJECT OF THE 'ADDRESS CLASS',
+
+    AND THEN SETTING THAT AS THE VALUE OF THE '$address' property...''
+
+
+
+
+
+
+-> IF NOTHING IS PASSED, WE ARE MAKING THIS AS NULLABLE...
+    ALL SO THAT YOU CAN CREATE AN OBJECT OF 'CUSTOMER' WITHOUT 
+    PASSING ANYTHING IN THE CONSTRUCTOR... -> AND __IF THAT'S 
+
+    THE CASE, IF THE '$address' PARAMETER IS NOT PASSED/NULL,
+
+    WE ARE SIMPLY CREATING A NEW __ BLANK __ ADDRESS OBJECT...
+
+
+
+
+
+
+
+
+
+
+
+--> THERE IS NOTHING WRONG WITH THIS SYNTAX, BUT THERE IS A 
+    BETTER WAY OF WRITING IT, IN PHP 8.1...
+
+
+
+
+
+
+
+
+
+COM ISSO, PODEMOS DEIXAR NOSSO CÓDIGO ASSIm:
+
+
+
+
+
+// * Since PHP 8.1, we can use the 'new' keyword in the initializer of a property, to create an object, and assign it to the property, as a default value:
+class Customer
+{
+    public function __construct(public Address $address = new Address()) {}
+}
+
+
+
+
+
+
+
+
+
+
+
+E ISSO TERÁ O MESMO EFEITO DE ANTES,
+
+
+1 DEFAULT VALUE OF 'empty address object',
+
+
+
+mas com bem menos boilerplate code...
+
+
+
+
+
+
+
+
+
+
+MAS A PERGUNTA QUE VC PODE TER, AQUI, É:
+
+
+
+
+
+
+
+
+
+''''DOES THIS HAVE ANY EFFECT ON THE PERFORMANCE??
+
+    DOES THE NEW OBJECT OF THE 'ADDRESS' CLASS ACTUALLY GET CREATED?
+
+    DOES IT __ GET CREATED _ EVERY SINGLE TIME THE 'Customer' OBJECT IS CREATED?'''
+
+
+
+
+    A RESPOSTA:
+
+
+
+''''NO, IT DOES _ NOT __ GET CREATED 
+    EVERY TIME A 'Customer' OBJECT IS CREATED (class is instantiated)...'''
+
+
+
+
+
+''IT ONLY CREATED WHEN __ THE 'Customer' OBJECT _IS CREATED 
+    AND __ NO ARGUMENT_ IS PASSED IN FOR THE '$address' parameter...''
+
+
+
+
+
+-> NO NOSSO CASO,
+    COMO ESTAMOS CHAMANDO DE FORMA SECA,
+
+    SEM PROVIDENCIAR ARGUMENTS,
+
+
+    1 NOVO 'ADDRESS OBJECT' CERTAMENTE SERÁ CRIADO...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+$customer = new Customer();
+
+var_dump($customer->address);
+
+
+
+
+
+E EX:
+
+
+
+
+
+
+// * Since PHP 8.1, we can use the 'new' keyword in the initializer of a property, to create an object, and assign it to the property, as a default value:
+class Customer
+{
+    public function __construct(public Address $address = new Address()) {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS SE PASSÁSSEMOS 1 OBJECT COMO PARAMETER DE 'new Customer',
+
+
+TIPO ASSIM:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+$customer = new Customer(new Address('Example Street', 12312));
+
+var_dump($customer->address);
+
+
+
+
+
+
+
+
+
+
+bem, se fizermos isso,
+
+
+O CÓDIGO 
+
+QUE DEFINE O VALUE DEFAULT DE '$address' 
+
+
+como sendo 
+'new Address()'
+
+
+
+NÃO SERÁ EXECUTADO...
+
+
+
+
+(PQ 1 VALUE REALMENTE FOI PASSADO, COMO ARGUMENT )....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OUTRO DETALHE:
+
+
+
+
+
+
+'''SOMETHING TO NOTE ABOUT THE 'new' KEYWORD, IN THE INITIALIZERS,
+    IS THAT _ WE ARE STILL _ NOT ABLE TO USE the 'new' KEYWORD 
+    IN PROPERTIES AND CONSTANTS...''
+
+
+
+
+
+--> ''HERE, IT IS ONLY ALLOWED BECAUSE WE ARE USING THE _ PROMOTED __ PROPERTIES 
+    FEATURE... AND THE DEFAULT VALUE GETS SET TO THE PARAMETER, AND THEN GETS ASSIGNED 
+    TO THE PROPERTY....''
+
+
+
+
+
+
+
+
+
+
+
+
+
+QUER DIZER QUE ALGO COMO ISTO NÃO É SUPORTADO:
+
+
+
+// * Since PHP 8.1, we can use the 'new' keyword in the initializer of a property, to create an object, and assign it to the property, as a default value:
+class Customer
+{
+
+    public Address $address = new Address(); // THIS IS NOT SUPPORTED.
+
+    public function __construct() {};
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ficamos com 1 error de 
+
+
+'Expression is not allowed as FIELD DEFAULT VALUE...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, TEMOS A FEATURE 9, QUE É 'final constants'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+9) 'FINAL CONSTANTS'
+
+
+
+
+
+
+
+
+--> É A ABILIDADE 
+    PARA _ MARCAR __ CLASS CONSTANTS COMO SENDO 'FINAL'...
+
+
+
+
+
+
+
+
+
+-> ''AS WE KNOW,
+     CLASS CONSTANTS COULD BE OVERRIDEN WHEN USING 
+     INHERITANCE (we covered that on the 2nd section of the series)....''
+
+
+
+
+
+
+
+
+
+--> ''TO AVOID THAT,
+        YOU CAN NOW MARK VARIABLES, USING THE 'final' keyword,
+
+        TO _ AVOID_  CONSTANT OVERRIDING...
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use PHP_8_1_Examples\FinalConstant\InvoiceQuery;
+
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+echo InvoiceQuery::DEFAULT_LIMIT;
+
+
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace PHP_8_1_Examples\FinalConstant;
+
+class InvoiceQuery extends TableQuery
+{
+    public const DEFAULT_LIMIT = 50;
+}
+
+
+
+
+E ASSIm:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace PHP_8_1_Examples\FinalConstant;
+
+class TableQuery
+{
+    public const DEFAULT_LIMIT = 25;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ -> CERTO...
+
+
+
+
+
+
+
+
+ NO CASO,
+  
+
+
+TEMOS 2 CLASSES, A 'InvoiceQuery' E A 'TableQuery'...
+
+
+
+
+
+
+
+
+
+
+
+-> o que está acontecendo, no caso,
+
+
+é o INHERIT, DA CLASS DE 'InvoiceQuery',
+
+
+DA CLASS DE 'TableQuery' (parent)....
+
+
+
+
+
+
+
+-> NO CASO, AO ACONTECER ESSE INHERIT, O VALUE DA CONSTANT 
+    DE 'DEFAULT_LIMIT' DA 'TableQuery'
+
+    ESTÁ 
+
+    SENDO _ OVERRIDEN PELO VALUE 
+
+
+    DE 'DEFAULT_LIMIT' DA 'InvoiceQuery'..
+
+
+
+
+
+
+
+
+
+
+
+
+
+->  É CLARO QUE ESSE 
+
+
+
+    echo,
+
+    de 
+
+
+
+
+
+echo InvoiceQuery::DEFAULT_LIMIT;
+
+
+
+
+
+
+VAI FAZER O PRINT DE 50,
+
+
+PQ ESSE É O VALUE 
+
+
+DA CHILD CLASS, QUE FEZ COM QUE ESSA SUA PROPERTY 
+
+FIZESSE OVERRIDE DO VALUE DA PARENT CLASS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+''''TO PREVENT OVERRIDING AND _ ENSURE __       
+    THAT CONSTANTS __ CANNOT _ BE OVERRIDEN WHEN 
+    USING INHERITANCE, WE CAN CONSTANTS BE FINAL, LIKE THIS:''
+
+
+    
+
+
+
+<?php declare(strict_types=1);
+
+namespace PHP_8_1_Examples\FinalConstant;
+
+class TableQuery
+{
+    // public const DEFAULT_LIMIT = 25; // * No 'final' keyword - this means that the constant can be changed by the child class, during runtime.
+    final public const DEFAULT_LIMIT = 25;  // * 'final' keyword present - this means that the constant CANNOT be changed by the child class, during runtime. If you try to do so, an exception gets thrown.
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+HÁ ALGUMAS OUTRAS CHANGES QUE PODEMOS VER NO CHANGELOG DO PHP 8.1...
+
+
+
+
+
+
+COMO 'fsync()',
+
+
+'fibers',
+
+etc...
+
+
+
+
+
+
+
+
+
+
+-> A RAZÃO DE O PROFESSOR NÃO 
+    FALAR DE 'FIBERS' AQUI
+    É QUE 
+
+    ESSE TÓPICO EXIGE 1 VIDEO/SERIE INTEIRA SEPARADA,
+
+
+
+
+ISSO 
+
+
+PQ 
+
+
+''ASYNC PHP''
+
+É SUA PRÓPRIA COISA,
+
+MAGIC BOX...
+
+
+
+
+
+
+
+
+-> E O ASYNC PHP INCLUI A FEATURE DE 'FIBERS'...
+
+
+
+
+''FIBERS'' -> ARE AN ADVANCED FEATURE THAT MOST USERS WILL NOT USE DIRECTLY..''
+
+
+
+
+
+
+
+
+
+-> FIBERS WILL MOSTLY BE USED THROUGH FRAMEWORKS/PACKAGES....
+
+
+
+
+
+
+
+
+
+
+
+
+-> UM FRAMEWORK QUE USA ISSO AÍ BASTANTE 
+
+É 
+
+'REACTPHP'... 
+
+
+
+
+
+
+
+
+
+
+
+
+REACTPHP ---------> É UMA LIBRARY...
+
+
+
+
+
+
+
+
+FRAMEWORK X --> É UM FRAMEWORK NOVO, QUE UTIILIZA ESSA FEATURE, DE FIBERS, ASYNC...
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR NÃO FEZ MT ASYNC PHP...
+
+
+
+
+
+
+
+
+
+--> HÁ ALGUMAS BACKWARD INCOMPATIBLE CHANGES 
+    E DEPRECATIONS... DEVEMOS ESTUDÁ-LAS...
+
+
+
+
+
+
+
+
+
+
+ALGUMAS DELAS:
+
+
+
+
+
+
+
+
+
+
+
+
+-- ''STATIC VARIABLES IN _ INHERITED METHODS __ 
+    ARE __ NOW SHARED, WHEN THEY ARE NOT OVERRIDEN....''
+
+
+
+
+
+
+
+
+
+
+
+
+'''When a method using static variables IS INHERITED (but not overriden), 
+    THE INHERITED METHOD WILL NOW __SHARE__ STATIC VARIABLES 
+    WITH THE PARENT METHOD...''
+
+
+
+
+
+
+
+
+
+
+
+PARA ENTENDER ISSO, DEVEMOS VER 1 EXEMPLO DO 
+
+'PHP MIGRATION GUIDE'...
+
+
+
+
+
+
+
+
+
+O EXEMPLO É ESTE:
+
+
+
+
+
+
+
+<?php 
+
+
+
+
+class A {
+
+    public static function counter() {
+        static $counter = 0;
+        $counter++;
+        return $counter;
+    }
+}
+
+
+
+class B extends A {};
+
+var_dump(A::counter()); // int(1)
+var_dump(A::counter()); // int(2)
+var_dump(B::counter()); // int(3), previously int(1)
+var_dump(B::counter()); // int(4), previously int(4)
+
+
+
+
+
+
+
+
+
+
+''THIS MEANS THAT STATIC VARIABLES IN METHODS NOW BEHAVE THE _ SAME WAY 
+AS STATIC PROPERTIES...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR PRIMEIRAMENTE RODA ISSO EM 'PHP 8.0'..
+
+
+
+
+
+NO PHP 8.0,
+
+ESTAMOS FICANDO COM 
+
+
+int 1 
+int 2 
+int 1 
+int 2 
+
+
+
+
+
+
+
+
+
+
+
+
+EXPLICAÇÃO:
+
+
+
+
+
+''''WE ARE DEFINING THE __ "COUNTER" 
+    VARIABLE, WHICH IS A __ STATIC VARIABLE, 
+    WITHIN THE STATIC METHOD 'counter',   
+    IN THE 
+
+    CLASS 'A''''..
+
+
+
+
+''WE ARE, THEN, INCREMENTING THAT COUNTER, AND THEN RETURNING IT...'''
+
+
+
+
+
+
+
+
+
+-> AÍ TEMOS A CLASS B, 
+    QUE INHERITA A CLASS B...
+
+
+
+
+
+
+
+O NEGÓCIO FICOU 1 2 1 2 
+
+
+
+
+
+JUSTAMENT PQ 
+
+
+
+AQUELA STATIC VARIABLE, DE '$counter',
+NÃO VAI 
+
+SER SHARED 
+
+
+
+ENTRE AS CLASSES, MESMO SENDO 'STATIC'...
+
+
+
+
+
+(ESSENTIALLY, ''WE ARE KEEPING TWO DIFFERENT STATIC VARIABLES,
+INSTEAD OF ONE... THEY ARE NOT BEING SHARED...'' )
+
+
+
+-> ENTRETANTO, COM O PHP 8.1,
+
+
+
+FICAMOS 
+
+QUE 
+
+A STATIC VARIABLE DE 
+
+'$counter'
+
+É SHARED 
+
+ENTRE AS CLASSES A E B....
+
+
+
+É POR ISSO QUE FICAMOS 
+
+
+COM O PRINT DE 1 2 3 4....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E É POR ISSO QUE ESSA É UMA BREAKING CHANGE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ TEMOS OUTRAS BACKWARDS INCOMPATIBLE CHANGES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> A OUTRA CHANGE É 
+
+A RESPEITO DO 'PDO'...
+
+
+
+
+
+
+
+
+
+-> ''PDO... --> AS YOU REMEMBER, THE TEACHER    
+                TALKED ABOUT THE EMULATED PREPARES...
+
+                AND THAT, IF YOU TURN OFF THE EMULATION
+                AND USE THE 
+
+                __NATIVE PREPARE STATEMENTS, 
+
+                THE RETURNED _ INTEGERS AND FLOATS 
+                FROM QUERIES ARE RESPECTED... 
+
+
+
+
+
+
+
+                ''WHEN YOU HAD EMULATED PREPARES ENABLED, THE 
+                RETURNED INTEGERS AND FLOATS WERE ALWAYS CONVERTED 
+                INTO STRINGS...'''
+
+
+
+
+
+
+
+            --> AGORA, COM A NOVA MUDANÇA,
+
+
+            ''EVEN WITH THE EMULATED PREPARES ENABLED, 
+                THE INTEGERS AND FLOATS, WHEN __ RETURNED 
+                FROM THE QUERIES, WILL BE RETURNED AS 
+                NATIVE PHP TYPES (and not converted into strings)...''
+
+
+
+
+
+
+-----------------------------
+
+
+
+
+
+
+AGORA, DEPOIS DISSO, FALAREMOS SOBRE 'DEPRECATIONS'...
+
+
+
+
+
+
+
+
+
+DEPRECATIONS:
+
+
+
+
+
+
+
+
+
+
+
+
+-- 'IMPLEMENTING Serializable CLASS without 
+    the '__serialize()' and '__unserialize()' METHODS
+
+    HAS BEEN __DEPRECATED...
+
+
+
+
+
+-- ''Passing 'null' to non-nullable parameters 
+    of BUILT-IN FUNCTIONS....''  ALSO DEPRECATED.
+
+
+
+
+
+-- ''Implicit incompatible flaot to int conversions'' ALSO DEPRECATED.
+
+
+
+
+
+
+
+
+
+--> COMO VC SABE, 
+
+O PHP FAZ 
+
+MT 'IMPLICIT TYPE CONVERSIONS'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+''AND, WHEN IT COMES TO FLOATS TO INT CONVERSIONS,
+SOMETIMES IT CAN RESULT IN THE LOSS OF PRECISION''...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+function foo (int $x)
+{
+    echo $x. PHP_EOL;
+}
+
+
+
+
+foo(2); 
+
+
+
+
+
+
+
+
+
+
+
+
+ESSA É UMA FUNCTION QUE APENAS FAZ O ECHO OUT DE ESSE INTEGER...
+
+
+
+
+
+--> MAS SE PASSARMOS 1 VALUE COMO '2.5',
+
+    VAMOS FICAR COM 'LOSS OF PRECISION'...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+function foo (int $x)
+{
+    echo $x. PHP_EOL;
+}
+
+
+
+
+foo(2.5); 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO ACONTECE/ACONTECERÁ JUSTAMENTE PQ 
+
+
+'2.5'
+
+
+SERÁ 
+
+
+'IMPLICITLY CONVERTED' 
+
+
+EM 1 INTEGER, E AÍ 
+ESSE '0.5'
+
+
+
+SERÁ _ IGNORED _ AND REMOVED...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--------> MAS SE TENTAMOS EXECUTAR ESSE MESMO CÓDIGO NO PHP 8.1,
+
+
+            FICAMOS COM ESTE ERROR:
+
+
+
+
+
+
+
+            ''Deprecated: Implicit Conversion from float 2.5 to int LOSES precision...''
+
+        
+
+
+
+
+
+
+--> JÁ EM PHP 8.0,
+
+ficamos 
+
+com 2.0...
+
+
+
+
+
+
+
+
+-> É CLARO QUE, SE VC TIVER STRICT TYPES ENABLED,
+
+VC NEM MESMO PODERIA RODAR ISSO AÍ...
+
+
+
+
+
+
+
+''SO THE DEPRECATION APPLIES ONLY WHEN STRICT TYPES ARE NOT ENABLED...''
+
+
+
+
+
+
+''NOTE THAT, IF THE IMPLICIT CONVERSION DOES NOT RESULT IN THE LOSS OF 
+PRECISION (like 2.0), NOTHING WILL BE LOST, AND NO DEPRECATION ERROR 
+WILL BE THROWN'...
+
+
+
+
+
+
+
+ACABAMOS...
