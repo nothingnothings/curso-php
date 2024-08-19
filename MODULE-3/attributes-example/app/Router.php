@@ -20,7 +20,15 @@ class Router
             // * Get all methods, of each controller.
             foreach ($reflectionController->getMethods() as $method) {
                 // * Get all attributes related to the 'Route' attribute, routing-related, of each method.
-                $attributes = $method->getAttributes(Route::class);
+                $attributes = $method->getAttributes(Route::class, \ReflectionAttribute::IS_INSTANCEOF);
+
+                foreach ($attributes as $attribute) {
+                    // * Get all routes, using each attribute.
+                    $route = $attribute->newInstance();
+
+                    // Register each route:
+                    $this->register($route->method, $route->routePath, [$controller, $method->getName()]);
+                }
             }
         }
     }

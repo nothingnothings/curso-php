@@ -2010,4 +2010,2293 @@ AÍ O PROFESSOR DESTACA:
 
 
 
-    ''THIS MEANS THAT IF WE DO SOME MISTAKE
+    ''THIS MEANS THAT IF WE DID SOME MISTAKE FROM 
+    WITHIN OUR 'ROUTE' CLASS, WITHIN THE CONSTRUCTOR 
+    OR SOMETHING LIKE THAT, WE _ WOULD NOT BE ABLE TO 
+    KNOW OR CATCH THE ERROR UNTIL A NEW INSTANCE OF THE 
+    ATTRIBUTE CLASS GOT CREATED'''...
+
+
+
+
+
+
+ok... o código inteiro ficou tipo assim:
+
+
+
+
+
+
+
+
+
+
+    public function registerRoutesFromControllerAttributes(array $controllers)
+    {
+        // * With this, we get access to each controller object of our app.
+        foreach ($controllers as $controller) {
+            $reflectionController = new \ReflectionClass($controller);
+
+            // * Get all methods, of each controller.
+            foreach ($reflectionController->getMethods() as $method) {
+                // * Get all attributes related to the 'Route' attribute, routing-related, of each method.
+                $attributes = $method->getAttributes(Route::class);
+
+                foreach ($attributes as $attribute) {
+                    // * Get all routes, using each attribute.
+                    $route = $attribute->newInstance();
+                }
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+    --> ok... 
+
+
+
+
+
+AGORA QUE TEMOS UMA INSTANCE DA CLASS DE 'ATTRIBUTE',
+
+
+FINALMENTE PODEMOS ACESSAR AS PROPERTIES DE 'routePath' e 'routeMethod'...
+
+
+
+
+
+-> ALÉM DISSO, TAMBÉM TEMOS ACESSO AO 'CONTROLLER' 
+                E ACESSO AOS METHOD NAMES,
+
+                JUSTAMENTE PQ TEMOS ACESSO à '$controller' e '$method'...
+
+
+
+
+        
+
+
+
+
+--> É POR ISSO QUE JÁ PODEMOS 
+    RODAR 
+
+    '$this->register($route->method, $route->routePath);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NO CASO, O CÓDIGO COMPLETO FICA TIPO:
+
+
+
+                    $this->register($route->method, $route->routePath, [$controller, $method->getName()]);
+
+
+
+
+
+
+
+
+
+
+
+E TIPO ASSIM:
+
+
+
+
+
+    public function registerRoutesFromControllerAttributes(array $controllers)
+    {
+        // * With this, we get access to each controller object of our app.
+        foreach ($controllers as $controller) {
+            $reflectionController = new \ReflectionClass($controller);
+
+            // * Get all methods, of each controller.
+            foreach ($reflectionController->getMethods() as $method) {
+                // * Get all attributes related to the 'Route' attribute, routing-related, of each method.
+                $attributes = $method->getAttributes(Route::class);
+
+                foreach ($attributes as $attribute) {
+                    // * Get all routes, using each attribute.
+                    $route = $attribute->newInstance();
+
+                    // Register each route:
+                    $this->register($route->method, $route->routePath, [$controller, $method->getName()]);
+                }
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... REFRESHAMOS A PÁGINA,
+E TUDO FUNCIONA 
+
+COMO ESPERADO..
+
+
+
+
+
+
+
+
+
+--> DEPOIS DISSO, O PROFESSOR FAZ 1 DUMP DO ARRAY DE ROUTES,
+
+PARA QUE CONSIGAMOS 
+
+''SEE THE ROUTES BEING REGISTERED,
+    WITHOUT THE NEED TO 'HIT' EVERY SINGLE 
+    ROUTE THAT WE ARE GOING TO BE REGISTERING THROUGH 
+    THE CONTROLLERS''
+
+
+
+
+
+O PROFESSOR QUER DEMONSTRAR QUE ISSO ESTÁ FUNCIONANDO
+
+
+SEM FAZER GET REQUESTS E ETC....
+
+
+
+
+
+
+
+
+ELE ESCREVE TIPO ASSIM:
+
+
+
+
+// *  With Attributes feature
+$router->registerRoutesFromControllerAttributes([
+    HomeController::class,
+    GeneratorExampleController::class,
+]);
+
+print_r($router->routes());
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+AÍ ENXERGAMOS ISTO:
+
+
+
+
+
+Array (
+    
+ [get] => Array (
+     [/] => Array (
+         [0] => App\Controllers\HomeController
+          [1] => index 
+          ) 
+          ) )
+
+
+
+
+
+
+
+
+
+
+
+    ou seja,
+
+
+    É UM ASSOCIATIVE ARRAY,
+
+    COM APENAS 1 ÚNICA ROUTE, QUE É A ROUTE DE 
+
+    '/'....
+
+
+
+    É A ÚNICA ROUTE QUE FOI REALMENTE REGISTERED...
+
+
+
+
+
+
+
+
+
+
+--> CERTO... DEVEMOS REGISTRAR MAIS ALGUMAS ROUTES...
+
+
+
+
+
+
+-> PODEMOS ADICIONAR A ROUTE DE 'index()'
+
+
+LÁ DO 'GeneratorExampleController'...
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Attributes\Route;
+use App\Models\Ticket;
+use Generator;
+
+class GeneratorExampleController
+{
+    public function __construct(private Ticket $ticketModel) {}
+
+    // * Example of using attributes to implement routing:
+    #[Route('/examples/generator')]
+    public function index()
+    {
+        $tickets = $this->ticketModel->all();
+
+        foreach ($tickets as $ticket) {
+            echo $ticket['id'] . ': ' . substr($ticket['content'], 0, 15) . '<br />';
+        }
+    }
+
+    private function lazyRange(int $start, int $end): Generator
+    {
+        for ($i = $start; $i <= $end; $i++) {
+            yield $i * 5 => $i;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> COMO ISSO, FICO COM ESTE PRINT, JÁ DE CARA:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Array (
+    [get] => Array (
+         [/] => Array ( 
+            [0] => App\Controllers\HomeController 
+            [1] => index 
+        )
+    [/examples/generator] => Array (
+         [0] => App\Controllers\GeneratorExampleController
+         [1] => index 
+          ) 
+          ) 
+        )
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+AGORA FICAMOS COM 2 ROUTES...
+
+
+
+
+/ 
+
+e 
+
+/examples/generator...
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... MAS AGORA O PROFESSOR QUER ADICIONAR MAIS ALGUMAS ROUTES,
+    MAS ROUTES DE 'POST' E DELETE...
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Attributes\Route;
+use App\Services\InvoiceService;
+use App\View;
+
+class HomeController
+{
+    public function __construct(private InvoiceService $invoiceService) {}
+
+    #[Route('/')]
+    public function index(): View
+    {
+        $this->invoiceService->process([], 25);
+
+        return View::make('index');
+    }
+
+    #[Route('/', 'post')]
+    public function store() {}
+
+    #[Route('/update', 'put')]
+    public function update() {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> É CLARO QUE 'post'
+
+NÃO PRECISARIA SER HARDCODADO AQUI...
+
+PODERÍAMOS UTILIZAR ENUMS, POR EXEMPLO...
+
+
+
+
+
+
+
+--> MAS VAMOS DEIXAR SÓ ASSIM, POR ENQUANTO...
+
+
+
+
+
+
+
+SE REFRESHAMOS A PAGE, FICAMOS COM ISTO:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Array ( 
+    [get] => Array ( 
+
+        [/] => Array ( 
+            [0] => App\Controllers\HomeController 
+            [1] => index ) 
+
+        [/examples/generator] => Array (
+             [0] => App\Controllers\GeneratorExampleController 
+             [1] => index 
+             ) ) 
+
+    [post] => Array ( 
+        [/] => Array ( 
+            [0] => App\Controllers\HomeController 
+            [1] => store ) )
+            
+    [put] => Array (
+        [/update] => Array ( 
+            [0] => App\Controllers\HomeController 
+            [1] => update ) )
+            
+             )
+
+
+
+
+
+
+
+
+COMO VC PODE VER, AGORA TEMOS ESSAS ROUTES DE 'POST' E 'PUT'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... AGORA DEVEMOS CONTINUAR...
+
+
+
+
+
+
+
+OUTRO TÓPICO:
+
+
+
+
+
+
+
+
+
+
+
+
+'''YOU CAN, ALSO, USE INHERITANCE AND IMPLEMENT 
+    INTERFACES IN YOUR ATTRIBUTES, IF NEEDED...''
+
+
+
+
+
+
+
+
+
+'''FOR EXAMPLE, WE COULD CREATE A 'RouteInterface',
+    AND THEN __IMPLEMENT__ THAT INTERFACE IN THE Route 
+    ATTRIBUTE...''''
+
+
+
+
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Attributes;
+
+// This is an example of how to create an attribute (and use it, in the HomeController.php file)
+
+#[\Attribute]
+class Route implements RouteInterface
+{
+    public function __construct(public string $routePath, public string $method = 'get') {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... AÍ PODEMOS CRIAR ESSA INTERFACE...
+
+
+
+
+
+
+
+
+--> CRIAMOS 
+ESSA INTERFACE NA PASTA DE 'INTERFACES'....
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Interfaces;
+
+interface RouteInterface {}
+
+
+
+
+
+
+
+
+
+
+
+E TUDO VAI FUNCIONAR, CONFORME O ESPERADO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- ''WE CAN ALSO CREATE 
+    SUB-CLASSES, FOR SPECIFIC REQUEST METHODS...''
+
+
+
+
+
+''RIGHT NOW, WE ARE HARCODING 'post' and 'put'...''
+
+
+
+
+
+
+
+
+
+
+--> NO MOMENTO, ESTAMOS ESCREVENDO ASSIM:
+
+
+
+
+    #[Route('/', 'post')]
+    public function store() {}
+
+    #[Route('/update', 'put')]
+    public function update() {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS SERIA LEGAL SE PUDÉSSEMOS ESCREVER ALGO COMO 
+
+
+
+
+    #[Get('/')]
+    public function index(): View
+    {
+        $this->invoiceService->process([], 25);
+
+        return View::make('index');
+    }
+
+
+    #[Post('/')]
+    public function store() {}
+
+    #[Put('/update')]
+    public function update() {}
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, O CÓDIGO FICARIA __ BEM MAIS STREAMLINED...
+
+
+
+
+
+
+
+
+
+
+--> MAS COMO PODERÍAMOS FAZER ISSO FUNCIONAR?
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA FAZER ISSO FUNCIONAR, 
+    PODERÍAMOS CRIAR ESSES 3 ATTRIBUTE CLASSES,
+
+    E AÍ __ FAZER __ EXTEND_ DA CLASS DE 'Route',
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Attributes;
+
+#[\Attribute]
+class Put extends Route
+{
+    public function __construct(public string $path)
+    {
+        parent::__construct($path, 'put');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+E, DEPOIS, ASSIM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Attributes\Get;
+use App\Attributes\Post;
+use App\Attributes\Put;
+use App\Attributes\Route;
+use App\Services\InvoiceService;
+use App\View;
+
+class HomeController
+{
+    public function __construct(private InvoiceService $invoiceService) {}
+
+    // #[Route('/')]
+    #[Get('/')]
+    public function index(): View
+    {
+        $this->invoiceService->process([], 25);
+
+        return View::make('index');
+    }
+
+    // #[Route('/', 'post')]
+    #[Post('/')]
+    public function store() {}
+
+    // #[Route('/update', 'put')]
+    #[Put('/update')]
+    public function update() {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... E AÍ TESTAMOS...
+
+
+
+
+
+
+
+MAS FICAMOS COM 1 ERROR:
+
+
+
+
+Array ( ) 404 Page Not Found
+
+
+
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE A INHERITANCE FALHOU, DE CERTA FORMA...
+
+
+
+
+
+
+
+
+
+
+
+-> quer dizer que todas nossas routes com o formato de 
+
+
+''
+
+
+    #[Get('/')]
+    public function index(): View
+    {
+        $this->invoiceService->process([], 25);
+
+        return View::make('index');
+    }
+
+    #[Post('/')]
+    public function store() {}
+
+    #[Put('/update')]
+    public function update() {}
+
+
+
+'''
+
+
+
+
+
+
+
+NÃO FORAM REGISTRADAS..
+
+
+
+
+
+
+
+
+MAS PQ ISSO N FUNCIONOU?
+
+
+
+
+
+
+
+
+
+
+
+
+-> A RAZÃO DE ISSO NÃO TER FUNCIONADO É 
+
+
+
+
+
+
+'''WE ARE TELLING PHP, IN OUR Router.php 
+class/file,
+
+to get ATTRIBUTES (getAttributes()) from the 
+
+ROUTER CLASS:''
+
+
+
+
+
+
+
+               $attributes = $method->getAttributes(Route::class);
+
+
+
+
+
+
+
+
+''HOWEVER, THE ATTRIBUTES IN THE HOMECONTROLLER 
+ ARE ___NOT EXACTLY__ ROUTE OBJECTS, EVEN THOUGH 
+ THEY EXTEND THE 'Route' ATTRIBUTE CLASS...''
+
+
+
+
+
+
+
+
+
+
+ ''what we need to do, here, is tell the REFLECTION 
+   METHOD TO 'GIVE US ANY __ ATTRIBUTE __ THAT EXTENDS THE 
+   Route CLASS, OR ANY ATTRIBUTE THAT IS 'instanceof' the 
+   Route class''...
+
+
+
+
+
+
+
+
+
+
+
+--> para conseguir expressarmos isso,
+    precisamos do SEGUNDO PARAMETER DE 'getAttributes',
+
+    que é 
+
+
+    '$flags'... 
+
+
+
+
+
+    '$flags'--> 'IS THE CRITERIA BY _ WHICH_ THE ATTRIBUTE IS __ SEARCHED''..
+
+
+
+
+
+
+
+-> QUER DIZER QUE PODEMOS 
+    PASSAR UMA 'FLAG CONSTANT',
+    PARA ESPECIFICAR QUE 
+
+
+
+
+'''WE WANT ANY ATTRIBUTE __ 
+    THAT __ IS __ INSTANCEOF the 
+    'Route' class....''
+
+
+
+
+
+
+
+
+
+--> ESSA FLAG CONSTANT, NO CASO,
+    É UMA INT,
+
+    MAS É UMA INT REPRESENTADA 
+
+
+    PELA EXPRESSÃO 
+
+
+    '\ReflectionAttribute::IS_INSTANCEOF'...
+
+
+
+
+TIPO ASSIM:
+
+
+
+            // * Get all methods, of each controller.
+            foreach ($reflectionController->getMethods() as $method) {
+                // * Get all attributes related to the 'Route' attribute, routing-related, of each method.
+                $attributes = $method->getAttributes(Route::class, \ReflectionAttribute::IS_INSTANCEOF);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO,
+
+
+''NOW, EVERY ATTRIBUTE CLASS THAT IS _ INSTANCEOF _ THE 
+'Route' CLASS _ SHOULD BE RETURNED...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... COM ISSO, RECARREGAMOS A PÁGINA, E TUDO VOLTA A FUNCIONAR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS HÁ MAIS ALGUMAS COISAS QUE O PROFESSOR QUER NOS MOSTRAR,
+
+ANTES DE ACABARMOS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OUTRA COISA:
+
+
+
+
+
+
+
+
+''WE CAN LIMIT/RESTRICT 
+    _ WHERE __ AN ATTRIBUTE_ 
+    CAN BE USED....''
+
+
+
+
+
+
+
+
+POR EXEMPLO, PODEMOS DIZER QUE 
+
+O ATTRIBUTE DE 
+
+
+'#[Get()]'
+
+
+
+SÓ 
+
+PODE SER USADO NOS METHODS,
+
+
+
+
+E NÃO PODE SER LUGADO EM NENHUM OUTRO LUGAR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO PQ, ATUALMENTE,
+    ESTAMOS UTILIZANDO OS ATTRIBUTES DE POST, GET E PUT 
+
+    nos methods, sim,
+
+    E NÃO EM CLASSES... NO CASO,
+    NÃO HÁ RAZÃO PARA UTILIZÁ-LOS EM CLASSES...
+
+
+
+
+
+
+
+
+
+
+--> SE ENTRAMOS NO CÓDIGO DE 'Get.php',
+
+TEMOS ISTO:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Attributes;
+
+#[\Attribute]
+class Get extends Route
+{
+    public function __construct(public string $path)
+    {
+        parent::__construct($path, 'get');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+--> COMO VC PODE VER, ESTAMOS USANDO 
+    ESSE ATTRIBUTE DIRETAMENTE NA CLASS..
+
+
+    ISSO ACONTECE/ACONTECEU 
+
+    PQ 
+
+    __REALMENTE É POSSÍVEL _ UTILIZAR 
+    ATTRIBUTES 
+    NAS CLASSES...
+
+
+
+
+
+
+ 
+-->  CERTO, MAS 
+    NO CASO DE 'GET/POST/PUT',
+
+    NÃO QUEREMOS QUE ELES SEJAM UTILIZADOS EM COISAS QUE NÃO SEJAM METHODS..
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO PQ ATTRIBUTES PODEM SER UTILIZADOS 
+
+    EM DIVERSAS COISAS DIFERENTES...
+
+
+
+    AS COISAS POSSÍVEIS SÃO:
+
+
+
+
+    _CLASS_ 
+    _FUNCTION_
+    _METHOD_
+    _PROPERTY_
+    _CLASS_CONSTANT_
+    _PARAMETER_
+    _ALL_
+    _IS_REPEATABLE_
+
+
+
+
+
+
+    public const TARGET_CLASS = 1;
+    public const TARGET_FUNCTION = 2;
+    public const TARGET_METHOD = 4;
+    public const TARGET_PROPERTY = 8;
+    public const TARGET_CLASS_CONSTANT = 16;
+    public const TARGET_PARAMETER = 32;
+    public const TARGET_ALL = 63;
+    public const IS_REPEATABLE = 64;
+
+
+    public function __construct(int $flags = self::TARGET_ALL)
+    {
+        $this->flags = $flags;
+    }
+
+
+
+
+
+
+--> NO CASO,
+
+
+O DEFAULT É 
+
+
+'TARGET_ALL'...
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS, COM ISSO,
+
+    DECLARAR QUE NOSSO ATTRIBUTE 
+    SÓ PODE SER USADO EM PROPERTIES,
+
+    CLASSES,
+    FUNCTIONS,
+
+
+    METHODS,
+
+    ETC ETC... OU, ENTÃO,
+
+    COM TUDO ('ALL')...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA RESTRINGIR OS LOCAIS EM QUE SEU ATTRIBUTE PODE SER USADO,
+
+
+BASTA ESCREVER '()',
+
+E ENTÃO 
+
+
+
+ALGUM VALUE COMO 'Attribute::TARGET_METHOD''..
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Attributes;
+
+#[\Attribute(Attribute::TARGET_METHOD)]  // with 'Attribute::TARGET_METHOD', we state that this attribute can only be used on methods.
+class Get extends Route
+{
+    public function __construct(public string $path)
+    {
+        parent::__construct($path, 'get');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO,
+    SE VC TENTAR USAR ESSE ATTRIBUTE EM QUALQUER LUGAR QUE N SEJA UM METHOD,
+
+    VC FICARÁ COM 1 EXCEPTION...  
+
+
+
+
+
+    -> MAS AQUI HÁ 1 CATCH:
+
+            ''The exception will ONLY BE THROWN WHEN 
+            THE INSTANCE IS CREATED...''
+
+
+
+
+
+
+
+
+
+
+
+--> SE TENTAMOS COLOCAR ESSE ATTRIBUTE EM 1 PROPERTY, POR EXEMPLO,
+
+FICAMOS 
+
+COM UM WARNING, NO IDE:
+
+
+
+
+
+
+
+
+''Attribute cannot be applied to a property because it does not 
+contain the 'Attribute::TARGET_PROPERTY'' flag''..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo... mas para tentarmos forçar 1 error,
+
+
+escrevemos assim:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Attributes\Get;
+use App\Attributes\Post;
+use App\Attributes\Put;
+use App\Attributes\Route;
+use App\Services\InvoiceService;
+use App\View;
+
+class HomeController
+{
+    #[Get('/')]
+    private int $x;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+(OU SEJA, ESCREVEMOS ESSE ATTRIBUTE, DESTINADO APENAS A METHODS,
+EM 1 DE NOSSAS PROPERTIES)
+
+
+
+
+
+
+
+
+
+
+-> OK... MAS MESMO COM ISSO, NÃO FICAMOS COM O THROW DE 1 EXCEPTION..
+
+
+
+
+
+
+
+
+MAS PQ?
+
+
+
+
+
+EXPLICAÇÃO:
+
+
+
+
+'''AS WE EXPLAINED MINUTES AGO,
+    THE __ VALIDATION__ ONLY HAPPENS_ 
+    WHEN _A NEW __ INSTANCE_ IS CREATED...''
+
+
+
+
+''THIS MEANS THAT WHEN 
+    A NEW INSTANCE IS CALLED,
+
+
+    IN THE HOMECONTROLLER,
+
+    IN THE '$route = $attribute->newInstance()',
+
+
+    THAT'S WHEN THE ACTUAL VALIDATION HAPPENS...''
+
+
+
+
+
+''AND THIS IS ACTUALLY NEVER CALLED, FOR THIS 'private int $x' property...
+    BECAUSE WE ARE ITERATING OVER THE CONTROLLERS' METHODS,
+    AND WE ARE NOT GETTING THE CONTROLLERS' PROPERTIES...''
+
+EX:
+
+
+
+
+
+
+
+
+
+    public function registerRoutesFromControllerAttributes(array $controllers)
+    {
+        // * With this, we get access to each controller object of our app.
+        foreach ($controllers as $controller) {
+            $reflectionController = new \ReflectionClass($controller);
+
+            // * Get all methods, of each controller.
+            foreach ($reflectionController->getMethods() as $method) {
+                // * Get all attributes related to the 'Route' attribute, routing-related, of each method.
+                $attributes = $method->getAttributes(Route::class, \ReflectionAttribute::IS_INSTANCEOF);
+
+                foreach ($attributes as $attribute) {
+                    // * Get all routes, using each attribute.
+                    $route = $attribute->newInstance();
+
+                    // Register each route:
+                    $this->register($route->method, $route->routePath, [$controller, $method->getName()]);
+                }
+            }
+        }
+    }
+
+
+
+
+
+
+
+COMO RESULTADO DISSO,
+
+
+
+''WE ARE NOT INSTANTIATING THAT attribute object,
+  WHICH MEANS THE PROPER VALIDATION IS NOT BEING EXECUTED,
+  WHICH IS WHY AN EXCEPTION IS NOT BEING THROWN...''
+
+
+
+
+
+
+
+
+
+
+--> PARA TRIGGAR ESSA EXCEPTION,
+    TERÍAMOS DE CHAMAR '->newInstance()'
+
+
+    NO 'PROPERTY ATTRIBUTE'...
+
+
+
+
+
+
+
+--> PARA TESTAR ISSO, PODEMOS RAPIDAMENTE PEGAR AS PROPRIEDADES 
+    DO REFLECTED OBJECT...
+
+
+
+    NO CASO, A PROPRIEDADE '$x',
+
+    E AÍ TENTAR PEGAR O ATTRIBUTE DELA...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+$reflectionController = new \ReflectionClass($controller);
+
+
+$property = $reflectionController->getProperty('x');
+
+
+$attributes = $property->getAttributes(Route::class, \ReflectionAttribute::IS_INSTANCEOF);
+
+foreach($attributes as $attribute) {
+
+    $route = $attribute->newInstance();  /// ! THIS WILL RESULT IN AN EXCEPTION...
+}
+
+
+
+
+
+
+
+
+
+-> COM ISSO, COM ESSE SNIPPET AÍ,
+
+FICAREMOS/FICARÍAMOS COM UMA EXCEPTION...
+
+
+
+
+
+
+
+-> NO CASO, O FATAL ERROR SERÁ DE 
+
+
+
+''Uncaught Error: Attribute "App\Attributes\Get" cannot target 
+    property (allowed targets: method)''...
+
+
+
+
+
+
+
+OU SEJA,
+
+OS ÚNICOS NEGÓCIOS QUE PODEM SER TARGETTADOS SÃO METHODS,
+
+
+POR CONTA DE NOSSA RESTRIÇÃO...
+
+
+
+
+
+
+
+
+
+
+-> CERTO... 
+
+
+
+
+OUTRO DETALHE:
+
+
+
+
+
+
+
+    public const TARGET_CLASS = 1;
+    public const TARGET_FUNCTION = 2;
+    public const TARGET_METHOD = 4;
+    public const TARGET_PROPERTY = 8;
+    public const TARGET_CLASS_CONSTANT = 16;
+    public const TARGET_PARAMETER = 32;
+    public const TARGET_ALL = 63;
+    public const IS_REPEATABLE = 64;
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> todas essas CONSTANTS são __BITMAPS__...
+
+
+
+
+
+
+
+-> SIGNIFICA QUE PODEMOS USAR BITWISE OPERATIONS COM ELAS...
+
+
+
+(tipo aquilo que vimos de ~EXCEPTION, e coisas assim, na parte de error handling)..
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS, COM ISSO, DIZER QUE ''TODOS OS TIPOS SÃO ACEITOS, MENOS METHOD, ETC ETC''..
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS DIZER ''QUEREMOS QUE SEJAM TARGETTAVEIS APENAS CLASSES, METHODS E CONSTANTS''.
+
+
+
+
+
+
+
+
+-> TIPO ASSIM:
+
+
+
+
+Attribute::TARGET_METHOD|Attribute::TARGET_CLASS
+
+
+
+
+
+
+
+
+
+-> E ISSO FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO....
+
+
+
+
+
+
+
+
+
+AGORA DEVEMOS SEGUIR EM FRENTE...
+
+
+
+
+
+
+
+
+
+
+
+--> NESSAS CONSTANTS, TEMOS UMA INTERESSANTE,
+
+QUE É 
+
+'IS_REPEATABLE'...
+
+
+
+
+
+
+
+
+
+
+-> EXPLICAÇÃO:
+
+
+
+
+
+
+''BY DEFAULT, WE ARE ONLY ALLOWED 
+  __ TO __ USE ATTRIBUTES__ ONE TIME __ 
+
+  PER DECLARATION...''
+
+
+
+
+
+
+
+
+
+COMO ASSIM?
+
+
+
+
+
+
+
+
+
+
+
+
+-> BEM, PARA DEMONSTRAR, O PROFESSOR COMEÇA:
+
+
+
+
+
+
+
+
+
+''LET'S SAY THAT WE WANT __ TO HAVE ANOTHER ROUTE
+    LISTENING TO THE METHOD OF 'index()' on the 'HomeController''...
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+QUEREMOS ALGO TIPO ASSIM:
+
+
+
+
+
+
+    #[Get('/')]
+    #[Get('/home')]
+    public function index(): View
+    {
+        $this->invoiceService->process([], 25);
+
+        return View::make('index');
+    }
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+
+QUEREMOS QUE ESSAS 2 ROUTES SEJAM REGISTERED E QUE DISPAREM 
+
+O METHOD DE 'index()', essa action aí...
+
+
+
+
+
+
+
+
+
+
+-> o nosso IDE JÁ MARCA QUE 
+
+
+''Attribute is not repeatable because it does NOT CONTAIN THE 
+'Attribute::IS_REPEATABLE flag''...
+
+
+
+
+
+
+
+
+-> E, SE RECARREGAMOS A PAGE, FICAMOS COM 1 ERROR...
+
+
+
+
+
+
+
+
+
+
+--> PARA RESOLVER ISSO,
+    DEVEMOS ADICIONAR A FLAG DE 'IS_REPEATABLE' ao attribute,
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Attributes;
+
+#[\Attribute(\Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]  // with 'Attribute::TARGET_METHOD', we state that this attribute can only be used on methods.
+class Get extends Route
+{
+    public function __construct(public string $path)
+    {
+        parent::__construct($path, 'get');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AGORA, SE VOLTAMOS AO HOME CONTROLLER,
+
+PERCEBEMOS QUE O UNDERLINE SUMIU,
+
+E QUE 
+
+AGORA ESSAS 2 ROUTES 
+
+APONTAM PARA O MESMO METHOD,
+
+O INDEX METHOD, NO HOME CONTROLLER...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Attributes\Get;
+use App\Attributes\Post;
+use App\Attributes\Put;
+use App\Attributes\Route;
+use App\Services\InvoiceService;
+use App\View;
+
+class HomeController
+{
+    // #[Get('/')]
+    // private int $x;
+
+    public function __construct(private InvoiceService $invoiceService) {}
+
+    // #[Route('/')]
+    #[Get('/')]
+    #[Get('/home')]
+    public function index(): View
+    {
+        $this->invoiceService->process([], 25);
+
+        return View::make('index');
+    }
+
+    // #[Route('/', 'post')]
+    #[Post('/')]
+    public function store() {}
+
+    // #[Route('/update', 'put')]
+    #[Put('/')]
+    public function update() {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... TEMOS MAIS 1 DETALHE:
+
+
+
+
+
+
+
+
+-- 'PLEASE NOTE THAT BOTH 
+    POSITIONAL AND NAMED ARGUMENTS 
+    __CAN __ BE USED, WHEN USING ATTRIBUTES 
+    AND PASSING ARGUMENTS...''
+
+
+
+
+
+
+
+
+OU SEJA,
+
+PODERÍAMOS ESCREVER ALGO COMO 
+
+
+
+#[Get(routePath: '/home')] 
+
+
+
+
+
+
+
+
+
+ISSO PODE SER ÚTIL QUANDO VC TEM MTOS VALUES DIFERENTES A SEREM PASSADOS,
+A 1 MESMO ATTRIBUTE...
+
+
+
+
+
+
+
+
+-> OUTRO DETALHE:
+
+
+
+''YOU COULD HAVE MULTIPLE DIFFERENT ATTRIBUTES 
+    __ PER DECLARATION... YOU DON'T NEED IS_REPEATABLE 
+    TO BE ENABLED, TO DO THAT...''
+
+
+
+
+
+
+
+
+-> OU SEJA,
+PODEMOS ESCREVER ALGO COMO:
+
+
+
+
+
+
+
+
+
+    #[Get('/')]
+    #[Post('/')]
+    public function index(): View
+    {
+        $this->invoiceService->process([], 25);
+
+        return View::make('index');
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FUNCIONA/FUNCIONARIA, PQ NÃO ESTAMOS REPETINDO 1 MESMO ATTRIBUTE,
+E SIM ESTAMOS 
+
+
+USANDO ATTRIBUTES DIFERENTES, EM 1 MESMO METHOD...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---> POR FIM, O PROFESSOR QUER NOS APONTAR QUE 
+
+
+EXISTEM ALGUNS 'BUILT-IN ATTRIBUTES' NO PHP... 
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR ACHA QUE MAIS VÃO EXISTIR, NAS VERSIONS FUTURAS...
+
+
+
+
+
+
+
+-> OS ATTRIBUTES 
+    QUE JÁ EXISTEM 
+
+
+    SÃO:
+
+
+
+
+
+#[Deprecated]
+
+
+e 
+
+
+#[Jit] (just in time)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ACABAMOS...

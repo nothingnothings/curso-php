@@ -24,6 +24,8 @@ $router->registerRoutesFromControllerAttributes([
     GeneratorExampleController::class,
 ]);
 
+print_r($router->routes());
+
 // ! Without Attributes feature
 // $router
 //     ->get('/', [HomeController::class, 'index'])
