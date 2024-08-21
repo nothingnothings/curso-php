@@ -1,0 +1,4978 @@
+
+
+
+
+
+
+
+
+--> COBRIMOS OS ENUMS EM AULAS ANTERIORES...
+
+
+
+
+
+
+
+--> SERVEM PARA AJUDAR COM O TYPING, E PARA EVITAR ERROS DE DIGITAÇÃO NO CÓDIGO...
+
+
+
+
+
+
+
+
+--> VIMOS UM POUCO SOBRE ELES NO VIDEO DO PHP 8.1...
+
+
+
+
+
+
+
+
+
+-> NESSE VIDEO, EXAMINAREMOS OS ENUMS EM MAIORES DETALHES,
+    E VEREMOS ALGUNS EXEMPLOS PRÁTICOS...
+
+
+
+
+
+
+--> ALGUNS EXEMPLOS:
+
+
+
+
+
+
+enum Color 
+{
+    case Green;
+    case Red;
+    case Gray;
+    case Orange;
+}
+
+
+
+enum HttpMethod: string 
+{
+    case Get = 'get';
+    case Post = 'post';
+    case Put = 'put';
+    case Head = 'head';
+}
+
+
+
+
+
+
+
+
+
+enum InvoiceStatus: int 
+{
+    case Pending = 0;
+    case Paid = 1;
+    case Void = 2;
+    case Failed = 3;
+
+
+
+
+    public function toString(): string
+    {
+
+        return match($this) {
+            self::Paid => 'Paid',
+            self::Failed => 'Declined',
+            self::Void=> 'Void',
+            default => 'Pending'
+        };
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TAMBÉM:
+
+
+
+\App\Enums\InvoiceStatus::tryFrom($invoice->status)->color()->value();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA FAERMOS 1 OVERVIEW DE ENUMS 
+    NESSE VIDEO...
+
+
+
+
+
+
+
+
+
+
+
+--> EX:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Enums;
+
+class InvoiceStatus
+{
+    public const PENDING = 0;
+    public const PAID = 1;
+    public const VOID = 2;
+    public const FAILED = 3;
+
+    public static function all(): array
+    {
+        return [
+            self::PAID,
+            self::FAILED,
+            self::PAID,
+            self::VOID,
+        ];
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS ENCONTRAR 1 CÓDIGO TIPO ESSE AÍ....
+
+
+
+
+
+
+
+
+--> TEMOS 1 CLASS COM VÁRIAS CONSTANTS (e não é um enum )
+    E UTILIZAMOS 
+
+    ESSA CONSTANT AO LONGO DE TODO NOSSO CÓDIGO...
+
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS SALVAR ESSES VALUES NA DATABASE, EM ALGUNS CASOS,
+    E AÍ PODEMOS USAR ISSO NO CÓDIGO, TANTO PARA COMPARISON OU PARA 
+    OUTRAS COISAS...
+
+
+
+
+
+
+
+
+
+--> ESSE NÃO É UM BAD APPROACH...
+    E É CERTAMENTE MELHOR DO QUE HARDCODAR 
+    SEMPRE OS MESMOS VALUES, VALUES QUE NUNCA MUDAM... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR NOS MOSTRA 1 EXEMPLO EM QUE USARÍAMOS CONSTANTS ASSIM... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NESSA CLASS/MODEL DE Invoice, TEMOS:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Models;
+
+use App\Model;
+
+class Invoice extends Model
+{
+    public function all(): array
+    {
+        $stmt = $this->db->query(
+            'SELECT id, invoice_number, amount, status FROM invoices'
+        );
+
+        return $stmt->fetchAll(\PDO::FETCH_OBJ);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> TEMOS ESSE METHOD DE 'all()',
+
+
+
+QUE RETORNA 1 LISTA DE TODAS AS INVOICES...
+
+
+
+
+
+
+
+
+
+--> AÍ TEMOS O CONTROLLER DE InvoiceController,
+
+que tem este código:
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Attributes\Get;
+use App\Models\Invoice;
+use App\View;
+
+class InvoiceController
+{
+    #[Get('/invoices')]
+    public function index(): View
+    {
+        $invoices = (new Invoice())->all();
+
+        return View::make('invoices.index', compact('invoices'));
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, TEMOS O CÓDIOG DA VIEW DE 'invoices',
+
+
+
+QUE É ESTE:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: center;
+    }
+
+    table tr th, table tr td {
+        border: 1px #eee solid;
+        padding: 5px;
+    }
+
+    .color-green {
+        color: green;
+    }
+
+    .color-red {
+        color: red;
+    }
+
+    .color-gray {
+        color: gray;
+    }
+
+    .color-orange {
+        color: orange;
+    }
+</style>
+<table>
+    <thead>
+        <tr>
+            <th>Invoice #</th>
+            <th>Amount</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach ($invoices as $invoice): ?>
+            <tr>
+                <td><?= $invoice->invoice_number ?></td>
+                <td>$<?= number_format($invoice->amount, 2) ?></td>
+                <td class="<?= $invoice->status ?>">
+                </td>
+            </tr>
+        <?php endforeach ?>
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A PARTE IMPORTANTE É ESTA:
+
+
+
+
+
+        <?php foreach ($invoices as $invoice): ?>
+            <tr>
+                <td><?= $invoice->invoice_number ?></td>
+                <td>$<?= number_format($invoice->amount, 2) ?></td>
+                <td class="<?= $invoice->status ?>">
+                </td>
+            </tr>
+        <?php endforeach ?>
+
+
+
+
+
+
+
+
+
+
+
+ELA FAZ DISPLAY DOS INVOICES,
+
+E AÍ 
+
+
+FAZ DISPLAY DOS STATUS,
+
+
+COM AQUELE 
+
+
+
+'$invoice->status'...
+
+
+
+
+
+
+
+--> ESSE STATUS....
+
+
+
+
+
+É O VALUE SALVO LÁ 
+
+
+
+DOS VALUES DE CONST,
+
+
+LÁ EM 'invoiceStatus.php':
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Enums;
+
+class InvoiceStatus
+{
+    public const PENDING = 0;
+    public const PAID = 1;
+    public const VOID = 2;
+    public const FAILED = 3;
+
+    public static function all(): array
+    {
+        return [
+            self::PAID,
+            self::FAILED,
+            self::PAID,
+            self::VOID,
+        ];
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+---> OU SEJA....
+
+
+
+
+SÃO ESSES VALUES DE 0 A 3...
+
+
+
+
+
+
+
+
+
+-> SE ABRIMOS O BROWSER E VAMOS ATÉ A 
+
+PAGE DE INVOICES,
+
+
+
+
+
+TEMOS VÁRIOS ROWS,
+
+
+
+COM O CAMPO DE 
+
+STATUS 
+
+
+
+
+
+
+ESTÁ COM TIPO 
+
+0 
+3
+2
+1
+0
+3
+1
+3
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+
+
+MAS E 
+
+''WHAT IF WE WANTED TO FILTER IT OUT,
+    SO THAT ONLY PAID INVOICES OR FAILED INVOICES 
+    GET DISPLAYED...?''
+
+
+
+
+
+
+
+
+
+
+
+
+-->  UMA MANEIRA DE FAZER ISSO SERIA O 
+    HARDCODE, NA QUERY SQL,
+
+    TIPO ASSIM:
+
+
+
+
+
+
+    {
+        $stmt = $this->db->prepare(
+            'SELECT id, invoice_number, amount, status
+             FROM invoices
+             WHERE status = 1'
+        );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+com isso, ficaríamos com apenas os invoices de status 1...
+
+
+
+
+
+
+MAS ISSO NÃO É IDEAL, CLARO, PQ 
+ESTAMOS HARDCODANDO ESSE VALUE..
+
+
+
+
+
+
+
+
+
+
+-> UMA MANEIRA ALTERNATIVA SERIA PASSAR UM 'CONSTANT' VALUE COMO PARAMETER,
+
+
+
+
+USANDO 'prepare',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+ <?php declare(strict_types=1);
+
+namespace App\Models;
+
+use App\Enums\InvoiceStatus;
+use App\Model;
+use PDO;
+
+class Invoice extends Model
+{
+    public function all(): array
+    {
+        $stmt = $this->db->prepare(
+            'SELECT id, invoice_number, amount, status
+             FROM invoices
+             WHERE status = ?'
+        );
+
+        $stmt->execute([InvoiceStatus::PAID]);
+
+        return $stmt->fetchAll(PDO::FETCH_OBJ);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> E ISSO FARIA A MESMA COISA... FICARIAMOS COM 
+    APENAS AS PAID INVOICES...
+
+
+
+
+
+
+
+
+
+--> MAS, NOVAMENTE, ISSO NÃO É IDEAL...
+
+
+
+
+
+
+
+
+
+
+-> NÃO É IDEAL PQ ESTAMOS HARDCODANDO...
+
+
+
+
+
+
+
+
+
+--> QUEREMOS ACEITAR ISSO COMO PARAMETER DESSE METHOD, TUDO PARA QUE 
+    PÓSSAMOS FILTER AS INVOICES COM BASE 
+
+    NO STATUS QUE É PASSADO...
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE DEFINIMOS O PARAM DO METHOD ASSIM:
+
+
+
+
+
+    public function all(int $status): array
+    {
+        $stmt = $this->db->prepare(
+            'SELECT id, invoice_number, amount, status
+             FROM invoices
+             WHERE status = ?'
+        );
+
+        $stmt->execute([InvoiceStatus::PAID]);
+
+        return $stmt->fetchAll(PDO::FETCH_OBJ);
+    }
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, TIPAMOS COMO 'INTEGER'...
+
+
+
+--> ISSO PQ SABEMOS QUE __ O VALUE PASSADO SERÁ DE TIPO INTEGER,
+SERÁ UM NÚMERO... PQ 
+
+TODAS AQUELAS CONSTANTS LÁ, 
+
+na class de 'InvoiceStatus',
+
+
+SERÃO INTEGERS...
+
+
+
+
+
+
+
+
+
+
+COM ISSO, PODEMOS CHAMAR ESSE METHOD ASSIM:
+
+
+
+
+
+class InvoiceController
+{
+    #[Get('/invoices')]
+    public function index(): View
+    {
+        $invoices = (new Invoice())->all(InvoiceStatus::PAID);
+
+        return View::make('invoices.index', compact('invoices'));
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+AÍ, LÁ NA FUNCTION:
+
+
+
+
+
+
+    public function all(int $status): array
+    {
+        $stmt = $this->db->prepare(
+            'SELECT id, invoice_number, amount, status
+             FROM invoices
+             WHERE status = ?'
+        );
+
+        $stmt->execute([$status]);
+
+        return $stmt->fetchAll(PDO::FETCH_OBJ);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, ESSE HARDCODE SOME...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK..
+
+
+
+
+
+
+
+
+
+
+
+-> É CLARO QUE ESSE PODE SER 1 USER-PROVIDED VALUE,
+    MAS NÃO NOS IMPORTAMOS COM ISSO AGORA... É APENAS 1 EXEMPLO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> 1 DOS PROBLEMAS COM CONSTANTS É QUE 
+
+
+
+
+''''WE ARE ONLY ABLE TO TYPEHINT 
+    USING THE __ SCALAR VALUE TYPES''' ( ou seja, nesse caso, 'int')..
+
+
+
+
+
+
+
+
+É POR ISSO QUE TÍNHAMOS TIPADO COMO 
+
+
+''    public function all(int $status) '''''
+
+
+
+
+
+
+
+
+
+
+
+O PROBLEMA COM ISSO, NO CASO,
+
+É QUE 
+
+ISSO NÃO GARANTE QUE O PROVIDED VALUE SERÁ/É 
+
+
+UMA DAS CONSTANTS DEFINIDAS 
+
+NA CLASS DE 'InvoiceStatus' (que seria nosso enum)...
+
+
+
+
+
+
+
+
+
+
+-> OU SEJA, O USER/DEVELOPER PODE PASSAR VALUES 
+
+QUE NÃO EXISTEM/NÃO SÃO SUPORTADOS, COMO 25, 10, 8, e não 
+
+os values suportados (de 0 a 3)..
+
+
+
+
+
+
+
+--> QUER DIZER QUE PODERÍAMOS PASSAR COISAS COMO:
+
+
+
+
+
+        $invoices = (new Invoice())->all(99);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO AINDA 'FUNCIONARIA',
+
+MAS NÃO CONSEGUIRÍAMOS NENHUMA DATA...
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+ -> OK... POR CONTA DISSO,
+
+ NÓS TIPICAMENTE CONSTRUÍMOS LÓGICA ADICIONAL,
+
+ COMO VALIDATION,
+
+ PARA GARANTIR QUE O VALUE QUE FOI PASSADO REALMENTE É UMA DAS CONSTANTS 
+ DEFINIDAS PREVIAMENTE...
+
+
+
+
+
+
+
+
+
+ -> E ESSA VALIDATION ACONTECERIA EM MÚLTIPLOS LOCAIS EM QUE 
+    A CONSTANT É ACEITA... AÍ VC TERIA DE CRIAR 1 HELPER FUNCTION,
+    PARA AJUDAR COM ESSA VALIDATION... OU, ENTÃO, 
+
+    UMA OUTRA CLASS QUE FAZ ESSA VALIDATION, OU ATÉ MESMO 
+    VALIDAR NO CONTROLLER LEVEL, ANTES DE PASSAR 
+
+    ESSE VALUE AO MODEL,
+
+    QUE RECEBERIA ESSE ALREADY-VALIDATED VALUE..
+
+
+
+
+
+
+
+
+
+--> MAS, NO NOSSO CASO,
+
+VAMOS FAZER  1 VALIDATION SIMPLES,
+LÁ NO PRÓPRIO MODEL,
+
+
+
+NO PRÓPRIO METHOD DE 'all()'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+como vc deve se lembrar, 
+
+temos, em 'InvoiceStatus.php',
+
+
+
+AQUELE METHOD DE 'all()',
+
+
+
+QUE SIMPLESMENTE RETORNA 1 LISTA DE TODOS OS VALUES DE 
+
+CONSTANT...
+
+
+
+TIPO ASSIM:
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Enums;
+
+class InvoiceStatus
+{
+    public const PENDING = 0;
+    public const PAID = 1;
+    public const VOID = 2;
+    public const FAILED = 3;
+
+    public static function all(): array
+    {
+        return [
+            self::PAID,
+            self::FAILED,
+            self::PAID,
+            self::VOID,
+        ];
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+O QUE PODEMOS FAZER É, LÁ EM 'Invoice.php',
+
+NO METHOD DE 'all()',
+
+
+CHECAR SE 
+
+
+
+O VALUE de '$status'
+
+
+EXISTE COMO POSSIBILIDADE, DENTRO DO ARRAY DE 'all()'
+
+
+
+do 'InvoiceStatus',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+       // ! Without enums (InvoiceStatus):
+        if (!in_array($status, InvoiceStatus::all())) {
+            throw new \InvalidArgumentException('Invalid status was passed as an argument');
+        }
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+-> QUANDO REFRESHAMOS A PAGE,
+    SE TENTAMOS PASSAR 1 VALUE INVÁLIDO, COMO '73',
+
+    FICAMOS COM 1 EXCEPTION...
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR APONTA QUE 
+    ESSE NÃO É UM APPROACH EXATAMENTE RUIM... É MELHOR DO QUE 
+    FAZER HARDCODE DE COISAS... PQ TEMOS ALGUM TIPO DE VALIDATION,
+    E ESTAMOS USANDO CONSTANTS, EM VEZ DE HARDCODE DE COISAS...
+
+
+
+
+
+
+
+
+
+-> COM ESSE APPROACH, SOMOS FORÇADOS A PASSAR VALUES VÁLIDOS,
+    dentre aquelas constants lá...
+
+
+
+
+
+
+
+
+
+
+--> MAS O PROBLEMA, AQUI, É QUE FICAMOS COM MT OVERHEAD,
+    MT BOILERPLATE, 
+
+    QUE PODERIA SER EVITADO _ COM A FEATURE_ DOS ENUMS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> 'ENUMS COMES TO THE RESCUE, HERE,
+     WHICH PROVIDES A BETTER HANDLING FOR THIS...'
+
+
+
+
+
+
+
+
+
+--> 'ENUMS BASICALLY LETS US HAVE A ""CLASS"" THAT 
+    HAS A FIXED SET OF POSSIBLE VALUES, ALSO KNOWN AS 
+    'case's....'''
+
+
+
+
+
+
+--> ''enum CLASS IS JUST LIKE A REGULAR CLASS,
+    BUT INSTEAD OF THE 'class' KEYWORD, WE USE 
+    'enum' ''....
+
+
+
+
+
+
+
+
+--> ''AND, WHILE HAVING CONSTANTS WITHIN THE 
+    enum is OK, WE CAN DEFINE SOMETHING CALLED 
+    'case's...''
+
+
+
+
+
+
+
+
+
+-> POR ISSO, VAMOS DEFINIR 1 CASE PARA CADA VALUE,  
+    E A SINTAXE É TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+    case Pending;
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+enum InvoiceStatus
+{
+    case Pending;
+    case Paid;
+    case Void;
+    case Failed;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE PERCEBER, ESSES CASES, POR DEFAULT,
+
+NÃO POSSUEM SCALAR VALUES ASSIGNADOS A SI (ao contrário de constants)...
+
+
+
+
+
+
+
+
+
+
+-> FALAREMOS SOBRE OS SCALAR VALUES DAQUI A POUCO...
+
+
+
+A scalar is an element of a field (MAGNITUDE of a field);
+A quantity described by multiple scalars, such as having both direction and magnitude, is called a vector.
+
+
+
+
+->> MAS O QUE INTERESSA:
+
+
+
+
+
+-------------> ''EACH CASE IS AN OBJECT OF THE ENUM CLASS ITSELF...''
+
+
+
+
+
+
+
+''THIS MEANS THAT the case 'Pending' 
+    IS _ AN OBJECT__ OF THE enum 'InvoiceStatus''...
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR FAZ DUMP 
+
+
+DO 'InvoiceStatus::Paid'',
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+var_dump(InvoiceStatus::Paid)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-_> COM ISSO, FICAMOS COM 
+
+ESTE DUMP, DE UM OBJECT DA CLASS DE 'Enum':
+
+
+
+
+
+
+
+
+
+
+enum(\App\Enums\InvoiceStatus::Paid)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+PARA PROVAR AINDA MAIS QUE 
+
+
+ESTAMOS RECEBENDO 1 OBJECT COM ESSE DUMP,
+
+
+O PROFESSOR 
+
+
+RODA 
+
+
+
+
+
+
+
+
+var_dump(InvoiceStatus::Paid, gettype(InvoiceStatus::Paid), is_object(InvoiceStatus::Paid));
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO....
+
+
+
+
+
+
+
+
+AÍ, COM ISSO, FICAMOS COM 
+
+
+'string(6) "object" '
+
+
+e 
+
+
+
+'bool(true)'...
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+
+EACH CASE 
+OF THE 
+
+'InvoiceStatus enum'
+
+IS AN _ OBJECT__ OF THE 
+
+'InvoiceStatus enum'....
+
+
+
+
+
+
+
+
+
+
+
+
+each case is an object?
+
+
+--> 
+
+Yes, in PHP, each case of an enum is indeed an instance of that enum type. To clarify, while PHP enums are not objects in the traditional sense (like classes instantiated with new), they are treated as instances of the enum type. This means they are singleton instances of the enum type.
+
+Here’s a more detailed explanation:
+
+Enum Cases as Instances: Each case in an enum is a unique, immutable instance of that enum. For example, if you have an enum with three cases (Pending, Paid, and Shipped), each case is a unique instance of the InvoiceStatus enum.
+
+Enum Case Methods: Enum cases can have methods associated with them. For instance, you can define methods within an enum, and these methods can be called on the enum cases.
+
+Type Checking: You can use type checking to confirm that a value is an instance of a specific enum type.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK....
+
+
+
+
+
+
+
+
+
+ESSES 'CASE OBJECTS'
+
+
+SÃO ACTUALLY 'SINGLETONS',
+
+ou SINGLE OBJECTS...
+
+
+
+
+
+
+
+
+
+
+--> COMO ASSIM?
+
+
+
+
+
+
+
+
+--> ISSO QUER DIZER, EM OUTRAS PALAVRAS,
+
+QUE 
+
+SE 
+
+
+ASSIGNAMOS 1 CASE COMO VALUE DE 1 VARIABLE,
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+$status1 = InvoiceStatus::Paid;
+$status2 = InvoiceStatus::Paid;
+
+
+
+
+
+
+
+
+
+
+
+
+E, SE ENTÃO,
+
+NÓS TENTAMOS COMPARAR  
+
+$status1 com o $status2 
+
+
+
+USANDO O STRICT COMPARISON OPERATOR (===),
+
+identity operator,
+
+
+
+ISSO VAI RETORNAR TRUE,
+
+
+PQ ESSES 2 OBJECTS SÃO/SERÃO A EXATA MESMA INSTANCE...
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+class InvoiceController
+{
+    #[Get('/invoices')]
+    public function index(): View
+    {
+
+        $status1 = InvoiceStatus::Paid;
+        $status2 = InvoiceStatus::Paid;
+
+        var_dump($status1 === $status2);  // This will return true (same object, in memory, due to enum objects/cases being singletons).
+
+        $invoices = (new Invoice())->all(InvoiceStatus::Paid);
+
+        return View::make('invoices.index', compact('invoices'));
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS ISTO VAI RETORNAR FALSE, PQ ELES SERÃO 2 CASES DIFERENTES,
+    E, PORTANTO, 2 OBJECTS DIFERENTES:
+
+
+
+    
+        $status1 = InvoiceStatus::Paid;
+        $status2 = InvoiceStatus::Void;
+
+        var_dump($status1 === $status2);  // This will return true (same object, in memory, due to enum objects/cases being singletons).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> JUSTAMENTE POR ESTARMOS TRABALHANDO 
+    COM 'OBJECTS' EM VEZ DE SCALAR VALUES (como o que tínhamos com constants, que são SCALAR VALUES),
+
+    NÓS PODEMOS 
+
+    _ACTUALLY __ ADICIONAR __ TYPEHINTING...
+
+
+
+
+
+
+
+    -> O TYPEHINTING É UMA DAS MAIORES VANTAGENS 
+    DE USAR ENUMS,
+
+    PQ O 'enum' case PODE SER EXPECTED...
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+public function all(InvoiceStatus $status): array 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> COM ISSO,
+    APENAS 
+
+    OS ENUMS 
+    DE 
+
+    'InvoiceStatus'
+
+
+    SERÃO ACEITOS...
+
+
+    E AÍ FICAMOS COM ESSA TIPAGEM...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-----> COM ISSO, O TYPING NOS FORÇA A USAR UM DOS CASES ESTIPULADOS 
+    NA 'class' de 'enums'...
+
+
+
+
+
+
+
+
+
+É POR ISSO QUE REMOVI AQUELA VALIDATION EXPLÍCITA... ELA NÃO É MAIS NECESSÁRIA,
+COM ESSE TYPEHINTING...
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS AGORA FICAMOS COM OUTRO ERROR:
+
+
+
+
+
+
+''Uncaught Error: The object of class InvoiceStatus 
+    COULD NOT BE CONVERTED TO STRING''
+
+
+
+
+
+
+
+--> ISSO ACONTECEU PQ ESTAMOS USANDO O VALUE 
+DE NOSSO ENUM 
+
+DIRETAMENTE 
+
+NO METHOD DE '$stmt->execute()',
+
+tipo assim:
+
+
+
+    public function all(InvoiceStatus $status): array
+    {
+
+
+        $stmt = $this->db->prepare(
+            'SELECT id, invoice_number, amount, status
+             FROM invoices
+             WHERE status = ?'
+        );
+
+
+        // * With enums:
+        $stmt->execute([$status::Paid]);
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+AQUELE execute ESTÁ TENTANDO CONVERTER NOSSO ENUM 
+
+EM 1 STRING,
+
+E ISSO FALHA, 
+
+JUSTAMENTE PQ 
+
+O ENUM É UM OBJECT...
+
+
+
+
+
+
+
+
+
+-> O QUE PRECISAMOS, NO CASO,
+É 
+
+'SOME WAY TO ACCESS THE SCALAR VALUE'
+
+
+
+
+
+''ACCESS THE SCALAR VALUE OF THE STATUS ENUM...''
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO PQ, NA DATABASE,
+    O STATUS É SALVO COMO NÚMEROS... 0123...
+
+
+
+
+
+
+
+
+
+--> CERTO... PARA FAZER ISSO FUNCIONAR,
+
+    PRECISAMOS ASSIGNAR SCALAR VALUES AOS NOSSOS CASES...
+
+
+
+
+
+
+
+
+
+PQ, AGORA, NOSSOS CASES NÃO 
+TEM NENHUM SCALAR VALUE ASSIGNADO A SI..
+
+
+
+
+
+
+
+ESTÃO 'PELADOS', TIPO ASSIM:
+
+
+
+// * With enums:
+enum InvoiceStatus
+{
+    case Pending; // Each case of the InvoiceStatus enum is an object of the InvoiceStatus enum
+    case Paid;
+    case Void;
+    case Failed;
+
+}
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+ -> POR ESTAREM/QUANDO ESTÃO PELADOS,
+    OS 
+
+    CASES SÃO CHAMADOS DE 'pure cases',
+
+
+    __ E SÃO OBJECTS, OBJECTS SEM VALUES ASSIGNADOS A SI...
+
+
+
+
+
+
+-> E ENUM CLASSES QUE POSSUEM 
+    'pure cases'
+
+    SÃO CHAMADAS 
+
+
+    DE 
+
+    'Pure Enum'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO QUER DIZER, EM OUTRAS PALAVRAS,
+    QUE 'InvoiceStatus' É, ATUALMENTE,
+
+
+    UM 'PURE ENUM'...
+
+
+
+
+
+
+
+
+
+--> PODEMOS 'BACK' ESSES CASES 
+    COM 1 SCALAR VALUE, DA MESMA MANEIRA QUE 
+    ASSIGNAMOS SCALAR VALUES ÀS CONSTANTS,
+
+
+    TIPO ASSIM:
+
+
+    
+// * With enums:
+enum InvoiceStatus
+{
+    case Pending = 0;
+    case Paid;
+    case Void;
+    case Failed;
+
+}
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, QUANDO ASSIGNAMOS 1 DEFAULT VALUE 
+
+A UM DE NOSSOS CASES,
+
+ESSE CASE SE TORNA UM '__BACKED__ CASE'....
+
+
+
+
+
+
+
+-> E, SE TEMOS 
+    1 ENUM COM 'BACKED CASES',
+
+    ESSE ENUM É CHAMADO DE 
+
+    ''BACKED ENUM''...
+
+
+
+
+
+
+
+
+--> EX:
+
+
+
+
+
+
+
+// * With enums (BACKED ENUM, with default values assigned on cases):
+enum InvoiceStatus
+{
+    case Pending = 0; // Each case of the InvoiceStatus enum is an object of the InvoiceStatus enum
+    case Paid = 1;
+    case Void = 2;
+    case Failed = 3 ;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... MAS É CLARO QUE SÓ ISSO NÃO BASTA...
+
+
+
+
+
+
+
+--> SE QUEREMOS QUE ESSE ENUM SEJA UM 'BACKED ENUM',
+
+É NECESSÁRIO O _ TYPEHINT_ DO TIPO DE 
+VALUE QUE SERÁ RETORNADO POR ELE...
+
+
+
+
+
+
+
+-> NO CASO,
+DEFINIMOS QUE SERÁ 
+
+'int'...
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+// * With enums (BACKED ENUM, with default values assigned on cases):
+enum InvoiceStatus: int
+{
+    case Pending = 0; // Each case of the InvoiceStatus enum is an object of the InvoiceStatus enum
+    case Paid = 1;
+    case Void = 2;
+    case Failed = 3 ;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+ 
+ TIPAMOS COMO INT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> POR NOSSA ENUM CLASS TER 'BACKED CASES',
+
+NOSSO 
+
+
+
+ENUM 
+
+
+SE CHAMA DE 'BACKED ENUM'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> HÁ ALGMAS REGRAS, RELATIVAS A BACKED ENUMS:
+
+
+
+
+
+
+
+
+
+1) Backed Enums _MUST_ BE __ EITHER__ INT__ OR __STRING_ type...
+
+
+
+
+
+
+
+
+
+
+--> TEM QUE SER INT OU STRING..
+
+
+
+-> E NÃO PODE SER UNION..
+
+
+NÃO PODE SER:
+
+enum InvoiceStatus: int|string {
+
+    ...
+
+}
+
+
+-> NÃO PODE SER OBJECT....
+
+
+
+
+--> TEM QUE SER OU STRING, OU INT....
+
+
+
+
+
+
+
+
+
+
+
+
+
+2) YOU __ CANNOT__ MIX _ BACKED AND PURE CASES...
+
+
+
+
+
+
+
+--> não podemos ter algo assim:
+
+
+
+enum InvoiceStatus: int
+{
+    case Pending = 0; // Each case of the InvoiceStatus enum is an object of the InvoiceStatus enum
+    case Paid;
+    case Void;
+    case Failed = 3 ;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TODOS OS CASES TEM QUE SER BACKED, OU TODOS CASES DEVEM SER PURE...
+
+
+
+
+
+
+
+
+
+
+3) ALL CASES __MUST __ BE UNIQUE...
+
+
+
+
+
+
+-> PRECISAM SER UNIQUE VALUES, E UNIQUE CASES...
+
+
+
+
+
+
+
+
+--> ISTO NÃO É PERMITIDO:
+
+
+
+
+    case Pending = 0;
+    case Paid = 0;
+    case Void = 1;
+    case Failed = 3 ;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISTO TAMBÉM NÃO É POSSÍVEL:
+
+
+
+
+    case Paid = 0;
+    case Paid = 2;
+    case Void = 1;
+    case Failed = 3 ;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+
+
+
+
+CERTO... AGORA QUE TEMOS ENUMS COM SCALAR VALUES,
+
+COMO PODEMOS ACESSÁ-LOS?
+
+
+
+
+
+
+
+
+
+
+-> precisamos pegar esses  values, e passá-los ao method de '->execute()'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> TODO 'BACKED CASE'
+    TEM 2 READ-ONLY PROPERTIES, QUE PODEM SER UTILIZADAS....
+
+
+    SÃO ELAS:
+
+
+
+    1) '->name'
+
+
+
+
+    2) '->value'
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA DEMONSTRAR, O PROFESSOR ESCREVE ASSIM:
+
+
+
+
+'''var_dump($status->name, $status->value);'''
+
+
+
+
+
+
+
+
+
+--> FICAMOS COM OS VALUES DE 
+
+
+'Failed' ( o nome do case)
+
+
+'int(3)' (3, o VALUE DO ENUM)...
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+A PROPRIEDADE '->name'
+
+
+EXISTE EM TODOS TIPOS DE case (PURE e backed),
+
+
+
+MAS A DE '->value' SÓ EXISTE 
+
+
+NOS BACKED CASES... PQ BACKED CASES SÃO 
+AQUELES QUE PERMITEM 
+SCALAR VALUES...
+
+
+
+
+
+
+
+-> PARA ACESSARMOS ESSE ENUM VALUE,
+
+BASTA RODAR ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+class Invoice extends Model
+{
+    // ! Without enums (no typehinting):
+    // public function all(int $status): array
+
+    // * With enums (with enum typehinting):
+    public function all(InvoiceStatus $status): array
+    {
+        // ! Without enums (InvoiceStatus):
+        // if (!in_array($status, InvoiceStatus::all())) {
+        //     throw new \InvalidArgumentException('Invalid status was passed as an argument');
+        // }
+
+        $stmt = $this->db->prepare(
+            'SELECT id, invoice_number, amount, status
+             FROM invoices
+             WHERE status = ?'
+        );
+
+        // ! Without enums:
+        // $stmt->execute([InvoiceStatus::PAID]);
+
+        // * With enums:
+        // $stmt->execute([$status->name]); // Get the Case's name, with the '->name' method.
+
+        $stmt->execute([$status->value]);  // Get the Case's value, with the '->value' method.
+
+        return $stmt->fetchAll(PDO::FETCH_OBJ);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... E ISSO VAI RESOLVER O NOSSO ERRO...
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK...
+
+
+
+
+
+
+
+
+
+
+
+COMO PODEMOS OBSERVAR,
+
+
+
+A PAGE ESTÁ APENAS PRINTANDO SECO O STATUS, de '3'..
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO NÃO ESTÁ MT USER-FRIENDLY...
+
+
+
+
+
+
+
+
+
+
+--> UMA USER EXPERIENCE MELHOR SERIA VER 1 TEXT REPRESENTANDO 
+ESSE STATUS...
+
+
+
+
+
+
+
+
+
+
+TIPO 'PROCESSED', 'PAID', ETC...
+
+
+
+
+
+
+
+
+
+
+
+-->  TEMOS O CÓDIGO DA VIEW:
+
+
+
+
+        <?php foreach ($invoices as $invoice): ?>
+            <tr>
+                <td><?= $invoice->invoice_number ?></td>
+                <td>$<?= number_format($invoice->amount, 2) ?></td>
+                <td class="<?= $invoice->status ?>">
+                </td>
+            </tr>
+        <?php endforeach ?>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-->  O QUE QUEREMOS, AGORA,
+
+É DISPLAYAR 
+
+1 TEXT USER-FRIENDLY, REPRESENTANDO O STATUS...
+
+
+
+
+
+
+-> PARA FAZERMOS ISSO, PRECISAMOS 
+
+
+''BE ABLE TO GET THE INVOICE STATUS OBJECT,
+    __ FROM _ THE RAW STATUS VALUE...''
+
+
+
+
+
+
+-> ou seja, tipo assim:
+
+
+
+
+
+<?= $invoice->status ?>
+
+
+
+
+
+
+
+
+--> PRECISAMOS IR PARA TRÁS, BASICAMENTE...
+
+
+
+
+--> TEMOS O 'RAW STATUS VALUE', SIM,
+
+    MAS PRECISAMOS PEGAR O CASE OBJECT ADEQUADO,
+
+    LÁ DO OBJECT DE 'InvoiceStatus' (enum)...
+
+
+
+
+
+
+
+
+    RESUMINDO:
+
+
+
+    '''IF WE HAVE THE VALUE 3,
+    WE WANT TO GET _ THE CASE NAME,
+    'Failed '''''
+
+
+------> PARA FAZERMOS ALGO ASSIM,
+    PODEMOS DEFINIR 1 METHOD 
+
+    DENTRO DO ENUM 'InvoiceStatus',
+
+
+
+
+
+TIPO 
+
+
+
+
+'getCase',
+
+ou algo assim... 
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, OS BACKED ENUMS IMPLEMENTAM UMA INTERFACE,
+CHAMADA DE 
+
+'BackedEnum'...
+
+
+
+
+
+
+
+--> NA DOCUMENTAÇÃO,
+
+TEMOS ISTO:
+
+
+
+
+
+interface BackedEnum extends UnitEnum {
+
+    //Methods 
+
+
+    public static from(int|string $value): static 
+    public static tryFrom(int|string $value): ?static
+
+
+}
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA,
+
+    TEMOS ESSES 2 METHODS...
+
+
+
+
+
+->_ OS 2 VALUES ACEITAM 1 SCALAR VALUE, INT OU STRING,
+
+
+E RETORNAM UM 'ENUM CASE',
+
+
+SE __ ESSE CASE FOR ENCONTRADO...
+
+
+
+
+
+
+(é aquele 'static', que é o próprio enum...)
+
+
+
+
+
+
+
+
+
+
+--> A DIFERENÇA ENTRE OS 2 METHODS É QUE 
+
+O METHOD DE 'from()' 
+
+
+__ SEMPRE FAZ O THROW DE 1 EXCEPTION QUANDO O CASE NÃO É ENCONTRADO,
+
+
+ENQUANTO QUE O 'tryFrom()'
+
+
+VAI RETORNAR NULL...
+
+
+
+
+
+
+
+
+
+
+VAMOS USAR O tryFrom,
+
+PQ ELE É MAIS ADEQUADO...
+
+
+
+
+
+''IT GIVES US THE ABILITY TO GET THE INVOICE STATUS ENUM OBJECT/CASE,
+    FROM THE RAW 'invoiceStatus' value...'
+
+
+
+
+
+
+
+
+
+ELE CHAMA ASSIM:
+
+
+
+                <td class="<?= $invoiceStatus::TryFrom() ?>">
+
+
+
+
+
+
+
+
+E AÍ PASSAMOS O 'RAW STATUS OBJECT' (que vai ser um OBJECT...)
+
+
+
+
+
+
+
+EX:
+
+
+
+                <td class="<?= \App\Enums\InvoiceStatus::TryFrom($invoice->status) ?>">
+
+
+
+
+
+
+
+
+
+
+
+MAS QUANDO RECARREGAMOS A PAGE, FICAMOS COM  1 ERROR:
+
+
+
+
+
+''InvoiceStatus could not be converted into a string''..
+
+
+
+
+
+
+-> ISSO ACONTECE/ACONTECEU, NO CASO,
+
+PQ ESTAMOS TENTANDO CONVERTER 
+
+
+ISTO AQUI:
+
+
+''  \App\Enums\InvoiceStatus::TryFrom($invoice->status) ''
+
+
+
+
+
+
+
+EM UMA STRING IMPLICITAMENTE...
+
+
+
+
+
+
+-> E SE TENTAMOS OBTER O VALUE DISSO AÍ,
+
+TIPO ASSIM:
+
+
+ \App\Enums\InvoiceStatus::TryFrom($invoice->status)->value
+
+
+
+
+
+
+
+ FICAMOS COM O MESMO PROBLEMA DE ANTES,
+
+
+
+ COM O DISPLAY DE '3', o INTEGER VALUE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> EM VEZ DISSO, QUEREMOS CHAMAR ALGUM TIPO DE METHOD,
+tipo 'text()',
+
+
+
+ou aí 'toString()',
+
+
+
+QUE VAI PEGAR O RAW STATUS VALUE,
+
+E AÍ NOS DAR 1 USER FRIENDLY TEXT,
+
+QUE AÍ PODEREMOS DISPLAY ON THE SCREEN....
+
+
+
+
+
+
+
+
+
+
+
+talvez algo tipo assim:
+
+
+
+
+
+
+enum InvoiceStatus: int
+{
+    case Pending = 0; // Each case of the InvoiceStatus enum is an object of the InvoiceStatus enum
+    case Paid = 1;
+    case Void = 2;
+    case Failed = 3 ;
+
+
+    public function convertToString(): string
+    {
+        return match ($this) {
+            self::Pending => "Pending",
+            self::Paid => "Paid",
+            self::Void => "Void",
+            self::Failed => "Failed",
+        };
+    }
+
+    
+}
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+        <?php foreach ($invoices as $invoice): ?>
+            <tr>
+                <td><?= $invoice->invoice_number ?></td>
+                <td>$<?= number_format($invoice->amount, 2) ?></td>
+                <td class="<?= \App\Enums\InvoiceStatus::TryFrom($invoice->status)->convertToString() ?>">
+                </td>
+            </tr>
+        <?php endforeach ?>
+
+
+
+
+
+
+
+
+
+
+
+-> COM ISSO,
+
+''WE GET THE PROPER REPRESENTATION OF THE RAW STATUS VALUE...''
+
+
+
+
+
+
+
+-> TEMO ACESSO à VARIABLE DE '$this',
+
+que sempre se refere a quem chamou esse 'convertToString()'...
+
+
+
+
+
+NO CASO,
+ 
+ O this vai se referir 
+
+ ao 
+
+
+
+ 'InvoiceStatus::Failed',
+
+ OU SEJA,
+
+
+ O __ CASE_ OBJECT EM QUE ESSE METHOD FOI CHAMADO...
+
+
+
+
+
+
+
+
+ O PROFESSOR ENTÃO USA 1 MATCH STATEMENT,
+
+
+ TIPO ASSIM:
+
+
+
+
+         return match ($this) {
+            self::Pending => "Pending",
+            self::Paid => "Paid",
+            self::Void => "Void",
+            self::Failed => "Failed",
+        };
+
+
+
+
+
+
+
+    ISSO VAI RETORNAR DIFERENTES VALUES,
+
+    A DEPENDER Das hipóteses...
+
+
+
+
+
+    as hipóteses são 
+
+
+    self::Pending,
+    etc etc etc..
+
+
+
+
+
+
+    -> e todos esses sãO NUMBERS,
+
+    SÃO INTS...
+
+
+    traduzindo isso, ficaria tipo 
+
+
+    0 => Pending,
+    1 => Paid,
+    2 => Void,
+    3 => Failed
+
+
+
+
+
+
+
+
+
+
+    É POR ISSO QUE, QUANDO ACONTECE O MATCH,
+
+    ELE RETORNA AQUELAS STRINGS...
+
+
+
+
+
+
+
+    TAMBÉM COLOCAMOS 1 DEFAULT CASE,
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+enum InvoiceStatus: int
+{
+    case Pending = 0; // Each case of the InvoiceStatus enum is an object of the InvoiceStatus enum
+    case Paid = 1;
+    case Void = 2;
+    case Failed = 3 ;
+
+
+    public function convertToString(): string
+    {
+        return match ($this) {
+            self::Paid=>"Paid",
+            self::Void => "Void",
+            self::Failed => "Declined",
+            default => 'Pending'
+        };
+    }
+
+    
+}
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+FUNCIONOU..
+
+
+
+
+
+
+
+
+--> MAS AGORA DEVEMOS ADICIONAR 1 OUTRO METHOD,
+PARA 'GET THE APPROPRIATE COLOR'...
+
+
+
+
+
+
+
+
+-> PARA ISSO,
+ 
+ PODEMOS USAR MATCH TAMBÉM...
+
+
+
+
+
+
+
+
+
+ (para mostrar 'paid' em verde, 'declined' em vermelho, etc etc)...
+
+
+
+
+
+
+
+
+
+
+
+ --. PARA ISSO,
+
+ VOLTAMOS AO ENUM DE InvoiceStatus,
+
+ E AÍ CRIAMOS ESTE METHOD:
+
+
+
+
+
+
+
+ <?php declare(strict_types=1);
+
+namespace App\Enums;
+
+// * Without enums:
+// class InvoiceStatus
+// {
+//     public const PENDING = 0;
+//     public const PAID = 1;
+//     public const VOID = 2;
+//     public const FAILED = 3;
+
+//     public static function all(): array
+//     {
+//         return [
+//             self::PAID,
+//             self::FAILED,
+//             self::PAID,
+//             self::VOID,
+//         ];
+//     }
+// }
+
+// * With enums (pure enum, no default values on cases):
+// enum InvoiceStatus
+// {
+//     case Pending; // Each case of the InvoiceStatus enum is an object of the InvoiceStatus enum
+//     case Paid;
+//     case Void;
+//     case Failed;
+// }
+
+// * With enums (BACKED ENUM, with default values assigned on cases):
+enum InvoiceStatus: int
+{
+    case Pending = 0; // Each case of the InvoiceStatus enum is an object of the InvoiceStatus enum
+    case Paid = 1;
+    case Void = 2;
+    case Failed = 3 ;
+
+
+    public function convertToString(): string
+    {
+        return match ($this) {
+            self::Paid=>"Paid",
+            self::Void => "Void",
+            self::Failed => "Declined",
+            default => 'Pending'
+        };
+    }
+
+    public function color(): string 
+    {
+        return match($this) {
+            self::Paid => 'green',
+            self::Void => 'red',
+            self::Failed => 'orange',
+            default => 'gray'
+        };
+    }
+    
+}
+
+
+
+
+
+
+
+
+
+CERTO.. AÍ UTILIZAMOS ISSO NA VIEW, na 'class' da div,
+
+TIPO ASSIM:
+
+
+
+
+
+       <?php foreach ($invoices as $invoice): ?>
+            <tr>
+                <td><?= $invoice->invoice_number ?></td>
+                <td>$<?= number_format($invoice->amount, 2) ?></td>
+                <td class="<?= \App\Enums\InvoiceStatus::TryFrom($invoice->status)->color() ?>">
+                <?= \App\Enums\InvoiceStatus::TryFrom($invoice->status)->convertToString() ?>
+                </td>
+            </tr>
+        <?php endforeach ?>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ TEMOS AS CLASSES, TAMBÉM:
+
+
+
+
+
+    .color-green {
+        color: green;
+    }
+
+    .color-red {
+        color: red;
+    }
+
+    .color-gray {
+        color: gray;
+    }
+
+    .color-orange {
+        color: orange;
+    }
+
+
+
+
+
+
+
+
+
+CÓDIGO COMPLETO:
+
+
+
+
+
+
+
+
+
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: center;
+    }
+
+    table tr th, table tr td {
+        border: 1px #eee solid;
+        padding: 5px;
+    }
+
+    .color-green {
+        color: green;
+    }
+
+    .color-red {
+        color: red;
+    }
+
+    .color-gray {
+        color: gray;
+    }
+
+    .color-orange {
+        color: orange;
+    }
+</style>
+<table>
+    <thead>
+        <tr>
+            <th>Invoice #</th>
+            <th>Amount</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach ($invoices as $invoice): ?>
+            <tr>
+                <td><?= $invoice->invoice_number ?></td>
+                <td>$<?= number_format($invoice->amount, 2) ?></td>
+                <td class="color-<?= \App\Enums\InvoiceStatus::TryFrom($invoice->status)->color() ?>">
+                <?= \App\Enums\InvoiceStatus::TryFrom($invoice->status)->convertToString() ?>
+                </td>
+            </tr>
+        <?php endforeach ?>
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+AÍ, LÁ NO CONTROLLER, PODEMOS FILTRAR DE ACORDO COM O QUE QUEREMOS CONSEGUIR:
+
+
+
+        $invoices = (new Invoice())->all(InvoiceStatus::Paid);
+
+
+
+OU
+
+
+        $invoices = (new Invoice())->all(InvoiceStatus::Pending);
+
+
+
+
+
+
+
+OU 
+
+
+        $invoices = (new Invoice())->all(InvoiceStatus::Void);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+em vez de retornar hardcoded strings para as colors,
+
+poderíamos retornar ENUMS também,
+
+PARA RETORNAR ENUM CASES...
+
+
+
+
+
+
+
+
+
+
+
+SE FIZÉSSEMOS ISSO,
+
+FICARIA TIPO ASSIM, O METHOD DE 'color()':
+
+
+
+
+
+
+
+
+
+
+
+    public function color(): Color
+    {
+        // Enums being returned by a Enum method
+        return match($this) {
+            self::Paid => Color::Green, 
+            self::Void => Color::Red,
+            self::Failed => Color::Orange,
+            default => Color::Gray
+        };
+    }
+
+
+
+
+
+
+
+
+
+E ASSIM, O ENUM DE COLOR:
+
+
+
+
+<?php 
+
+namespace App\Enums;
+
+declare(strict_types= 1);
+
+enum Color: string
+{
+    case Green = 'green';
+    case Red = 'red';
+    case Orange = 'orange';
+    case Gray = 'gray';
+}
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS MESMO COM TUDO ISSO, NÃO FUNCIONOU....
+
+
+
+
+
+
+
+
+N FUNCIONOU PQ, LÁ NO CÓDIGO DO HTML,
+
+
+TENHO QUE COLOCAR O CALL 
+
+
+DA PROPERTY DE '->value',
+
+PARA PEGAR O ACTUAL VALUE DE ESSES ENUM,
+
+
+que é o que queremos ('red', 'green', 'gray', etc)...
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+                <td class="color-<?= \App\Enums\InvoiceStatus::TryFrom($invoice->status)->color()->value ?>">
+
+
+
+
+
+
+
+
+
+
+ISSO PQ 'color()' não retorna mais uma STRING,
+
+e sim 
+
+RETORNA UM OBJECT DE 'Color' (enum)...
+
+É POR ISSO QUE PRECISAMOS ACESSAR A PROPERTY DE 'value'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PODERÍAMOS REFORMATAR ISSO, TIPO ASSIM:
+
+
+
+
+
+
+
+<?php 
+
+namespace App\Enums;
+
+declare(strict_types= 1);
+
+enum Color: string
+{
+    case Green = 'green';
+    case Red = 'red';
+    case Orange = 'orange';
+    case Gray = 'gray';
+
+    // used in the view:
+    public function getClass() 
+    {
+        return 'color-' . $this->value;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+<?php 
+
+namespace App\Enums;
+
+declare(strict_types= 1);
+
+enum Color: string
+{
+    case Green = 'green';
+    case Red = 'red';
+    case Orange = 'orange';
+    case Gray = 'gray';
+
+    // used in the view:
+    public function getClass() 
+    {
+        return 'color-' . $this->value;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+COM ISSO, SERÁ RETRIEVADO ESSE VALUE, POR MEIO DO METHOD DE 
+
+'->getClass()'...
+
+
+
+
+
+
+
+
+
+
+OK... AGORA TUDO ESTÁ FUNCIONANDO...
+
+
+
+
+
+
+
+
+
+---------------------------------
+
+
+
+
+
+
+
+
+
+
+ALÉM DE TER PUBLIC METHODS,
+
+PODEMOS TER STATIC METHODS,
+
+NOS NOSSOS ENUMS...
+
+
+
+
+
+
+
+
+
+''LET'S SAY THAT WE WANTED TO GET 
+AN 'InvoiceStatus' FROM __ THE _ GIVEN COLOR''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, PODEMOS ESCREVER 1 METHOD TIPO ASSIM:
+
+
+
+
+
+
+    public static function fromColor(Color $color): InvoiceStatus
+    {
+        return match ($color) {
+            Color::Green => self::Paid, 
+            Color::Gray => self::Void,
+            Color::Red => self::Failed,
+            default => self::Pending
+
+        };
+    }
+
+
+
+
+
+
+
+
+
+
+
+ISSO EXISTE LÁ NO INVOICESTATUS:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Enums;
+
+// * Without enums:
+// class InvoiceStatus
+// {
+//     public const PENDING = 0;
+//     public const PAID = 1;
+//     public const VOID = 2;
+//     public const FAILED = 3;
+
+//     public static function all(): array
+//     {
+//         return [
+//             self::PAID,
+//             self::FAILED,
+//             self::PAID,
+//             self::VOID,
+//         ];
+//     }
+// }
+
+// * With enums (pure enum, no default values on cases):
+// enum InvoiceStatus
+// {
+//     case Pending; // Each case of the InvoiceStatus enum is an object of the InvoiceStatus enum
+//     case Paid;
+//     case Void;
+//     case Failed;
+// }
+
+// * With enums (BACKED ENUM, with default values assigned on cases):
+enum InvoiceStatus: int
+{
+    case Pending = 0; // Each case of the InvoiceStatus enum is an object of the InvoiceStatus enum
+    case Paid = 1;
+    case Void = 2;
+    case Failed = 3 ;
+
+
+    public function convertToString(): string
+    {
+        return match ($this) {
+            self::Paid=>"Paid",
+            self::Void => "Void",
+            self::Failed => "Declined",
+            default => 'Pending'
+        };
+    }
+
+    // public function color(): string 
+    // {
+    //     return match($this) {
+    //         self::Paid => 'green',
+    //         self::Void => 'red',
+    //         self::Failed => 'orange',
+    //         default => 'gray'
+    //     };
+    // }
+    
+    public function color(): Color
+    {
+        // Enums being returned by a Enum method
+        return match($this) {
+            self::Paid => Color::Green, 
+            self::Void => Color::Red,
+            self::Failed => Color::Orange,
+            default => Color::Gray
+        };
+    }
+
+
+    public static function fromColor(Color $color): InvoiceStatus
+    {
+        return match ($color) {
+            Color::Green => self::Paid, 
+            Color::Gray => self::Void,
+            Color::Red => self::Failed,
+            default => self::Pending
+
+        };
+    }
+}
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+
+ISSO VAI NOS PERMITIR CRIAR 1 ENUM, A  PARTIR 
+
+
+DE UMA COLOR...
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+var_dump(InvoiceStatus::fromColor(Color::Green));
+
+
+
+
+
+
+
+
+
+COM ISSO, FICAREMOS COM O CASE DE 'InvoiceStatus::Paid'',
+
+
+
+QUE É REALMENTE UM OBJECT/CASE DO 'InvoiceStatus' enum class...
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+ OK... E ISSO FUNCIONOU...
+
+
+
+
+
+
+
+
+
+
+ -> COMO VC SE LEMBRA,
+
+ NA ÚLTIMA AULA ESTUDAMOS ATTRIBUTS,
+
+
+
+ E IMPLEMENTAMOS 'ATTRIBUTE-BASED ROUTING'...
+
+
+
+
+
+
+
+
+
+
+
+ -> FOMOS CAPAZES DE REGISTRAR NOSSAS ROUTES USANDO A FEATURE DE ATTRIBUTES...
+
+
+
+
+
+
+
+
+
+
+ -> NAQUELA AULA,
+
+ O PROFESSOR HAVIA DITO QUE ESTÁVAMOS 
+
+ HARDCODANDO AS URLS,
+
+
+ MAS QUE PODERÍAMOS TER USADO ENUMS PARA ELAS...
+
+
+
+
+
+
+
+ --> PARA USARMOS ENUMS COM A DECLARAÇÃO DAS URLS,
+
+ PODEMOS EDITAR O ATTRIBUTE DE 'ROUTE'....
+
+
+
+
+
+
+
+
+
+
+
+
+
+ -> O '$method' parameter, DO ATTRIBUTE DE 'ROUTE' 
+
+
+
+
+
+
+ESTÁ HARDCODADOS..
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Attributes;
+
+use App\Enums\HttpMethod;
+use Attribute;
+
+#[Attribute(Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
+class Post extends Route
+{
+    public function __construct(string $routePath)
+    {
+        parent::__construct($routePath, 'post');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+PARA PRATICAR, PODEMOS SIMPLESMENTE 
+
+TROCAR ESSE 'post', HARDCODADO,
+
+POR 1 ENUM DE 
+
+
+''HttpMethod''..
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+<?php 
+
+declare(strict_types=1);
+
+
+
+namespace App\Enums;
+
+enum HttpMethod: string
+{
+    case Get = 'get';
+    case Post = 'post';
+    case Put = 'put';
+    case Delete = 'delete';
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, PARA ACESSAR O ENUM,
+
+BASTA FAZER ASSIM:
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Attributes;
+
+use App\Enums\HttpMethod;
+use Attribute;
+
+#[Attribute(Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
+class Post extends Route
+{
+    public function __construct(string $routePath)
+    {
+        parent::__construct($routePath, HttpMethod::Post);
+    }
+}
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+E ISSO REALMENTE FUNCIONOU...
+
+
+
+
+
+
+
+
+
+
+
+OK.. AÍ, AGORA, PRECISAMOS EDITAR ISSO NOS CONTROLLERS TAMBÉM,
+
+
+TIPO ASSIM:
+
+
+
+
+    #[Get('/')]
+    #[Route('/home', HttpMethod::Head)]
+    public function index(): View
+    {
+        $this->invoiceService->process([], 25);
+
+        return View::make('index');
+    }
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+MAS PRECISAMOS ATUALIZAR 1 NEGÓCIO, LÁ NO METHOD DE 'registerRoutesFromControllerAttributes',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+                    $this->register($route->method, $route->routePath, [$controller, $method->getName()]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> DEVEMOS PEGAR O 'VALUE', nessa enum class de '$route->method',
+
+
+
+POR ISSO ESCREVEMOS ASsim:
+
+                    $this->register($route->method->value , $route->routePath, [$controller, $method->getName()]);
+
+
+
+
+
+
+
+
+
+
+RECARREGAMOS A PAGE, E TUDO FUNCIONA....
+
+
+
+
+
+
+
+
+
+
+
+TODAS AS ROUTES FUNCIONAM COMO ANTES...
+
+
+
+
+
+--------------------------------
+
+
+
+
+
+
+
+
+
+
+CONTINUANDO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ''ENUM CLASSES __CAN IMPLEMENT__ INTERFACES,
+    AND _ CAN _ USE TRAITS... ___ BUT THEY__ CANNOT 
+    USE __ INHERITANCE...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA TESTAR, VAMOS IMPLEMENTAR 1 INTERFACE 
+    LÁ NO InvoiceStatus,
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+    enum InvoiceStatus: int implements SomeInterface
+{
+    case Pending = 0; // Each case of the InvoiceStatus enum is an object of the InvoiceStatus enum
+    case Paid = 1;
+    case Void = 2;
+    case Failed = 3 ;
+
+
+    public function convertToString(): string
+    {
+        return match ($this) {
+            self::Paid=>"Paid",
+            self::Void => "Void",
+            self::Failed => "Declined",
+            default => 'Pending'
+        };
+    }
+
+    // public function color(): string 
+    // {
+    //     return match($this) {
+    //         self::Paid => 'green',
+    //         self::Void => 'red',
+    //         self::Failed => 'orange',
+    //         default => 'gray'
+    //     };
+    // }
+    
+    public function color(): Color
+    {
+        // Enums being returned by a Enum method
+        return match($this) {
+            self::Paid => Color::Green, 
+            self::Void => Color::Red,
+            self::Failed => Color::Orange,
+            default => Color::Gray
+        };
+    }
+
+    // Gives us a InvoiceStatus object/case, from a color object/case (passed as a parameter):
+    public static function fromColor(Color $color): InvoiceStatus
+    {
+        return match ($color) {
+            Color::Green => self::Paid, 
+            Color::Gray => self::Void,
+            Color::Red => self::Failed,
+            default => self::Pending
+
+        };
+    }
+
+    
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE CRIAMOS ESSA INTERFACE, FUNCIONA NORMALMENTE...
+
+
+
+
+
+
+
+
+-> TRAITS --> FUNCIONAM DA MESMA FORMA, COM ENUMS... (do mesmo jeito com classes)...
+
+
+
+
+
+
+
+
+
+
+--> A ÚNICA DIFERENÇA É QUE 
+    TRAITS USADOS 
+    COM ENUM CLASSES 
+
+    __NÃO PODEM TER PROPERTIES... (ao contrário de traits usados em classes, pq eles podem ter properties)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+trait InvoiceStatusHelper 
+{
+
+    public static function fromColor(Color $color): InvoiceStatus
+    {
+        return ...
+    }
+}
+
+
+
+
+
+
+
+
+
+
+ISSO É VÁLIDO....
+
+
+
+
+
+
+
+
+MAS ISTO NÃO É VÁLIDO:
+
+
+
+
+
+trait InvoiceStatusHelper 
+{
+    public string $x;
+
+    public static function fromColor(Color $color): InvoiceStatus
+    {
+        return ...
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(NÃO É VÁLIDO PQ TEMOS UMA PROPERTY, DENTRO DESSE TRAIT)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+PARA USAR NO NOSSO ENUM,
+
+
+ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+enum InvoiceStatus: int {
+
+    use YourTrait;
+
+
+    ...
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA O PROFESSOR QUER FALAR SOBRE ALGUMAS DAS RESTRIÇÕES DE ENUMS...
+
+
+
+
+
+
+
+
+
+COISAS QUE PODEMOS E NÃO PODEMOS FAZER, COM ENUMS:
+
+
+
+
+
+
+
+
+
+
+
+
+1) ''YOU CANNOT HAVE __STATE__ in enums...''
+        --> ISSO SIGNIFICA QUE CONSTRUCTOR E DESTRUCTORS NÃO SÃO PERMITIDOS..
+
+2)  INHERITANCE E PROPERTIES NÃO SÃO PERMITIDOS...
+
+3)  CLONING NÃO É PERMITIDO (não é possível copiar 1 enum case, pq cases são SINGLETON OBJECTS)...
+
+4) Magic Methods NÃO SÃO PERMITIDOS, EXCETO '__call', '__callStatic' e '__invoke'...
+
+5) VOCE NÃO PODE INSTANCIAR ENUM CASES DIRETAMENTE, OU POR MEIO 
+    DA REFLECTION API...
+
+
+
+
+
+
+
+    MAS, POR OUTRO LADO, ENUMS PODEM:
+
+
+
+
+1) USAR/TER PUBLIC, PRIVATE E PROTECTED METHODS...
+
+
+
+2) STATIC METHODS E CONSTANTS 
+
+
+3) IMPLEMENTAR INTERFACES 
+
+
+4) USAR TRAITS (SEM PROPERTIES)...
+
+
+5) PODEM TER ENUM CLASS ATTRIBUTES ATTACHEADOS A SI (por meio de 'Attribute::TARGET_CLASS')
+
+
+6) PODEM TER ENUM CASE ATTRIBUTES ATTACHEADOS A SI (por meio de 'Attribute::TARGET_CLASS_CONSTANT')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ok...
+
+
+
+
+
+
+
+
+
+-> TUDO ISSO FUNCIONA,
+
+    MAS COMO PODEMOS ACESSAR TODOS OS CASES...?
+
+
+
+
+
+
+
+
+--> ''BECAUSE IF WE REMEMBER, BEFORE,
+    IN THE InvoiceStatus class,
+
+    WE HAD THAT METHOD 'all(): array',
+    WHICH RETURNED AN ARRAY 
+    WITH 
+    ALL THE POSSIBLE CONSTANT VALUES...''
+
+
+
+
+
+
+
+
+-> NÓS NÃO TEMOS MAIS ESSE METHOD...
+
+
+
+
+
+--> PODERÍAMOS COLOCAR ESSE METHOD DE VOLTA,
+    MAS ISSO NÃO É NECESSÁRIO... NÃO É NECESSÁRIO 
+
+
+    PQ _ OS ENUMS __ JÁ VEM COM 
+
+    UM BUILT-IN METHOD 
+
+    QUE __ NOS DEIXA _ ACESSAR _ TODOS OS CASES,
+
+
+
+    todos aqueles 
+
+    ''
+        case Pending = 0; // Each case of the InvoiceStatus enum is an object of the InvoiceStatus enum
+    case Paid = 1;
+    case Void = 2;
+    case Failed = 3 ;
+    ''
+
+
+
+
+
+
+
+
+
+
+--> E O METHOD PARA ACESSAR 
+
+TODOS OS CASES SE CHAMA 
+
+DE 
+
+
+'cases()'...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+  
+
+
+
+
+
+
+
+
+
+
+InvoiceStatus::cases();
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+        // $allPossibleCases = InvoiceStatus::cases();
+
+
+
+
+
+
+
+
+
+
+
+
+
+    OK.. AÍ FICAMOS COM 1 ARRAY 
+
+    COM TODOS OS CASE OBJECTS...
+
+
+
+
+
+
+
+
+
+--> ISSO É POSSÍVEL, NO CASO,
+    PQ 
+
+    Pure e backed enums 
+
+
+    INTERNAMENTE IMPLEMENTAM 
+
+    A INTERFACE DE 
+
+    'UnitEnum'...
+
+
+
+
+
+    e essa interface implementa 
+
+    isto:
+
+    interface UnitEnum {
+
+        public static cases(): array
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VAMOS ACABAR O VÍDEO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ALGUMAS COISAS:
+
+
+
+
+
+
+
+
+
+-- HÁ UMA NOVA FUNCTION,
+    CHAMADA DE 'enum_exists()',
+    QUE 
+    CHECA SE 
+
+    O GIVEN ENUM EXISTE OU NÃO....
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+var_dump(enum_exists(InvoiceStatus::class))
+
+
+
+
+
+
+
+
+
+--> ISSO RETORNA TRUE OU FALSE (no caso, retorna true)...
+
+
+
+
+
+
+
+-> SE PASSAMOS ALGO QUE NÃO É UM ENUM,
+    FICAMOS COM FALSE....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> FINALMENTE,
+
+
+    ''THERE ARE NEW RELATED REFLECTION CLASSES
+    THAT GOT ADDED TO REFLECTION API,
+        TO BE USED WITH ENUMS...
+        
+        LIKE ReflectionEnum,
+        ReflectionEnumCase
+        e ReflectionEnumBackedCase...''
+        
