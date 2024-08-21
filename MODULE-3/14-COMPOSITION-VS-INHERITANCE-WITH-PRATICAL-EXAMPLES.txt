@@ -1,0 +1,2868 @@
+
+
+
+
+
+
+
+
+
+
+VOCE PROVAVELMENTE JÁ LEU EM ARTIGOS 
+
+
+QUE 
+
+
+'COMPOSITION IS THE WAY',
+
+
+E QUE 
+
+DEVE SER USADA EM VEZ DE INHERITANCE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+''''COMPOSITION''''....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TANTO INHERITANCE COMO COMPOSITION SÃO 
+MANEIRAS DE CONSTRUIR RELATIONS ENTRE CLASSES 
+
+EM OBJECT ORIENTED PROGRAMMING...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+CLASS A <------------ CLASS B 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> NÓS ESTUDAMOS INHERITANCE EM DETALHES 
+    ANTERIORMENTE NO CURSO...
+
+
+
+
+
+
+
+
+
+--> NO EXEMPLO DE HOJE,
+
+TEMOS:
+
+
+
+
+
+''AN Invoice Class with a 'create()' METHOD,
+WHICH ACCEPTS '$lineItems', an array, as AN ARGUMENT..''
+
+
+
+
+
+
+
+''ITS PURPOSE IS TO _ CREATE AN INVOICE,
+BUT, BEFORE THAT, IT RUNS SOME METHODS:
+
+
+calculateLineItemsTotal()
+calculateSalesTax()
+
+
+does some other things,
+
+before finally CREATING THE INVOICE''...
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE, EM UM APP DE VERDADE,
+ESSE METHOD FARIA MAIS COISAS,
+
+
+MAS AQUI VAMOS MANTER AS COISAS SIMPLES...
+
+
+
+
+
+
+
+
+O CÓDIGO É TIPO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+class Invoice
+{
+    public function create(array $lineItems)
+    {
+        // Calculate sub total
+        $lineItemsTotal = $this->calculateLineItemsTotal($lineItems);
+
+        // Calculate sales tax
+        $salesTax = $this->calculateSalesTax($lineItemsTotal);
+
+        $total = $lineItemsTotal + $salesTax;
+
+        echo 'Sub total: ' . $lineItemsTotal . PHP_EOL;
+        echo 'Sales Tax: ' . $salesTax . PHP_EOL;
+        echo 'Total: ' . $total . PHP_EOL;
+    }
+
+    public function calculateLineItemsTotal(array $items): float|int
+    {
+        return array_sum(
+            array_map(
+                fn($item) => $item['unitPrice'] * $item['quantity'],
+                $items
+            )
+        );
+    }
+
+    public function calculateSalesTax(float|int $total): float
+    {
+        return round($total * 0.07, 2);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK.... FINALMENTE, PARA TESTAR SE TUDO ESTÁ FUNCIONANDO,
+
+FAZEMOS ECHO DOS RESULTS, NAQUELE METHOD DE CREATE...
+
+
+
+
+
+
+em 'public>index.php',
+
+
+TEMOS ISTO:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Invoice;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->load();
+
+(new Invoice())->create([
+    ['description' => 'Item 1', 'unitPrice' => 15.25, 'quantity' => 1],
+    ['description' => 'Item 2', 'unitPrice' => 2, 'quantity' => 2],
+    ['description' => 'Item 3', 'unitPrice' => 0.25, 'quantity' => 3],
+]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... RODAMOS ESSE CÓDIGO,
+
+E AÍ TUDO É PRINTADO NORMAL,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+Sub Total: $20 
+Sales Tax: $1.4 
+Total: $21.4 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> APESAR DE ESSE CÓDIGO FUNCIONAR,
+
+HÁ ALGO QUE NAÕ PARECE BOM, AO PROFESSOR...
+
+
+
+
+
+
+
+
+
+
+
+''WE HAVE AN INVOICE CLASS,
+    WHOSE PURPOSE IS TO CREATE AN INVOICE,
+    AND THEN 
+
+    __ DO _ THINGS __ RELATED__ TO INVOICE...''
+
+
+
+
+
+
+
+
+''SHOULD CALCULATING TAXES BE THE JOB OF THE 
+    INVOICE CLASS????'''
+
+
+
+
+
+
+    -> NO...
+
+
+
+
+--> ALGUNS DIRIAM QUE SIM, MAS O PROFESSOR NÃO CONCORDA...
+
+
+
+
+
+
+
+
+
+
+
+
+''LET'S SAY THAT WE HAVE ANOTHER CLASS,
+    LIKE A 'Payment' class,
+
+    WHOSE JOB IS TO PROCESS PAYMENTS... 
+
+
+    IT COULD PROCESS PAYMENT FOR THE GIVEN INVOICE,
+    OR PROCESS PAYMENTS WITHOUT INVOICES...
+
+
+    BUT _ IT WOULD ALSO NEED TO CALCULATE THE SALES 
+    TAX,
+     IN CERTAIN SITUATIONS...''
+
+
+
+
+
+    --> MAS A LÓGICA DE CÁLCULO DE SALES TAX 
+    ESTÁ 
+    PRESA EM 'Invoice.php'...
+
+
+
+
+
+
+
+    -> 'OUR FIRST THOUGHT WOULD BE TO DUPLICATE THE CODE OF 
+    'calculateSalesTax()',
+    AND PASTE IT IN THE Payment class... but that is bad...''
+
+
+
+
+
+
+
+    -> THAT IS BAD BECAUSE WE MUST 
+        FOLLOW THE DRY PRINCIPLE (dont repeat yourself)..
+
+
+
+
+
+
+
+
+
+
+--> A PRÓXIMA SOLUTION SERIA USAR INHERITANCE,
+    PARA NÃO REUTILIZAR O CÓDIGO...
+
+
+
+
+
+
+
+
+
+
+
+
+--> 'WE WOULD CREATE A TAX LIKE SALESCALCULATOR,
+    AND THEN EXTEND IT IN THE INVOICE CLASS'....
+
+
+
+
+
+
+--> tipo algo assim:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class SalesTaxCalculator {
+
+
+    public function calculateSalesTax(float|int $total): float
+    {
+        return round($total * 0.07, 2);
+    }
+}
+
+
+
+
+
+
+
+
+
+class Payment extends SalesTaxCalculator {
+
+
+
+}
+
+
+
+
+class Invoice extends SalesTaxCalculator {
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, GANHARÍAMOS ACESSO A ESSE METHOD AÍ,
+
+
+DE 'SalesTaxCalculator'...
+
+
+
+
+
+
+
+
+
+
+E GANHARÍAMOS ACESSO A ISSO DENTRO DA CLASS DE 'Invoice' 
+
+e 'Payment',
+
+e em qualquer outra class...
+
+
+
+
+
+
+
+
+
+
+
+certo, isso funciona... basta 
+
+fazer o extend da class, na outra class...
+
+
+
+
+
+
+
+
+
+
+
+ISSO PODE PARECER A SOLUTION MAIS SIMPLES E CORRETA,
+
+MAS __ NÃO É...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROBLEMA, AQUI, É:
+
+
+
+
+
+'''WE ARE USING INHERITANCE FOR _ CODE REUSE, 
+    BUT THAT'S NOT _ WHAT IT IS MEANT FOR''...
+
+
+
+
+
+
+(X) USE OF INHERITANCE FOR CODE REUSE...
+
+
+
+
+
+
+
+
+
+
+-> MTOS DEVELOPERS COMETEM ESSE ERRO...
+
+
+
+
+
+
+
+
+--> USAM INHERITANCE 
+    PARA _ EVITAR _CODE DUPLICATION..
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR JÁ FEZ ISSO NO PASSADO,
+    E É RUIM... E FICA DOLOROSO
+     DE MANTER A CODEBASE, DOWN THE ROAD...
+
+
+
+
+    
+
+
+
+
+
+
+A LISTA DE PROBLEMAS:
+
+
+
+
+
+
+
+1) INTRODUZIMOS TIGHT COUPLING 
+    ENTRE A CLASS DE 'Invoice' e 'SalesTaxCalculator'...
+
+
+
+
+
+
+2) ACABAMOS FAZENDO INHERIT DE TODOS OS 
+    PUBLIC E PROTECTED METHODS DA CLASS DE 
+    'SalesTaxCalculator'...
+
+        E ISSO É __ BEM RUIM__....
+
+
+
+-> NESSE NOSSO EXEMPLO, TEMOS APENAS 1 ÚNICO METHOD,
+ de 'calculate()',
+
+
+ mas é ÓBVIO QUE, EM UM APP DE VERDADE,
+ ESSA CLASS 
+
+ TERÁ MAIS METHODS E PROPERTIES E ETC... (fica bem messy)...
+
+
+
+
+---> TODAS ESSAS PROPERTIES E METHODS ACABARIAM INHERITADOS 
+    POR ESSA CLASS,
+
+
+    POR 'Invoice'...
+
+
+
+
+
+
+
+
+
+
+
+
+-> VC TERIA METHODS E PROPERTIES COMPLETAMENTE DESNECESSÁRIOS 
+à CLASS DE 'Invoice',
+
+SENDO IMPORTADOS NELA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OUTRA ISSUE É QUE 
+        ''WE STILL DIDN'T SOLVE THE ORIGINAL PROBLEM..''
+
+
+
+
+
+
+
+--> O ORIGINAL PROBLEM:  ''Invoice class is responsible FOR THE 
+                            TAX CALCULATION, AND IT SHOULD NOT BE...'''
+
+
+
+
+
+
+--> E ESSA CLASS ESTÁ RESPONSÁVEL POR ISSO PQ 
+    _HERDOU__ ESSA  FUNCIONALIDADE, ASSIM COMO VÁRIAS OUTRAS 
+    FUNCIONALIDADES, LÁ DE 'SalesTaxCalculator'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROBLEMA, AQUI, É QUE 
+
+INHERITANCE 
+
+
+CRIA UMA 
+
+
+
+RELATIONSHIP 
+
+
+DE 
+
+'IS-A' ENTRE AS CLASSES ENVOLVIDAS NELA.... (child e parent)
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> E, AQUI, 'Invoice' CERTAMENTE __ NÃO 
+    É UM 'SalesTaxCalculator'... É POR ISSO QUE 
+    A INHERITANCE 
+
+
+    JÁ FALHA, IMEDIATAMENTE, NESSE CASO...
+
+
+
+
+
+
+--> ESSA PHRASE NÃO FAZ SENTIDO,
+    'INVOICE IS A SALESTAXCALCULATOR'...
+
+
+
+
+    ---> É O PRIMEIRO INDICADOR DE QUE ESTAMOS 
+        USANDO INHERITANCE DE FORMA ERRADA... ESTAMOS TENTANDO 
+        CRIAR__ 1 RELATIONSHIP DE 'IS-A' 
+
+        _ QUE NÃO DEVE EXISTIR/NÃO FAZ SENTIDO...
+
+
+
+
+
+
+
+
+
+--> E É EXATAMENTE AQUI QUE 'COMPOSITION' ENTRA EM JOGO, 
+
+E FAZ MT MAIS SENTIDO...
+
+
+
+
+
+
+
+
+
+
+--> EM VEZ DE INHERITANCE,
+
+    PODEMOS FAZER PASS DE ESSE NEGÓCIO DENTRO 
+    DO CONSTRUCTOR DE 'Invoice',
+
+
+    PARA PODERMOS O UTILIZAR NORMALMENTE...
+
+
+
+
+
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+class Invoice
+{
+    // * COMPOSITION example
+    public function __construct(protected SalesTaxCalculator $salesTaxCalculator) {}
+
+    public function create(array $lineItems)
+    {
+        // Calculate sub total
+        $lineItemsTotal = $this->calculateLineItemsTotal($lineItems);
+
+        // * Calculate sales tax (using the injected SalesTaxCalculator, COMPOSITION example)
+        $salesTax = $this->salesTaxCalculator->calculate($lineItemsTotal);
+
+        $total = $lineItemsTotal + $salesTax;
+
+        echo 'Sub total: ' . $lineItemsTotal . PHP_EOL;
+        echo 'Sales Tax: ' . $salesTax . PHP_EOL;
+        echo 'Total: ' . $total . PHP_EOL;
+    }
+
+    public function calculateLineItemsTotal(array $items): float|int
+    {
+        return array_sum(
+            array_map(
+                fn($item) => $item['unitPrice'] * $item['quantity'],
+                $items
+            )
+        );
+    }
+
+    public function calculateSalesTax(float|int $total): float
+    {
+        return round($total * 0.07, 2);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO,
+
+
+DIZEMOS QUE 
+
+
+
+A RELATION ENTRE 
+
+
+'Invoice' e 'SalesTaxCalculator'
+
+
+É UMA 
+
+DE 
+
+
+'HAS-A'...
+
+
+
+
+
+
+--> PQ, ENTÃO,
+
+    A CLASS DE INVOICE 
+
+
+    ''TEM UM OBJECT/CLASS DE SALESTAXCALCULATOR'',
+
+
+    QUE, POR SUA VEZ,
+
+    ''TEM, REALMENTE, UMA HABILIDADE/FUNCAO 
+    DE CALCULAR A TAX''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE:
+
+
+
+
+
+1) INHERITANCE --> CREATES A 'IS-A' RELATIONSHIP BETWEEN CLASSES 
+
+
+
+2) COMPOSITION --> CREATERS A 'HAS-A' RELATIONSHIP BETWEEN CLASSES...
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS INJETAR ESSA CLASS TAMBÉM NO CONSTRUCTOR DE 'Payment',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php
+
+namespace App;
+
+class Payment
+{
+    public function __construct(protected SalesTaxCalculator $salesTaxCalculator) {}
+
+    public function processPayment()
+    {
+        $this->salesTaxCalculator->calculate(200);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+UTILIZAMOS ISSO TIPO ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Invoice;
+use App\Payment;
+use App\SalesTaxCalculator;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->load();
+
+// * Examples of COMPOSITION, through DEPENDENCY INJECTION:
+$salesTaxCalculator = new SalesTaxCalculator();
+
+(new Invoice($salesTaxCalculator))->create([
+    ['description' => 'Item 1', 'unitPrice' => 15.25, 'quantity' => 1],
+    ['description' => 'Item 2', 'unitPrice' => 2, 'quantity' => 2],
+    ['description' => 'Item 3', 'unitPrice' => 0.25, 'quantity' => 3],
+]);
+
+(new Payment($salesTaxCalculator))->processPayment();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS INJETAR ESSE SALESTAXCALCULATOR
+
+
+NO CONSTRUCTOR DE QUALQUER CLASS QUE PRECISE 
+
+CALCULAR 
+
+
+ESSA TAX... ISSO NOS DEIXA 
+
+REUTILIZAR O CÓDIGO SEM USAR 
+ 
+INHERITANCE,
+
+E SEM DUPLICAR QUALQUER COISA,
+
+
+
+E SEM FAZER INHERIT DE METHODS E PROPERTIES DESNECESSÁRIAS.....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------------------
+
+
+
+
+
+
+
+OK... MAS DIGAMOS QUE QUEREMOS ESCREVER 1 METHOD CUSTOM 
+
+DE CÁLCULO DE TAXES... PARA CALCULAR A SALE TAX 
+
+
+DENTRO 
+
+DA CLASS DE Invoice... ------> PARA ISSO,
+
+
+PODERÍAMOS CRIAR ESSE METHOD 
+
+
+DENTRO DA CLASS 
+
+
+DE 
+'
+Invoice()',
+
+
+
+
+
+
+
+
+COM O MESMO NOME,
+
+
+
+
+
+
+AO MESMO TEMPO QUE UTILIZAMOS A LÓGICA DO METHOD DE 'SalesTaxCalculator',
+
+TIPO ASSIM:
+
+
+
+
+
+class Invoice
+{
+    // * COMPOSITION example
+    public function __construct(protected SalesTaxCalculator $salesTaxCalculator) {}
+
+
+    public function calculate()
+    {
+        // Some custom, Invoice class-specific, logic
+
+        // Then, reusing the logic from the SalesTaxCalculator:
+        return $this->salesTaxCalculator->calculate(23);
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+PODERÍAMOS CHAMAR ESSE METHOD DE QUALQUER OUTRA COISA, TAMBÉM...
+
+
+
+
+----------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+OK, MAS COMO PODEMOS DECIDIR ENTRE INHERITANCE E COMPOSITION,
+
+NO MEIO DE NOSSO CÓDIGO?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> HÁ MTOS TUTORIAIS E ARTIGOS...
+
+
+
+
+
+
+
+
+
+--> MTOS VÃO TE DIZER PARA USAR INHERITANCE 
+SE É UMA 'IS-A' RELATIONSHIP..
+
+
+
+
+
+
+
+
+
+-> E MTOS VÃO TE DIZER PARA USAR COMPOSITION,
+    QUANDO FOR 'HAS-A'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... MAS AGORA O PROFESSOR NOS DÁ 1 DETALHE ADICIONAL:
+
+
+
+''' THERE ARE SOME CASES WHERE,
+EVEN IF INHERITANCE MAKES SENSE ('IS-A' relationship is present),
+IT STILL IS A BAD IDEA...''''
+
+
+
+
+
+
+
+
+
+
+--> O EXEMPLO COM 
+    O 'Invoice' e 'SalesTaxCalculator'
+
+    NÃO TINHA 
+
+
+    1 RELATIONSHIP DE 'IS-A',
+
+
+    POR ISSO 
+
+
+    FOI FÁCIL DECIDIR QUE 
+
+    'INHERITANCE NÃO É ADEQUADA, AQUI'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS E SE ESTAMOS TRABALHANDO 
+    COM CLASSES 
+
+    EM QUE A RELATION DE 'IS-A' 
+
+    FAZ SENTIDO?
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, IMAGINE A SEGUINTE SITUAÇÃO:
+
+
+
+
+
+
+
+
+IMAGINE QUE VC TEM 2 CLASSES,
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+class CreditCardPayment {
+
+
+
+}
+
+
+
+
+
+class ACHPayment {
+
+
+
+}
+
+
+
+
+
+
+
+
+**An ACH payment is a type of electronic bank-to-bank payment in the US. It's made via the ACH network, instead of credit card companies...
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+class CreditCardPayment {
+
+
+
+}
+
+
+
+
+
+class ACHPayment {
+
+
+
+}
+
+
+
+
+
+
+
+
+--> essas 2 classes     
+'SHARE SOME COMMON FUNCTIONALITY',
+
+
+
+por isso 
+
+
+faria sentido 
+
+CRIAR 1 CLASS BASE DE 'Payment',
+
+
+QUE SERIA EXTENDIDA 
+
+
+NAS DUAS....
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+class Payment 
+{
+
+/* common properties */
+
+/* common methods */
+
+}
+
+
+
+
+class CreditCardPayment extends Payment
+{
+
+/* properties */
+/* overrides some common properties */
+
+/* methods */
+/* overrides some common methods */
+
+
+}
+
+
+
+
+
+class ACHPayment extends Payment
+{
+
+/* properties */
+/* overrides some common properties */
+
+/* methods */
+/* overrides some common methods */
+
+}
+
+
+
+
+
+
+
+
+ 
+
+
+
+NESSE CASO, A 
+
+
+RELATIONSHIP DE 'IS-A'
+
+FAZ SENTIDO,
+
+PARA CreditCardPayment e ACHPayment...
+
+
+
+
+ 
+
+
+
+
+
+
+
+DEVIDO A ISSO, INHERITANCE PODE PARECER UMA BOA SOLUTION...
+
+
+
+
+
+
+
+
+
+--> AMBAS CLASSES SÃO ESSENCIALMENTE PAYMENTS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> DAQUI A 6 MESES, O CLIENT/MANAGER DIZ:
+
+
+''TEMOS QUE COMEÇAR A ACEITAR PAYMENTS EM CRYPTO,
+    PQ É COOL''...
+
+
+
+
+
+
+
+--> AGORA, COM ISSO, PRECISAMOS CRIAR UMA CLASS DE 
+
+'CryptoPayment'... 
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+class Payment 
+{
+
+/* common properties */
+
+/* common methods */
+
+}
+
+
+
+
+class CreditCardPayment extends Payment
+{
+
+/* properties */
+/* overrides some common properties */
+
+/* methods */
+/* overrides some common methods */
+
+
+}
+
+
+
+
+
+class ACHPayment extends Payment
+{
+
+/* properties */
+/* overrides some common properties */
+
+/* methods */
+/* overrides some common methods */
+
+}
+
+
+
+
+class CryptoPayment extends Payment
+{
+
+/* properties */
+/* overrides some common properties */
+
+/* methods */
+/* overrides some common methods */
+
+}
+
+
+
+
+
+
+
+
+
+
+
+-> COM ISSO, SOMOS __ BASICAMENTE_ FORÇADOS 
+    A FAZER EXTEND DA BASE CLASS DE 'Payment' 
+    NESSA NOVA CLASS...
+
+
+
+
+
+
+
+
+--> ISSO PQ A RELATIONSHIP DE 'IS-A' FAZ SENTIDO...
+
+
+
+
+
+
+--> O PROBLEMA, AQUI,
+    É QUE A CLASS DE 'CryptoPayment'
+
+    NÃO PRECISA DE 1 MONTE 
+
+    DAS PROPERTIES E METHODS DA CLASS BASE 'Payment'...
+
+
+
+
+
+--> quer dizer que somos forçados 
+
+a 'hack it away', por meio do override 
+de certos 
+
+
+methods,
+
+
+e por meio do throw de exceptions
+
+
+para DESABILITAR ACESSO A ALGUNS DOS METHODS INHERITADOS,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+class CryptoPayment extends Payment
+{
+
+/* properties */
+/* overrides some common properties */
+
+/* methods */
+/* overrides some common methods */
+
+
+
+public function someMethodFromBasePaymentClass() {
+    throw new \RuntimeException('Unsupported');
+}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+QUER DIZER QUE ISSO VIRA 1 DOR DE CABEÇA,
+
+E GASTAMOS 1 MONTE DE TRABALHO PARA FAZER O REFACTOR 
+
+DESSA CLASS...
+
+
+
+
+
+
+
+
+
+PASSA-SE 1 ANO,
+
+E AÍ 
+
+
+
+
+PEDE-SE QUE SEJA CRIADA 
+
+UMA NOVA CLASS,
+
+
+
+'MobilePayment',
+
+
+COM OS MESMOS PROBLEMAS..
+
+
+
+
+
+
+
+
+-> COMO CONSEQUÊNCIA, A MAINTENANCE FICA CADA VEZ MAIS DIFÍCIL....
+
+
+
+
+
+
+
+--> QUER DIZER QUE 
+
+'INHERITANCE'
+
+
+
+TE DEIXA ''KINDOF'' PREDICT O FUTURO... --> VC DESENHA 
+                                            SUA PARENT 
+                                            CLASS 
+
+                                            COM 
+
+                                            ''ALL THE PROPERTIES, BEHAVIORS
+                                            AND METHODS 
+                                            THAT YOU THINK THAT WILL 
+                                            BE NEEDED, IN THE CHILD 
+                                            CLASSES THAT EXTEND IT, IN THE FUTURE''...
+
+
+
+
+
+
+''AND, WHEN THAT FUTURE COMES,  
+    YOU HAVE THE RISK OF HAVING A HARD 
+    TIME MAINTAINING AND REFACTORING THAT CODEBASE...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VEREMOS MAIS UM EXEMPLO, A VER COM VIDEOGAMES..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TEMOS 3 CLASSES:
+
+
+
+
+
+Alligator 
+
+
+
+
+Dragon 
+
+
+
+
+Gorilla...
+
+
+
+
+
+
+---> DIGAMOS QUE TEMOS DIFERENTES TIPOS DE NPC/monsters...
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO....
+
+
+
+OS 3 PODEM 'MOVE' E 'ATTACK',
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+class Alligator
+{
+    // Some properties
+
+    public function attack() {}
+
+    public function move() {}
+}
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+class Dragon
+{
+    // Some properties
+
+    public function attack() {}
+
+    public function move() {}
+}
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+class Gorilla
+{
+    // Some properties
+
+    public function attack() {}
+
+    public function move() {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+É CLARO QUE O PROFESSOR TIROU AS OUTRAS PROPERTIES E METHODS...
+
+
+
+
+
+ASSUMA QUE 
+
+TEMOS OUTRAS PROPERTIES/METHODS...
+
+
+
+
+
+
+
+
+
+
+--> O PROBLEMA:
+
+
+
+
+
+
+
+JÁ DE CARA, PERCEBEMOS A CODE DUPLICATION...
+
+
+
+
+
+
+
+
+
+-> PODEMOS TENTAR USAR INHERITANCE..
+
+
+
+
+
+
+
+--> TENTAMOS ABSTRAIR OS METHODS DE 'ATTACK' E 'MOVE',
+
+
+
+EM UMA CLASS BASE....
+
+
+
+
+
+
+
+
+
+--> ESSA CLASS VAI TER ESSA COMMON FUNCTIONALITY....
+
+
+
+
+
+
+
+
+-_> CRIAMOS UMA CLASS DE NPC,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+class NPC
+{
+    // Some properties
+
+    public function attack() {}
+
+    public function move() {}
+}
+
+
+
+
+E ASSIM:
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+class Gorilla extends NPC
+{
+    // Some properties
+
+    // Some methods
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+O PROFESSOR TAMBÉM DEIXA ESSA CLASS COMO 'abstract'... (a de 'NPC')....
+
+
+
+
+NÃO PRECISAVA SER ABSTRACT, MAS FAZ SENTIDO O SER...
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+abstract class NPC
+{
+    // Some properties
+
+    public function attack() {}
+
+    public function move() {}
+}
+
+
+
+
+
+
+
+
+
+
+ESSES METHODS PODERIAM SER OVERWRITTEN PELAS CHILD CLASSES,
+
+
+MAS O BASE BEHAVIOR 
+
+
+SEMPRE ESTARIA ALI (base attack, e base move)...
+
+
+
+
+
+
+
+
+
+
+
+
+--> outras properties podem ficar dentro do NPC,
+
+como 'HP',
+
+também...
+
+
+
+
+
+
+
+-> COM ISSO, REDUZIMOS A CODE DUPLICATION 
+    POR MEIO DO USO DE INHERITANCE...
+
+
+
+
+
+
+
+
+
+E INHERITANCE FAZ SENTIDO, AQUI,
+
+PQ 
+
+
+
+
+'ALL THREE CLASSES ARE NPCs...''
+
+
+
+
+
+
+
+
+
+
+
+
+-> tudo está funcionando, indo legal...
+
+
+
+
+
+
+
+---> MAS ALGUM TEMPO PASSA,
+    E AÍ O MANAGER 
+    PENSA 
+
+
+    ''Precisamos de quests no nosso jogo''...
+
+
+
+
+
+--> ISSO QUER DIZER QUE PRECISAMOS CRIAR UM NPC DE 
+
+'QuestGiver',
+
+e aí 
+
+FAZER EXTEND DA CLASS DE 'NPC' NELE...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+class QuestGiver extends NPC
+{
+    // Some properties
+
+    // Some methods
+}
+
+
+
+
+
+
+
+
+
+O QUESTGIVER TEM ALGUMAS FUNCTIONALITIES DE NPC,
+COMO 'MOVE', SIM....
+
+
+
+
+
+
+
+--> O PROBLEMA, AQUI,
+É QUE 
+
+A CLASS 
+
+DE 
+
+'QuestGiver'
+
+
+
+
+__ NÃO DEVE__ _SER CAPAZ __ DE ATACAR..
+
+NÃO DEVE TER O METHOD DE 'attack()'...
+
+
+
+
+
+
+
+
+
+--> ENTRETANTO,
+    ESSE METHOD AINDA ACABA INHERITADO,
+
+   POR CONTA DA BASE CLASS DE 'NPC'...
+
+
+
+
+
+
+
+--> QUER DIZER QUE O 'QuestGiver'
+
+    ESTÁ COM A OPÇÃO DE 'ATTACK'...
+
+
+
+
+
+
+
+--> NÃO PODEMOS DEIXAR ISSO ASSIM,
+
+POR ISSO 
+
+
+fazemos override do method de attack(),
+
+
+para aí fazermos o throw de uma Exception,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+class QuestGiver extends NPC
+{
+    // Some properties
+
+    // Some methods
+
+    // ! This is a bad hack - we try to make it so that QuestGiver can not attack, by throwing an exception.
+    public function attack()
+    {
+        new \RuntimeException('QuestGiver can not attack.');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+DESSA FORMA, TENTAMOS DESABILITAR A FUNCTIONALITY DE ATTACK,
+
+
+NA CLASS DE 'QuestGiver'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO, PORTANTO,
+
+É OUTRA INDICAÇÃO DE INHERITANCE 
+
+TALVEZ NAÕ SEJA 
+
+A SOLUÇÃO ADEQUADA... PQ ESTAMOS USANDO UM 
+HACK,
+ 
+ ESSE WRITE DA EXCEPTION,
+
+ PARA 
+
+ KINDOF DESABILITAR UMA FUNCTIONALITY...
+
+
+
+
+
+
+
+
+
+
+-> NÓS RECÉM COMEÇAMOS, E JÁ ESTAMOS PRECISANDO FAZER 
+COISAS ASSIM, PARA FAZER NOSSO CÓDIGO FUNCIONAR...
+
+
+
+
+
+
+
+-> O QUE FAZEMOS, ENTÃO?
+
+
+
+
+
+--> NÓS ACABAMOS NOS AFUNDANDO AINDA MAIS EM INHERITANCE,
+    E CRIAMOS UMA CLASS DE 'Monster',
+
+
+    QUE AÍ VAI EXTEND O NPC...
+
+
+
+
+--> AÍ, NAS CLASSES DE Gorilla, Dragon e Alligator,
+    FAREMOS O EXTEND DE 'Monster', em vez de 'NPC'...
+
+
+
+
+
+
+
+--> JÁ EM QuestGiver, FAZEMOS EXTEND DE 'NPC',
+
+e não 'Monster'...
+
+
+
+
+tipo assim:
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+class Monster extends NPC
+{
+    // Some properties
+
+    // Additional method, not present in NPC (and questgiver):
+    public function attack() {}
+}
+
+
+EX:
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+class Gorilla extends Monster
+{
+    // Some properties
+
+    // Some methods
+}
+
+
+
+eX:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+class QuestGiver extends NPC
+{
+    // Some properties
+
+    // Some methods
+
+}
+
+
+
+
+--> COM ISSO, PODEMOS PENSAR QUE 
+
+    SOLUCIONAMOS O PROBLEMA....
+
+
+
+
+
+
+
+-> MAS AÍ O CLIENTE VEM COM UMA NOVA GRANDE IDEIA..
+
+
+
+
+
+
+
+
+--> A IDEIA É 
+
+''QUEREMOS ADICIONAR PETS NO JOGO',
+
+
+PETS QUE O PLAYER PODE TER..
+
+
+
+
+
+
+
+
+--> OK... PETS...
+
+
+
+PARA ISSO, CRIAMOS A CLASS DE 'PET',
+
+E AÍ 
+
+FAZEMOS EXTEND 
+
+DA CLASS DE 'NPC'...
+
+
+
+
+
+
+
+-> TIPO ASSIM:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+class Pet extends NPC
+{
+    // Some properties
+
+    // Some methods
+}
+
+
+
+
+
+
+
+
+
+
+O PROBLEMA, AQUI,
+
+É 
+
+QUE 
+
+O PET __ SHOULD BE ABLE TO ATTACK...
+
+
+
+
+
+
+
+
+
+
+
+-> MAS COMO O METHOD DE ATTACK SÓ EXISTE EM 'Monster',
+    E NÃO EM NPC (pet é um npc),
+
+    ELE NÃO TEM O METHOD DE ATTACK..
+
+
+
+
+
+
+
+--> PARA SOLUCIONAR ISSO,
+
+TERÍAMOS DE DUPLICAR 
+
+
+O CÓDIGO DO METHOD DE 'attack()'
+
+
+NO PET, TIPO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+class Pet extends NPC
+{
+    // Some properties
+
+    // Some methods
+
+
+    public function attack() {
+
+    }
+}
+
+
+
+
+
+
+
+
+
+--> OK... MAS AÍ VC PODERIA SE PERGUNTAR ''PQ NÃO FAZER EXTEND DE MONSTER NO PET, EM VEZ DE NPC''?
+
+
+
+
+
+
+
+
+
+--> A RAZÃO PARA NÃO FAZER ISSO É QUE 
+
+'PET IS NOT A MONSTER',
+
+O PET NÃO É 1 MONSTRO QUE O PLAYER ATACA...
+
+
+
+
+
+
+
+
+
+
+
+-> NO FINAL DAS CONTAS,
+
+    FICAMOS COM 1 DUPLICATION OBRIGATORIA...
+
+
+
+
+
+
+
+
+--> ISSO É MT RUIM, PORTANTO...
+
+
+
+
+
+
+
+--> PQ NOVAS CHANGES SÃO CONSTANTEMENTE REQUISITADAS 
+
+
+
+
+
+
+
+
+
+EX: ALGUNS MONSTERS TEM QUE NADAR,
+    OUTROS 
+    DEVEM SER 
+    CAPAZES DE FLY,
+
+
+    OUTROS NÃO DEVEM SE MOVER...
+
+
+
+
+    ETC ETC..
+
+
+
+
+
+--> FAZER ESSE NEGÓCIO DE HIERARQUIA E EXTEND DE COISAS 
+FICA MT DIFÍCIL,
+
+PQ 
+AÍ 
+
+ACABAMOS DUPLICANDO COISAS,
+
+OU ENTÃO 
+
+FAZENDO COISAS AINDA PIORES,
+
+FAZENDO EXTEND DAS CLASSES 
+ERRADAS...
+
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE MESMO EM CASOS EM QUE 
+    AS RELATIONS DE 'IS-A' FAZEM SENTIDO,
+
+    A INHERITANCE PODE NÃO SER IDEAL... 
+
+
+
+
+
+    --> A INHERITANCE 'KINDOF' PREVE O FUTURO,
+    QUANDO COMEÇAMOS A ESCREVER,
+
+
+    MAS LOGO PERCEBEMOS QUE 
+
+    'SOME CAN'T ATTACK, SOME CAN'T MOVE, ETC ETC'...
+
+
+
+
+
+
+
+
+--> A COMPOSITION SERIA IDEAL, AQUI,
+     
+     PQ PODERÍAMOS INJETAR OS BEHAVIORS NAS CLASSES ADEQUADAS,
+
+     NOS CONSTRUCTORS,
+
+     ONDE FOREM NECESSÁRIOS..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     INHERITANCE VS COMPOSITION..
+
+
+
+
+
+
+
+-> INHERITANCE NEM SEMPRE É RUIM...
+
+
+
+
+
+
+VC DEVE FAZER ALGUNS CHECKS, ANTES DE USAR INHERITANCE:
+
+
+
+
+
+
+1) ''DOES THE RELATIONSHIP BETWEEN THE PARENT AND CHILD REPRESENT A 'IS-A' RELATION?''
+
+
+
+2) ''DOES THE CHILD NOT INHERIT SOME USELESS STUFF TO IT?''
+
+
+
+
+3) ''ARE CLASSES SUBSTITUTABLE?''
+
+
+
+
+
+
+
+
+SE SIM PARA OS 3, VC PODE USAR INHERITANCE...
+
+
+
+
+
+
+
+
+-> MAS O PROFESSOR GERALMENTE USA COMPOSITION, PQ FAZ MAIS SENTIDO...
+
+
+
+
+
+-> ESCREVER UNIT TESTS PARA COMPOSITION É BEM MAIS FÁCIL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS EM ALGUNS CASOS, QUANDO USAMOS COMPOSITION,
+
+FAZ SENTIDO USAR INTERFACES....
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+class SalesTaxCalculator
+{
+
+    public function __construct( protected TaxJarSalesTaxService $api)
+    {
+
+    }
+
+    public function calculate(float $total): float 
+    {
+
+    }
+}
+
+
+
+
+
+
+
+
+AQUI O TAX SERVICE INJETADO É MT ESPECÍFICO...
+
+
+
+
+
+
+EM VEZ DE INJETAR ALGO SUPER ESPECÍFICO,
+
+
+
+COLOCARÍAMOS UM TYPE GENÉRICO,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+class SalesTaxCalculator
+{
+
+    public function __construct( protected SalesTaxServiceInterface $api)
+    {
+
+    }
+
+    public function calculate(float $total): float 
+    {
+        return $this->api->calculate($total);
+    }
+}
+
+
+
+
+CERTO... FAZ SENTIDO....
