@@ -1,0 +1,3016 @@
+
+
+
+
+AGORA É HORA DE APRENDERMOS A ENVIAR EMAILS DA MANEIRA CERTA, NO PHP...
+
+
+
+
+
+
+
+
+
+
+NESSA AULA, APRENDEREMOS:
+
+
+
+
+
+1) HOW TO SEND EMAILS 
+
+
+
+
+
+
+2) UM POUCO SOBRE EMAIL PROTOCOLS (SMTP e IMAP/POP)
+
+
+
+
+
+
+3) SET UP DE UMA LOCAL MAILBOX, PARA TESTAR EMAILS...
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+COMO ENVIAMOS EMAILS NO PHP...?
+
+
+
+
+
+
+
+
+É CLARO QUE EXISTE A 'NATIVE WAY',
+
+
+QUE UTILIZA A BUILT-IN FUNCTION 
+
+
+DE 'mail()'... 
+
+
+
+
+
+
+
+
+-> MAS NÃO USAREMOS ESSA FUNCTION AÍ,
+    DEVIDO A SUA FUNCTIONALITY LIMITADA...
+
+    (NÃO É TÃO BOA COM ATTACHMENTS, DELIVERABILITY, ETC)...
+
+
+
+
+
+
+
+
+
+
+
+-> OUTRA MANEIRA DE ENVIAR EMAILS 
+    É USAR _ THIRD _ PARTY PACKAGES...
+
+
+
+
+
+
+EXEMPLOS DE TPPs:
+
+
+
+
+
+
+
+1) SWITFMAILER --> ERA UMA BOA OPTION, ATÉ SER APOSENTADA...
+
+
+
+
+2) SYMFONYMAILER --> É A QUE INSTALAREMOS, HOJE...
+
+
+
+
+
+
+
+
+
+
+
+-> ANTES DE INSTALARMOS O SYMFONY MAILER,
+    PRECISAMOS SABER 1 POUCO SOBRE 
+
+
+    EMAIL PROTOCOLS...
+
+
+
+
+
+
+
+OS PRINCIPAIS SÃO:
+
+
+
+
+
+
+
+
+1) SMTP 
+
+
+
+
+
+
+
+
+2) POP3
+
+
+
+
+
+
+
+3) IMAP 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> SMTP --> Significa 'Simple Mail Transfer Protocol'... 
+
+
+            (OUTBOUND EMAILS)
+
+
+
+
+
+
+-> ELE É USADO PARA
+
+
+'''SEND EMAIL FROM EMAIL CLIENT (like outlook) 
+    A UM _ EMAIL SERVER'''... 
+
+
+
+
+
+OU, ENTÃO,
+
+
+'''FROM ONE EMAIL SERVER TO ANOTHER EMAIL SERVER'''...
+
+
+
+
+
+
+
+
+
+        CLIENT -> EMAIL SERVER 
+
+        OU 
+
+
+        EMAIL SERVER -> EMAIL SERVER...
+
+
+
+
+
+
+
+
+
+-> ISSO QUER DIZER QUE, QUANDO 
+    VC DIGITA 
+    
+    ''xddddd@email.com''' e APERTA O BOTÃO DE SEND,
+
+
+    O QUE TIPICAMENTE ACONTECE, SE VC ESTÁ USANDO SMPT,
+
+    É 
+
+
+
+''THE CLIENT/SENDER  _ OPENS__ A __ TCP __ 
+    CONNECTION  ____ TO THE SMTP SERVER....'''
+
+
+''THEN, IT USES _ SOME COMMANDS __ TO COMMUNICATE 
+    WITH IT...''
+     
+
+
+
+
+''THE EMAIL SERVER THEN DOES A BUNCH OF STUFF,
+    AND THEN __ SENDS __ THE MESSAGE 
+    TO THE RECIPIENT'S/TARGET'S EMAIL SERVER...''
+
+
+
+
+
+'''THE RECIPIENT'S EMAIL SERVER
+    WILL __ HOLD _ THE EMAIL UNTIL THE 
+    USER/RECIPIENT OPENS THE INBOX TO CHECK 
+    THE EMAIL...'''
+
+
+
+
+
+
+
+
+RESUMO:
+
+
+
+
+SENDER(CLIENT) ------->   SMTP SERVER (TARGET'S EMAIL SERVER) 
+                 TCP                        I 
+                                            I 
+                                            I 
+                                            I
+                                            V 
+                                        RECIPIENT/USER 
+
+                                    
+
+
+
+
+
+
+
+
+
+--> O SMTP É USADO JUNTO COM OUTROS PROTOCOLS 
+    JUSTAMENTE 
+
+    PQ O SMPT É 
+
+    'FOR SENDING OR DELIVERING EMAILS'...
+
+
+
+
+
+
+
+-> JÁ 'IMAP' E 'POP3' SÃO 
+    PROTOCOLS QUE SÃO 
+
+    __ USADOS__ PARA __ rETRIEVAR/RECEBER EMAILS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+POP3 -----> SIGNIFICA 'Post Office Protocol VERSION 3'...
+
+                (INBOUND EMAILS)
+
+
+
+
+
+
+IMAP --> SIGNIFICA 'Internet Message Access Protocol''....
+                        
+                        (INBOUND EMAILS)
+
+
+
+
+
+
+
+-> A DIFERENÇA ENTRE OS 2 
+    É QUE 'IMAP' OFERECE MAIS FEATURES DO QUE O POP3....
+
+
+
+
+
+
+
+
+
+-> POR EXEMPLO, O 'POP3', POR DEFAULT,
+
+__DELETA__ O EMAIL DO SERVER, DEPOIS QUE 
+                            ELE RETRIEVA 
+                            O EMAIL E O DISPONIBILIZA AO USER...
+
+
+
+
+
+
+-> IMAP --> AO CONTRÁRIO, ELE NÃO DELETA O EMAIL NO SERVER,
+                                E TAMBÉM DEIXA O EMAIL SER 
+                                'SYNCED ACROSS MULTIPLE CLIENTS'...
+
+
+
+
+
+
+--> ISSO QUER DIZER QUE OS EMAILS COM 'IMAP' SÃO ARMAZENADOS 
+    NO SERVER...
+
+
+
+
+
+
+
+
+-> HÁ MANEIRAS DE CONFIGURAR O 'POP3' PARA QUE TAMBÉM 
+SEJAM MANTIDAS CÓPIAS NO EMAIL SERVER,
+
+__ MAS __ O IMAP __ AINDA _ OFERECE MAIS FEATURES DO QUE ELE...
+
+
+
+
+
+
+
+
+
+
+
+-> NÓS NÃO VAMOS NOS APROFUNDAR MT SOBRE ISSO,
+    QUEREMOS VER APENAS OS BASICS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR ABRE OS DOCS DO SYMFONY MAILER...
+
+
+
+
+
+
+
+
+
+
+---> PARA INSTALAR O SYMFONY MAILER, BASTA EXECUTAR ASSIM:
+
+
+
+
+
+
+composer require symfony/mailer
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+primeiro, preciso entrar no container, com este comando:
+
+
+
+
+
+docker exec -it programwithgio-app bash
+
+
+
+
+
+
+
+CERTO.... ENTÃO, RODO ESTE COMANDO:
+
+
+
+
+
+composer require symfony/mailer
+
+
+
+
+
+
+
+
+
+ISSO INSTALA TODAS AS PACKAGES NECESSÁRIAS...
+
+
+
+
+
+
+
+
+
+
+
+TEMOS ESTE CÓDIGO, NO USER CONTROLLER:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace App\Controllers;
+
+use App\Attributes\Get;
+use App\Attributes\Post;
+use App\View;
+
+class UserController
+{
+    #[Get('/users/create')]
+    public function create(): View
+    {
+        return View::make('users/register');
+    }
+
+    #[Post('/users')]
+    public function register()
+    {
+        $firstName = $_POST['name'];
+        $email = $_POST['email'];
+
+        $text = <<<Body
+
+                    Hello $firstName,
+                    
+                    Thank you for registering with us. We will be in touch with you shortly.
+                    
+                    Best Regards,
+                    
+                    Your Company
+            Body;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+TEMOS ESSE METHOD DE 'register()',
+
+que faz esse post request 
+
+
+ao path de '/users'...
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ENVIAR 1 EMAIL USANDO O SYMFONY MAILER,
+
+    PRECISAMOS DE ALGUMAS COISAS...
+
+
+
+
+
+
+
+
+
+-- REQUISITES:
+
+
+
+
+1) TRANSPORT  (transporter OBJECT)
+
+
+
+2) MAILER (o MAILER SERVICE)
+
+
+
+3) O ACTUAL EMAIL OBJECT... (a message em si)...
+
+
+
+
+
+
+
+
+
+
+
+
+--> VAMOS CRIAR O EMAIL OBJECT/MESSAGE 
+    ANTES..
+
+
+
+
+
+
+
+
+
+--> PARA CRIAR ESSE OBJECT,
+
+ESCREVMEOS ASSIM:
+
+
+
+
+
+
+
+
+$email = (new Email())
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSE 'Email' 
+    vem da package de 
+
+    'Symfony/Component/Mime'
+
+
+
+
+
+
+-> ESSA É UMA DEPENDENCY DO SYMFONYMAILER, esse 'Email'...
+
+
+
+
+
+
+
+
+
+PODEMOS USAR ESSA CLASS PARA BUILDAR 1 EMAIL,
+TUDO POR MEIO DO CHAIN DE METHOD CALLS NELA...
+
+
+
+EX:
+
+
+
+        $firstName = $_POST['name'];
+        $emailAddress = $_POST['email'];
+
+        $text = <<<Body
+
+                    Hello $firstName,
+                    
+                    Thank you for registering with us. We will be in touch with you shortly.
+                    
+                    Best Regards,
+                    
+                    Your Company
+            Body;
+
+        $email = (new Email())
+            ->from('noreply@example.com')
+            ->to($emailAddress)
+            ->subject('Welcome!')  // Assunto
+            ->text($text);
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESSE É UM EMAIL OBJECT SUPER SIMPLES...
+
+
+
+
+
+
+
+
+
+
+
+--> É CLARO QUE EXISTEM OUTROS METHODS DISPONÍVEIS NESSE 
+OBJECT DE 'Email',
+
+
+MAS O PROFESSOR NÃO VAI SE APROFUNDAR NELAS...
+
+
+
+
+
+
+
+ 
+
+
+--> AGORA QUE ESTAMOS COM ESSE OBJECT (requisito número 3),
+    DEVEMOS ENVIÁ-LO, 
+
+
+
+    ''USING THE __MAILER__ SERVICE''..
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS CRIAR O OBJECT DE 'MAILER'
+
+com a class 'Mailer',
+
+
+TIPO ASSIM:
+
+
+
+
+        $firstName = $_POST['name'];
+        $emailAddress = $_POST['email'];
+
+        $text = <<<Body
+
+                    Hello $firstName,
+                    
+                    Thank you for registering with us. We will be in touch with you shortly.
+                    
+                    Best Regards,
+                    
+                    Your Company
+            Body;
+
+        $email = (new Email())
+            ->from('noreply@example.com')
+            ->to($emailAddress)
+            ->subject('Welcome!')  // Assunto
+            ->text($text);
+
+        $mailer = new Mailer();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... DENTRO DESSA CLASS,
+
+
+SE EXAMINARMOS,
+
+PERCEBEMOS QUE ELA TEM APENAS 1 ÚNICO METHOD, QUE É 'send()'...
+
+
+
+EX:
+
+
+
+
+
+
+public function send(RawMessage $message, Envelope $envelope = null): void
+    {
+        if (null === $this->bus) {
+            $this->transport->send($message, $envelope);
+
+            return;
+        }
+
+        if (null !== $this->dispatcher) {
+            $clonedMessage = clone $message;
+            $clonedEnvelope = null !== $envelope ? clone $envelope : Envelope::create($clonedMessage);
+            $event = new MessageEvent($clonedMessage, $clonedEnvelope, (string) $this->transport, true);
+            $this->dispatcher->dispatch($event);
+        }
+
+        try {
+            $this->bus->dispatch(new SendEmailMessage($message, $envelope));
+        } catch (HandlerFailedException $e) {
+            foreach ($e->getNestedExceptions() as $nested) {
+                if ($nested instanceof TransportExceptionInterface) {
+                    throw $nested;
+                }
+            }
+            throw $e;
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESSE METHOD EXIGE 1 PARAMETER DE 'RawMessage'...
+
+
+
+
+
+
+
+
+
+
+
+
+-> PRECISAMOS CHAMAR ESSE METHOD, E AÍ PASSAR ESSA MESSAGE,
+COMO ARGUMENT...
+
+
+
+
+
+
+
+
+--> PARA ISSO, ESCREVEMOS TIPO ASSIM:
+
+
+
+
+$email = (new Email())
+            ->from('noreply@example.com')
+            ->to($emailAddress)
+            ->subject('Welcome!')  // Assunto
+            ->text($text);
+
+
+
+$mailer = new Mailer();
+
+
+$mailer->send($email);
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS NÃO É SÓ ISSO...
+
+
+O MAILER TEM, NO SEU CONSTRUCTOR,
+
+
+1 
+
+ARGUMENTO QUE É NECESSÁRIO,
+
+
+QUE É 
+
+
+
+
+''TransportInterface''...
+
+
+
+
+
+
+
+--> NO CASO, É O OBJECT DE 'TRANSPORT',
+
+QUE IMPLEMENTA 
+
+
+A INTERFACE DE 'TransportInterface'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> O TRANSPORTER É QUEM É 
+
+
+ ___ACTUALLY __ RESPONSÁVEL _ POR ENVIAR 
+
+ A EMAIL MESSAGE, 
+
+
+ 
+
+ 'USING THE DESIRED PROTOCOL (SMTP, IMAP, etc...)...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+ --> SE CHECAMOS A CLASS DE 'TransportInterface',
+
+ PERCEBEMOS QUE ELA TAMBÉM SÓ TEM 1 ÚNICO METHOD,
+
+
+ QUE É 'send'... 
+
+
+
+
+
+
+
+
+
+ --> E ISSO FAZ SENTIDO, PQ O PRÓPRIO OBJECT DE 'Mailer'
+
+ SÓ TEM 1 METHOD, 'send()',
+
+
+ QUE REALMENTE 
+ CHAMA 
+
+
+ '$this->transport->send($message, $envelope)'..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> A RAZÃO DO ARGUMENTO DE 'TRANSPORT'
+SER 1 INTERFACE 
+
+
+É _ JUSTAMENTE O FATO DE QUE 
+
+''MANY DIFFERENT TRANSPORTS CAN BE USED,
+    THERE IS NOT ONLY A SINGLE ONE...''
+
+
+
+
+
+
+
+
+
+EXEMPLOS DE TRANSPORTS QUE PODEM SER USADOS:
+
+
+
+
+
+
+1) Amazon Simple Email Service (Amazon SES)
+
+
+
+2) Gmail 
+
+
+3) MailChimp
+
+
+4) Mailgun 
+
+
+5) Mailjet 
+
+
+
+6) PostMark 
+
+
+7) SendGrid 
+
+
+8) SendInBlue 
+
+
+9) OhMySMTP
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A DOCUMENTAÇÃO DO SYMFONY MAILER NOS MOSTRA ISTO:
+
+
+
+
+
+
+
+
+https://symfony.com/doc/current/mailer.html
+
+
+
+
+
+
+Using Built-in Transports
+DSN protocol	Example	Description
+smtp	smtp://user:pass@smtp.example.com:25	Mailer uses an SMTP server to send emails
+sendmail	sendmail://default	Mailer uses the local sendmail binary to send emails
+native	native://default	Mailer uses the sendmail binary and options configured in the sendmail_path setting of php.ini. On Windows hosts, Mailer fallbacks to smtp and smtp_port php.ini settings when sendmail_path is not configured.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA, TEMOS ALGUNS TRANSPORTS DEFAULT, BUILT-IN...
+
+
+
+
+
+
+
+
+
+--> VAMOS USAR O PROTOCOL 'smtp' ...
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, PRECISAMOS 
+    CRIAR 1 'TRANSPORT OBJECT',
+
+
+    E AÍ PASSÁ-LO PARA DENTRO DO CONSTRUCTOR 
+
+    DA CLASS DE 'Mailer'...
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS USAR UMA CLASS 
+    DO SYMFONY,
+
+
+    'Transport'...
+
+
+
+    -> ESSA CLASS TEM 1 STATIC METHOD,
+
+    DE NOME 
+
+    'fromDsn()',
+
+
+    QUE PODE SER USADA PARA 
+
+    CRIAR 1 OBJECT DE 'Transporter'
+
+    para nós...
+
+
+
+
+
+
+
+
+
+
+
+-> VAMOS ESCREVER ASSIM:
+
+
+
+
+
+
+
+class UserController
+{
+    #[Get('/users/create')]
+    public function create(): View
+    {
+        return View::make('users/register');
+    }
+
+    #[Post('/users')]
+    public function register()
+    {
+        $firstName = $_POST['name'];
+        $emailAddress = $_POST['email'];
+
+        $text = <<<Body
+
+                    Hello $firstName,
+                    
+                    Thank you for registering with us. We will be in touch with you shortly.
+                    
+                    Best Regards,
+                    
+                    Your Company
+            Body;
+
+        $email = (new Email())
+            ->from('noreply@example.com')
+            ->to($emailAddress)
+            ->subject('Welcome!')  // Assunto
+            ->text($text);
+
+        $transporter = Transport::fromDsn();  // This will create a transporter object (SMTP, or whatever transporter you wish to use, like SendGrid, Amazon SES, Mailgun, etc...).
+
+        $mailer = new Mailer();
+
+        $mailer->send($email);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PASSAMOS ESSE '$transport' como parameter de 'Mailer',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+class UserController
+{
+    #[Get('/users/create')]
+    public function create(): View
+    {
+        return View::make('users/register');
+    }
+
+    #[Post('/users')]
+    public function register()
+    {
+        $firstName = $_POST['name'];
+        $emailAddress = $_POST['email'];
+
+        $text = <<<Body
+
+                    Hello $firstName,
+                    
+                    Thank you for registering with us. We will be in touch with you shortly.
+                    
+                    Best Regards,
+                    
+                    Your Company
+            Body;
+
+        $email = (new Email())
+            ->from('noreply@example.com')
+            ->to($emailAddress)
+            ->subject('Welcome!')  // Assunto
+            ->text($text);
+
+        $transporter = Transport::fromDsn();  // This will create a transporter object (SMTP, or whatever transporter you wish to use, like SendGrid, Amazon SES, Mailgun, etc...).
+
+        $mailer = new Mailer($transporter);
+
+        $mailer->send($email);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS DEVEMOS DAR 1 EXAMINADA NA CLASS DE 'Transporter':
+
+
+
+
+
+
+
+    private const FACTORY_CLASSES = [
+        GmailTransportFactory::class,
+        MailgunTransportFactory::class,
+        MailjetTransportFactory::class,
+        MandrillTransportFactory::class,
+        OhMySmtpTransportFactory::class,
+        PostmarkTransportFactory::class,
+        SendgridTransportFactory::class,
+        SendinblueTransportFactory::class,
+        SesTransportFactory::class,
+    ];
+
+    private iterable $factories;
+
+    public static function fromDsn(string $dsn, EventDispatcherInterface $dispatcher = null, HttpClientInterface $client = null, LoggerInterface $logger = null): TransportInterface
+    {
+        $factory = new self(iterator_to_array(self::getDefaultFactories($dispatcher, $client, $logger)));
+
+        return $factory->fromString($dsn);
+    }
+
+
+
+
+
+
+
+
+
+
+--> COMO VC PODE VER,
+
+
+HÁ TODS OS TRANSPORTS SUPORTADOS ELENCADOS, NAQUELA CONST...
+
+
+
+
+
+
+
+
+
+
+-> AÍ TEMOS A FUNCTION DE 'fromDsn'...
+
+
+
+
+
+
+
+
+
+
+
+--> PARA CRIAR ESSE OBJECT 'Transporter',
+
+
+PRECISAMOS DE UMA 
+
+'PROPER DSN STRING'...
+
+
+
+
+
+
+
+
+
+
+--> uma string de dsn que funcione...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+''DSN'' --> NÃO É A MESMA COISA QUE 'DNS' 
+
+
+
+
+
+
+
+
+
+
+DNS --> 'DOMAIN NAME SYSTEM' -> converte strings em urls...  (númericsa)
+
+
+
+
+
+
+DSN --> 'DOMAIN SOURCE NAME'...
+
+
+
+
+
+
+
+
+
+--> 'DOMAIN SOURCE NAME' --> '''IT IS A STRING __ THAT REPRESENTS 
+                                A LOCATION... IT DOESN'T MATTER  
+                                IF IT IS A DATABASE CONNECTION, FILESYSTEM 
+                                LOCATION, OR, IN THIS CASE,
+
+                                ''EMAIL TRANSPORT INFORMATION''...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS ENCONTRAR O FORMATO DE DSN STRINGS LÁ NOS DOCS DO SYMFONY MAILER...
+
+
+
+
+
+
+
+
+
+
+
+EXEMPLOS DE DSN:
+
+
+ 
+
+
+ smtp://user:pass@smtp.example.com:25  ---> SMTP 
+
+
+
+ sendmail://default ------> SENDMAIL 
+
+
+
+
+ native://default ----> NATIVE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ --> SE VAMOS MAIS PARA BAIXO,
+
+ ENCONTRAMOS OS DSNS para 
+
+
+ THIRD PARTY PACKAGES,
+
+
+ COMO AMAZON SES, GMAIL, MAILGUN, SENDGRID,
+ ETC:
+
+
+
+
+ ses+smtp://USERNAME:PASSWORD@default
+
+
+  gmail+smtp://USERNAME:PASSWORD@default
+
+
+
+
+  mailgun+smtp://USERNAME:PASSWORD@default
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODERÍAMOS USAR O SMTP DO GMAIL PARA ENVIAR 
+    NOSSOS EMAILS,
+
+    MAS NÓS NÃO QUEREMOS 
+
+    '''ACTUALLY SEND OUR EMAILS, FROM OUR LOCAL ENVIRONMENT''...
+
+
+
+
+
+
+
+--> O QUE QUEREMOS FAZER, NO CASO, É __TESTAR__ QUE 
+
+    NOSSOS EMAILS ESTÃO SENDO ENVIADOS,
+
+
+    MAS SEM 'ACTUALLY DELIVER THOSE EMAILS TO EMAIL INBOXES'...
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE NÃO VAMOS USAR 
+O SMTP DO GMAIL...
+
+
+
+
+--> PRECISAMOS DE NOSSO PRÓPRIO 'LOCAL SMTP SERVER'...
+
+
+
+
+
+
+
+
+--> NOSSO DSN,
+
+PORTANTO, TERÁ 1 FORMATO COMO ESTE:
+
+
+
+
+ smtp://user:pass@smtp.example.com:25 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ -> POR ISSO COPIAMOS ESSA STRING,
+
+ E AÍ 
+
+
+ COLOCAMOS ESSA STRING COMO VALUE DE 1 VARIABLE '$dsn'...
+
+
+
+
+
+ EX:
+
+
+
+
+
+         $firstName = $_POST['name'];
+        $emailAddress = $_POST['email'];
+
+        $text = <<<Body
+
+                    Hello $firstName,
+                    
+                    Thank you for registering with us. We will be in touch with you shortly.
+                    
+                    Best Regards,
+                    
+                    Your Company
+            Body;
+
+        $email = (new Email())
+            ->from('noreply@example.com')
+            ->to($emailAddress)
+            ->subject('Welcome!')  // Assunto
+            ->text($text);
+
+        $dsn = 'smtp://user:pass@smtp.example.com:25';
+
+        $transporter = Transport::fromDsn($dsn);  // This will create a transporter object (SMTP, or whatever transporter you wish to use, like SendGrid, Amazon SES, Mailgun, etc...).
+
+        $mailer = new Mailer($transporter);
+
+        $mailer->send($email);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS, 
+
+PARA ESSE 
+
+
+DSN,
+
+
+PRECISAMOS DE:
+
+
+
+1) UM SMTP SERVER 
+
+
+2) UM USERNAME 
+
+
+3) UM PASSWORD 
+
+
+4) UM PORT...
+
+
+
+
+
+AQUELA STRING NÃO VAI FUNCIONAR, CLARO,
+
+PQ 
+
+
+ELA NÃO É UM VALID SMTP SERVER...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODERÍAMOS USAR O NOSSO PRÓPRIO GMAIL SMTP,
+
+PQ NÃO QUEREMOS ENVIAR 
+
+EMAILS DE NOSSO LOCAL ENVIRONMENT...
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, PRECISAMOS DE ALGUMA 'LOCAL INBOX'...
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, HÁ ALGUNS SERVICES PAGOS,
+
+COMO 'MAIL TRAP'...
+
+
+
+
+
+
+
+
+--> MAS HÁ OPEN SOURCE PACKAGES, COMO O 'MAILHOG'...
+
+
+
+
+
+
+
+
+
+
+
+--> VAMOS USAR O MAILHOG,
+    INSTALÁ-LO COM O DOCKER,
+
+    NO NOSSO LOCAL ENVIRONMENT...
+
+
+
+
+
+
+
+-> LÁ NO ARQUIVO DOCKER-COMPOSE.YML,
+
+VAMOS ESCREVER 1 SERVICE PARA O MAILHOG,
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: "."
+      dockerfile: Dockerfile
+    container_name: programwithgio-app
+    restart: always
+    working_dir: /var/www/
+    volumes:
+      - ../:/var/www
+  nginx:
+    image: nginx:1.19-alpine
+    container_name: programwithgio-nginx
+    restart: always
+    ports:
+      - 8000:80
+    volumes:
+      - ../:/var/www
+      - ./nginx:/etc/nginx/conf.d
+  db:
+    container_name: programwithgio-db
+    image: mysql:8.0
+    volumes:
+      - ./storage/mysql:/var/lib/mysql
+      - ./my.cnf:/etc/mysql/my.cnf
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - 3307:3307
+    command: --port=3307
+  mailhog:
+    container_name: programwithgio-mailhog
+    image: mailhog/mailhog
+    restart: always 
+    logging:
+      driver: none
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+TEMOS ESSE SERVICE...
+
+
+DEVEMOS INICIÁ-LO...
+
+
+
+
+
+
+ESTAMOS EXPONDO 2 PORTS...
+
+
+
+8025 -> É PARA A WEBUI DO MAILHOG, EM QUE PODEMOS ACESSAR NOSSO INBOX...
+
+
+
+1025 --> É PARA O ACTUAL SMTP SERVER...
+
+
+
+
+
+
+-> ENTRAMOS NO FOLDER DE 'docker',
+
+e aí rodamos 
+
+docker-compose up....
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+ENQUANTO O MAILHOG É INSTALADO,
+
+
+
+
+PRECISAMOS 
+ALTERAR A STRING DO DSN....
+
+
+
+
+
+ela está assim:
+
+        $dsn = 'smtp://user:pass@smtp.example.com:25';
+
+
+
+
+
+
+
+MAS NÃO PRECISAMOS DE 'user:pass',
+
+
+
+MAS PRECISAMOS DO HOST DO MAILHOG...
+
+
+
+
+
+
+-> NO CASO, O HOST NÃO SERÁ 'smtp.example.com',
+
+
+E SIM SERÁ O CONTAINER NAME DO MAILHOG...
+
+
+
+
+
+
+--> NO CASO,
+
+
+'mailhog'...
+
+
+
+
+
+ex:
+
+
+        // * We use the container name, 'mailhog', because we are using docker
+        $dsn = 'smtp://mailhog:1025';
+
+
+
+
+
+
+
+
+
+
+
+QUANTO A PORT, DEIXAMOS '1025',
+
+pq essa É A PORT DO MAILHOG, A PORT QUE ELE USA...
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+COM TUDO ISSO,
+
+
+DEVEMOS ESTAR PRONTOS...
+
+
+
+
+
+
+PARA ACESSAR A UI DO MAILHOG NO BROWSER,
+
+
+ACESSE 'LOCALHOST:8025'...
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+ISSO FEITO,
+DEVEMOS TESTAR O SEND...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA TESTAR ISSO, 
+    DEVEMOS ABRIR NOSSA PAGE DE localhost:8000/users/create,
+
+
+    e aí 
+
+    clicar em 'register', para 
+
+
+    ENVIAR 1 EMAIL...
+
+
+
+
+
+
+
+
+
+
+--> resolvi um monte de problemas com o send do email... coisas de versão de php, 
+    e de parameters dos .env...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ENVIEI O EMAIL...
+
+
+
+
+
+
+FIQUEI COM 1 TELA CHEIA DE DEPRECATION WARNINGS, 
+
+MAS O EMAIL ACABOU SENDO ENVIADO...
+
+
+
+
+
+
+
+
+
+
+PODEMOS VISUALIZAR QUE O EMAIL FOI ENVIADO,
+
+LÁ EM 'localhost:8025'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... QUER DIZER QUE TUDO FUNCIONOU..
+
+
+
+
+
+
+
+
+
+
+
+--> É CLARO QUE PODEMOS ENVIAR MAIS DO QUE PLAIN TEXT NO EMAIL...
+
+PODEMOS ENVIAR HTML...
+
+
+
+
+
+
+
+
+
+
+
+--> POR ISSO VAMOS CRIAR A VERSÃO HTML DESSE TEXT...
+
+
+
+
+
+
+
+
+
+--> escrevemos tipo assim:
+
+
+
+
+        $text = <<<Body
+
+                    Hello $firstName,
+                    
+                    Thank you for registering with us. We will be in touch with you shortly.
+                    
+                    Best Regards,
+                    
+                    Your Company
+            Body;
+
+        $html = <<<Body
+                    <h1 style="text-align: center; color: blue;">Welcome</h1>
+                    Hello $firstName,
+                    <br /
+                    Thank you for registering with us. We will be in touch with you shortly.
+                    
+                    Best Regards,
+                    
+                    Your Company
+            Body;
+
+        $email = (new \Symfony\Component\Mime\Email())
+            ->from('noreply@example.com')
+            ->to($emailAddress)
+            ->subject('Welcome!')  // Assunto
+            ->text($text)
+            ->html($html);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+ISSO ENVIOU O EMAIL, COM O HTML...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... 
+
+
+
+
+A RAZÃO PARA TERMOS USADO TANTO 'PLAIN TEXT'
+
+COMO 'HTML'
+
+
+NO CÓDIGO,
+
+É PARA QUE,
+
+
+SE O CLIENT DO USER NÃO FOR CAPAZ DE RENDERIZAR HTML,
+ELE VAI 'FALLBACK' PARA A VERSÃO DE TEXT...
+
+
+
+
+
+
+
+
+
+
+--> PODERÍAMOS MOVER ESSE HTML PARA 1 VIEW FILE,
+    PARA NÃO DEIXAR CLUTTER, HTML, NOS NOSSOS CONTROLLERS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE O APPROACH CORRETO É DEIXAR 
+ISSO EM 1 VIEW, EM 1 METHOD, AÍ RETORNAR ISSO COMO STRING,
+
+QUE SERÁ RENDERIZADA COMO HTML...
+
+
+
+
+
+
+
+
+--> NO FINAL, VC PODE TER 2 VIEW FILES,
+    1 PARA A VERSÃO DE TEXT,
+
+    E OUTRA PARA A VERSÃO DE HTML....
+
+
+
+
+
+
+
+--> AINDA NÃO COBRIMOS TEMPLATING ENGINES (como TWIG),
+    POR ISSO 
+    O PROFESSOR NÃO VAI MOSTRAR TEMPLATED EMAILS...
+
+
+
+
+
+
+
+
+
+--> MAS É UM BOM EXERCÍCIO, TENTAR 
+    USAR O TWIG 
+
+    COM ESSE SENDER DE EMAIL...
+
+
+
+
+
+
+
+
+--> NÓS VAMOS COBRIR 
+    TEMPLATING ENGINES, COMO TWIG E BLADE,
+
+    MAIS TARDE NO CURSO....
+
+
+
+
+
+
+
+
+-> O PROFESSOR DIZ QUE TAMBÉM PODEMOS FAZER 
+ATTACH DE FILES EM NOSSOS EMAILS...
+
+
+ATTACHMENTS TIRADOS DE LOCAIS DE NOSSO SERVER...
+
+
+
+
+BASTA USAR 
+
+O chain method de 
+
+'->attach()',
+
+
+ou 
+
+então 
+
+'->attachFrom()'
+
+
+,
+
+ 
+
+ ou 
+
+
+
+ então 
+
+'attachFromPath()'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> esse 'attach()'
+
+SERVE PARA 'ATTACH' 
+DE ALGUM RESOURCE/CONTENT...
+
+
+
+
+
+
+
+
+
+-> NO CASO, COLOCAMOS 
+
+ALGO COMO 
+
+ 
+
+
+
+
+->attach('Hello World!', 'welcome.txt');
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+        $email = (new \Symfony\Component\Mime\Email())
+            ->from('noreply@example.com')
+            ->to($emailAddress)
+            ->subject('Welcome!')  // 'Assunto'
+            ->attach('Hello World!', 'welcome.txt')  // Attachments (optional)
+            ->text($text)
+            ->html($html);
+
+        // The template:
+        // $dsn = 'smtp://user:pass@smtp.example.com:25';
+
+        // Using the docker container address:
+        $dsn = 'smtp://mailhog:1025';
+
+        $transporter = Transport::fromDsn($dsn);  // This will create a transporter object (SMTP, or whatever transporter you wish to use, like SendGrid, Amazon SES, Mailgun, etc...).
+
+        $mailer = new Mailer($transporter);
+
+        $mailer->send($email);
+
+
+
+
+
+
+
+
+AÍ, LÁ NO 'MIME', NO MAILHOG,
+
+
+
+FICAMOS COM ISTO AQUI:
+
+application/octet-stream; name=welcome.txt (184 bytes)
+
+
+
+
+É O ARQUIVO DE TEXTO, QUE RECÉM FOI ANEXADO E ENVIADO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AGORA DEVEMOS LIMPAR ISSO 1 POUCO...
+
+
+
+
+
+
+
+
+
+''THE PROPER WAY WOULD BE TO MOVE THE HTML CONTENT 
+INTO A VIEW FILE'''..
+
+
+
+
+
+
+
+-_> O PROFESSOR N VAI FAZER ISSO NESSA AULA,
+
+
+MAS PODEMOS FAZER...
+
+
+
+
+
+
+
+
+
+---> O QUE O PROFESSOR QUER FAZER É 
+
+
+ALTERAR AQUELA PARTE DO 'EMAIL',
+
+PQ AQUILO ALI DEVE SER FEITO PELO MODEL DE EMAIL,
+
+
+E NÃO PELO CONTROLLER DE USER CONTROLLER...
+
+
+
+
+
+
+
+
+-> E ESSE MODEL DEVE EXISTIR DENTRO DE 1 SERVICE,
+
+COMO 'EmailService'... E ESSE SERVICE DEVE SER PASSADO 
+POR DENTRO DO USERCONTROLLER...
+
+
+
+
+
+
+
+
+
+É POR ISSO QUE ESCREVEMOS ASSIM:
+
+
+
+
+
+
+(EmailService):
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use Symfony\Component\Mailer\Mailer;
+use Symfony\Component\Mailer\Transport;
+
+class EmailService
+{
+    public function __construct(protected \App\Models\Email $emailModel) {}
+
+    public function send(): void
+    {
+        $transporter = Transport::fromDsn($_ENV['MAILER_DSN']);  // This will create a transporter object (SMTP, or whatever transporter you wish to use, like SendGrid, Amazon SES, Mailgun, etc...).
+        $mailer = new Mailer($transporter);
+        $firstName = $_POST['name'];
+        $emailAddress = $_POST['email'];
+
+        $text = <<<Body
+
+                    Hello $firstName,
+
+                    Thank you for registering with us. We will be in touch with you shortly.
+
+                    Best Regards,
+
+                    Your Company
+            Body;
+
+        $html = <<<Body
+                    <h1 style="text-align: center; color: blue;">Welcome</h1>
+                    Hello $firstName,
+                    <br /
+                    Thank you for registering with us. We will be in touch with you shortly.
+
+                    Best Regards,
+
+                    Your Company
+            Body;
+
+        $emailObject = (new \Symfony\Component\Mime\Email())
+            ->from('noreply@example.com')
+            ->to($emailAddress)
+            ->subject('Welcome!')  // 'Assunto'
+            ->attach('Hello World!', 'welcome.txt')  // Attachments (optional)
+            ->text($text)
+            ->html($html);
+
+        $this->emailModel->send($emailObject);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+Email (model):
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Models;
+
+use Symfony\Component\Mailer\Mailer;
+
+class Email
+{
+    public function __construct(protected Mailer $mailer, protected \Symfony\Component\Mime\Email $email) {}
+
+    public function send(\Symfony\Component\Mime\Email $emailMessage): void
+    {
+        // * The template:
+        // $dsn = 'smtp://user:pass@smtp.example.com:25';
+
+        $this->mailer->send($emailMessage);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+UserController:
+
+
+
+
+
+
+
+
+
+    #[Post('/users')]
+    public function register()
+    {
+
+        $this->emailService->send();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+escrevi errado... não funcionou....
+
+
+
+
+
+
+
+
+
+vou ter de reescrever...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> NO USERCONTROLLER, DEFINIMOS 
+    O PARAMETER DO CONSTRUCTOR COMO 'MailerInterface'...
+
+
+    PQ SERÁ UMA INTERFACE GENÉRICA... (queremos deixar flexível,
+    pq existem diversos tipos de mailer)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR FALA QUE, ENTÃO, DEVEMOS FAZER O BIND 
+
+DE 
+
+
+
+1 'MailerInterface',
+
+A 1 'CustomMailer' class...
+
+
+
+
+
+
+FAZEMOS ISSO LÁ EM 'App.php',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+    public function __construct(
+        protected Container $container,
+        protected ?Router $router = null,
+        protected array $request = [],
+    ) {
+
+  static::$db = new DB($this->config->db ?? []);
+
+        $this->container->set(PaymentGatewayServiceInterface::class, PaymentGatewayService::class);
+        $this->container->set(MailerInterface::class, CustomMailer );
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, CRIAMOS A CUSTOM MAILER CLASS, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use Symfony\Component\Mailer\Transport\TransportInterface;
+use Symfony\Component\Mailer\Envelope;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mailer\Transport;
+use Symfony\Component\Mime\RawMessage;
+
+class CustomMailer implements MailerInterface
+{
+    protected TransportInterface $transport;
+
+    public function __construct(protected string $dsn)
+    {
+        $this->transport = Transport::fromDsn($dsn);
+    }
+
+    public function send(RawMessage $message, Envelope $envelope = null): void
+    {
+        $this->transport->send($message, $envelope);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+OK... CONTINUANDO, BINDAMOS 
+
+ESSE CUSTOM MAILER 
+
+LÁ 
+
+
+
+NO App.php,
+
+
+
+PARA QUE ELE SEJA REGISTRADO....
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+        $this->container->set(PaymentGatewayServiceInterface::class, PaymentGatewayService::class);
+        $this->container->set(MailerInterface::class, fn() => new CustomMailer($this->config->mailer['dsn']));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESTAMOS FAZENDO A MESMA COISA QUE A CLASS DE 'Mailer' estava fazendo 
+
+(com '$this->transport->send()'),
+
+
+
+
+MAS SEM TODO O CÓDIGO..
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR APONTA 
+
+''IT'S THAT EASY TO 
+    SWAP OUT THE IMPLEMENTATION AND ROLL YOUR OWN, CUSTOM, MAILER CLASS...'
+
+
+
+
+
+
+
+
+
+
+    O METHOD FINAL DE SEND FICOU ASSIM:
+
+
+
+        public function send(RawMessage $message, Envelope $envelope = null): void
+    {
+        $this->transport->send($message, $envelope);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> HÁ MTAS MANEIRAS DE IMPLEMENTAR E ESTRUTURAR TUDO ISSO...
+
+
+
+
+
+
+
+
+
+
+
+OK.. MAS AINDA ESTOU FICANDO COM 1 ERROR...
+
+
+
+
+RESOLVI, ERA NESTE ARQUIVO O PROBLEMA (em 'mailer'):
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+/**
+ * @property-read ?array $db
+ * @property-read ?array $mailer
+ */
+class Config
+{
+    protected array $config = [];
+
+    public function __construct(array $env)
+    {
+        $this->config = [
+            'db' => [
+                'host' => $env['DB_HOST'],
+                'user' => $env['DB_USER'],
+                'pass' => $env['DB_PASS'],
+                'database' => $env['DB_DATABASE'],
+                'driver' => $env['DB_DRIVER'] ?? 'mysql',
+                'port' => $env['DB_PORT'] ?? 3306,
+            ],
+            'mailer' => [
+                'dsn' => $env['MAILER_DSN'] ?? '',
+            ]
+        ];
+    }
+
+    public function __get(string $name)
+    {
+        return $this->config[$name] ?? null;
+    }
+}
