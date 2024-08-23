@@ -1,0 +1,2647 @@
+
+
+
+
+
+
+
+
+
+
+
+
+NESSA AULA, E NAS PRÓXIMAS, FALAREMOS SOBRE:
+
+
+
+
+
+
+
+
+
+1) ORM (Object Relational Mapping)
+
+
+
+
+2) DBAL (Database Abstraction Layer)
+
+
+
+3) Entities 
+
+
+
+4) Data Mapper e Active Record Patterns...
+
+
+
+
+
+
+
+
+
+
+
+--> OBS::: NÓS NÃO VAMOS CONSTRUIR UMA ORM CUSTOM,
+    OU UM DATABASE ABSTRACTION LAYER,
+    
+
+    E SIM VAMOS APRENDER A COMO USAR UM 
+
+    WELL-MAINTAINED E BATTLE-TESTED LIBRARY,
+
+
+
+    TIRADA DO _ DOCTRINE....
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS O QUE É O 'DOCTRINE'? 
+
+
+
+
+
+
+
+
+
+
+
+DOCTRINE:
+
+
+
+--> ''A COLLECTION OF PHP LIBRARIES THAT FOCUSES
+    AROUND THE DATABASE LAYER AND OBJECT MAPPING...''
+
+
+
+
+
+
+
+
+--> VAMOS FOCAR NAS PARTES DO 
+
+'Database Abstraction Layer' (DBAL)
+
+
+e 
+
+'Object Relational Mapper' 
+
+
+
+
+DO DOCTRINE...
+
+
+
+
+
+
+
+
+
+
+-> TENHA EM MENTE QUE ESTE NÃO É UM COURSE DE DOCTRINE...
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR COLOCOU O DOCTRINE NO CURSO PQ ELE QUER NOS FAMILIARIZAR COM:
+
+
+
+
+
+
+
+1) QUERY BUILDER 
+
+
+2) ENTITIES 
+
+
+
+3) ORM 
+
+
+
+4) DATA MAPPER...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> QUEREMOS SABER ISSO PARA QUE, QUANDO MUDARMOS PARA FRAMEWORKS 
+
+COMO LARAVEL OU SYMFONY,
+
+NADA DISSO SEJA UMA SURPRESA...
+
+
+
+AÍ SEREMOS CAPAZES DE ENTENDER O QUE ACONTECE, NO CÓDIGO...
+
+
+
+
+
+
+
+
+
+
+
+HOJE FALAREMOS SOBRE A PARTE DO 'DBAL' DO DOCTRINE...
+
+
+
+
+
+
+
+
+
+
+'DBAL'-->  SIGNIFICA 'DATABASE ABSTRACTION LAYER'...
+
+
+
+
+
+
+
+
+
+
+--> É BASICAMENTE UMA INTERFACE QUE NOS DEIXA TRABALHAR     
+    COM DIFERENTES IMPLEMENTAÇÕES DE DATABASE,
+
+
+    COMO 'MYSQL',
+
+        'SQLITE',
+
+        'MS SQL',
+
+        ETC...
+
+
+
+
+
+
+--> SE PENSARMOS SOBRE O NOME, FAZ SENTIDO:
+
+
+
+
+
+
+
+''DATABASE ABSTRACTION LAYER'...
+
+
+
+
+
+
+
+
+
+
+ABSTRACTION --> 'HIDES' OU 'ABSTRACTS' OS DETAILS PARA FORA...
+
+
+
+
+
+--> DATABASE ABSTRACTION --> BASICAMENTE ESCONDE OS DETALHES DE COMO CONSTRUIR 
+                                QUERIES,
+
+                                QUAL IMPLEMENTAÇÃO DE DATABASE UTILIZAR,
+
+                                COMO SE CONECTAR A DATABASES, ETC...
+
+
+
+
+
+
+
+
+--> O 'PDO' PODE PARECER SEMELHANTE 
+    AO 'DBAL', DE CERTA FORMA,
+
+
+
+    __ PQ __O  PDO __ TAMBÉM NOS DEIXA TRABALHAR COM 
+    DIFERENTES DATABASES, TAMBÉM...
+
+
+
+
+
+
+--> MAS A DIFERENÇA ENTRE O PDO E DBAL 
+    É QUE 
+
+    O 
+
+
+    PDO 
+
+
+
+    '''IS NOT A DATABASE ABSTRACTION LAYER'''...
+
+
+
+
+
+
+
+--> EM VEZ DISSO, O PDO É APENAS UM 
+    'DATA ACCESS LAYER''... --> QUER DIZER QUE 
+                                    ELE _ 
+
+
+                                    NÃO PROVIDENCIA 
+                                    COISAS COMO UM 'QUERY BUILDER',
+
+
+                                    NÃO REESCREVE SQL,
+
+                                    NEM NADA DO GÊNERO...
+
+
+
+
+
+
+-_> OK... 
+
+
+ABRIMOS O CÓDIGO DO PROJETO DBAL...
+
+
+
+
+
+
+
+
+<?php
+
+use Dotenv\Dotenv;
+
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+$dotenv = Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK.... 
+
+
+
+
+
+
+DEPOIS DISSO,
+
+
+
+RODAMOS composer require,
+
+
+PARA 
+
+PEGAR A LIBRARY 
+
+DE 
+
+'doctrine/dbal',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+composer require doctrine/dbal
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO...
+
+
+
+
+
+
+
+
+
+
+--> E O PROFESSOR CRIOU 1 SAMPLE PHP FILE,
+
+
+CHAMADO DE 'doctrine_dbal_example.php',
+
+
+QUE USAREMOS PARA TESTAR ALGUMAS DAS FEATURES 
+
+DBAL... 
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+MAS A PRIMEIRA COISA NECESSÁRIA A NÓS 
+
+É UMA 
+
+CONNECTION PARECIDA COM A DO 'PDO'...
+
+
+
+
+
+
+
+
+
+--> VAMOS ATÉ OS DOCS DO DOCTRINE,
+
+NA PARTE DO DBAL...
+
+
+
+
+
+
+
+
+--> DOCS DO DBAL:
+
+
+
+https://www.doctrine-project.org/projects/dbal.html
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ TEMOS ISTO AQUI>:
+
+
+https://www.doctrine-project.org/projects/doctrine-dbal/en/4.1/reference/configuration.html
+
+
+
+
+
+
+
+
+
+
+
+
+--> ex:
+
+
+
+
+<?php
+use Doctrine\DBAL\DriverManager;
+
+//..
+$connectionParams = [
+    'dbname' => 'mydb',
+    'user' => 'user',
+    'password' => 'secret',
+    'host' => 'localhost',
+    'driver' => 'pdo_mysql',
+];
+$conn = DriverManager::getConnection($connectionParams);
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA,
+
+
+ELE CHAMA ESSE METHOD DE 'getConnection',
+
+da class de 'DriverManager',
+
+
+E AÍ PASSA AQUELES PARAMETERS...
+
+
+
+
+
+
+
+
+--> ALTERNATIVAMENTE,
+
+PODERÍAMOS USAR 'url' =>' 
+
+
+
+
+ou 
+
+
+
+
+'dsn' 
+
+para conseguir a connection...
+
+
+
+
+MAS VAMOS USAR ESSE PRIMEIRO APPROACH...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+use Dotenv\Dotenv;
+
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+$dotenv = Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+$connectionParams = [
+    'dbname' => $_ENV['DB_DATABASE'],
+    'user' => $_ENV['DB_USER'],
+    'password' => $_ENV['DB_PASS'],
+    'host' => $_ENV['DB_HOST'],
+    'driver' => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
+];
+
+
+
+
+
+
+
+
+
+
+OU SEJA, SUBSTITUÍMOS COM OS ENV DO NOSSO '$_ENV' superglobal,
+
+
+settado com o dotenv...
+
+
+
+
+
+
+
+
+
+
+ESSE METHOD, 'getConnection',
+
+RETORNA UMA INSTANCE 
+
+
+DA CLASS DE 'Connection'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESSA CLASS/OBJECT 
+
+É UM __WRAPPER__ EM VOLTA 
+
+
+
+DA SPECIFIC DRIVER CONNECTION QUE ESCOLHEMOS.... NO NOSSO CASO,
+
+É O 'PDO'...
+
+
+
+
+
+
+
+-> VAMOS ESCREVENDO ASSIM:
+
+
+
+
+<?php
+
+use Dotenv\Dotenv;
+
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+$dotenv = Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+$connectionParams = [
+    'dbname' => $_ENV['DB_DATABASE'],
+    'user' => $_ENV['DB_USER'],
+    'password' => $_ENV['DB_PASS'],
+    'host' => $_ENV['DB_HOST'],
+    'driver' => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
+];
+
+$conn = \Doctrine\DBAL\DriverManager::getConnection($connectionParams);
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO....
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, PODEMOS RODAR O METHOD DE 'prepare()"
+
+
+
+em cima 
+
+
+do connection object,
+
+para aí testarmos 1 query contra nosso db..
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+use Dotenv\Dotenv;
+
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+$dotenv = Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+$connectionParams = [
+    'dbname' => $_ENV['DB_DATABASE'],
+    'user' => $_ENV['DB_USER'],
+    'password' => $_ENV['DB_PASS'],
+    'host' => $_ENV['DB_HOST'],
+    'driver' => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
+];
+
+$conn = \Doctrine\DBAL\DriverManager::getConnection($connectionParams);
+
+$conn->prepare('SELECT * FROM invoices');
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESSE METHOD, de 'prepare',
+
+
+RETORNA UMA INSTANCE 
+
+
+DE 
+
+'Statement',
+
+
+
+EXATAMENTE DO MESMO JEITO QUE 
+
+O 'PDO' FAZIA/FAZ...
+
+
+
+
+
+
+
+
+
+
+É POR ISSO QUE VAMOS ASSIGNAR ISSO A 1 VARIABLE,
+
+'STMT'...
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+<?php
+
+use Dotenv\Dotenv;
+
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+$dotenv = Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+$connectionParams = [
+    'dbname' => $_ENV['DB_DATABASE'],
+    'user' => $_ENV['DB_USER'],
+    'password' => $_ENV['DB_PASS'],
+    'host' => $_ENV['DB_HOST'],
+    'driver' => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
+];
+
+$conn = \Doctrine\DBAL\DriverManager::getConnection($connectionParams);
+
+$stmt = $conn->prepare('SELECT * FROM invoices');
+
+$stmt->execute();
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESSE OBJECT DE 'STATEMENT'
+
+
+TEM 1 METHOD CHAMADO DE 'executeQuery()',
+
+
+
+QUE SERVE EXATAMENTE PARA ISSO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESSE METHOD, POR SUA VEZ,
+
+
+RETORNA 
+
+
+
+UM OBJECT DE 'Result',
+
+
+
+CLASS DE 'Result'....
+
+
+
+
+
+
+
+
+
+
+
+--> VAMOS ASSIGNAR ISSO A UMA VARIABLE, DE NOME '$result'...
+
+
+
+
+
+
+EX:
+
+
+
+
+<?php
+
+use Dotenv\Dotenv;
+
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+$dotenv = Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+$connectionParams = [
+    'dbname' => $_ENV['DB_DATABASE'],
+    'user' => $_ENV['DB_USER'],
+    'password' => $_ENV['DB_PASS'],
+    'host' => $_ENV['DB_HOST'],
+    'driver' => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
+];
+
+$conn = \Doctrine\DBAL\DriverManager::getConnection($connectionParams);
+
+$stmt = $conn->prepare('SELECT * FROM invoices');
+
+$result = $stmt->executeQuery();
+
+
+
+
+
+
+
+
+
+
+
+
+POR FIM, PODEMOS CHAMAR DIVERSOS METHODS NESSE OBJECT 
+
+DE 'Result',
+
+
+PARA ACTUALLY FETCHEAR OS ROWS...
+
+
+
+
+
+
+--> SÃO DIVERSAS MANEIRAS DE FETCHEAR:
+
+
+
+
+
+1) fetchAllAssociative() 
+
+
+
+2) fetchAssociative()
+
+
+
+3) fetchAllNumeric() 
+
+
+
+4) fetchAllKeyValue()
+
+
+5) fetchFirstColumn(),
+
+
+
+6) fetchOne(),
+
+
+ETC ETC...
+
+
+
+
+
+
+
+
+--> VAMOS CHAMAAR 'fetchAllAssociative()'...
+
+e aí dumpar, para ver os results...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+<?php
+
+use Dotenv\Dotenv;
+
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+$dotenv = Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+$connectionParams = [
+    'dbname' => $_ENV['DB_DATABASE'],
+    'user' => $_ENV['DB_USER'],
+    'password' => $_ENV['DB_PASS'],
+    'host' => $_ENV['DB_HOST'],
+    'driver' => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
+];
+
+$conn = \Doctrine\DBAL\DriverManager::getConnection($connectionParams);
+
+$stmt = $conn->prepare('SELECT * FROM invoices');
+
+$result = $stmt->executeQuery();
+
+$result->fetchAllAssociative();
+
+var_dump($result);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... AÍ RODAMOS ESSE SCRIPT, PARA TESTAR...
+
+
+
+
+
+
+
+
+
+php doctrine_dbal_example.php....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CORRIGI ALGUMAS COISAS:
+
+
+
+
+
+
+
+
+<?php
+
+use Dotenv\Dotenv;
+
+require_once './vendor/autoload.php';
+
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+$connectionParams = [
+    'dbname' => $_ENV['DB_DATABASE'],
+    'user' => $_ENV['DB_USER'],
+    'password' => $_ENV['DB_PASS'],
+    'host' => $_ENV['DB_HOST'],
+    'driver' => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
+];
+
+$conn = \Doctrine\DBAL\DriverManager::getConnection($connectionParams);
+
+$stmt = $conn->prepare('SELECT * FROM invoices');
+
+$result = $stmt->executeQuery();
+
+$result->fetchAllAssociative();
+
+var_dump($result);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AGORA DEU CERTO:
+
+
+
+
+
+
+
+<?php
+
+use Dotenv\Dotenv;
+
+require_once './vendor/autoload.php';
+
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+// var_dump($_ENV);
+
+$connectionParams = [
+    'dbname' => $_ENV['DB_DATABASE'],
+    'user' => $_ENV['DB_USER'],
+    'password' => $_ENV['DB_PASS'],
+    'host' => $_ENV['DB_HOST'],
+    'driver' => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
+    'port' => $_ENV['DB_PORT'] ?? 3307,
+];
+
+$conn = \Doctrine\DBAL\DriverManager::getConnection($connectionParams);
+
+$stmt = $conn->prepare('SELECT * FROM INVOICES');
+
+$result = $stmt->executeQuery();
+
+var_dump($result->fetchAllAssociative());
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR EXPLICA OUTRA COISA:
+
+
+
+
+'''IN THIS SPECIFIC EXAMPLE, WE DON'T NEED TO PREPARE THE QUERY, 
+WE CAN EXECUTE IT DIRECTLY''...
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, BASTA ESCREVER ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+use Dotenv\Dotenv;
+
+require_once './vendor/autoload.php';
+
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+// var_dump($_ENV);
+
+$connectionParams = [
+    'dbname' => $_ENV['DB_DATABASE'],
+    'user' => $_ENV['DB_USER'],
+    'password' => $_ENV['DB_PASS'],
+    'host' => $_ENV['DB_HOST'],
+    'driver' => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
+    'port' => $_ENV['DB_PORT'] ?? 3307,
+];
+
+$conn = \Doctrine\DBAL\DriverManager::getConnection($connectionParams);
+
+$stmt = $conn->prepare('SELECT * FROM INVOICES');
+
+$result = $stmt->executeQuery();
+
+var_dump($result->fetchAllAssociative());
+
+// Execute the query directly, without preparing:
+// $result = $conn->executeQuery('SELECT * FROM INVOICES');
+// var_dump($result->fetchAllAssociative());
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... AÍ O PROFESSOR COLOCA 1 WHERE CLAUSE,
+
+
+
+COM O METHOD DE PREPARE,
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+$stmt2 = $conn->prepare('SELECT * FROM INVOICES WHERE id = ?');
+$result2 = $stmt2->executeQuery(['100']);
+var_dump($result2->fetchAllAssociative());
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... E ISSO FUNCIONA, SELECIONOU 
+
+APENAS O INVOICE COM ID DE 100...
+
+
+
+
+
+
+
+
+
+
+''nesse caso, não precisamos de 'fetchAllAssociative',
+
+PQ ESTAMOS SELECIONANDO 1 ÚNICO INVOICE...''
+
+
+
+
+
+
+
+É POR ISSO QUE PODEMOS USAR 'fetchAssociative',
+
+
+EM VEz de fetchAllAssociative...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+// * With WHERE clause usage:
+$stmt2 = $conn->prepare('SELECT * FROM INVOICES WHERE id = ?');
+$result2 = $stmt2->executeQuery(['100']);
+var_dump($result2->fetchAssociative());
+
+
+
+
+
+
+
+
+
+
+-> E EM VEZ DE USAR POSITIONAL PLACEHOLDERS,
+
+
+PODEMOS USAR NAMED PLACEHOLDERS, TIPO ASSIM:
+
+
+
+
+
+
+
+// * Execute the query directly, without preparing:
+$result = $conn->executeQuery('SELECT * FROM INVOICES;');
+var_dump($result->fetchAllAssociative());
+
+// * With WHERE clause usage:
+$stmt2 = $conn->prepare('SELECT * FROM INVOICES;');
+$result2 = $stmt2->executeQuery();
+var_dump($result2->fetchAssociative());
+
+// * With named parameters usage:
+$stmt3 = $conn->prepare('SELECT * FROM INVOICES WHERE id = :id;');
+$result3 = $stmt3->executeQuery([':id' => 1]);
+var_dump($result3->fetchAssociative());
+
+
+
+
+
+
+
+
+ESSE TIPO DE NAMED PARAMETER É MEIO BUGADO... MEIO FINNICKY,
+
+NÃO FUNCIONA DIREITO (passar o parameter dentro daquele associative array,
+isso é ruim...)
+
+
+
+
+
+
+
+
+
+ESTE FUNCIONA BEM MELHOR:
+
+
+
+
+
+// * With named parameters usage and BINDING parameters (this always works):
+$stmt4 = $conn->prepare('SELECT * FROM INVOICES WHERE id = :id');
+$stmt4->bindValue('id', 3);
+$result4 = $stmt4->executeQuery();
+var_dump($result4->fetchAssociative());
+
+
+
+
+
+
+
+
+-> PODEMOS TAMBÉM BINDAR NO STATEMENT, SE QUISERMOS,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+// * With named parameters usage and binding parameters:
+$stmt4 = $conn->prepare('SELECT * FROM INVOICES WHERE id = :id');
+$stmt4->bindValue('id', 100);
+$result4 = $stmt4->executeQuery();
+var_dump($result4->fetchAssociative());
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+
+até aí, tudo bem...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OBS:: SE VC QUER RODAR 
+            QUERIES DE INSERT/UPDATE/DELETE,
+
+            VC VAI USAR 
+            'executeStatement',
+
+
+            E NÃO 'executeQuery'...
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA RODAR INSERTS, USARÍAMOS 'executeStatement'...
+
+
+
+
+
+
+
+
+
+
+-> ISSO TUDO É MT PARECIDO COM O PDO...
+
+É PARECIDO COM A API DO PDO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+--> ISSO TUDO É LEGAL, MAS DEVEMOS VER ALGUMAS DAS COISAS QUE 
+    APENAS O DBAL OFERECE, e que o PDO não oferece...
+
+
+
+
+
+
+
+
+
+
+
+--> ''WE START WITH THE TYPE CONVERSION:
+
+
+
+WHEN YOU BIND PARAMETERS FOR PREPARE STATEMENTS,
+
+YOU CAN PASS __ A SPECIFIC TYPE, JUST LIKE PDO...''
+
+
+
+
+''THE BENEFIT OF USING 
+    DBAL IS THAT IT OFFERS SOME ADDITIONAL TYPES...''
+
+
+
+
+
+
+
+
+
+
+
+-> DIGAMOS QUE QUEREMOS PEGAR TODAS AS INVOICES 
+    QUE FORAM CRIADAS 
+
+
+    EM 'JANUARY, 2022'...
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, TERÍAMOS DE AJUSTAR NOSSA QUERY,
+
+E DEIXÁ-LA ASSIM:
+
+
+
+
+
+
+// * Using the TYPE CONVERSION feature of DBAL:
+$stmt6 = $conn->prepare('SELECT * FROM INVOICES WHERE created_at BETWEEN :from and :to');
+
+$stmt6->bindValue('from', new \DateTime('2022-01-01'));
+$stmt6->bindValue('to', new \DateTime('2022-12-31'));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO, NO CASO, SÃO DATETIME OBJECTS...
+
+
+
+
+
+
+
+
+--> POR SI SÓ, ISSO NÃO VAI FUNCIONAR... A TYPE CONVERSION NÃO VAI 
+ACONTECER POR SI SÓ, AUTOMATICAMENTE....
+
+
+
+
+
+
+
+
+
+
+
+
+ERROR:
+
+
+'Object of class DateTime could not be converted to string''...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA CONSEGUIR CONVERTER ESSE DATETIME OBJECT EM 1 STRING,
+
+
+DEVEMOS PASSAR 1 TERCEIRO PARAMETER,
+
+
+de value 'datetime',
+
+
+
+QUE VAI INDICAR AO DBAL 
+
+'WHAT CONVERSION' SHOULD BE APPLIED, A ESSE OBJECT DATETIME AÍ...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+// * Using the TYPE CONVERSION feature of DBAL:
+$stmt6 = $conn->prepare('SELECT * FROM INVOICES WHERE created_at BETWEEN :from and :to');
+
+$stmt6->bindValue(':from', new \DateTime('2022-01-01'), 'datetime');
+$stmt6->bindValue(':to', new \DateTime('2022-12-31'), 'datetime');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... SE EXECUTAMOS O CÓDIGO,
+ ISSO FUNCIOna....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ ----> OUTRA COISA LEGAL
+
+
+
+
+
+ É ''WORKING WITH LISTS OF PARAMETERS''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+---> BEM, DIGAMOS QUE 
+QUEREMOS PEGAR TODOS OS INVOICES DENTRO 
+
+
+
+DE 1 CERTA LISTA DE IDS...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+// * Working with lists of values (works):
+$ids = [1, 2, 3, 4, 5];
+
+$stmt7 = $conn->executeQuery('SELECT * FROM INVOICES WHERE id IN (?)', [$ids] [\Doctrine\DBAL\Connection::PARAM_INT_ARRAY]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO É BOM QUANDO VC NÃO QUER HARDCODAR 1 NÚMERO ABSURDO DE VALUES...
+
+
+
+
+
+
+ALTERNATIVAMENTE,
+
+PODEMOS 
+
+ESCREVER ASSIM:
+
+
+
+// * Working with lists of values (works):
+$ids = [1, 2, 3, 4, 5];
+
+$stmt7 = $conn->executeQuery('SELECT * FROM INVOICES WHERE id IN (?)', [$ids], array(\Doctrine\DBAL\Connection::PARAM_INT_ARRAY));
+$result = $stmt7->fetchAllAssociative();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FUNCIONA...
+
+
+
+
+
+É MEIO BUGADO, MAS FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE TER PERCEBIDO,
+
+
+É POSSÍVEL EXECUTAR 
+
+
+
+AS QUERIES DIRETAMENTE NO OBJECT DE 'connection'...
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO QUER DIZER QUE 
+
+PODEMOS 
+
+RODAR 
+
+'fetchAllAssociative()'
+
+
+E ESSE TIPO DE METHOD DIRETAMENTE NO OBJECT DE '$conn',
+
+
+EM VEZ DE 
+
+
+
+TER DE RODAR '->prepare()"
+
+
+e esse tipo de coisa...
+
+
+
+
+
+
+
+
+-> ISSO FUNCIONA, SIM,
+
+    MAS NÃO É RECOMENDADO....
+
+
+
+
+
+    -> NÃO É RECOMENDADO 
+
+    PQ _ TE DEIXA ABERTO A SQL INJECTION...
+
+
+
+
+
+
+
+
+
+
+--> E PODEMOS RODAR TRANSACTIONS 
+    EXATAMENTE COMO FAZÍAMOS NO 
+
+
+    PDO...
+
+
+
+
+
+    TIPO ASSIM:
+
+
+
+
+$conn->beginTransaction();
+try {
+    echo 'ENTERED';
+    $stmt8 = $conn->prepare('INSERT INTO users (email, full_name, is_active, created_at) VALUES (:email, :full_name, :is_active, :created_at);');
+    $stmt8->bindValue('email', 'john@doe.com');
+    $stmt8->bindValue('full_name', 'John Doe');
+    $stmt8->bindValue('is_active', true);
+    $stmt8->bindValue('created_at', new \DateTime('2022-01-01'), 'datetime');
+    $result = $stmt8->executeStatement();
+
+    $conn->commit();
+    var_dump($result);
+} catch (\Exception $e) {
+    var_dump($e->getMessage());
+    echo 'ENTERED2';
+    $conn->rollBack();
+}
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALÉM DISSO,
+
+TEMOS 1 METHOD CHAMADO DE 
+
+
+
+'$conn->transactional()'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESSE METHOD ACEITA 1 CLOSURE COMO ARGUMENT...
+
+
+
+
+
+
+-> DENTRO DESSA CLOSURE,
+
+    PODEMOS COLOCAR TODA NOSSA LÓGICA, TIPO ASSIM:
+
+
+
+    $conn->transactional(
+
+        function() {
+
+        }
+    )
+
+
+
+
+
+
+
+
+
+    -> E SE ALGO DÁ ERRADO, DENTRO DESSA FUNCTION,
+
+    O DBAL AUTOMATICAMENTE FAZ ROLLBACK...
+
+
+
+--> E SE TUDO DÁ CERTO, ELE AUTOMATICAMENTE FAZ COMMIT.... BEM ÚTIL...
+
+
+
+
+
+
+
+
+
+
+--> É CLARO QUE HÁ MAIS COISAS A SE SABER SOBRE ISSO,
+    MAS É BOM SABER O BÁSICO..
+
+
+
+
+
+
+
+
+
+
+
+
+-> OUTRA COISA LEGAL SOBRE O DBAL  
+
+É _ O 'QUERY BUILDER'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ALÉM DE CRIAR QUERIES ASSIM, DE FORMA RAW,
+
+
+    PODEMOS CRIAR 
+
+
+    1 BUILDER, COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+$builder = $conn->createQueryBuilder();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO VAI NOS DAR A INSTANCE DO BUILDER..    
+
+
+--> AÍ PODEMOS CRIAR NOSSAS QUERIES, COM ESSE BUILDER AÍ..
+
+
+
+
+
+
+
+--> BASTA ESCREVER TIPO ASSIM:
+
+
+
+
+
+
+
+$builder = $conn->createQueryBuilder();
+
+
+$builder->select('id', 'amount')->from('invoices')->where('amount > ?')->fetchAllAssociative();
+
+
+
+
+
+
+
+
+
+
+
+
+
+E É CLARO QUE PODEMOS FORMATAR ISSO MELHOR, TIPO ASSIM:
+
+
+
+
+
+// * Instead of writing raw queries, we can use DBAL's query builder, like this (works like knex or sequelize):
+$builder = $conn->createQueryBuilder();
+
+$invoices = $builder
+    ->select('id', 'amount')
+    ->from('invoices')
+    ->where('amount > ?')
+    ->setParameter(0, 6000)  // positional parameter, and then the VALUE.
+    ->execute()
+    ->fetchAllAssociative();
+
+var_dump($invoices);
+
+
+
+
+
+
+
+
+
+
+
+
+E ISSO REALMENTE FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SEMPRE DEVEMOS USAR PLACEHOLDERS, NO ENTANTO, PARA 
+    EVITAR SQL INJECTION....
+
+
+
+
+
+
+
+
+-_> PODEMOS ESCREVER QUERIES MAIS COMPLEXAS.. MAIS METHODS FICAM DISPONÍVEIS 
+
+NO QUERY BUILDER.....
+
+
+
+
+
+COMO POR EXEMPLO:
+
+
+
+
+
+
+
+
+
+
+
+
+// * Instead of writing raw queries, we can use DBAL's query builder, like this (works like knex or sequelize):
+$builder = $conn->createQueryBuilder();
+
+$invoices = $builder
+    ->select('id', 'amount')
+    ->from('invoices')
+    ->where('amount > ?')
+    // ->join()
+    // ->groupBy()
+    // ->having()
+    ->setParameter(0, 6000)  // positional parameter, and then the VALUE.
+    ->execute()
+    ->fetchAllAssociative();
+
+var_dump($invoices);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OUTRA COISA LEGAL DO 'DBAL' 
+
+É O 
+
+'SCHEMA MANAGER'...
+
+
+
+
+
+
+--> ISSO NOS DEIXA INSPECIONAR 
+    SCHEMAS, TABLES, DATABASES, CRIAR 
+
+    COLUMNS,
+
+
+    CRIAR OUTRAS COISAS, ETC..
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+$schema = $conn->createSchemaManager();
+
+
+var_dump($schema->listTableNames());
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+// the schema manager is a great tool for getting information about the database schema, and for creating tables, etc.
+$schema = $conn->getSchemaManager();
+
+var_dump($schema->listTableNames());
+
+
+
+
+
+
+
+
+
+ISSO NOS DÁ ESTE PRINT:
+
+
+
+
+array(2) {
+  [0]=>
+  string(8) "INVOICES"
+  [1]=>
+  string(5) "users"
+}
+
+
+
+
+
+
+
+
+
+
+OU SEJA, NOS MOSTRA AS NOSSAS TABLES...
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS PEGAR AS TABLE COLUMNS DE 1 TABLE TBM,
+
+COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+// the schema manager is a great tool for getting information about the database schema, and for creating tables, etc.
+$schema = $conn->getSchemaManager();
+
+var_dump($schema->listTableNames());
+
+var_dump($schema->listTableColumns('invoices'));
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+--> PODEMOS RODAR ALGUNS METHODS, PARA PEGAR APENAS 
+
+
+OS NAMES DAS COLUMNS, TIPO ASSIM:
+
+
+
+
+
+
+var_dump(
+    array_map(fn(Column $column) => $column->getName(), $schema->listTableColumns('invoices'))
+);
+
+
+
+
+
+
+
+
+
+
+ISSO NOS PRINTA ISTO:
+
+
+
+
+array(3) {
+  ["id"]=>
+  string(2) "id"
+  ["amount"]=>
+  string(6) "AMOUNT"
+  ["user_id"]=>
+  string(7) "USER_ID"
+}
+
+
+
+
+
+
+
+
+
+
+OU SEJA, TODAS NOSSAS COLUMNS...
+
+
+SE QUEREMOS PEGAR TODOS ELES COMO ORDERED KEYS,
+
+ESCREVEMOS ASSIM:
+
+
+var_dump(
+    array_keys(
+        $schema->listTableColumns('invoices')
+    )
+);
+
+
+
+
+
+
+FICAMOS COM ESTE PRINT:
+
+
+
+
+array(3) {
+  [0]=>
+  string(2) "id"
+  [1]=>
+  string(6) "amount"
+  [2]=>
+  string(7) "user_id"
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OBS:
+
+
+
+'DBAL' É 1 PROJETO IMENSO,
+
+
+E DEMANDA SEU CURSO PRÓPRIO....
+
+
+
+
+
+
+
+
+MAS ISSO JÁ NOS DEIXA GET STARTED...
+
+
+
+
+
+
+
+
+
+
+-> MAS AINDA PRECISAMOS REFORMATAR A CLASS DE 'Db.php',
+
+
+
+PQ ELA ESTÁ ATUALMENTE USANDO O PDO...
+
+
+
+
+
+
+
+
+
+-_> O QUE O PROFESSOR FAZ, NO CASO,
+
+
+
+É ESCREVER ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+namespace App;
+
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DriverManager;
+
+/**
+ * @mixin Connection
+ */
+class DB
+{
+    private Connection $connection;
+
+    public function __construct(array $config)
+    {
+        $this->connection = DriverManager::getConnection($config);
+    }
+
+    public function __call(string $name, array $arguments)
+    {
+        return call_user_func_array([$this->connection, $name], $arguments);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+OK... COM ISSO, REFATORAMOS AS COISAS PARA   
+
+
+''WORK WITH THE DBAL CONNECTION',
+
+EM VEZ DE TRABALHAR 
+
+COM O PDO DIRETAMENTE...
+
+
+
+
+
+
+
+
+
+
+LÁ NO MODEL DE INVOICE,
+
+
+O PROFESSOR ESCREVE ASSIM (usa o queryBuilder):
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+namespace App\Models;
+
+use App\Enums\InvoiceStatus;
+use App\Model;
+use PDO;
+
+class Invoice extends Model
+{
+    public function all(InvoiceStatus $status): array
+    {
+        return $this->db->createQueryBuilder()->select('id', 'invoice_number', 'amount', 'status')
+            ->from('invoices')
+            ->where('status = ?')
+            ->setParameter(0, $status->value)
+            ->fetchAllAssociative();
+    }
+}
+
+
+
+
+
+
+
+
+LÁ NA VIEW DE 'index.php' dos invoices,
+
+o professor troca o 
+
+access para o access de associative arrays, tipo assim:
+
+
+
+        <?php foreach ($invoices as $invoice): ?>
+            <tr>
+                <td><?= $invoice['invoice_number'] ?></td>
+                <td>$<?= number_format($invoice['amount'], 2) ?></td>
+                <td class="<?= \App\Enums\InvoiceStatus::tryFrom($invoice['status'])->color()->getClass() ?>">
+                    <?= \App\Enums\InvoiceStatus::tryFrom($invoice['status'])->toString() ?>
+                </td>
+            </tr>
+        <?php endforeach ?>
+
+
+
+
+
+
+
+
+
+
+
+
+        (pq antes estava tipo ''$invoice->invoice_number'')..
+
+
+
+
+
+
+
+CERTO... TESTAMOS, E TUDO FUNCIONA...
+
+
+
+
+
+
+
+com isso, substituímos a PDO Connection 
+
+pela DBAL connection, e agora estamos usando DBAL nos nossos models...
