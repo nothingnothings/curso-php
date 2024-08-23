@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="WEB_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/MVC-pattern" isTestSource="false" packagePrefix="App21" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/MVC-pattern/app" isTestSource="false" packagePrefix="App19" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/MVC-pattern/app" isTestSource="false" packagePrefix="App21" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/OOP-error-handling-in-php-exceptions-and-try-catch-blocks" isTestSource="false" packagePrefix="App16" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/PDO-tutorial" isTestSource="false" packagePrefix="App21" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/PDO-tutorial-part2-transactions" isTestSource="false" packagePrefix="App21" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/PDO-tutorial-part2-transactions/app" isTestSource="false" packagePrefix="App19" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/PDO-tutorial-part3-refactor" isTestSource="false" packagePrefix="App30" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/PDO-tutorial-part3-refactor/app" isTestSource="false" packagePrefix="App30" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/PDO-tutorial/app" isTestSource="false" packagePrefix="App19" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/abstract-classes-and-methods-example" isTestSource="false" packagePrefix="App" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/app" isTestSource="false" packagePrefix="App19" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/app/mvc-version/app" isTestSource="false" packagePrefix="App19" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/app/mvc-version/app" isTestSource="false" packagePrefix="App21" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/class-constants" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/class-constants" isTestSource="false" packagePrefix="App" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/coding-autoloading-and-composer-example" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/coding-autoloading-and-composer-example/app" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/docblock-adding-comments-to-classes-and-methods" isTestSource="false" packagePrefix="App10" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/encapsulation-and-abstraction" isTestSource="false" packagePrefix="App" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/get-and-post-superglobals-in-php" isTestSource="false" packagePrefix="App20" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/http-headers-request-and-response-headers" isTestSource="false" packagePrefix="App21" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/http-headers-request-and-response-headers/app" isTestSource="false" packagePrefix="App19" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/http-headers-request-and-response-headers/app" isTestSource="false" packagePrefix="App21" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/inheritance-example" isTestSource="false" packagePrefix="App2" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/interfaces-and-polymorphism-example" isTestSource="false" packagePrefix="App3" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/interfaces-and-polymorphism-example/field-example" isTestSource="false" packagePrefix="App" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/late-static-binding-example" isTestSource="false" packagePrefix="App5" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/magic-methods-example" isTestSource="false" packagePrefix="app3" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/namespace-example" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/object-cloning-and-clone-magic-method" isTestSource="false" packagePrefix="App11" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/php-file-uploads" isTestSource="false" packagePrefix="App19" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/php-iterables-and-iterable-type-iterate-over-objects" isTestSource="false" packagePrefix="App17" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/sessions-and-cookies-output-buffering-headers-already-sent-warning" isTestSource="false" packagePrefix="App19" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/static-properties-and-methods-in-object-oriented-php" isTestSource="false" packagePrefix="App" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/superglobals-basic-routing-using-the-server-info" isTestSource="false" packagePrefix="App18" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/traits-how-they-work-and-drawbacks" isTestSource="false" packagePrefix="App6" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-2/project/src/variable-storage-and-object-comparison" isTestSource="false" packagePrefix="App9" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-3/attributes-example" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-3/composition-vs-inheritance-with-pratical-examples/bad-inheritance-example" isTestSource="false" packagePrefix="App" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-3/composition-vs-inheritance-with-pratical-examples/composition" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-3/composition-vs-inheritance-with-pratical-examples/inheritance" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-3/container-example-with-interfaces/learnphptherightway-project" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-3/container-example/learnphptherightway-project" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-3/email-queue-example" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-3/enums-example" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-3/generator-example/learnphptherightway-project-2" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-3/phpunit-first-example" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-3/recap-exercise/learnphptherightway-project" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-3/symfony-mailer-example" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/MODULE-3/weakmap-example" isTestSource="false" packagePrefix="App" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>

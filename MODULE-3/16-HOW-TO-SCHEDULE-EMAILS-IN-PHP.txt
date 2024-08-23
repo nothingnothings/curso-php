@@ -1,0 +1,3018 @@
+
+
+
+
+
+
+
+
+ENVIAR EMAILS PODE SER UMA 'HEAVY PRACTICE', 
+
+E PODE TOMAR ALGUNS SEGUNDOS...
+
+
+
+
+
+
+
+''WE DON'T WANT THE USER TO HAVE TO WAIT WHILE WE ARE SENDING THE 
+    EMAILS...''
+
+
+
+
+
+EM VEZ DISSO, QUEREMOS 'QUEUE THE EMAILS',
+
+e aí 
+
+ter 
+
+1 tipo de 
+
+script PHP 
+
+
+QUE RODE NO BACKGROUND,
+
+'AT A GIVEN SCHEDULE' (tipo um CRON),
+
+
+
+
+WHICH WILL PICK UP THE EMAILS IN QUEUE AND THEN SEND THEM OUT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK...
+
+
+
+
+
+
+
+
+
+
+
+
+--> COMO PODEMOS USAR O CRON, COM O PHP?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR CRIOU UMA NOVA TABLE, BEHIND THE SCENES,
+
+    CHAMADA DE 
+
+
+    'emails'...
+
+
+
+
+
+
+
+--> ESSA TABLE VAI SIMPLESMENTE 
+
+    ARMAZENAR:
+
+
+
+    1) ID 
+
+    2) SUBJECT 
+
+    3) STATUS 
+
+    4) TEXT_BODY 
+
+
+    5) HTML_BODY 
+
+
+    6) META 
+
+
+    7) CREATED_AT 
+
+
+    8) SENT_AT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+CRIEI ESSA TABLE...
+
+
+
+
+
+FICOU TIPO ASSIM:
+
+
+
+
+CREATE TABLE `emails` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `SUBJECT` varchar(255) DEFAULT NULL,
+  `STATUS` tinyint unsigned DEFAULT NULL,
+  `TEXT_BODY` longtext,
+  `HTML_BODY` longtext,
+  `META` json DEFAULT NULL,
+  `CREATED_AT` datetime DEFAULT NULL,
+  `SENT_AT` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR TAMBÉM CRIOU 1 MODEL DE 'EMAIL',
+
+
+
+
+COM UM METHOD DE 'queue',
+
+
+QUE 
+
+
+_ FAZ O INSERT 
+
+
+DO EMAIL NA TABLE....
+
+
+
+
+
+
+
+--> TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Models;
+
+use App\Enums\EmailStatus;
+use App\Model;
+use Symfony\Component\Mailer\Mailer;
+use Symfony\Component\Mime\Address;
+
+class Email extends Model
+{
+    public function __construct(protected Mailer $mailer, protected \Symfony\Component\Mime\Email $email) {}
+
+    public function queue(
+        Address $to,
+        Address $from,
+        string $subject,
+        string $html,
+        ?string $text = null
+    ): void {
+        $stmt = $this->db->prepare(
+            'INSERT INTO emails (subject, status, html_body, text_body, meta, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NOW())'
+        );
+
+        $meta['to'] = $to->toString();
+        $meta['from'] = $from->toString();
+
+        $stmt->execute([$subject, EmailStatus::Queue->value, $html, $text, json_encode($meta)]);
+    }
+
+    public function send(\Symfony\Component\Mime\Email $emailMessage): void
+    {
+        // * The template:
+        // $dsn = 'smtp://user:pass@smtp.example.com:25';
+
+        $this->mailer->send($emailMessage);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FAZEMOS O PREPARE DA INSERT QUERY...
+
+
+
+
+
+
+- E, ENTÃO, ESTAMOS INSERINDO 'to' e 'from' 
+dentro do nosso array de '$meta'...
+
+
+
+-> ESSE ARRAY DE META VAI SER CONVERTIDO, EM 1 JSON COLUMN,
+    DENTRO DA TABLE DE 'email'...
+
+
+
+
+
+--> TAMBÉM ESTAMOS USANDO O ENUM DE 'EmailStatus',
+
+PARA SETTAR O EMAIL STATUS DO EMAIL,
+
+
+QUANDO O RECORD É CRIADO...
+
+
+
+
+
+
+
+
+--> SE ABRIMOS ESSE ENUM, TEMOS ISTO:
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+namespace App\Enums;
+
+enum EmailStatus: int
+{
+    case Queue = 0;
+    case Sent = 1;
+    case Failed = 2;
+
+    public function toString(): string
+    {
+        return match ($this) {
+            self::Queue  => 'In Queue',
+            self::Sent   => 'Sent',
+            self::Failed => 'Failed'
+        };
+    }
+}
+
+
+
+
+
+
+
+
+
+--> OU SEJA, ESSE METHOD DE 'toString()'
+
+
+VAI CONVERTER O VALUE DO NOSSO ENUM,
+
+EM 1 DE ESSAS STRINGS...
+
+
+
+
+
+
+
+
+
+
+
+É UM BACKED ENUM, COM 3 CASES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK.... 
+
+
+
+
+
+LÁ NO CONTROLLER DE 'UserController',
+
+em VEZ DE ENVIARMOS O EMAIL IMEDIATAMENTE, COM 
+
+1 CÓDIGO COMO  ESTE:
+
+
+
+
+
+
+        $email = (new \Symfony\Component\Mime\Email())
+            ->from('noreply@example.com')
+            ->to($emailAddress)
+            ->subject('Welcome!')  // 'Assunto'
+            ->attach('Hello World!', 'welcome.txt')  // Attachments (optional)
+            ->text($text)
+            ->html($html);
+
+
+        $this->mailer->send($email);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    EM VEZ DISSO, PODEMOS CRIAR 
+
+    1 
+
+    RECORD DE ESSE EMAIL, NA DATABASE,
+    PARA QUE 
+    SEJA 
+
+    ENVIADO MAIS TARDE...
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE PODEMOS ESCREVER ALGO COMO:
+
+
+
+
+     (new Email())->queue()
+
+
+
+
+
+
+
+
+     E AÍ PODEMOS PASSAR OS ARGUMENTS NECESSÁRIOS...
+
+
+
+
+
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+    $firstName = $_POST['name'];
+    $emailAddress = new Address($_POST['email']);
+
+
+
+    
+    (new Email())->queue(
+        new Address($email),
+        new Address('support@example.com', 'Support'),
+        'Welcome!',
+        $html,
+        $text
+    )
+
+
+    
+    //$this->mailer->send($email);
+
+
+
+
+
+
+
+
+
+
+
+
+
+    NÃO VAMOS MAIS TER O CALL DE ''mailer->send()'',
+
+    PQ NÃO VAMOS ENVIAR O EMAIL IMEDIATAMENTE, E SIM VAMOS APENAS 'QUEUE' 
+
+
+    O EMAIL....
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+        // * Now we queue the email (create record in database), instead of immediately sending it:
+        (new Email())->queue(
+            $emailAddress,
+            new Address('support@example.com', 'Support'),
+            'Welcome!',
+            $html,
+            $text
+        );
+
+
+
+
+
+
+
+
+
+
+
+
+    --> PODEMOS REMOVER O CONSTRUCTOR, PORTANTO,
+
+    PQ O MAILER NÃO SERÁ UTILIZADO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... FUNCIONOU....
+
+
+
+
+
+
+O RECORD FOI CRIADO NA DATABASE, E NO MAILHOG NÃO ENXERGAMOS COISA ALGUMA, que é o que queríamos...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> LÁ NOS RECORDS, O STATUS DO EMAIL ESTÁ SETADDO COMO '0',
+
+O QUE SIGNIFICA QUE NOSSO EMAIL ESTÁ 'QUEUED'...
+
+
+
+
+
+
+
+
+
+
+
+-. O QUE PRECISAMOS FAZER, AGORA, É 
+
+
+CRIAR 1 
+
+
+
+SCRIPT DE EMAIL,
+
+QUE VAI SER RESPONSÁVEL PELO SEND 
+
+
+
+
+DOS EMAILS...
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, CRIAMOS 1 FOLDER DE 'scripts',
+
+E AÍ 
+
+
+
+
+
+CRIAMOS UM 
+
+ARQUIVO DE NOME 'email.php'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+''THIS SCRIPT WON'T RUN IN THE BROWSER;
+INSTEAD, IT WILL RUN ON THE TERMINAL, ON THE COMMAND LINE''...
+
+
+    
+
+
+
+
+
+
+
+    --> PARA ISSO, PRECISAMOS 'BOOT UP'
+
+    O NOSSO APP,
+
+
+    PARA CONSEGUIRMOS _ OBTER ACESSO AO 'CONFIG'
+
+    E A OUTROS 
+
+    OBJECTS NECESSÁRIOS (ou seja, 'isolar' o nosso app, em 1 variable ou algo assim)...
+
+
+
+
+
+
+
+
+
+
+
+
+--> TAMBÉM PRECISAMOS FAZER O _ REQUIRE_ 
+
+DO AUTOLOADER, NESSE NOVO ARQUIVO DE 'email.php', na pasta de 'scripts'...
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, COPIAMOS TUDO DO 
+
+
+
+'public>index.php',
+
+
+e colamos nesse novo arquivo...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Controllers\GeneratorExampleController;
+use App\Controllers\HomeController;
+use App\Controllers\InvoiceController;
+use App\Controllers\UserController;
+use App\App;
+use App\Container;
+use App\Router;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+define('STORAGE_PATH', __DIR__ . '/../storage');
+define('VIEW_PATH', __DIR__ . '/../views');
+
+$container = new Container();
+$router = new Router($container);
+
+$router->registerRoutesFromControllerAttributes(
+    [
+        HomeController::class,
+        GeneratorExampleController::class,
+        InvoiceController::class,
+        UserController::class,
+    ]
+);
+
+(new App(
+    $container,
+    $router,
+    ['uri' => $_SERVER['REQUEST_URI'], 'method' => $_SERVER['REQUEST_METHOD']]
+))->boot()->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO, VAMOS REMOVER AS PARTES DESNECESSÁRIAS... 
+
+
+
+
+
+
+
+
+
+
+--> ESSE CÓDIGO VAI RODAR NO CLI,
+
+POR ISSO NÃO PRECISAMOS DE NADA DE ROUTING...
+
+
+
+
+
+
+
+
+PRECISAMOS DO CONTAINER,
+
+MAS NÃO PRECISAMOS DO STORAGE PATH, NEM DA VIEW PATH...
+
+
+
+
+
+
+
+
+-> E NÃO PRECISAMOS DE NADA RELACIONADO A REQUESTS..
+
+
+
+
+-- É POR ISSO QUE NOSSO CÓDIGO FICA ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\App;
+use App\Container;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->load();
+
+$container = new Container();
+
+(new App(
+    $container,
+    $router,
+    []
+))->boot()->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA PRECISAMOS TRABALHAR NO NOSSO 'APP OBJECT',
+
+
+    PARA QUE ELE SEJA CAPAZ DE FUNCIONAR 
+
+    COM O NOSSO SCRIPT QUE RODARÁ NA CLI...
+
+
+
+
+
+
+
+
+
+
+
+--> NO MOMENTO, NADA FUNCIONARÁ,
+
+PQ 'router' É UM PARAMETER OBRIGATÓRIO DE 'App'...
+
+
+
+
+
+
+
+
+
+-> UMA OPÇÃO É DEIXARO PARAMETER DE '$router' como NULLABLE...
+
+
+
+
+
+
+
+
+VAMOS ATÉ A CLASS DE 'APP',
+E AÍ DEIXAMOS 
+ISSO COMO NULLABLE, E DEIXAMOS O VALUE DEFAULT COMO 'NULL':
+
+
+
+
+    public function __construct(
+        protected Container $container,
+        protected ?Router $router = null,
+        protected array $request = [],
+    ) {
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NO CASO, O PROFESSOR ESCREVE ASSIM:
+
+
+
+
+
+    public function __construct(
+        protected Container $container,
+        protected Config $config,
+        protected ?Router $router = null,
+        protected array $request = [],
+    ) {
+    }
+
+
+
+
+
+
+
+
+
+
+
+--> HÁ MTAS MANEIRAS DE FAZER ISSO,
+    MAS NÃO ESTAMOS CONSTRUINDO UM ACTUAL FRAMEWORK, POR ISSO NÃO IMPORTA...
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR TAMBÉM QUER TIRAR 
+    A PARTE 
+
+
+
+DE 
+
+
+''
+
+        $this->container->set(PaymentGatewayServiceInterface::class, PaymentGatewayService::class);
+        $this->container->set(MailerInterface::class, fn() => new CustomMailer($this->config->mailer['dsn']));
+
+
+
+'''
+
+
+
+PARA UM OUTRO METHOD,
+
+ 
+
+
+ COMO 1 METHOD DE NOME 'boot',
+
+
+ TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+     public function boot(): static
+    {
+        $dotenv = Dotenv::createImmutable(dirname(__DIR__));
+        $dotenv->load();
+
+        $this->config = new Config($_ENV);
+
+        static::$db = new DB($this->config->db ?? []);
+
+        $this->container->set(PaymentGatewayServiceInterface::class, PaymentGatewayService::class);
+        $this->container->set(MailerInterface::class, fn() => new CustomMailer($this->config->mailer['dsn']));
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+ESSE METHOD VAI 'BOOT UP' O NOSSO APP...
+
+
+
+
+
+
+
+
+
+
+
+
+COMO ESSE 'boot()' vai inicializar o 'config',
+
+
+PODEMOS NOS LIVRAR DESSE PARAMETER, NO CONSTRUCTOR:
+
+
+
+
+
+    private static DB $db;
+    private Config $config;
+
+
+    public function __construct(
+        protected Container $container,
+        protected ?Router $router = null,
+        protected array $request = [],
+    ) {
+    }
+
+    public static function db(): DB
+    {
+        return static::$db;
+    }
+
+    public function boot(): static
+    {
+        $dotenv = Dotenv::createImmutable(dirname(__DIR__));
+        $dotenv->load();
+
+        $this->config = new Config($_ENV);
+
+        static::$db = new DB($this->config->db ?? []);
+
+        $this->container->set(PaymentGatewayServiceInterface::class, PaymentGatewayService::class);
+        $this->container->set(MailerInterface::class, fn() => new CustomMailer($this->config->mailer['dsn']));
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+
+COMO RESULTADO DISSO, LÁ EM 'public>index.php',
+
+
+
+PODEMOS SIMPLIFICAR O CALL DO APP,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+(new App(
+    $container,
+    $router,
+    ['uri' => $_SERVER['REQUEST_URI'], 'method' => $_SERVER['REQUEST_METHOD']]
+))->boot()->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, FICAMOS COM UM OBJECT/CLASS DE 'App'
+
+
+BEM MAIS FLEXÍVEL,
+
+
+
+QUE NOS PERMITE ESCOLHER SE QUEREMOS TER 'ROUTING CAPABILITIES' OU NÃO (caso do script)...
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS AINDA NÃO ACABAMOS...
+
+
+
+
+
+
+
+
+
+
+
+--> ESSA NÃO É A MANEIRA IDEAL DE FAZER TUDO ISSO... MAS É BOA..
+
+
+
+
+LÁ EM 'email.php' e 'public>index.php',
+
+
+FAZEMOS 2 COISAS DIFERENTES:
+
+
+
+1) em 'public>index.php' --> RODAMOS '->boot()->run()',
+
+    PQ ESSE É O NOSSO MAIN SERVER, E QUEREMOS QUE ELE FIQUE RODANDO...
+
+
+
+
+
+
+2) em 'email.php', o script --> RODAMOS APENAS '->boot()', PQ APENAS QUEREMOS QUE O SCRIPT RODE 1 ÚNICA VEZ, SEM TER ROUTING CAPABILITIES...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+(new App(
+    $container,
+    $router,
+    ['uri' => $_SERVER['REQUEST_URI'], 'method' => $_SERVER['REQUEST_METHOD']]
+))->boot()->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\App;
+use App\Container;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->load();
+
+$container = new Container();
+
+(new App(
+    $container,
+    $router,
+    []
+))->boot()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, PRECISAMOS 'ACTUALLY SEND THE EMAIL'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, PODEMOS CRIAR 1 CLASS DE 'EMAILSERVICE',
+
+PARA _ ENCAPSULATE ESSA LÓGICA...
+
+
+
+
+
+
+
+
+
+
+
+
+PQ QUEREMOS ESCREVER ALGO COMO 
+
+
+
+'$container->get(\App\Services\EmailService::class)->sendQueuedEmails()''..
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+--> PARA ISSO, PRECISAMOS FAZER UM CERTO SETUP...
+
+
+
+
+
+
+PRECISAMOS CRIAR A CLASS DE 'EmailService',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+class EmailService
+{
+    public function sendQueuedEmails(string $to, string $subject, string $body): void
+    {
+        // TODO: Send email
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+MAS AINDA PRECISAMOS IMPLEMENTAR ISSO...
+
+LÁ NO SCRIPT DE 'email.php',
+
+FICA ASSIM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\App;
+use App\Container;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->load();
+
+$container = new Container();
+
+(new App(
+    $container,
+    $router,
+    []
+))->boot();  // We just want it to boot, and not run a router/server.
+
+$container->get(\App\Services\EmailService::class)->sendQueuedEmails('test@example.com', 'Test', 'This is a test');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK....
+
+
+
+
+
+
+
+
+
+
+E, LÁ NO App.php,
+
+FICA ASSIM:
+
+
+
+
+    public function boot(): static
+    {
+        $dotenv = Dotenv::createImmutable(dirname(__DIR__));
+        $dotenv->load();
+
+        $this->config = new Config($_ENV);
+
+        static::$db = new DB($this->config->db ?? []);
+
+        $this->container->set(PaymentGatewayServiceInterface::class, PaymentGatewayService::class);
+        $this->container->set(MailerInterface::class, fn() => new CustomMailer($this->config->mailer['dsn']));
+        $this->container->set(EmailServiceInterface::class, EmailService::class);
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EU TAMBÉM CRIEI ESSA INTERFACE, TIPO ASSIM:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Contracts;
+
+interface EmailServiceInterface
+{
+    public function sendQueuedEmails(string $to, string $subject, string $body): void;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ATÉ AÍ, TUDO BEM...
+
+
+
+
+
+
+
+
+
+
+
+
+--> NESSA CLASS, de EmailService,
+
+
+VAMOS ESCREVENDO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+class EmailService
+{
+    public function sendQueuedEmails(string $to, string $subject, string $body): void
+    {
+        // TODO: Send email
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+ ''THIS CLASS WILL FETCH THE SCHEDULED/QUEUED EMAILS, FROM THE 
+    EMAILS TABLE, AND THEN SEND THEM OUT, ONE BY ONE...''
+
+
+
+
+
+
+
+
+
+--> PRIMEIRAMENTE,
+    ESCREVEMOS O CONSTRUCTOR PARA ESSA CLASS..
+
+
+
+
+
+
+
+--> FAZEMOS TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Models\Email;
+
+class EmailService
+{
+    public function __construct(protected Email $email) {}
+
+    public function sendQueuedEmails(string $to, string $subject, string $body): void
+    {
+        // TODO: Send email
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> BASICAMENTE, VAMOS INJETAR O MODEL DE 'EMAIL',
+
+PQ É ELE QUE VAI FAZER O SEND DOS EMAILS,
+
+DENTRO DO METHOD DE 'sendQueuedEmails'...
+
+
+
+
+
+--> MAS TAMBÉM PRECISAMOS FAZER INJECT DA INTERFACE DE 'MailerInterface'...
+
+
+
+
+
+
+
+
+
+
+
+
+PRECISAMOS FAZER O CALL DO METHOD DE 'getEmailsByStatus()',
+
+
+PARA ENCONTRAR TODOS OS EMAILS QUE AINDA NÃO FORAM 
+
+'SENT' (ou seja, status de 0)....
+
+
+
+
+
+
+
+
+--> AÍ PASSAMOS O STATUS,
+
+
+POR MEIO DO ENUM CASE DE 'Queued',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+    public function sendQueuedEmails(string $to, string $subject, string $body): void
+    {
+        // TODO: Get emails that weren't sent yet:
+
+        $emails = $this->emailModel->getEmailsByStatus(EmailStatus::Queue);
+
+        foreach ($emails as $email) {
+            $emailMessage = (new \Symfony\Component\Mime\Email())
+                ->from($email['meta']['from'])
+                ->to($email['meta']['to'])
+                ->subject($email['subject'])
+                ->html($email['html_body'])
+                ->text($email['text_body']);
+
+            $this->mailer->send($emailMessage);
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+PODERIA SER ESCRITO ASSIM, SIM...
+
+
+
+
+
+
+AÍ, lá no Email.php,
+
+
+ficaríamos com isto:
+
+
+
+
+
+
+    public function getEmailsByStatus(EmailStatus $status): array
+    {
+        $stmt = $this->db->prepare(
+            'SELECT * FROM emails WHERE status = ?'
+        );
+
+        $stmt->execute([$status->value]);
+
+        return $stmt->fetchAll();
+    }
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS FAZER ALGUNS AJUSTES...
+
+
+
+
+
+
+
+
+
+FICOU TIPO ASSIM:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Enums\EmailStatus;
+use App\Models\Email;
+use Symfony\Component\Mailer\MailerInterface;
+
+class EmailService
+{
+    public function __construct(protected Email $emailModel, protected MailerInterface $mailer) {}
+
+    public function sendQueuedEmails(): void
+    {
+        // TODO: Get emails that weren't sent yet:
+
+        $emails = $this->emailModel->getEmailsByStatus(EmailStatus::Queue);
+
+        foreach ($emails as $email) {
+            $meta = json_decode($email->meta, true);
+
+            $emailMessage = (new \Symfony\Component\Mime\Email())
+                ->from($meta['from'])
+                ->to($meta['to'])
+                ->subject($email->subject)
+                ->html($email->html_body)
+                ->text($email->text_body);
+
+            $this->mailer->send($emailMessage);
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+MAS ALÉM DE ENVIAR O EMAIL, PRECISAMOS UPDATAR A TABLE,
+
+
+UPDATAR TODOS OS ROWS QUE FORAM 'ENVIADOS'... COLOCAR SEU STATUS 
+
+COMO SENDO 'SENT',
+
+QUE É 
+
+
+
+'1',
+
+
+o 'EmailStatus::Sent'...
+
+
+
+
+
+
+
+
+
+
+
+
+é por isso que escrevemos assim:
+
+
+
+
+
+
+
+
+
+
+
+$this->emailModel->markEmailSent($email->id);
+
+
+
+
+
+
+
+VAI FICANDO TIPO ASSIM:
+
+
+
+    public function markEmailSent(int $id): void
+    {
+        $stmt = $this->db->prepare(
+            ' UPDATE emails
+                    SET status = ?, sent_at = NOW()
+                    WHERE id = ?'
+        );
+    }
+
+
+
+
+
+
+
+
+
+
+  ESSE É SIMPLESMENTE UM METHOD
+
+  QUE UPDATA
+
+
+ A TABLE DE EMAILS, SETTANDO
+
+
+O STATUS COMO SENDO 'SENT',
+
+
+E UPDATA O VALUE DE 'sent_at'
+
+
+como sendo 'NOW()'....
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODERÍAMOS WRAPPAR O CÓDIGO COM 1 TRY-CATCH BLOCK,
+
+
+mas nao faremos isso...
+
+
+
+
+
+
+
+
+
+
+
+nosso method de sendQueuedEmails ficou assim:
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Enums\EmailStatus;
+use App\Models\Email;
+use Symfony\Component\Mailer\MailerInterface;
+
+class EmailService
+{
+    public function __construct(protected Email $emailModel, protected MailerInterface $mailer) {}
+
+    public function sendQueuedEmails(): void
+    {
+        // TODO: Get emails that weren't sent yet:
+
+        $emails = $this->emailModel->getEmailsByStatus(EmailStatus::Queue);
+
+        foreach ($emails as $email) {
+            $meta = json_decode($email->meta, true);
+
+            $emailMessage = (new \Symfony\Component\Mime\Email())
+                ->from($meta['from'])
+                ->to($meta['to'])
+                ->subject($email->subject)
+                ->html($email->html_body)
+                ->text($email->text_body);
+
+            $this->mailer->send($emailMessage);
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+------> O PROFESSOR ENTÃO TESTA ESSE METHOD,
+
+
+PARA VER SE ELE FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, ELE RODA O SCRIPT DE PHP MANUALMENTE,
+
+
+
+
+Com 'php scripts/email.php', dentro do nosso docker container...
+
+
+
+
+
+
+
+
+
+
+
+
+GANHEI ESTE ERROR:
+
+
+
+
+
+
+
+
+Fatal error: Uncaught TypeError: json_decode(): Argument #1 ($json) must be of type string, null given in /var/www/app/Services/Em
+ailService.php:20
+
+
+
+
+
+
+
+
+ok... alguma coisa está errada, portanto.
+
+
+
+
+
+
+
+
+
+
+
+
+-> consegui fazer a porcaria funcionar,
+
+
+era um erro de casing (->META em vez de '->meta'):
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Enums\EmailStatus;
+use App\Models\Email;
+use Symfony\Component\Mailer\MailerInterface;
+
+class EmailService
+{
+    public function __construct(protected Email $emailModel, protected MailerInterface $mailer) {}
+
+    public function sendQueuedEmails(): void
+    {
+        // Get emails that weren't sent yet:
+        $emails = $this->emailModel->getEmailsByStatus(EmailStatus::Queue);
+
+        foreach ($emails as $email) {
+            var_dump($email->META);
+
+            $meta = json_decode($email->META, true);
+
+            $emailMessage = (new \Symfony\Component\Mime\Email())
+                ->from($meta['from'])
+                ->to($meta['to'])
+                ->subject($email->SUBJECT)
+                ->html($email->HTML_BODY)
+                ->text($email->TEXT_BODY);
+
+            $this->mailer->send($emailMessage);
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COLOCO TAMBÉM O METHOD PARA MARCAR O EMAIL COMO 'sent':
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Enums\EmailStatus;
+use App\Models\Email;
+use Symfony\Component\Mailer\MailerInterface;
+
+class EmailService
+{
+    public function __construct(protected Email $emailModel, protected MailerInterface $mailer) {}
+
+    public function sendQueuedEmails(): void
+    {
+        // Get emails that weren't sent yet:
+        $emails = $this->emailModel->getEmailsByStatus(EmailStatus::Queue);
+
+        foreach ($emails as $email) {
+            var_dump($email->META);
+
+            $meta = json_decode($email->META, true);
+
+            $emailMessage = (new \Symfony\Component\Mime\Email())
+                ->from($meta['from'])
+                ->to($meta['to'])
+                ->subject($email->SUBJECT)
+                ->html($email->HTML_BODY)
+                ->text($email->TEXT_BODY);
+
+            $this->mailer->send($emailMessage);
+
+            $this->emailModel->markEmailSent($email->ID);
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, PERCEBO QUE MINHA ENTRY NA DATABASE AGORA ESTÁ COM O STATUS 
+DE '1' (sent...)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... QUER DIZER QUE ESTAMOS 'GOOD TO GO'..
+
+
+
+
+
+
+
+
+
+
+
+
+--> mas vc pode estar se perguntando:
+
+
+''what about attachments??''
+
+
+
+
+
+
+
+
+
+
+
+
+
+-_> NÃO VAMOS COBRIR ATTACHMENTS NESSA AULA...
+
+
+
+
+
+
+
+
+
+
+
+--> MAS SE VC QUER COLOCAR ATTACHMENTS:
+
+
+
+
+
+
+
+
+''''''WHEN CREATING AN EMAIL RECORD
+    FROM THE USER CONTROLLER, 
+    IF THERE IS _ AN ATTACHMENT_ THAT YOU WANT 
+    TO SEND WITH THE EMAIL,
+
+    YOU CAN _ _STORE __ THE ATTACHMENT, OR LOCALLY,
+
+    OR IN S3...'''''''
+
+
+
+
+
+''''' THEN, IN THE DATABASE, YOU WOULD SAVE 
+    THE FILEPATH, IN A COLUMN...''''
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+1) save physical file on disk (local, S3)
+
+
+
+
+
+2) Save filepath/location in Database 
+    (JSON col or email_attachments_table)...
+
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ, QUANDO VC ENVIASSE EMAILS, LÁ DO SERVICE DE 'EmailService',
+
+
+vc faria: 
+
+
+
+
+
+3) LOCATE THE FILES AND __ ATTACH THEM 
+    TO THE EMAIL, WHEN SENDING...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE FOMOS CAPAZES DE ENVIAR  1 EMAIL 
+    POR MEIO DO SCRIPT DE EMAIL...
+
+
+
+
+
+
+
+
+--> MAS QUEREMOS SER CAPAZES DE AUTOMATIZAR ISSO,
+    PARA QUE N PRECISA SER FEITO MANUALMENTE..
+
+
+
+
+ 
+
+
+
+
+--> CRON --> ''''IS A JOB SCHEDULER TOOL FOR UNIX SYSTEMS''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ELE NOS DEIXA RODAR SCRIPTS/JOBS A SCHEDULES DEFINIDOS..
+
+
+
+
+
+
+
+
+
+
+--> ''THE SCHEDULE OF THE JOBS ARE STORED IN 
+    A FILE CALLED __ 'crontab'...'''
+
+
+
+
+
+
+
+
+
+--> CRONTAB --> SIGNIFICA 'CRON TABLE'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CADA LINHA, EM UMA CRON TABLE (crontab),
+    É UM 
+
+
+    __ JOB_ QUE QUEREMOS 
+
+
+    RODAR E EXECUTAR...
+
+
+
+
+
+
+
+
+
+
+
+--> UMA ENTRY É
+
+
+
+
+''6 OR 7 FIELDS'',
+
+
+DEPENDENDO 
+
+DO QUE QUEREMOS IMPLEMENTAR...
+
+
+
+
+
+
+
+
+
+
+
+-> OS PRIMEIROS 5-6 FIELDS 
+
+SÃO 
+
+
+MHDMD 
+
+
+
+
+
+
+
+
+
+--> BASICAMENTE DEFINEM ''WHEN THE JOB IS GOING TO BE EXECUTED''...
+
+
+
+
+
+
+
+
+
+--> JÁ O ÚLTIMO FIELD É __ A COISA A SER EXECUTADA... (the job itself)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+--- --- --- --- ---  COMMAND 
+
+
+
+
+
+
+
+M H D M D 
+
+
+
+MINUTO HORA DIA MES DIA (week)
+
+
+
+
+
+
+
+
+
+
+MIN HOUR DAY(MONTH) MONTH DIA(WEEK)  COMMAND....
+
+
+
+
+
+
+
+
+
+DIGAMOS QUE QUEREMOS EXECUTAR 1 SCRIPT A CADA MINUTO..
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, ESCREVERÍAMOS ASSIM:
+
+
+
+
+
+* * * * *  ----
+
+
+
+
+
+
+
+
+
+''rode esse script a cada minuto, de cada hora, de cada dia, de cada mes,
+de cada dia da semana...''
+
+
+
+
+
+
+
+
+RODE ESSE SCRIPT A CADA HORA:
+
+
+
+
+0 * * * *  ----
+
+
+
+
+
+
+
+
+
+rode esse script a cada hora, mas sempre 
+
+no minuto 30:
+
+
+
+
+
+
+30 * * * *  ----
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+vc também pode fazer 
+
+
+'2,5' (2,5 em 2,5 horas, etc)..
+
+
+
+
+
+
+ex:
+
+
+
+
+* 2,5 * * *  ---- 
+
+
+
+
+
+
+
+
+ISSO VAI RODAR ESSE SCRIPT A CADA 2,5 HORAS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> USE '-' PARA ESPECIFICAR 
+DIAS/PERÍODOS ESPECÍFICOS...
+
+
+EX:
+
+
+
+
+
+
+* * * 1-5 *  ---- 
+
+
+
+
+
+(isso vai rodar  ESSE SCRIPT 
+A CADA MINUTO, NOS MESES DE JAN, FEV, MAR, APR, MAY )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> QUEREMOS RODAR NOSSO SCRIPT 
+
+MINUTO SIM, MINUTO NÃO...
+
+
+
+
+
+
+PARA ISSO, PRECISAMOS DE '/',
+
+
+TIPO ASSIM:
+
+
+*/2 * * * *  ---- 
+
+
+
+
+
+
+
+
+
+
+
+ISSO VAI RODAR ESSE SCRIPT A CADA 2 MINUTOS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AGORA PRECISAMOS CRIAR A FILE DE 'crontab'...
+
+
+
+
+
+
+
+
+
+
+--> SE VC ESTÁ TRABALHANDO 
+    COM 1 NATIVE LINUX DISTRO,
+
+    VC PODE SIMPLESMENTE 
+    ESCREVER 
+
+
+
+
+    'crontab -e',
+
+
+
+    QUE 
+
+
+    ISSO 
+
+
+JÁ VAI TE DEIXAR EDITAR ESSA FILE,
+
+E COLOCAR 
+
+SUA CRON EXPRESSION LÁ DENTRO..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS COMO ESTAMOS RODANDO NOSSO APP EM UM DOCKER CONTAINER,
+
+
+PRECISAMOS RODAR CRONS DENTRO DELE..
+
+
+
+
+
+
+
+
+
+--> HÁ ALGUMAS MANEIRAS DE FAZER ISSO..
+
+
+
+
+
+MANEIRAS:
+
+
+
+1) RODAR O CRON _ EM 1 CONTAINER SEPARADO...
+
+
+
+
+
+
+
+2) RODAR O CRON _ DENTRO DO MESMO CONTAINER 
+    DE NOSSO APP.....
+
+
+
+
+
+
+
+
+
+--> VAMOS RODAR O CRON EM 1 CONTAINER SEPARADO,
+
+TIPO ASSIM:
+
+
+
+
+
+  cron:
+    container_name: programwithgio-cron
+    build: ./cron 
+    volumes:
+      - ../:/var/www
+      - ./log/cron:/var/log/cron
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE O PROFESSOR PROVIDENCIOU 1 DOCKERFILE CUSTOM PARA ISSO...
+
+
+
+
+
+--> ''we are mapping the source 
+    in the volumes the same way we are doing for the app...
+    and we are also mounting the log directory, for the 
+    cron''...
+
+
+
+
+
+
+
+
+A DOCKERFILE É ESTA:
+
+
+
+FROM php:8-1-fpm-alpine 
+
+
+
+
+RUN docker-php-ext-install pdo pdo_mysql 
+
+
+
+
+COPY crontab /etc/crontabs/root
+RUN mkdir /var/log/cron
+
+
+CMD ["crond", "-f"]
+
+
+
+
+
+
+
+
+
+
+
+--> COMO VC PODE VER,
+
+
+ISSO 
+
+
+
+EXECUTA O CRON,
+
+
+COM 'crond -f' 
+
+
+
+
+(CRON DAEMON, e '-f' para rodar o cron no background, permanentemente)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> DEPOIS DISSO, TEMOS 
+
+O ARQUIVO 'crontab',
+
+
+que vai ser copiado para dentro 
+
+
+
+do folder interno do container 
+
+/etc/crontabs/root 
+
+
+
+
+
+
+
+
+
+
+
+
+--> O php:8.1-fpm-alpine'
+
+
+JÁ TEM O CRON INSTALADO, O QUE DEIXA NOSSO PROCESSO MAIS FÁCIL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> /etc/crontabs/root'...
+
+
+
+
+
+
+
+
+TAMBÉM CRIAMOS 1 DIRECTORY PARA OS LOGS DO CRON...
+
+
+
+
+
+
+
+
+
+COLOCAMOS NOSSA CRON EXPRESSION DENTRO DO crontab,
+
+tipo assim:
+
+
+
+
+
+
+*/2 * * * * php /var/www/scripts/email.php >> /var/log/cron/cron.log 2>&1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> o que isso vai fazer:
+
+
+
+1) rodar aquela expression, de 2 em 2 minutos...
+
+
+
+
+2) a expression em si 
+
+VAI RODAR AQUELE SCRIPT DE 'email.php'...
+
+
+
+
+3) e, então,
+
+VAI OUTPUTTAR OS LOGS EM '/var/log/cron/cron.log'....
+
+
+
+
+
+4) E, POR FIM,
+
+    VAI OCULTAR MESSAGES DE ERROR, DO TERMINAL 
+
+
+
+    (
+        com ' 2>&1 '
+    )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE ESSE CRON FUNCIONA...
+
+
+
+
+
+
+
+
+ACABAMOS COM ESTA LESSON...
