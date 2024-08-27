@@ -1,0 +1,3756 @@
+
+
+
+
+
+
+
+
+
+--> NA ÚLTIMA AULA, APRENDEMOS SOBRE DATABASE ABSTRACTION LAYER...
+
+
+
+
+
+--> APRENDEMOS SOBRE A LIBRARY 'DBAL' DO DOCTRINE...
+
+
+
+
+
+
+-> HOJE VAMOS APRENDER SOBRE 'ORM'...
+
+
+
+
+
+
+
+
+
+
+
+-> MAIS ESPECIFICAMENTE, DOCTRINE ORM...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ORM:
+
+
+
+
+
+
+
+
+
+--> ''Object Relational Mapping''...
+
+
+
+
+
+
+
+
+--> É UM LAYER QUE EXISTE ENTRE SEU 
+    APP E O STORAGE LAYER (database)...
+
+
+
+
+
+
+
+
+--> A DEFINIÇÃO FORMAL DE ORM 
+
+É 
+
+
+
+
+''A PROGRAMMING TECHNIQUE FOR CONVERTING DATA BETWEEN 
+    INCOMPATIBLE TYPE SYSTEMS USING OBJECT-ORIENTED PROGRAMMING LANGUAGES...''
+
+
+
+
+''THIS CREATES, IN EFFECT, A 'VIRTUAL OBJECT DATABASE', THAT CAN BE USED
+ FROM WITHIN THE PROGRAMMING LANGUAGE...
+''
+
+
+
+
+
+
+--> basicamente,
+ o ORM 
+
+
+
+ '''LETS US MAP DATABASE RECORDS, WITH THE RELATIONS, FOR EXAMPLE, 
+    TO THE CLASS OBJECTS...''
+
+
+
+
+
+
+
+
+
+--> isso fará mais sentido quando escrevermos o código e criarmos 
+    os objects, que serão mappeados Às tables e às diferentes columns...
+
+
+
+
+
+--> QUANDO O ASSUNTO É ORMs,
+
+
+HÁ DIFERENTES PATTERNS...
+
+
+
+
+
+
+
+
+
+
+
+-> DIFERENTES FRAMEWORKS PODEM IMPLEMENTAR 
+    ORM DE FORMAS DIFERENTES...
+
+
+
+
+
+
+
+
+-> OS PATTERNS MAIS COMUNS SÃO 
+
+
+        ''ACTIVE RECORD''
+
+        E 
+
+
+        ''DATA MAPPER''...
+
+
+
+
+
+
+
+
+
+
+--> O ORM DO LARAVEL, CHAMADO DE 'ELOQUENT',
+
+    por exemplo,
+
+
+    IMPLEMENTA 
+
+    O TIPO DE ORM 'Active Record'..
+
+
+
+
+
+
+
+--> POR OUTRO LADO, 
+    O ORM DO DOCTRINE,
+
+    QUE É USADO PELO FRAMEWORK 'SYMFONY',
+
+
+    USA O PATTERN DE 'Data Mapper'...
+
+
+
+
+
+
+
+
+--> PARA COMEÇAR A USAR O DATA MAPPER DO DOCTRINE,
+
+
+
+    BASTA 
+
+
+    ABRIR ESTE LINK:
+
+
+
+
+
+
+https://www.doctrine-project.org/projects/doctrine-orm/en/3.2/index.html
+
+
+
+
+
+
+
+
+
+
+
+--> NESSA PÁGINA, TEMOS A PARTE DE 'PROJECT SETUP'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TEMOS ISTO AQUI:
+
+
+
+
+
+{
+    "require": {
+        "doctrine/orm": "^3",
+        "doctrine/dbal": "^4",
+        "symfony/cache": "^7"
+    },
+    "autoload": {
+        "psr-0": {"": "src/"}
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE VER, O DOCTRINE ORM 
+
+É UMA LIBRARY SEPARADA,
+
+
+E ELA INCLUI O 'DBAL' DO DOCTRINE COMO DEPENDENCY,
+
+ASSIM COMO ALGUMAS OUTRAS DEPENDENCIES...
+
+
+
+
+
+
+
+
+
+-> ISSO SIGNIFICA QUE ELA EXISTE 'KINDOF'
+    EM CIMA DO DBAL...
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK.... MAS PQ PRECISAMOS 'INCLUDE' 
+    O DBAL JUNTO COM O 'ORM',
+
+    SE O ORM JÁ VEM COM O DBAL COMO DEPENDENCY?
+
+
+
+
+
+
+--> É POR CONTA DESTA RAZÃO AQUI:
+
+
+
+
+
+
+It is strongly recommended that you
+ require doctrine/dbal in your composer.json as well, 
+ because using the ORM means mapping objects and their fields to 
+ database tables and their columns, and that requires mentioning so-called
+  types that are defined in doctrine/dbal in your application. Having an explicit
+   requirement means you control when the upgrade to the next major version happens,
+    so that you can do the necessary changes in your application beforehand.
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO NOS DÁ MAIOR CONTROLE SOBRE VERSION UPGRADES E ETC...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COMO JÁ INSTALAMOS O DBAL,
+
+    SÓ PRECISAMOS INSTALAR O ORM E O 'symfony/cache'.. 
+
+
+
+
+
+
+
+
+--> NÃO VAMOS INSTALAR ANNOTATIONS E YAML,
+
+
+PQ NÃO VAMOS UTILIZÁ-LOS PARA NOSSOS EXAMPLES...
+
+
+
+
+
+
+
+
+
+
+
+
+--> EM VEZ DE ANNOTATIONS, VAMOS USAR 
+    ATTRIBUTES... O PROFESSOR VAI EXPLICAR COMO ISSO VAI FUNCIONAR...
+
+
+
+
+
+
+
+
+
+
+
+--> PARA INSTALAR ISSO, ENTRAMOS NO DOCKER CONTAINER 
+    DO APP PHP, E AÍ EXECUTAMOS 
+
+
+    'composer require doctrine/orm symfony/cache'
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+CRIAMOS UM NOVO ARQUIVO, DE NOME 
+
+
+
+'doctrine_orm_example.php'....
+
+
+
+
+
+
+
+
+
+COMEÇAMOS COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+<?php
+
+use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Connection;
+use Dotenv\Dotenv;
+
+require_once './vendor/autoload.php';
+
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+// var_dump($_ENV);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AGORA VAMOS TESTAR ALGUMAS DAS FEATURES DO DOCTRINE ORM..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR MENCIONOU O PATTERN DE 'DATA MAPPER', ANTERIORMENTE...
+
+
+
+
+
+
+
+
+
+
+
+-> MAS O QUE É ISSO?
+
+
+
+
+
+
+''DATA MAPPER --> IS A __ LAYER__ THAT SIMPLIFIES 
+                DATA TRANSFER, BETWEEN THE 
+                ''IN-MEMORY OBJECTS'' (classes, PERSISTENCE LAYER) 
+
+                AND THE DATABASE (DOMAIN layer)...''
+
+
+
+
+
+''THIS ALLOWS THE __PERSISTENCE LAYER, in your app,
+ TO BE DECOUPLED AND ISOLATED FROM THE DOMAIN/BUSINESS 
+ LAYER...''
+
+
+
+
+
+
+
+
+
+
+
+
+ --> NO DOCTRINE ORM,
+    O MAPPING PODE SER FEITO POR MEIO DE:
+
+
+
+    1) ATTRIBUTES 
+
+    2) ANNOTATIONS 
+
+    3) CONFIG FILES 
+
+    4) CUSTOM PHP MAPPERS
+
+
+
+
+
+
+
+
+
+--> ATTRIBUTES E ANNOTATIONS SÃO 
+    METADATA, QUE É ADICIONADA 
+
+    ÀS ENTITIES, PARA CRIAR OS MAPPINGS...
+
+
+
+
+
+
+
+
+''ENTITY'' --> É APENAS UM (OU VÁRIOS) 
+                PHP OBJECT QUE POSSUI 1 IDENTIDADE...
+                PARA TER 1 IDENTIDADE, BASTA TER 
+                1 UNIQUE IDENTIFIER, COMO 1 'PRIMARY KEY'...
+
+
+
+
+
+
+
+
+
+--> PARA DEMONSTRAR O FUNCIONAMENTO DE ENTITIES, 
+    VAMOS USAR O EXEMPLO DE 'Invoices'...
+
+
+
+
+
+
+
+
+-> PARA ISSO, CRIAMOS 1 FOLDER CHAMADO DE 'Entity',
+
+E AÍ 
+
+
+COLOCAMOS UMA Entity de nome 'Invoice'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ENTITIES --> SÃO APENAS 
+                CLASSES REGULARES 
+
+                DO PHP, 
+
+                MAS POSSUEM ALGUMAS REGRAS...
+
+
+            
+
+            REGRAS:
+
+
+
+1) ENTITTY CLASSES NÃO PODEM SER 'final' (final classes)
+
+
+2) ENTITTY CLASSES NÃO PODEM TER NENHUM TIPO DE METHOD COM 'final' (final methods)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> EX:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Entity;
+
+class Invoice {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+VAMOS CRIAR 1 PROPERTY PARA CADA 'COLUMN' QUE TEMOS, NA NOSSA TABLE...
+
+
+
+
+
+
+
+
+
+--> NAS NOSSA TABLE,
+TEMOS ESTAS COLUMNS:
+
+
+
+
+1) ID 
+
+2) AMOUNT 
+
+3) INVOICE_NUMBER 
+
+4) STATUS 
+
+5) CREATED_AT
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VAMOS CRIAR 1 PROPRIEDADE PARA CADA 1 DELAS,
+
+TIPO ASSIM:
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Entity;
+
+class Invoice
+{
+    private int $id;
+    private float $amount;  // using float for money is not a good idea, it's better to use decimal or string.
+    private string $invoiceNumber;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VAMOS USAR CAMELCASE PARA OS PROPERTY NAMES,
+
+    MESMO QUE O COLUMN NAME ESTEJA EM 'snake_case'...
+
+
+
+
+
+--> VEREMOS, MAIS TARDE, COMO ISSO PODE SER MAPPEADO APROPRIADAMENTE,
+    MESMO COM ESSAS DIFERENÇAS...
+
+
+
+
+
+
+
+
+
+
+
+--> depois disso, temos 'invoiceStatus'... que é um ENUM... 
+
+
+
+
+
+--> POR SER 1 ENUM, QUEREMOS MAPPEÁ-LO 
+    AO TYPE DE 'InvoiceStatus' (enum)...
+
+
+
+    FINALMENTE, 
+
+    TEMOS O 'created_at',
+
+    QUE SERÁ UM DATETIME OBJECT,
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Entity;
+
+use App\Enums\InvoiceStatus;
+
+class Invoice
+{
+    private int $id;
+    private float $amount;  // using float for money is not a good idea, it's better to use decimal or string.
+    private string $invoiceNumber;
+    private InvoiceStatus $status;
+    private \DateTime $createdAt;
+}
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+É CLARO QUE PODEMOS ADICIONAR BEHAVIORS A NOSSAS ENTITIES,
+
+POR MEIO DE:
+
+
+
+1) OU 'GETTERS' E 'SETTERS'...
+
+
+
+
+
+2) DTOs e MUTATORS...
+
+
+
+
+
+
+-> ainda não sabemos o que são DTOs e MUTATORS...
+
+
+
+
+'Data Transfer Objects'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, GERAMOS OS GETTERS E SETTERS COM A AJUDA DO NOSSO IDE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> QUEREMOS APENAS 1 GETTER PARA O ID... NENHUM SETTER..
+
+
+    PQ NÃO QUEREMOS QUE NENHUM ID SEJA SETTADO MANUALMENTE,
+
+    JUSTAMENTE 
+    PQ 
+
+
+    ELES SERÃO AUTO-GERADOS, quando inserimos rows 
+    na database...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Entity;
+
+use App\Enums\InvoiceStatus;
+
+class Invoice
+{
+    private int $id;
+    private float $amount;  // using float for money is not a good idea, it's better to use decimal or string.
+    private string $invoiceNumber;
+    private InvoiceStatus $status;
+    private \DateTime $createdAt;
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK.. 
+
+AÍ QUEREMOS TAMBÉM GERAR GETTERS E SETTERS 
+    PARA TODOS OS OUTROS..
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Entity;
+
+use App\Enums\InvoiceStatus;
+
+class Invoice
+{
+    private int $id;
+    private float $amount;  // using float for money is not a good idea, it's better to use decimal or string.
+    private string $invoiceNumber;
+    private InvoiceStatus $status;
+    private \DateTime $createdAt;
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function getAmount(): float
+    {
+        return $this->amount;
+    }
+
+    public function getInvoiceNumber(): string
+    {
+        return $this->invoiceNumber;
+    }
+
+    public function getStatus(): InvoiceStatus
+    {
+        return $this->status;
+    }
+
+    public function getCreatedAt(): \DateTime
+    {
+        return $this->createdAt;
+    }
+
+    public function setAmount(float $amount): void
+    {
+        $this->amount = $amount;
+    }
+
+    public function setInvoiceNumber(string $invoiceNumber): void
+    {
+        $this->invoiceNumber = $invoiceNumber;
+    }
+
+    public function setStatus(InvoiceStatus $status): void
+    {
+        $this->status = $status;
+    }
+
+    public function setCreatedAt(\DateTime $createdAt): void
+    {
+        $this->createdAt = $createdAt;
+    }
+}
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE VER, FICAMOS COM 1 'PLAIN PHP CLASS'....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO AINDA NÃO É UMA ENTITY...
+
+
+
+
+
+
+PROVAVELMENTE PRECISAMOS MAPPEAR ESSA ENTITY A NOSSA TABLE,
+
+EM ALGUM LUGAR DO CÓDIGO...
+
+
+
+
+
+
+
+
+
+''HOW CAN WE TURN THIS INTO AN ENTITY, AND THEN 
+    MAP IT INTO THE DATABASE COLUMNS?''
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR MENCIONOU  'METADATA',
+    POR MEIO DE ATTRIBUTES/ANNOTATIONS,
+    MAIS CEDO...
+
+
+
+
+
+--> PARA FAZER ISSO FUNCIONAR,
+    PRECISAMOS ADICIONAR SOME KIND OF METADATA 
+
+
+    A:
+
+
+    1) NOSSA ENTITY CLASS 
+
+
+    2) àS SUAS PROPERTIES EM SI...
+
+
+
+
+
+
+
+
+--> ISSO FARÁ COM QUE ESSA ENTITY SEJA CORRETAMENTE MAPPEADA À TABLE 
+    E SUAS COLUMNS...
+
+
+
+
+
+
+
+
+
+
+--> VAMOS USAR ATTRIBUTES,
+    MAS PODERÍAMOS USAR 
+
+    ANNOTATIONS OU CONFIG FILES..
+
+
+
+
+
+
+
+
+
+
+--> PARA FAZERMOS ISSO, INICIALMENTE PRECISAMOS 
+    DEFINIR A CLASS EM SI COMO UMA 'Entity',
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Entity;
+
+use App\Enums\InvoiceStatus;
+use Doctrine\ORM\Mapping\Entity;
+
+#[Entity]
+class Invoice
+{
+    private int $id;
+    private float $amount;  // using float for money is not a good idea, it's better to use decimal or string.
+    private string $invoiceNumber;
+    private InvoiceStatus $status;
+    private \DateTime $createdAt;
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function getAmount(): float
+    {
+        return $this->amount;
+    }
+
+    public function getInvoiceNumber(): string
+    {
+        return $this->invoiceNumber;
+    }
+
+    public function getStatus(): InvoiceStatus
+    {
+        return $this->status;
+    }
+
+    public function getCreatedAt(): \DateTime
+    {
+        return $this->createdAt;
+    }
+
+    public function setAmount(float $amount): void
+    {
+        $this->amount = $amount;
+    }
+
+    public function setInvoiceNumber(string $invoiceNumber): void
+    {
+        $this->invoiceNumber = $invoiceNumber;
+    }
+
+    public function setStatus(InvoiceStatus $status): void
+    {
+        $this->status = $status;
+    }
+
+    public function setCreatedAt(\DateTime $createdAt): void
+    {
+        $this->createdAt = $createdAt;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DE ESCREVERMOS ISSO,
+
+
+PRECISAMOS MAPPEAR ESSA ENTITY A UM TABLE NAME...
+
+
+
+
+
+
+
+POR ISSO VAMOS USAR O ATTRIBUTE DE `TABle',
+
+tipo assim:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Entity;
+
+use App\Enums\InvoiceStatus;
+use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\Table;
+
+#[Entity]
+#[Table]
+class Invoice
+{
+    private int $id;
+    private float $amount;  // using float for money is not a good idea, it's better to use decimal or string.
+    private string $invoiceNumber;
+    private InvoiceStatus $status;
+    private \DateTime $createdAt;
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function getAmount(): float
+    {
+        return $this->amount;
+    }
+
+    public function getInvoiceNumber(): string
+    {
+        return $this->invoiceNumber;
+    }
+
+    public function getStatus(): InvoiceStatus
+    {
+        return $this->status;
+    }
+
+    public function getCreatedAt(): \DateTime
+    {
+        return $this->createdAt;
+    }
+
+    public function setAmount(float $amount): void
+    {
+        $this->amount = $amount;
+    }
+
+    public function setInvoiceNumber(string $invoiceNumber): void
+    {
+        $this->invoiceNumber = $invoiceNumber;
+    }
+
+    public function setStatus(InvoiceStatus $status): void
+    {
+        $this->status = $status;
+    }
+
+    public function setCreatedAt(\DateTime $createdAt): void
+    {
+        $this->createdAt = $createdAt;
+    }
+}
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+MAS PRECISAMOS DEFINIR, NO CONSTRUCTOR DE TABLE,
+
+ALGUNS ARGUMENTS...
+
+
+
+
+
+
+
+--> PARA ESSE EXEMPLO, APENAS NOS IMPORTAMOS 
+
+COM O NOME... POR ISSO DEFINIMOS 'invoices'...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Entity;
+
+use App\Enums\InvoiceStatus;
+use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\Table;
+
+#[Entity]
+#[Table('invoices')]  // The table name to be used, for this entity ('Invoice' will be equal to the entries in the 'invoices' table).
+class Invoice
+{
+    private int $id;
+    private float $amount;  // using float for money is not a good idea, it's better to use decimal or string.
+    private string $invoiceNumber;
+    private InvoiceStatus $status;
+    private \DateTime $createdAt;
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function getAmount(): float
+    {
+        return $this->amount;
+    }
+
+    public function getInvoiceNumber(): string
+    {
+        return $this->invoiceNumber;
+    }
+
+    public function getStatus(): InvoiceStatus
+    {
+        return $this->status;
+    }
+
+    public function getCreatedAt(): \DateTime
+    {
+        return $this->createdAt;
+    }
+
+    public function setAmount(float $amount): void
+    {
+        $this->amount = $amount;
+    }
+
+    public function setInvoiceNumber(string $invoiceNumber): void
+    {
+        $this->invoiceNumber = $invoiceNumber;
+    }
+
+    public function setStatus(InvoiceStatus $status): void
+    {
+        $this->status = $status;
+    }
+
+    public function setCreatedAt(\DateTime $createdAt): void
+    {
+        $this->createdAt = $createdAt;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, PRECISAMOS MAPPEAR CADA 1 DAS COLUMNS...
+
+
+
+
+
+
+
+
+
+
+---> FAZEMOS ISSO EM CADA 
+    1 DAS PROPERTIES...
+
+
+
+
+
+
+
+
+O 'id' deve ser mappeado COMO PRIMARY KEY DA TABLE...
+
+
+
+
+--> por ser 1 primary key (A PRIMARY KEY em si),
+
+    USAMOS O ATTRIBUTE de 
+
+
+    '#[Id]'....
+
+
+
+
+    E POR SER MAPPEADO A 1 COLUMN, NA TABLE,
+
+
+    USAMOS 
+
+    o attribute de 
+
+    '#[Column()]'...
+
+
+
+
+--> DENTRO DOS PARENTESES, PODEMOS PASSAR ALGUNS ARGUMENTS...   
+
+        ARGUMENTS:
+
+        1) 'THE COLUMN NAME' (vc passa isso se o NOME DA SUA COLUMN É __DIFERENTE DO NOME __ DE SUA PROPERTY)...
+
+            ---> É NESSE PRIMEIRO ARGUMENT QUE VC 
+                PASSARIA O 'snake_case' NAME, SE VC QUER MUDAR 
+                O NOME DA PROPERTY, PARA QUE ELA 'ENCAIXE' no nome da table...
+
+
+                ex:
+
+
+                #[Column('invoice_number')]
+                private string $invoiceNumber;
+
+
+
+
+
+
+
+
+-- É POR ISSO QUE VAMOS ESCREVENDO ASSIM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Entity;
+
+use App\Enums\InvoiceStatus;
+use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\Id;
+use Doctrine\ORM\Mapping\Table;
+
+#[Entity]
+#[Table('invoices')]  // The table name to be used, for this entity ('Invoice' will be equal to the entries in the 'invoices' table).
+class Invoice
+{
+    #[Id]
+    #[Column('id')]
+    private int $id;
+
+    #[Column('amount')]
+    private float $amount;  // using float for money is not a good idea, it's better to use decimal or string.
+
+    #[Column('invoice_number')]
+    private string $invoiceNumber;
+
+    #[Column('status')]
+    private InvoiceStatus $status;
+
+    #[Column('created_at')]
+    private \DateTime $createdAt;
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function getAmount(): float
+    {
+        return $this->amount;
+    }
+
+    public function getInvoiceNumber(): string
+    {
+        return $this->invoiceNumber;
+    }
+
+    public function getStatus(): InvoiceStatus
+    {
+        return $this->status;
+    }
+
+    public function getCreatedAt(): \DateTime
+    {
+        return $this->createdAt;
+    }
+
+    public function setAmount(float $amount): void
+    {
+        $this->amount = $amount;
+    }
+
+    public function setInvoiceNumber(string $invoiceNumber): void
+    {
+        $this->invoiceNumber = $invoiceNumber;
+    }
+
+    public function setStatus(InvoiceStatus $status): void
+    {
+        $this->status = $status;
+    }
+
+    public function setCreatedAt(\DateTime $createdAt): void
+    {
+        $this->createdAt = $createdAt;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+CERTO... FAZ TOTAL SENTIDO...
+
+
+
+
+
+
+
+
+
+
+--> OUTRA COISA QUE PODEMOS SETTAR,
+    DENTRO DE 'Column()',
+
+
+    É O _ TYPE DAQUELA COLUMN...
+
+
+
+
+
+-> O TYPE DE 'id'
+
+É INTEGER,
+
+MAS NÃO PRECISAMOS SETTAR ISSO, PQ ESTAMOS USANDO TYPEHINTS...
+
+
+
+
+--> SE VC ESTÁ USANDO TYPEHINTING,
+    VC NÃO PRECISA ESPECIFICAR 
+    O TIPO, DENTRO DE 'Column()'...
+
+
+
+
+
+-> VC PODE USAR O TYPEHINTING DE 'Column()'
+TAMBÉM SE VC QUER SER BEM ESPECÍFICO (para casos em que 
+o type de sua PROPERTY e o type da COLUMN são incompatíveis)...
+
+
+
+
+
+
+
+
+
+
+
+
+--> OUTRA COISA QUE PRECISAMOS FAZER, AQUI, É DEFINIR 
+    ESSA COLUMN DE 'Id' 
+
+    COMO SENDO AUTO-GENERATED/AUTO-INCREMENTED...
+
+
+
+
+
+
+
+
+--> PARA ISSO, PODEMOS USAR O ATTRIBUTE 
+
+
+DE 'GeneratedValue()'...
+
+
+
+
+
+
+
+E PODEMOS DEIXAR A PROPERTY DE 'strategy:' como sendo 'AUTO', que 
+basta, para o case de 'id':
+
+
+
+
+
+
+
+
+    #[Id]
+    #[Column('id'), GeneratedValue(strategy: 'AUTO')]  // GeneratedValue is an attribute that makes it so that the value of that column is automatically generated by the database. The default is 'AUTO', which is good enough for 'ID' fields...
+    private int $id;
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+PARA EXEMPLIFICAR ISSO, 
+
+
+TEMOS A PROPERTY DE '$amount',
+
+
+CUJO TYPE É 'float' no nosso código,
+
+
+mas que na nossa table, é de tipo 'DECIMAL()'... TAMBÉM 
+PRECISAMOS DEFINIR A PRECISION E A SCALE...
+
+
+
+
+
+--> PARA ISSO,
+ 
+
+ DEVEMOS ESCREVER ASSIM:
+
+
+
+
+
+ #[Column(type: 'decimal', precision: 10, scale: 2 )]
+ private float $amount;
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+PARA O invoiceNumber,
+
+
+ESCREVEMOS ASSIM:
+
+
+
+    #[Column('invoice_number')]
+    private string $invoiceNumber;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, TEMOS O DATETIME:
+
+
+
+
+
+
+
+
+    #[Column('created_at')]
+    private \DateTime $createdAt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OUTRO DETALHE:
+
+
+
+
+
+
+
+''IF YOU ARE SPECIFYING THE TYPES,
+    YOU CAN USE CONSTANTS,
+
+    INSTEAD OF HARDCODING THE STRINGS''..
+
+
+
+TIPO ASSIM:
+
+
+
+
+ #[Column(type: Types::DECIMAL, precision: 10, scale: 2 )]
+
+
+
+
+
+
+
+
+
+
+
+
+
+ OK... AGORA VAMOS PARA OUTRO TÓPICO:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ ''ONE OF THE COOL FEATURES OF ORMs is 
+    THE ABILITY TO SET __ ASSOCIATIONS/RELATIONSHIPS
+    BETWEEN YOUR ENTITIES''...
+
+
+
+
+
+
+
+
+
+
+--> AÍ ENTRAM EM JOGO OS DIFERENTES TIPOS DE RELATIONSHIPS
+    QUE VC PODE SETTAR:
+
+
+
+
+1) ONE-TO-ONE 
+
+
+2) ONE-TO-MANY 
+
+
+3) MANY-TO-ONE 
+
+
+
+4) MANY-TO-MANY ...
+
+
+
+
+
+
+
+
+
+ONE-TO-MANY 
+
+E 
+
+MANY-TO-ONE 
+
+
+
+SÃO A MESMA COISA... SÓ 1 É O INVERSO DO OUTRO...
+
+
+
+
+
+
+
+
+
+
+
+
+--> TIPICAMENTE, INVOICES
+
+POSSUEM
+
+
+ITEMS, OU ROWS...
+
+
+
+
+
+
+
+
+--> CADA ITEM 
+
+
+
+POSSUI:
+
+
+
+
+
+
+DESCRIPTION 
+
+UNIT_PRICE 
+
+
+QUANTITY 
+
+AMOUNT 
+
+
+
+
+
+
+
+QUER DIZER QUE CADA INVOICE 
+
+
+POSSUI MÚLTIPLOS INVOICE_ITEMS...
+
+(ONE-TO-MANY)...
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, O PROFESSOR CRIOU UMA TABLE CHAMADA DE 
+'invoice_items',
+
+
+
+COM ESTA ESTRUTURA:
+
+
+
+
+
+
+
+
+ID 
+INVOICE_ID 
+DESCRIPTION 
+QUANTITY 
+UNIT_PRICE...
+
+
+
+
+
+
+O QUE FORMA A RELATION ENTRE ESSA TABLE E INVOICE É 
+
+'INVOICE_ID'... ESSA É A FOREIGN KEY, QUE REFERENCIA A COLUMN DE 'ID' NA TABLE DE INVOICES...
+
+
+
+
+
+
+--> DEVEMOS 
+
+CRIAR 1 ENTITY PARA OS INVOICE ITEMS...
+
+
+
+
+
+ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Entity;
+
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\GeneratedValue;
+use Doctrine\ORM\Mapping\Id;
+use Doctrine\ORM\Mapping\Table;
+
+#[Entity]
+#[Table('invoice_items')]  // The table name to be used, for this entity ('Invoice' will be equal to the entries in the 'invoices' table).
+class InvoiceItem
+{
+    #[Id]
+    #[Column, GeneratedValue]
+    private int $id;
+
+    #[Column('invoice_id')]
+    private int $invoiceId;
+
+    #[Column]
+    private string $description;
+
+    #[Column]
+    private int $quantity;
+
+    #[Column('unit_price', type: Types::DECIMAL, precision: 10, scale: 2)]
+    private float $unitPrice;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+ISSO FAZ TOTAL SENTIDO...
+
+
+
+
+
+MAS AGORA PRECISAMOS DEFINIR A FOREIGN KEY...
+
+
+
+
+
+
+
+
+
+
+--> ESSA ENTITY AINDA NÃO ESTÁ RELACIONADA 
+
+
+COM A INVOICE....
+
+
+
+
+
+
+
+
+--> QUE TIPO DE RELATION faz mais sentido,
+    entre as tables?
+
+
+
+
+
+
+
+
+-> É ONE-TO-MANY...
+
+
+
+
+
+
+---> QUER DIZER QUE CADA 
+    INVOICE VAI TER 
+
+    MÚLTIPLOS INVOICE ITEMS...
+
+
+
+
+
+
+
+
+
+
+
+-> VAMOS COMEÇAR A CREATION DA RELATION LÁ NO INVOICE,
+ANTES...
+
+
+
+
+
+
+
+
+-> PARA ISSO, CRIAMOS UMA PRIVATE PROPERTY,
+
+DE NOME 
+
+
+'$items'...
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+private $items;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+_> EM CIMA DISSO, ESCREVEMOS O ATTRIBUTE 
+
+DE 
+
+
+'#[OneToMany()]'
+
+
+
+
+
+
+
+
+-> DENTRO DOS '()',
+
+    DEVEMOS ESCREVER 
+
+    'targetEntity',
+
+E AÍ ESPECIFICAR O ITEM A QUE QUEREMOS TARGETAR/TER A RELATION...
+
+
+
+
+
+
+
+
+
+
+
+--> colocamos 'InvoiceItem::class'...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+#[Entity]
+#[Table('invoices')]  // The table name to be used, for this entity ('Invoice' will be equal to the entries in the 'invoices' table).
+class Invoice
+{
+    #[Id]
+    #[Column('id'), GeneratedValue(strategy: 'AUTO')]  // GeneratedValue is an attribute that makes it so that the value of that column is automatically generated by the database. The default is 'AUTO', which is good enough for 'ID' fields...
+    private int $id;
+
+    #[Column('amount', type: Types::DECIMAL, precision: 10, scale: 2)]
+    private float $amount;  // using float for money is not a good idea, it's better to use decimal or string, in your database and your code.
+
+    #[Column('invoice_number')]
+    private string $invoiceNumber;
+
+    #[Column('status')]
+    private InvoiceStatus $status;
+
+    #[Column('created_at')]
+    private \DateTime $createdAt;
+
+    #[OneToMany(targetEntity: InvoiceItem::class, mappedBy: 'invoice')]
+    private $items;
+
+
+
+
+
+
+
+-> OK....
+
+
+
+
+
+
+
+--> COMO NÓS ESTAMOS LIDANDO COM MÚLTIPLOS ITEMS, AQUI,
+    1 COLLECTION DE ITEMS,
+
+    PODEMOS 
+
+    TIPAR ISSO 
+
+    COMO 'Collection', UMA INTERFACE 
+
+    QUE É DISPONIBILIZADA PELA DOCTRINE ORM...
+
+
+
+
+
+É POR ISSO QUE ESCREVEMOS ASSIM:
+
+
+
+#[Entity]
+#[Table('invoices')]  // The table name to be used, for this entity ('Invoice' will be equal to the entries in the 'invoices' table).
+class Invoice
+{
+    #[Id]
+    #[Column('id'), GeneratedValue(strategy: 'AUTO')]  // GeneratedValue is an attribute that makes it so that the value of that column is automatically generated by the database. The default is 'AUTO', which is good enough for 'ID' fields...
+    private int $id;
+
+    #[Column('amount', type: Types::DECIMAL, precision: 10, scale: 2)]
+    private float $amount;  // using float for money is not a good idea, it's better to use decimal or string, in your database and your code.
+
+    #[Column('invoice_number')]
+    private string $invoiceNumber;
+
+    #[Column('status')]
+    private InvoiceStatus $status;
+
+    #[Column('created_at')]
+    private \DateTime $createdAt;
+
+    #[OneToMany(targetEntity: InvoiceItem::class, mappedBy: 'invoice')]
+    private Collection $items;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS É CLARO QUE TAMBÉM PRECISAMOS FAZER INITIIALIZE 
+
+DE ESSA COLLECTION, NO NOSSO CONSTRUCTOR...
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE O PROFESSOR ESCREVE ASSIM:
+
+
+
+
+
+
+
+
+public function __construct() 
+{
+    $this->items = new ArrayCollection();
+}
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+    #[OneToMany(targetEntity: InvoiceItem::class, mappedBy: 'invoice')]
+    private Collection $items;
+
+    public function __construct()
+    {
+        $this->items = new ArrayCollection();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+EXPLICAÇÃO:
+
+
+
+
+
+''Collection'' IS THE INTERFACE...
+
+
+AND ''ArrayCollection'' IS THE SIMPLE __ COLLECTION IMPLEMENTATION,
+THAT WE CAN USE... (também vem do doctrine orm)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA QUE TEMOS A ASSOCIATION SETTADA
+NO LADO 
+
+DO 'One',
+
+
+DEVEMS SETAR NO LADO DO 'MANY',
+
+
+que é 'InvoiceItem'...
+
+
+
+
+
+
+
+
+-> PARA ISSO, VAMOS ATÉ 'invoiceItem' 
+
+E ESCREVEMOS 
+
+
+1 PROPERTY DE 
+
+
+'private $invoice'...
+
+
+
+
+
+
+
+-> NO CASO, 
+    COLOCAMOS O TYPE COMO SENDO DE 'Invoice',
+    PARA ESTABELECER A ASSOCIATION ENTRE OS INVOICEITEMS 
+    E AS INVOICES...
+
+
+
+
+EX:
+
+
+
+
+    // This, with the corresponding code in the Invoice entity, establishes a relationship between the 'Invoice' and 'InvoiceItem' entities.
+    private Invoice $invoice;
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+ESSA ASSOCIATION, COMO MENCIONADO ANTERIORMENTE,
+
+PRECISA SER MANY-TO-ONE,
+
+
+
+POR ISSO PRECISAMOS DO ATTRIBUTE 
+
+
+
+DE 
+
+'ManyToOne',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // This, with the corresponding code in the Invoice entity, establishes a relationship between the 'Invoice' and 'InvoiceItem' entities.
+    #[ManyToOne(targetEntity: Invoice::class, inversedBy: 'items')]
+    private Invoice $invoice;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+COM ISSO, ACABAMOS DE CRIAR AQUILO QUE CHAMA-SE 
+
+DE 
+
+
+
+
+''BIDIRECTIONAL RELATIONSHIP''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO PQ RELATIONSHIPS PODEM SER 'UNI' OU 'BI-DIRECTIONAL'...
+
+
+
+
+
+
+
+
+BI-DIRECTIONAL RELATIONSHIPS --> QUER DIZER QUE 
+
+                                OS 2 LADOS SÃO 
+
+                                'OWNING-INVERSE'...
+
+
+
+
+
+
+UNI-DIRECTIONAL --> APENAS TEM O LADO 'OWNING'...
+
+
+
+
+
+
+
+
+
+
+-> O 'OWNING SIDE' É O LADO 
+QUE TEM A FOREIGN_KEY...
+
+
+
+
+
+
+
+
+
+-> NO NOSSO CASO, 
+    A FOREIGN_KEY É O 'invoice_id'...
+
+
+
+
+--> QUER DIZER QUE O 'invoice'
+É O OWNING SIDE...
+
+
+
+
+
+
+
+
+
+-->  EM BI-DIRECTIONAL RELATIONSHIPS,
+
+    O LADO 'OWNING' É SEMPRE 'MANY-TO-ONE',
+
+
+    E O 
+
+
+
+    LADO 'INVERSE' 
+
+    É SEMPRE 'ONE-TO-MANY'...
+
+
+
+
+
+
+
+
+-> O OWNING SIDE SEMPRE DEVE TER 
+
+O ''INVERSE ATTRIBUTE'',
+
+
+QUE SE REFERE AO MAPPING DO 'inversedBy'..
+
+
+
+
+(???? não entendi coisa alguma )
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> RESUMINDO,
+
+DEVEMOS COLOCAR O ARGUMENT DE 'inversedBy: 'items'',
+
+
+LÁ 
+
+
+NO 'InvoiceItem'...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+    // This, with the corresponding code in the Invoice entity, establishes a relationship between the 'Invoice' and 'InvoiceItem' entities.
+    #[ManyToOne(targetEntity: Invoice::class, inversedBy: 'items')]
+    private Invoice $invoice;
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+
+JÁ NO OUTRO LADO,
+
+
+
+no 'Invoice.php',
+
+
+PRECISAMOS 
+
+DEFINIR O 'mappedBy',
+
+E AÍ 
+
+
+
+
+COLOCAR O VALUE DO 'NAME OF THE MAPPED FIELD ON THE OWNING SIDE' (o nome da property/mapped field, nesse caso, será '$invoice')...
+
+
+
+
+
+
+
+
+
+
+
+
+SERÁ TIPO ASSIM:
+
+
+
+
+    #[OneToMany(targetEntity: InvoiceItem::class, mappedBy: 'invoice')]
+    private Collection $items;
+
+    public function __construct()
+    {
+        $this->items = new ArrayCollection();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+AGORA VAMOS DEFINIR UNS GETTERS E SETTERS PARA O INVOICEITEM, TAMBÉM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Entity;
+
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\GeneratedValue;
+use Doctrine\ORM\Mapping\Id;
+use Doctrine\ORM\Mapping\ManyToOne;
+use Doctrine\ORM\Mapping\Table;
+
+#[Entity]
+#[Table('invoice_items')]  // The table name to be used, for this entity ('Invoice' will be equal to the entries in the 'invoices' table).
+class InvoiceItem
+{
+    #[Id]
+    #[Column, GeneratedValue()]
+    private int $id;
+
+    #[Column('invoice_id')]
+    private int $invoiceId;
+
+    #[Column]
+    private string $description;
+
+    #[Column]
+    private int $quantity;
+
+    #[Column('unit_price', type: Types::DECIMAL, precision: 10, scale: 2)]
+    private float $unitPrice;
+
+    // This, with the corresponding code in the Invoice entity, establishes a relationship between the 'Invoice' and 'InvoiceItem' entities.
+    #[ManyToOne(targetEntity: Invoice::class, inversedBy: 'items')]
+    private Invoice $invoice;
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function getInvoiceId(): int
+    {
+        return $this->invoiceId;
+    }
+
+    public function getDescription(): string
+    {
+        return $this->description;
+    }
+
+    public function getQuantity(): int
+    {
+        return $this->quantity;
+    }
+
+    public function getUnitPrice(): float
+    {
+        return $this->unitPrice;
+    }
+
+    public function getInvoice(): Invoice
+    {
+        return $this->invoice;
+    }
+
+    public function setId(int $id): void
+    {
+        $this->id = $id;
+    }
+
+    public function setInvoiceId(int $invoiceId): void
+    {
+        $this->invoiceId = $invoiceId;
+    }
+
+    public function setDescription(string $description): void
+    {
+        $this->description = $description;
+    }
+
+    public function setQuantity(int $quantity): void
+    {
+        $this->quantity = $quantity;
+    }
+
+    public function setUnitPrice(float $unitPrice): void
+    {
+        $this->unitPrice = $unitPrice;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK.. AGORA ABRIMOS O ARQUIVO 'doctrine_orm_example.php',
+
+
+PARA CRIARMOS AS ENTITIES E TESTARMOS TUDO ISSO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ''IM GOING TO CREATE AN ARRAY OF 
+    ITEMS, THAT WE WILL LOOP OVER TO CREATE 
+    THE INVOICE ITEMS''..
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, O PROFESSOR CRIA 1 INVOICE,
+
+
+E AÍ 
+
+
+
+CHAINA UMAS METHOD CALLS,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+use App\Enums\InvoiceStatus;
+use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Connection;
+use Dotenv\Dotenv;
+
+require_once './vendor/autoload.php';
+
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+// var_dump($_ENV);
+
+$items = [['Item 1', 1, 15], ['Item 2', 2, 7.5], ['Item 3', 4, 3.75]];
+
+$invoice = (new \App\Entity\Invoice())
+    ->setAmount(100)
+    ->setInvoiceNumber('1')
+    ->setStatus(InvoiceStatus::Pending)
+    ->setCreatedAt(new \DateTime());
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> depois disso, ele cria todos os invoiceItems, com 1 foreach:
+
+
+
+
+
+COMEÇAMOS TIPO ASSIM:
+
+
+
+
+
+
+
+
+foreach ($items as [$description, $quantity, $unitPrice]) {
+    $invoiceItem = (new \App\Entity\InvoiceItem())
+        ->setDescription($item[0])
+        ->setQuantity($item[1])
+        ->setUnitPrice($item[2])
+
+
+}
+
+
+
+
+
+
+
+
+    CERTO...  MAS AGORA 
+   
+    PRECISAMOS ASSOCIAR 
+
+
+    OS INVOICES COM OS INVOICE ITEMS, DE ALGUMA FORMA... 
+
+
+
+
+
+
+
+-> PARA ISSO, USAREMOS UM METHOD DE 'addItem',
+lá no 'invoice'...
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+    public function addItem(InvoiceItem $item): self
+    {
+        $this->items->add($item);
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+isso vai ADICIONAR ESSE ITEM À COLLECTION DE 'ITEMS',
+
+e aí 
+vai retornar 'this'... ( o próprio Invoice)...
+
+
+
+
+
+
+
+
+
+
+AÍ O PROFESSOR NOS EXPLICA:
+
+
+
+
+''SINCE WE ARE DOING BIDIRECTIONAL ASSOCIATION,
+    WE NEED TO ASSOCIATE THE ITEM WITH THE INVOICE, AS WELL''...
+
+
+
+
+
+
+
+
+
+
+
+
+-> ''BECAUSE, RIGHT NOW, WE ARE ASSOCIATING 
+THE INVOICE WITH THE INVOICE ITEM, BUT WE DON'T HAVE 
+THE INVOICE ASSOCIATION TO EACH ITEM''...
+
+
+
+
+(quer dizer que cada item não tem 1 vinculação, de si mesmo, 
+ao invoice...)
+
+
+
+
+
+
+
+
+
+
+-> PARA FAZERMOS ISSO,
+
+PODEMOS 
+
+rodar 
+
+
+
+'$item->setInvoice($this)'...
+
+
+
+
+DENTRO DO 'addItem',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+    public function addItem(InvoiceItem $item): self
+    {
+        $item->setInvoice($this);  // this is the call that establishes the relationship between the 'Invoice' and 'InvoiceItem' entities.
+
+        $this->items->add($item);
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É meio mind-fucky, mas funciona...
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA CRIAMOS OS ENTITY OBJECTS...
+
+
+
+
+
+
+-> JÁ OS ASSOCIAMOS 1 COM O OUTRO... MAS COMO 
+
+PODEMOS FAZER COM QUE 
+
+
+ELES ACTUALLY 'PERSIST' 
+
+E FIQUEM SINCRONIZADOS COM A DATABASE?
+
+
+
+
+
+
+
+
+
+
+
+-> O PERSISTENCE LAYER ESTÁ ATUALMENTE 
+SEPARADO 
+DA DATABASE...
+
+
+
+
+
+
+
+
+
+_> SE RODAMOS ESSE CÓDIGO, ELE NÃO VAI, AINDA, ACTUALLY 
+CRIAR OBJECTS NA DATABASE...
+
+
+
+
+
+
+
+
+
+
+'''TO ACTUALLY PERSIST THEM AND SAVE THEM TO THE DB,
+    WE NEED TO USE SOMETHING CALLED AN 'ENTITY MANAGER''...
+
+
+
+
+
+
+
+
+
+--> PODEMOS PENSAR NO ENTITY MANAGER 
+
+
+
+''AS A MAIN ACCESS POINT TO ORM, OR LIKE AN INTERFACE OR API...''
+
+
+
+
+
+----->_ O ENTITY MANAGER 
+    NOS DEIXA 
+
+    'MANAGE ENTITIES' 
+
+
+    EM DIFERENTES STATES...
+
+
+
+
+
+
+
+
+-> ENTITIES POSSUEM, SIM, __DIFERENTES _sTATES_...
+
+
+
+
+
+
+
+
+
+
+
+ENTITIES PODEM ESTAR EM:
+
+
+
+1) NEW STATE 
+
+
+
+2) MANAGED STATE 
+
+
+
+3) DETACHED STATE 
+
+
+
+
+
+4) REMOVED STATE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NEW STATE -> SÃO AS ENTITIES RECÉM CRIADAS...
+
+
+
+
+
+-> MANAGED STATE -> É O SEGUNDO NÍVEL... O QUE REALMENTE IMPORTA...
+
+
+
+
+
+''TO MAKE THEM ADVANCE TO THE __MANAGED _ STATE, WE NEED TO PERSIST 
+    THOSE ENTITIES... AND, FOR THAT, WE NEED THE ENTITY MANAGER''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, PARA CRIAR O ENTITY MANAGER,
+
+BASTA CHAMAR ASSIM:
+
+
+
+
+
+
+
+
+
+\Doctrine\ORM\EntityManager::create();
+
+
+
+
+
+
+
+
+BASICAMENTE, CHAMAMOS ESSE METHOD ESTÁTICO, NA CLASS DE 'EntityManager'...
+
+
+
+
+\Doctrine\ORM\EntityManager::create();
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE ESSE METHOD EXIGE 2 PARAMETERS:
+
+
+
+
+1) A CONNECTION 
+
+
+
+2) A CONFIGURATION...
+
+
+
+
+
+
+
+
+
+
+
+
+CONNECTION --> ''IT'S THE DATABASE CONFIGURATION 
+                PARAMETERS, WHICH WE DID IN THE LAST 
+                LESSON, WHEN WORKING WITH DBAL...''
+
+
+
+
+
+    -> É POR ISSO QUE COPIAMOS E COLAMOS 
+
+    ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+
+$params = [
+    'dbname' => $_ENV['DB_DATABASE'],
+    'user' => $_ENV['DB_USER'],
+    'password' => $_ENV['DB_PASS'],
+    'host' => $_ENV['DB_HOST'],
+    'driver' => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
+    'port' => $_ENV['DB_PORT'] ?? 3307,
+];
+
+\Doctrine\ORM\EntityManager::create(
+    $params,
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PARA O SEGUNDO PARAMETER,
+
+
+PODEMOS CRIAR 1 CONFIG OBJECT 
+
+POR MEIO 
+
+
+
+DO CALL DO  METHOD DE 
+
+'createAttributeMetadataConfiguration()',
+
+
+NA CLASS DE 'Setup',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+\Doctrine\ORM\EntityManager::create(
+    $params,
+    \Doctrine\ORM\Tools\Setup::createAttributeMetadataConfiguration()
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+vc também pode usar os methods 
+
+de 'createAnnotationMetadataConfiguration()'
+
+
+e outros,
+
+
+se quer configurar de outra forma 
+
+
+suas relations e objects do database como classes...  
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VAMOS USAR ATTRIBUTES,
+
+definimos 
+
+como createAttributeMetadataConfiguration
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+MAS PRECISAMOS DAR, A ESSE METHOD,
+
+
+O PATH EM QUE 
+
+
+ESSAS ENTITIES ESTÃO ARMAZENADAS...
+
+
+
+
+
+É POR ISSO QUE ESCREVEMOS 
+
+ASSIM:
+
+
+
+
+
+
+
+
+\Doctrine\ORM\EntityManager::create(
+    $params,
+    \Doctrine\ORM\Tools\Setup::createAttributeMetadataConfiguration([__DIR__ . '/src/Entity'], true)
+);
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+-> AÍ O PROFESSOR DEFINE ISSO COMO VALUE DA VARIABLE '$entity'...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+$entityManager = \Doctrine\ORM\EntityManager::create(
+    $params,
+    \Doctrine\ORM\Tools\Setup::createAttributeMetadataConfiguration([__DIR__ . '/src/Entity'], true)
+);
+
+$items = [['Item 1', 1, 15], ['Item 2', 2, 7.5], ['Item 3', 4, 3.75]];
+
+$invoice = (new \App\Entity\Invoice())
+    ->setAmount(100)
+    ->setInvoiceNumber('1')
+    ->setStatus(InvoiceStatus::Pending)
+    ->setCreatedAt(new \DateTime());
+
+foreach ($items as [$description, $quantity, $unitPrice]) {
+    $invoiceItem = (new \App\Entity\InvoiceItem())
+        ->setDescription($item[0])
+        ->setQuantity($item[1])
+        ->setUnitPrice($item[2]);
+
+    $invoice->addItem($invoiceItem);
+
+    // $invoice->addItem($invoiceItem);
+}
+
+$params = [
+    'dbname' => $_ENV['DB_DATABASE'],
+    'user' => $_ENV['DB_USER'],
+    'password' => $_ENV['DB_PASS'],
+    'host' => $_ENV['DB_HOST'],
+    'driver' => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
+    'port' => $_ENV['DB_PORT'] ?? 3307,
+];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO FEITO, FINALMENTE PODEMOS FAZER PERSIST DE NOSSAS ENTITIES,
+
+POR MEIO DO CALL DO METHOD DE '->persist()'
+
+
+
+nesse manager, 
+
+
+passando como param o value de '$invoice'...
+
+
+
+EX:
+
+
+
+
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+// var_dump($_ENV);
+
+$params = [
+    'dbname' => $_ENV['DB_DATABASE'],
+    'user' => $_ENV['DB_USER'],
+    'password' => $_ENV['DB_PASS'],
+    'host' => $_ENV['DB_HOST'],
+    'driver' => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
+    'port' => $_ENV['DB_PORT'] ?? 3307,
+];
+
+$entityManager = \Doctrine\ORM\EntityManager::create(
+    $params,
+    \Doctrine\ORM\Tools\Setup::createAttributeMetadataConfiguration([__DIR__ . '/src/Entity'], true)
+);
+
+$items = [['Item 1', 1, 15], ['Item 2', 2, 7.5], ['Item 3', 4, 3.75]];
+
+$invoice = (new \App\Entity\Invoice())
+    ->setAmount(100)
+    ->setInvoiceNumber('1')
+    ->setStatus(InvoiceStatus::Pending)
+    ->setCreatedAt(new \DateTime());
+
+foreach ($items as [$description, $quantity, $unitPrice]) {
+    $invoiceItem = (new \App\Entity\InvoiceItem())
+        ->setDescription($item[0])
+        ->setQuantity($item[1])
+        ->setUnitPrice($item[2]);
+
+    $invoice->addItem($invoiceItem);
+
+    // $invoice->addItem($invoiceItem);
+}
+
+$entityManager->persist($invoice);
+
+
+
+
+
+
+
+
+
+ok... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+OBS:: 
+
+
+
+''PERSIST DOES NOT ACTUALLY CREATE A RECORD IN THE DATABASE,
+    OR RUN ANY QUERIES...
+
+
+    IT ONLY SIMPLY GIVES THE CONTROL OF THE ENTITIES' PERSISTENCE 
+    TO THE ENTITY MANAGER'....
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR TESTA ISSO, COM 
+
+'php app/doctrine_orm_example.php'...
+
+
+
+
+
+
+
+
+
+
+
+
+-> QUANDO ELE FAZ ISSO,
+
+
+
+AS DUAS TABLES APARECEM NO DB, MAS FICAM VAZIAS...
+
+
+
+
+
+
+
+
+-> PARA ACTUALLY SYNCAR ISSO COM A DATABASE,
+
+
+PRECISAMOS CHAMAR 1 METHOD, CHAMADO DE 'FLUSH'...
