@@ -1,5 +1,6 @@
 <?php
 
+use App\Entity\Invoice;
 use App\Enums\InvoiceStatus;
 use Dotenv\Dotenv;
 
@@ -40,7 +41,26 @@ foreach ($items as [$description, $quantity, $unitPrice]) {
 
     $invoice->addItem($invoiceItem);
 
+    $invoice->getItems()->get(0)->setDescription('Foo bar');
+
+    $invoice->flush();
+    // $entityManager->persist($invoiceItem); // This is not needed, because we have 'cascade' set to 'persist' in the 'OneToMany' annotation, in the '$items' property, in the 'Invoice' entity.
+
     // $invoice->addItem($invoiceItem);
 }
 
+// This doesn't actually create data in the database, it just 'queues' the creation of the data, in the database.
 $entityManager->persist($invoice);
+
+$entityManager->flush();  // This actually creates the data in the database
+
+// This will 'queue' the deletion of the object/record, but won't actually delete it yet (we need the 'flush()' method)...
+$entityManager->remove($invoice);
+
+$entityManager->flush();  // This actually deletes the data in the database
+
+// Get size of the unit of work (the number of objects queued for insertion/deletion):
+echo $entityManager->getUnitOfWork()->size();
+
+// Try to find the invoice with id of 15... This invoice/object will be ALREADY IN THE 'managed' state (Which means we don't need to call 'persist()' on it).
+$entityManager->find(Invoice::class, 15);

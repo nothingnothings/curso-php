@@ -3754,3 +3754,1018 @@ AS DUAS TABLES APARECEM NO DB, MAS FICAM VAZIAS...
 
 
 PRECISAMOS CHAMAR 1 METHOD, CHAMADO DE 'FLUSH'...
+
+
+
+
+
+
+
+-->  PARA ISSO, 
+    precisamos do method de 'flush()'....
+
+
+
+
+
+
+
+--> AO RODARMOS 'flush',
+
+percebemos que ITEMS FORAM CRIADOS, LÁ NAS NOSSAS TABLES...
+
+ 
+
+
+
+
+
+
+
+
+
+
+ OK, MAS COMO TUDO ISSO FUNCIONA, EXATAMENTE?
+
+
+
+
+
+
+
+
+
+--> ''HOW DOES DOCTRINE 
+         __ _KEEP TRACK_ OF WHICH 
+         ENTITIES NEED TO BE SYNCED WITH THE DATABASE,
+         AND WHICH ENTITIES DO NOT?''
+
+        
+
+    
+
+-> PARA ISSO,
+    INTERNAMENTE,
+
+
+    O DOCTRINE UTILIZA 
+    ALGO 
+
+    CHAMADO DE 
+
+    'UNIT OF WORK'...
+
+
+
+
+
+
+
+
+'''UNIT OF WORK'' --> ISSO É BASICAMENTE 
+                    RESPONSÁVEL 
+
+                    POR 'KEEPING TRACK OF THE CHANGES'...
+
+
+
+
+
+
+'''UNIT OF WORK'' ---> ''IT HANDLES 
+                        THE ENTITY STATES,
+                        HANDLES THE ORDER IN WHICH THINGS 
+                        MUST BE EXECUTED, ETC...''
+
+
+
+
+
+
+
+--> '''WHEN WE CALL 'persist()', 
+        IT __ BASICALLY ''QUEUES'' THE OPERATION 
+        TO BE EXECUTED, WHENEVER 
+        THE 'flush()' method gets called...''
+
+
+
+
+
+
+--> O MESMO SE APLICA 
+    PARA O
+    DELETE DE ENTITIES... --> PODEMOS CHAMAR O METHOD 
+
+                            DE 'REMOVE'
+
+
+                            NO 'entityManager'....
+
+
+
+                            QUANDO FAZEMOS ISSO,
+
+                            NÓS ACABAMOS DEIXANDO 
+
+                            A ENTITY NO STATE DE 'REMOVED'...
+
+
+
+
+
+
+--> PARA DEMONSTRAR COMO ISSO FUNCIONA,
+
+    PODEMOS ESCREVER 
+
+
+    ASSIM:
+
+
+
+
+
+
+
+
+
+// This doesn't actually create data in the database, it just 'queues' the creation of the data, in the database.
+$entityManager->persist($invoice);
+
+$entityManager->flush();  // This actually creates the data in the database
+
+
+// This will 'queue' the deletion of the object/record, but won't actually delete it yet (we need the 'flush()' method)...
+$entityManager->remove($invoice);
+
+
+
+
+
+
+
+
+
+
+
+
+NOVAMENTE, PRECISAMOS DO METHOD DE 'flush()'
+
+para ACTUALLY DELETAR ESSE ITEM...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+// This doesn't actually create data in the database, it just 'queues' the creation of the data, in the database.
+$entityManager->persist($invoice);
+
+$entityManager->flush();  // This actually creates the data in the database
+
+// This will 'queue' the deletion of the object/record, but won't actually delete it yet (we need the 'flush()' method)...
+$entityManager->remove($invoice);
+
+$entityManager->flush();  // This actually deletes the data in the database
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO...
+
+
+
+
+
+
+COM ISSO, SE EXECUTARMOS TODOS 
+
+ESSES METHODS EM SEQUêNCIA,
+VEREMOS QUE NENHUM ITEM SERÁ ADICIONADO NA DATABASE 
+
+(pq eles foram ADDED e REMOVED)...
+
+
+
+
+
+
+
+
+-> ''THIS MEANS 
+    THAT WE CAN __ CREATE_ ENTITIES,
+    DELETE THEM, DO SOME UPDATES AND, THEN, 
+
+    AT THE END OF ALL OF THAT, RUN THE 'flush()' 
+    METHOD ONLY ONCE,
+    TO THEN RUN ALL OF THE NECESSARY QUERIES 
+    EFFICIENTLY''..
+
+
+
+
+
+
+---> PORTANTO, É QUE NEM O 'save()' DO MONGODB...
+
+
+
+
+
+
+
+
+
+
+-> this means that 'UNIT OF WORK' 
+    IS __RESPONSIBLE FOR __FIGURING OUT _ WHAT 
+    TO DO __ WHEN THE 'flush()' method is called (WHAT QUERIES TO RUN, IN WHAT ORDER, ETC)...
+
+
+
+
+
+
+
+
+
+
+--> É CLARO QUE, QUANTO MAIS ENTITIES VC MANAGEIA,
+    A UNIT OF WORK FICA CADA VEZ MAIOR... QUANTO MAIOR 
+    ELA FICA, 
+
+    MAIS PESADA FICA SUA EXECUÇÃO... 
+
+
+
+
+
+
+
+
+-> PARA DESCOBRIRMOS QUAL É O CURRENT SIZE DE 1 UNIT OF WORK,
+
+PODEMOS USAR 
+
+O METHOD DE 
+
+
+"$entityManager->getUnitOfWork()->size();'
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+// This doesn't actually create data in the database, it just 'queues' the creation of the data, in the database.
+$entityManager->persist($invoice);
+
+$entityManager->flush();  // This actually creates the data in the database
+
+// This will 'queue' the deletion of the object/record, but won't actually delete it yet (we need the 'flush()' method)...
+$entityManager->remove($invoice);
+
+$entityManager->flush();  // This actually deletes the data in the database
+
+// Get size of the unit of work (the number of objects queued for insertion/deletion):
+echo $entityManager->getUnitOfWork()->size();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AO RODARMOS ISSO, FICAMOS COM '4':
+
+
+
+
+
+
+
+
+
+
+
+
+
+''this is 4 BECAUSE WE ARE MANAGING:
+
+1 INVOICE ENTITY..
+
+3 INVOICEITEM ENTITIES...''
+
+
+
+
+
+
+
+
+
+
+
+OK..
+
+
+
+
+
+
+
+
+
+
+-> MAS PERCEBA QUE ESTAMOS CHAMANDO '->persist()'
+
+PARA CADA 1 DOS ITEMS NO NOSSO LOOP..
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+foreach ($items as [$description, $quantity, $unitPrice]) {
+    $invoiceItem = (new \App\Entity\InvoiceItem())
+        ->setDescription($item[0])
+        ->setQuantity($item[1])
+        ->setUnitPrice($item[2]);
+
+    $invoice->addItem($invoiceItem);
+    $entityManager->persist($invoiceItem);
+
+}
+
+
+
+
+
+
+
+
+
+
+PARA DEIXAR NOSSO CÓDIGO MELHOR,
+
+PODEMOS ADICIONAR
+
+
+UM ATTRIBUTE DE 'CASCADE'
+
+
+
+
+__ NA ENTITY DE 'Invoice',
+
+
+
+NA PROPRIEDADE DE '$items',
+
+PARA ENTÃO 
+
+NOS LIVRARMOS DESSES CALLS REPETIDOS DE '->persist()'...
+
+
+
+
+
+
+
+
+PARA ISSO, LÁ NAQUELA ENTITY, 
+
+TEMOS 
+
+
+
+ESTA PROPERTY:
+
+
+
+
+   #[OneToMany(targetEntity: InvoiceItem::class, mappedBy: 'invoice')]
+    private Collection $items;
+
+
+
+
+
+
+
+
+
+
+-> para conseguirmos o efeito desejado,
+
+    devemos 
+
+    ADICIONAR 1 OUTRO ARGUMENT,
+
+    CHAMADO DE 'cascade',
+    NESSE 
+
+    ATTRIBUTE...
+
+
+
+
+
+
+
+
+--> COM 'cascade:',
+PODEMOS 
+
+_ ESPECIFICAR 
+
+UM _ ARRAY DE ACTIONS, QUE QUEREMOS QUE ACONTEÇAM,
+
+
+SEMPRE QUE AQUELA ACTION/EVENT 
+
+ACONTECER,
+
+
+
+NAQUELA ENTITY ESPECÍFICA...
+
+
+
+
+
+
+
+
+--> NO CASO, QUEREMOS 'cascade'
+
+
+SEMPRE QUE ACONTECER 'persist' e 'remove'...
+
+
+
+EX:
+
+
+
+
+
+
+
+
+    #[OneToMany(targetEntity: InvoiceItem::class, mappedBy: 'invoice', cascade: ['persist', 'remove'])]
+    private Collection $items;
+
+
+
+
+
+
+
+
+
+
+
+
+OK... COM ISSO, PODEMOS NOS LIVRAR DE '->persist()',
+
+TIPO ASSIM:
+
+
+
+
+
+foreach ($items as [$description, $quantity, $unitPrice]) {
+    $invoiceItem = (new \App\Entity\InvoiceItem())
+        ->setDescription($item[0])
+        ->setQuantity($item[1])
+        ->setUnitPrice($item[2]);
+
+    $invoice->addItem($invoiceItem);
+    // $entityManager->persist($invoiceItem); // This is not needed, because we have 'cascade' set to 'persist' in the 'OneToMany' annotation, in the '$items' property, in the 'Invoice' entity.
+ 
+}
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA TEMOS OS ITEMS
+EXATAMENTE COMO ANTES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE TENTAMOS REMOVER A PARTE DE 'cascade' 
+
+lá da entity de 'Invoice' 
+
+
+
+
+E ENTÃO TENTAMOS EXECUTAR ESSE MESMO CÓDIGO (sem o '->persist()' lá no for loop),
+
+
+
+
+GANHAMOS UMA EXCEPTION...
+
+
+
+
+
+
+-> ESSA EXCEPTION NOS DÁ VÁRIAS INFOS DE COMO PODEMOS A RESOLVER:
+
+
+
+''A new entity was found through the relationship App Entity Invoice#items 
+    THAT WAS NOT CONFIGURED TO PERSIST OPERATIONS FOR ENTITY App Entity invoiceItem....
+
+
+
+'To solve this issue: Either explicitly call EntityManager#persist()    on 
+
+this unknown entity or CONFIGURE CASCADE: PERSIST for this association in the mapping,
+for example @ManyToOne(...,{"persist"})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... QUER DIZER QUE NÓS OU:
+
+
+1) DEVEMOS CHAMAR '->persist()' dentro do loop 
+
+OU 
+
+
+2) ADICIONAR A OPTION DE 'cascade: ['persist']',  
+    LÁ NA PROPERTY QUE É ALVO DE ESSA RELATION ENTRE
+
+    O 'ONE' E O 'MANY', a property da entity que é o 'ONE'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK.. 
+
+
+
+
+
+
+
+-> NÓS PODEMOS ENCONTRAR ENTITIES TAMBÉM POR MEIO 
+
+
+DO METHOD DE '->find()'
+
+
+NO ENTITY MANAGER....
+
+
+
+
+
+
+
+
+
+
+--> OBS::
+
+
+
+''WHEN WE FETCH AN ENTITY, WE DON'T 
+    NEED TO __CALL '->persist()" 
+    
+    TO MAKE IT MANAGED... THIS IS BECAUSE 
+    ENTTIES __ THAT _ ARE __FETCHED__ 
+
+
+    ARE ALREADY _ IN THE 'managed' STATE....''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE O PROFESSOR 
+ESCREVE TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+$entityManager->find(Invoice::class, 15);
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+$invoice = (new \App\Entity\Invoice())
+    ->setAmount(100)
+    ->setInvoiceNumber('1')
+    ->setStatus(InvoiceStatus::Pending)
+    ->setCreatedAt(new \DateTime());
+
+foreach ($items as [$description, $quantity, $unitPrice]) {
+    $invoiceItem = (new \App\Entity\InvoiceItem())
+        ->setDescription($item[0])
+        ->setQuantity($item[1])
+        ->setUnitPrice($item[2]);
+
+    $invoice->addItem($invoiceItem);
+    // $entityManager->persist($invoiceItem); // This is not needed, because we have 'cascade' set to 'persist' in the 'OneToMany' annotation, in the '$items' property, in the 'Invoice' entity.
+
+    // $invoice->addItem($invoiceItem);
+}
+
+// This doesn't actually create data in the database, it just 'queues' the creation of the data, in the database.
+$entityManager->persist($invoice);
+
+$entityManager->flush();  // This actually creates the data in the database
+
+// This will 'queue' the deletion of the object/record, but won't actually delete it yet (we need the 'flush()' method)...
+$entityManager->remove($invoice);
+
+$entityManager->flush();  // This actually deletes the data in the database
+
+// Get size of the unit of work (the number of objects queued for insertion/deletion):
+echo $entityManager->getUnitOfWork()->size(); 
+
+// Try to find the invoice with id of 15... This invoice/object will be ALREADY IN THE 'managed' state (Which means we don't need to call 'persist()' on it).
+$entityManager->find(Invoice::class, 15);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... ISSO QUER DIZER QUE, SE TENTAMOS ESCREVER 
+
+
+ALGO ASSIM, DEPOIS DO 'find' (Que é um fetch),
+
+
+ESTARÁ ERRADO:
+
+
+
+
+
+// Try to find the invoice with id of 15... This invoice/object will be ALREADY IN THE 'managed' state (Which means we don't need to call 'persist()' on it).
+$invoice = $entityManager->find(Invoice::class, 15);
+
+
+$invoice->setStatus(InvoiceStatus::Paid);
+
+
+
+// $entityManager->persist(); /// THIS IS WRONG..
+
+$entityManager->flush(); 
+
+
+
+
+
+
+
+
+
+
+
+
+
+''we dont need to persist the INVOICE ENTITY, HERE...  
+    THIS IS BECAUSE IT IS ALREADY _ IN THE 'MANAGED' STATE...''
+
+
+
+
+
+
+
+
+
+
+
+--> ''THIS MEANS THAT IF YOU EXECUTE '$entityManager->flush()'
+
+    AT THAT POINT, EVEN WITHOUT THE '$entityManager->persist()' before it,
+
+
+    IT WILL STILL SAVE THAT DATA IN THE DATABASE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR DECIDE FAZER A MESMA
+
+
+COISA 
+
+
+COM O SEGUNDO PARAMETER DE 'find()"....
+
+
+
+
+
+
+
+
+
+-> ELE TROCA O VALUE PARA '14'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> DEPOIS DISSO,
+
+    O PROFESSOR 
+
+    COLOCA ASSIM:
+
+
+
+
+
+    ''$invoice-getItems->get(0)->setDescription('Foo Bar');
+
+
+
+
+
+
+
+
+    EX:
+
+
+
+
+
+
+
+
+
+foreach ($items as [$description, $quantity, $unitPrice]) {
+    $invoiceItem = (new \App\Entity\InvoiceItem())
+        ->setDescription($item[0])
+        ->setQuantity($item[1])
+        ->setUnitPrice($item[2]);
+
+    $invoice->addItem($invoiceItem);
+
+    $invoice->getItems()->get(0)->setDescription('Foo bar');
+
+    $invoice->flush();
+
+
+
+
+
+
+
+
+
+
+
+
+
+    COMO VC PODE VER, NÃO ESTAMOS CHAMANDO 'persist()'..
+
+
+
+
+
+
+
+
+
+
+
+--> 'THIS IS BECAUSE, WHEN WE CALL THE 'flush()',
+
+    DOCTRINE WILL FIGURE OUT THAT WE ARE UPDATING THE INVOICE,
+        AND ALSO THAT WE WILL be updating ONE OF ITS ITEMS...'''
+
+
+
+
+
+
+    
+OK.. FUNCIONOU..
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> esse foi 1 overview do doctrine ORM...
+
+
+
+
+
+
+
+
+
+NA PRÓXIMA AULA, VEREMOS ALGUMAS DAS OUTRAS FEATURES DO DOCTRINE ORM,
+COMO:
+
+
+1) QUERY BUILDER 
+
+2) DQL 
+
+3) LIFECYCLE METHODS...
