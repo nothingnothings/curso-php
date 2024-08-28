@@ -1,0 +1,3832 @@
+
+
+
+
+
+
+
+
+
+AGORA VAMOS CONTINUAR COM O TÓPICO DO 'DOCTRINE ORM'....
+
+
+
+
+
+
+
+
+
+
+
+-> AGORA FALAREMOS SOBRE O QUERY BUILDER...
+
+
+
+
+
+
+
+
+
+
+--> FALAREMOS SOBRE O QUERY BUILDER 
+
+
+
+E 'DQL'... (data QUERY language)
+
+
+
+
+
+
+
+
+--> PODEMOS CRIAR 1 INSTANCE DE QUERY BUILDER POR MEIO 
+
+
+DO CALL DO METHOD DE 'createQueryBuilder()',
+
+
+DIRETAMENTE NO 'entityManager'...
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+$queryBuilder = $entityManager->createQueryBuilder();
+
+
+
+
+
+
+
+
+
+
+
+
+CÓDIGO COMPLETO:
+
+
+
+
+
+
+
+<?php
+
+use Dotenv\Dotenv;
+
+require_once './vendor/autoload.php';
+
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+// var_dump($_ENV);
+
+$params = [
+    'dbname' => $_ENV['DB_DATABASE'],
+    'user' => $_ENV['DB_USER'],
+    'password' => $_ENV['DB_PASS'],
+    'host' => $_ENV['DB_HOST'],
+    'driver' => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
+    'port' => $_ENV['DB_PORT'] ?? 3307,
+];
+
+$entityManager = \Doctrine\ORM\EntityManager::create(
+    $params,
+    \Doctrine\ORM\Tools\Setup::createAttributeMetadataConfiguration([__DIR__ . '/src/Entity'], true)
+);
+
+$queryBuilder = $entityManager->createQueryBuilder();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, PODEMOS CHAMAR ALGUNS 
+
+'fluent methods' (method chaining)
+
+DIRETAMENTE NO QUERY BUILDER,
+
+PARA ACTUALLY BUILDAR A QUERY...
+
+
+
+
+
+
+
+
+
+
+--> VAMOS BUILDAR UMA QUERY SIMPLES,
+
+USANDO A ENTITY DE 'invoice',
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php
+
+use App\Entity\Invoice;
+use App\Enums\InvoiceStatus;
+use Dotenv\Dotenv;
+
+require_once './vendor/autoload.php';
+
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+// var_dump($_ENV);
+
+$params = [
+    'dbname' => $_ENV['DB_DATABASE'],
+    'user' => $_ENV['DB_USER'],
+    'password' => $_ENV['DB_PASS'],
+    'host' => $_ENV['DB_HOST'],
+    'driver' => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
+    'port' => $_ENV['DB_PORT'] ?? 3307,
+];
+
+$entityManager = \Doctrine\ORM\EntityManager::create(
+    $params,
+    \Doctrine\ORM\Tools\Setup::createAttributeMetadataConfiguration([__DIR__ . '/src/Entity'], true)
+);
+
+$queryBuilder = $entityManager->createQueryBuilder();
+
+$queryBuilder->select('i.created_at', 'i.amount')->from(Invoice::class, 'invoice')->where('invoice.status = :status')->setParameter('status', InvoiceStatus::Pending);
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, DEFINIMOS UM ALIAS DE 'i' PARA 
+
+A INVOICE,
+
+E AÍ SELECIONAMOS AQUELES FIELDS ESPECÍFICOS...
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR COLOCA 1 WHERE CLAUSE SIMPLES,
+
+
+
+DE 'i.amount > :amount'...
+
+
+
+
+
+EX:
+
+
+
+
+
+$queryBuilder
+    ->select('i.created_at', 'i.amount')
+    ->from(Invoice::class, 'invoice')
+    ->where('i.amount > :amount')
+    ->setParameter('amount', 100);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, PODEMOS SETTAR O TYPE EXPLICITAMENTE,
+
+SE QUISERMOS...
+
+
+
+
+
+
+
+
+
+-> PODEMOS DEFINIR O TYPE COMO TERCEIRO ARGUMENT 
+DE 'setParameter'... MAS NÃO PRECISAMOS DISSO, AQUI,
+
+PQ O TYPE DE CERTOS DATA TYPES É INFERRED AUTOMATICAMENTE..
+
+
+
+
+
+
+
+
+
+
+--> AÍ FAZEMOS ORDER BY POR 'CREATED AT',
+
+
+POR 'DESC':
+
+
+
+
+
+
+$queryBuilder
+    ->select('i.created_at', 'i.amount')
+    ->from(Invoice::class, 'invoice')
+    ->where('i.amount > :amount')
+    ->setParameter('amount', 100)
+    ->orderBy('i.created_at', 'desc');
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS ISSO NÃO VAI EXECUTAR A QUERY IMEDIATAMENTE... 
+
+
+
+VAI APENAS __ CRIAR A QUERY....
+
+
+
+
+
+-_> PARA EXECUTÁ-LA, PRECISAMOS, PRIMEIRAMENTE,
+
+
+
+CONVERTER ESSA QUERY EM 1 QUERY OBJECT..
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, TEMOS O METHOD DE 
+
+
+
+'getQuery()'...
+
+
+
+
+
+
+
+
+
+
+
+--> TIPO ASSIM:
+
+
+
+
+
+$simpleQuery = $queryBuilder
+    ->select('i.created_at', 'i.amount')
+    ->from(Invoice::class, 'invoice')
+    ->where('i.amount > :amount')
+    ->setParameter('amount', 100)
+    ->orderBy('i.created_at', 'desc')
+    ->getQuery();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO, PODEMOS EXECUTAR ESSA QUERY,
+
+
+POR MEIO DO 
+
+CALL DE 
+
+
+'->getResult()',
+
+
+EM CIMA DESSE '$simpleQuery',
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+$queryBuilder = $entityManager->createQueryBuilder();
+
+$simpleQuery = $queryBuilder
+    ->select('i.created_at', 'i.amount')
+    ->from(Invoice::class, 'invoice')
+    ->where('i.amount > :amount')
+    ->setParameter('amount', 100)
+    ->orderBy('i.created_at', 'desc')
+    ->getQuery();  // * This is needed to create the query object.
+
+$simpleQuery->getResult();  // * This is needed to execute the query.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... PODEMOS ASSIGNAR ISSO A UMA VARIABLE DE '$invoices',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+$queryBuilder = $entityManager->createQueryBuilder();
+
+$simpleQuery = $queryBuilder
+    ->select('i.created_at', 'i.amount')
+    ->from(Invoice::class, 'invoice')
+    ->where('i.amount > :amount')
+    ->setParameter('amount', 100)
+    ->orderBy('i.created_at', 'desc')
+    ->getQuery();  // * This is needed to create the query object.
+
+$invoices = $simpleQuery->getResult();  // * This is needed to execute the query.
+
+
+
+
+
+
+
+
+
+
+
+
+PODERÍAMOS, TAMBÉM, 
+
+
+TER CHAINADO O METHOD CALL de 'getResult()"
+
+
+
+APÓS 'getQuery()',
+
+
+
+E AÍ DEFINIR A VARIABLE DE 'query' como 'invoices',
+
+
+MAS O PROFESSOR QUERIA 
+
+MOSTRAR A QUERY COMO VARIABLE SEPARADA...
+
+
+PODERÍAMOS TER ESCRITO ASSIM:
+
+
+
+
+$queryBuilder = $entityManager->createQueryBuilder();
+
+$invoices = $queryBuilder
+    ->select('i.created_at', 'i.amount')
+    ->from(Invoice::class, 'invoice')
+    ->where('i.amount > :amount')
+    ->setParameter('amount', 100)
+    ->orderBy('i.created_at', 'desc')
+    ->getQuery()  // * This is needed to create the query object.
+    ->getResult();   // * This is needed to execute the query.
+
+
+
+
+
+
+
+
+
+
+
+ESSA SINTAXE PODE 
+
+
+APARENTAR SEMELHANÇAS 
+
+AO DOCTRINE DBAL QUERY BUILDER,
+
+
+QUE ESTUDAMOS ANTES,
+
+
+MAS __ NÃO É A ___ MESMA COISA...
+
+
+
+
+
+
+
+
+
+
+
+VC DEVE PERCEBER QUE:
+
+
+
+
+1) 'Invoice::class' NÃO É O TABLE NAME...
+
+
+
+2) 'i.createdAt' NÃO É A COLUMN NAME....
+
+
+
+
+
+
+
+
+ISSO PQ, LÁ NAS TABLES, é 'created_at', e não é aquele 'Invoice::class'...
+
+
+
+
+--> ISSO QUER DIZER __ QUE __ 
+    ESTAMOS USANDO __ A PROPERTY DA CLASS/ENTITY 'invoices',
+    nesse method call aí, e não O NOME DA COLUMN,
+    LÁ NA NOSSA TABLE...
+
+
+
+
+
+OU SEJA, ISTO AQUI:
+
+
+
+
+
+
+    #[Column('created_at')]
+    private \DateTime $createdAt;
+
+
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE NÃO ESTAMOS ACTUALLY BUILDANDO/ESCREVENDO 
+    SQL, AQUI....
+
+
+
+
+
+--> O QUE ESTAMOS BUILDANDO E ESCREVENDO, AQUI, 
+    É ALGO CHAMADO 
+
+    DE 
+
+    'DQL'...
+
+
+
+
+    DOCTRINE QUERY LANGUAGE...
+
+
+
+
+
+
+
+---> PODE PARECER ASSUSTADOR,
+    MAS DQL É PARECIDO COM SQL...
+
+
+
+
+
+
+--> MAS AO CONTRÁRIO DO SQL, EM QUE VC PENSA EM TERMOS 
+DE 'TABLES' E 'COLUMNS',
+
+
+NO 
+
+'DQL',
+
+VC PENSA 
+
+
+EM TERMOS DE 
+
+'ENTITIES' E 'MAPPED PROPERTIES'...
+
+
+
+
+
+
+
+
+
+--> PODEMOS ACTUALLY INSPECIONAR A DQL QUERY,
+
+    E AÍ CHECAR O QUE ELA É,
+
+    POR MEIO 
+
+
+    DO METHOD DE '->getDQL()',
+
+    que pode ser executado 
+
+    OU 
+
+
+    NA RAW QUERY, OU NO QUERY OBJECT...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+$queryBuilder = $entityManager->createQueryBuilder();
+
+$simpleQuery = $queryBuilder
+    ->select('i.created_at', 'i.amount')
+    ->from(Invoice::class, 'invoice')
+    ->where('i.amount > :amount')
+    ->setParameter('amount', 100)
+    ->orderBy('i.created_at', 'desc')
+    ->getQuery();  // * This is needed to create the query object.
+
+echo $simpleQuery->getDQL();  // * This is needed to get the DQL (doctrine query language) query, to check it out.
+
+echo $simpleQuery->getSQL();  // * This is needed to get the SQL query, to check it out.
+
+$invoices = $simpleQuery->getResult();  // * This is needed to execute the query.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK.... TEMOS TANTO 'getSQL()'
+
+
+
+
+como 
+
+
+'getDQL()'...
+
+
+
+
+
+
+
+
+
+--> SE ABRIMOS O  TERMINAL, FICAMOS COM ISTO:
+
+
+
+
+
+
+
+''SELECT i.createdAt, i.amount FROM App\Entity\Invoice i WHERE i.amount > :amount
+ORDER BY i.createdAt'''
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA, FICAMOS COM ESSE DQL...
+
+
+
+
+--> NÃO TEM A MESMA SINTAXE DE SQL... 
+
+
+
+-> PQ ESTAMOS SELECIONANDO 'FROM' UMA ENTITY (fully qualified class name),
+    e pq todos os names estão com camelCase,
+    pq estão lendo as properties das entities...
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS ESCREVER DQL statements bem complexos, se quisermos...
+
+
+
+
+
+
+
+
+
+--> ''WE CAN EVEN WRITE RAW DQL AND THEN, INSTEAD OF CREATING THE QUERY 
+    BUILDER, WE CAN CREATE _ A QUERY AND THEN  PASS THE __ RAW 
+    DQL INSIDE IT''...
+
+
+
+
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE PODEMOS COPIAR ESSA 
+STRING INTEIRA:
+
+ SELECT i.createdAt, i.amount FROM App\Entity\Invoice i WHERE i.amount > :amount ORDER BY i.createdAt
+
+
+
+
+
+e então COLAR NO METHOD CALL DE CREATION DE SQL A PARTIR 
+
+DE DQL,
+
+
+
+PARA AÍ CRIAR E EXECUTAR ESSA QUERY....
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, PODEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+
+
+
+
+$query = $entityManager->createQuery();
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSE METHOD EXIGE 1 DQL STRING 
+    COMO PARAMETER....
+
+
+
+
+
+- PODEMOS SIMPLESMENTE COLAR NOSSO DQL ALI...
+
+
+TIPO ASSIM:
+
+
+
+
+
+$query = $entityManager->createQuery(' SELECT i.createdAt, i.amount FROM App\Entity\Invoice i WHERE i.amount > :amount ORDER BY i.createdAt');
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO NOS DÁ UMA FLEXIBILIDADE MAIOR, PARA 
+ESCREVER COMPLEX QUERIES FROM SCRATCH (a partir do DQL)...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+$entityManager = \Doctrine\ORM\EntityManager::create(
+    $params,
+    \Doctrine\ORM\Tools\Setup::createAttributeMetadataConfiguration([__DIR__ . '/src/Entity'], true)
+);
+
+$queryBuilder = $entityManager->createQueryBuilder();
+
+$simpleQuery = $queryBuilder
+    ->select('i.created_at', 'i.amount')
+    ->from(Invoice::class, 'invoice')
+    ->where('i.amount > :amount')
+    ->setParameter('amount', 100)
+    ->orderBy('i.created_at', 'desc')
+    ->getQuery();  // * This is needed to create the query object.
+
+echo $simpleQuery->getDQL();  // * This is needed to get the DQL (doctrine query language) query, to check it out.
+
+echo $simpleQuery->getSQL();  // * This is needed to get the SQL query, to check it out.
+
+// ? This is optional (if you want to create the query using DQL strings, taken from getDQL(), from scratch)
+// $query = $entityManager->createQuery(' SELECT i.createdAt, i.amount FROM App\Entity\Invoice i WHERE i.amount > :amount ORDER BY i.createdAt');
+
+$invoices = $simpleQuery->getResult();  // * This is needed to execute the query.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO....
+
+
+
+
+
+
+
+
+
+
+MAS O PROFESSOR 
+
+
+ENTÃO FAZ DUMP DE 'invoices'...
+
+
+
+
+$queryBuilder = $entityManager->createQueryBuilder();
+
+$simpleQuery = $queryBuilder
+    ->select('i.created_at', 'i.amount')
+    ->from(Invoice::class, 'invoice')
+    ->where('i.amount > :amount')
+    ->setParameter('amount', 100)
+    ->orderBy('i.created_at', 'desc')
+    ->getQuery();  // * This is needed to create the query object.
+
+echo $simpleQuery->getDQL();  // * This is needed to get the DQL (doctrine query language) query, to check it out.
+
+echo $simpleQuery->getSQL();  // * This is needed to get the SQL query, to check it out.
+
+// ? This is optional (if you want to create the query using DQL strings, taken from getDQL(), from scratch)
+// $query = $entityManager->createQuery(' SELECT i.createdAt, i.amount FROM App\Entity\Invoice i WHERE i.amount > :amount ORDER BY i.createdAt');
+
+$invoices = $simpleQuery->getResult();  // * This is needed to execute the query.
+
+var_dump($invoices);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO RESULTADO DE ESSE DUMP,
+
+
+
+FICAMOS COM 1 LIST DE INVOICES,
+
+EM QUE 
+
+O AMOUNT  É MAIOR DO QUE '100'...
+
+
+
+
+
+
+
+
+É UM ASSOCIATIVE ARRAY, TIPO ASSIM:
+
+
+
+[
+    
+    [
+        "createdAt" => object(DateTime),
+        "amount" => "145.00"
+    ]
+]
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COMO PERCEBEMOS, O RESULT É UM ARRAY...
+
+
+    NÃO É OBJECTS OU ENTITIES, E SIM 
+
+    1 SIMPLES 
+
+    ARRAY QUE 
+    CONTÉM 
+    
+
+    A LISTA DE INVOICES,
+
+
+
+
+EM QUE CADA ITEM NO ARRAY 
+
+
+É _APENAS OUTRO ARRAY, ASSOCIATIVE ARRAY,
+
+CONTENDO OS ITEMS QUE 
+
+SELECIONAMOS....
+
+
+
+
+
+
+
+
+--> ISSO FUNCIONA ASSIM 
+    DEVIDO à MANEIRA PELA QUAL
+    A 'SELECT' CLAUSE É 
+
+    COMPOSTA...
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE A LINHA 
+
+'->select('i.createdAt', 'i.amount') '
+
+
+
+
+TEM EFEITOS, SIM, 
+
+
+SOBRE 
+
+
+
+A MANEIRA PELA QUA SUA DATA É FETCHEADA...
+
+
+
+
+
+
+
+
+
+
+
+
+-> AQUI, COMO ESTAMOS SENDO ESPECÍFICOS 
+    E RETRIEVANDO APENAS 
+
+
+    AS COLUMNS/PROPERTIES 'createdAt' e 'amount',
+    esses 2 fields aí,
+
+
+    O __ ORM _ NÃO ESTÁ 
+
+    '''HYDRATING'' OS ENTITY OBJECTS,
+
+    E SIM, ESTÁ, EM VEZ DISSO, 
+    
+    __ RETORNANDO 1 ARRAY SIMPLES,
+    CONTENDO ESSES FIELDS COMO VALUES...
+
+
+
+
+
+
+
+
+--> E ISSO FAZ SENTIDO... PQ 
+    SE ESSE CÓDIGO DE 
+
+    ''
+
+
+
+    $simpleQuery = $queryBuilder
+    ->select('i.created_at', 'i.amount')
+    ->from(Invoice::class, 'invoice')
+    ->where('i.amount > :amount')
+    ->setParameter('amount', 100)
+    ->orderBy('i.created_at', 'desc')
+    ->getQuery();  // * This is needed to create the query object.
+
+
+
+    ''
+
+
+
+    FOSSE SELECIONAR 1 INVOICE ENTITY,
+
+    VC ACABARIA COM O HYDRATE DE APENAS 2 PROPERTIES 
+    NELE,
+
+    AS PROPERTIES DE 'createdAt' e 'amount'... -> E ISSO NÃO FARIA 
+    SENTIDO, NÃO FARIA SENTIDO 
+    O Invoice Entity Object funcionar assim... pq temos um monte de 
+    outras properties, mappeadas às columns... e se estamos selecionando 
+
+    APENAS 'amount' e 'createdAt', 
+
+    NÃO FAZ SENTIDO FAZER HYDRATE DO 
+
+
+    __ ENTITY OBJECT INTEIRO... E É EXATAMENTE POR ISSO QUE 
+
+    ESTAMOS RECEBENDO O RESULT COMO 1 ARRAY SIMPLES, SEM HYDRATE...
+
+
+
+
+
+
+
+
+
+
+
+--> PARA TRABALHARMOS COM A ENTITY INTEIRA,
+    EM VEZ DO RESULT SIMPLES DE SUAS PROPERTIES/COLUMNS,
+
+    BASTA TIRAR A ESPECIFICAÇÃO DOS FIELDS NO 'select()',
+
+
+
+
+    E DEIXAR APENAS O ALIAS,
+    tipo 'i',
+
+    nesse caso...
+
+
+
+
+EX:
+
+
+
+
+
+
+$simpleQuery = $queryBuilder
+    ->select('i')
+    ->from(Invoice::class, 'invoice')
+    ->where('i.amount > :amount')
+    ->setParameter('amount', 100)
+    ->orderBy('i.created_at', 'desc')
+    ->getQuery();  // * This is needed to create the query object.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, 
+
+
+RETORNAMOS A ENTITY INTEIRA...
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+$queryBuilder = $entityManager->createQueryBuilder();
+
+// * This won't return the entity object itself, but a simple array with the desired data (from the created_at and amount fields).
+$simpleQuery = $queryBuilder
+    ->select('i.created_at', 'i.amount')
+    ->from(Invoice::class, 'invoice')
+    ->where('i.amount > :amount')
+    ->setParameter('amount', 100)
+    ->orderBy('i.created_at', 'desc')
+    ->getQuery();  // * This is needed to create the query object.
+
+echo $simpleQuery->getDQL();  // * This is needed to get the DQL (doctrine query language) query, to check it out.
+
+echo $simpleQuery->getSQL();  // * This is needed to get the SQL query, to check it out.
+
+// ? This is optional (if you want to create the query using DQL strings, taken from getDQL(), from scratch)
+// $query = $entityManager->createQuery(' SELECT i.createdAt, i.amount FROM App\Entity\Invoice i WHERE i.amount > :amount ORDER BY i.createdAt');
+
+$invoices = $simpleQuery->getResult();  // * This is needed to execute the query.
+
+var_dump($invoices);
+
+// ->where('invoice.status = :status')
+// ->setParameter('status', InvoiceStatus::Pending);
+
+// *This will return the entity object itself, because we are selecting the whole entity (with the alias 'i')
+// $simpleQuery = $queryBuilder
+//     ->select('i')
+//     ->from(Invoice::class, 'invoice')
+//     ->where('i.amount > :amount')
+//     ->setParameter('amount', 100)
+//     ->orderBy('i.created_at', 'desc')
+//     ->getQuery();  // * This is needed to create the query object.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR TENTA PRINTAR ISSO, 
+    MAS FICA COM 
+
+
+    1 PRINT BEM DIFÍCIL DE LER...
+
+
+
+
+
+É POR ISSO QUE ELE USA UM FOREACH,
+
+tipo assim:
+
+
+
+
+
+
+
+// *This will return the entity object itself, because we are selecting the whole entity (with the alias 'i')
+// $simpleQuery = $queryBuilder
+//     ->select('i')
+//     ->from(Invoice::class, 'invoice')
+//     ->where('i.amount > :amount')
+//     ->setParameter('amount', 100)
+//     ->orderBy('i.created_at', 'desc')
+//     ->getQuery();  // * This is needed to create the query object.
+
+// $invoices = $simpleQuery->getResult();  // * This is needed to execute the query.
+
+// foreach ($invoices as $invoice) {
+//     echo $invoice->getCreatedAt()->format('m/d/Y g:ia')
+//         . ', ' . $invoice->getAmount()
+//         . ', ' . $invoice->getStatus()->toString();
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+ELE TAMBÉM COLOCA UM DOC BLOCK EM CIMA DESSE FOREACH,
+
+PARA QUE O AUTO-COMPLETE FUNCIONE, E PARA QUE CONSIGAMOS CLICAR NOS METHODS DE 
+'getAmount()",
+
+'getStatus()'
+
+
+e 'toString()'...
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+
+DEPOIS DISSO, EXECUTAMOS O CÓDIGO, E FUNCIONA....
+
+
+
+
+COMO PRINT DISSO, FICAMOS COM:
+
+
+
+
+
+
+
+03/25/2022 1:09am, 145, Pending 
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, ESTAMOS TRABALHANDO COM 'HYDRATED ENTITIES'...
+
+
+
+
+
+
+
+
+'''HYDRATION'''
+
+
+
+--> A DEFINIÇÃO MAIS SIMPLES É 
+
+
+''A PROCESS THAT CONVERTS 
+    DATABASE RESULTS INTO OBJECTS/ENTITIES'''...
+
+
+
+
+
+''IT IS BASICALLY A PROCESS OF _ FILLING/LOADING 
+AN OBJECT WITH DATA...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE INSPECIONAMOS 
+O METHOD 
+
+DE 
+'getResult()',
+
+FICAMOS COM ISTO:
+
+
+
+
+
+    /**
+     * Gets the list of results for the query.
+     *
+     * Alias for execute(null, $hydrationMode = HYDRATE_OBJECT).
+     *
+     * @param string|int $hydrationMode
+     * @psalm-param string|AbstractQuery::HYDRATE_* $hydrationMode
+     *
+     * @return mixed
+     */
+    public function getResult($hydrationMode = self::HYDRATE_OBJECT)
+    {
+        return $this->execute(null, $hydrationMode);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+--> PERCEBEMOS, PORTANTO,
+
+    QUE O HYDRATIONMODE,
+
+    POR DEFAULT,
+
+    É SETTADO 
+
+
+
+    como 
+
+
+    'HYDRATE_OBJECT'...
+
+
+
+
+
+
+
+
+--> SE QUISERMOS, PODEMOS TROCAR PARA UM 'HYDRATED ARRAY',
+    EM VEZ DE 1 OBJECT...
+
+
+
+
+
+
+
+
+--> OU, ENTÃO, PODEMOS CHAMAR O OUTRO METHOD,
+
+    CHAMADO DE 
+
+
+
+    'getArrayResult()',
+
+
+
+
+    QUE 
+
+
+
+    É JUSTAMENTE O METHOD QUE 
+
+
+
+    EXECUTA O MESMO CÓDIGO,
+
+
+    MAS COM 1 ARGUMENT DE 'self::HIDRATE_ARRAY'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA TESTAR ISSO, 
+    PODEMOS 
+
+
+    RODAR 
+
+
+
+'''$invoices = $query->getArrayResult();'''
+
+
+
+
+
+
+
+
+
+
+se fazemos isso e recarregamos o código,
+
+
+PERCEBEMOS QUE VOLTAMOS 
+
+AOS ARRAYS DE ANTES,
+
+
+
+MAS AGORA OS ARRAYS TERÃO MAIS INFO,
+
+
+PQ SELECIONAMOS  TODAS AS PROPERTIES, COM AQUELE 'alias'...
+
+
+
+
+
+Modes: Different hydration modes can be used, including:
+
+HYDRATE_OBJECT: Each result row is converted into a fully-fledged entity object of the class mapped to the query.
+HYDRATE_ARRAY: Each result row is converted into an associative array, where column names are the keys and column values are the values.
+HYDRATE_SCALAR: Results are returned as plain scalar values (integers, strings, etc.) in an array.
+HYDRATE_SIMPLEOBJECT: Results are converted into simple stdClass objects.
+
+
+
+
+
+
+
+
+
+When you select specific fields in Doctrine ORM (such as i.created_at and i.amount), it does affect the default behavior, particularly with regard to hydration modes. Here’s how it works:
+
+Selecting Specific Fields
+When you use the QueryBuilder to select specific fields
+ rather than the whole entity, Doctrine recognizes that you are 
+ not requesting complete entity objects but just certain columns. 
+ This has implications for how the results are hydrated:
+
+Default Hydration Mode (HYDRATE_OBJECT):
+
+If you run the query and use the default HYDRATE_OBJECT mode, Doctrine will 
+attempt to hydrate the results into entities. However, 
+since only partial fields are selected (and not all fields necessary to fully 
+construct an entity), Doctrine cannot fully hydrate the result into entities. 
+
+
+
+
+
+--> EXPLICAÇÃO APROPRIADA:
+
+
+The scalar hydration type is represented by the HYDRATE_SCALAR 
+constant and is a very fast and efficient way
+to hydrate your data. The downside to this method is that it does
+ not hydrate your data into the object graph, it returns a flat rectangular
+  result set which can be difficult to work with when dealing with lots of records.
+
+
+
+
+
+(ou seja, É ISSO QUE ACONTECE, QUANDO SELECIONAMOS APENAS ALGUNS FIELDS)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+By default when you run a DQL query in Doctrine and select only a subset of 
+the fields for a given entity, you do not receive objects back. Instead, 
+you receive only arrays as a flat rectangular result set, similar 
+to how you would if you were just using SQL directly and joining some data.
+
+
+
+
+
+The array hydration type is represented by the HYDRATE_ARRAY constant. 
+It is identical to the above record hydration except that instead of 
+hydrating the data into the object graph using PHP objects it uses PHP arrays. 
+The benefit of using arrays instead of objects is that they are much faster
+ and the hydration does not take as long.
+
+So if you were to run the same example you would have access to the same data but it would be via a PHP array.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA FECHAMOS TUDO, E AÍ 
+
+
+
+SELECIONAMOS ALGUNS DOS METHODS, como 'select()':
+
+
+
+
+
+
+
+
+
+
+
+--> ESSE METHOD TEM ESTE FORMATO:
+
+
+
+
+
+
+
+
+
+
+    /**
+     * Specifies an item that is to be returned in the query result.
+     * Replaces any previously specified selections, if any.
+     *
+     * <code>
+     *     $qb = $em->createQueryBuilder()
+     *         ->select('u', 'p')
+     *         ->from('User', 'u')
+     *         ->leftJoin('u.Phonenumbers', 'p');
+     * </code>
+     *
+     * @param mixed $select The selection expressions.
+     *
+     * @return $this
+     */
+    public function select($select = null)
+    {
+        $this->_type = self::SELECT;
+
+        if (empty($select)) {
+            return $this;
+        }
+
+        $selects = is_array($select) ? $select : func_get_args();
+
+        return $this->add('select', new Expr\Select($selects), false);
+    }
+
+
+
+
+
+
+
+
+
+
+
+ESSE METHOD, COMO VC PODE PERCEBER,
+
+
+FAZ CALL DE OUTRO METHOD,
+
+
+CHAMADO DE 'add()',
+
+
+
+E AÍ, O PRIMEIRO ARGUMENT PASSADO É 'select',
+
+
+1 string,
+
+
+
+
+E AÍ 
+
+
+
+O SEGUNDO PARAMETER 
+
+
+
+
+É ALGUM KINDOF 
+
+
+
+'Select object'...
+
+
+
+
+EX:
+
+
+
+
+new Expr\Select($selects)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... 
+
+
+
+
+AÍ INSPECIONAMOS O FROM:
+
+
+
+
+
+    /**
+     * Creates and adds a query root corresponding to the entity identified by the given alias,
+     * forming a cartesian product with any existing query roots.
+     *
+     * <code>
+     *     $qb = $em->createQueryBuilder()
+     *         ->select('u')
+     *         ->from('User', 'u');
+     * </code>
+     *
+     * @param string $from    The class name.
+     * @param string $alias   The alias of the class.
+     * @param string $indexBy The index for the from.
+     *
+     * @return $this
+     */
+    public function from($from, $alias, $indexBy = null)
+    {
+        return $this->add('from', new Expr\From($from, $alias, $indexBy), true);
+    }
+
+
+
+
+
+
+
+
+
+
+
+MESMA COISA, MAS AGORA 
+
+
+ELE ADICIONA 'from',
+
+
+e 
+
+
+
+
+O OBJECT 
+
+ 
+'' new Expr\From($from, $alias, $indexBy) ''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+ISSO VAI CRIAR 1 TIPO DE EXPRESSION OBJECT, MESMA COISA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TAMBÉM TEMOS ALGO PARECIDO COM O WHERE,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+    /**
+     * Specifies one or more restrictions to the query result.
+     * Replaces any previously specified restrictions, if any.
+     *
+     * <code>
+     *     $qb = $em->createQueryBuilder()
+     *         ->select('u')
+     *         ->from('User', 'u')
+     *         ->where('u.id = ?');
+     *
+     *     // You can optionally programmatically build and/or expressions
+     *     $qb = $em->createQueryBuilder();
+     *
+     *     $or = $qb->expr()->orX();
+     *     $or->add($qb->expr()->eq('u.id', 1));
+     *     $or->add($qb->expr()->eq('u.id', 2));
+     *
+     *     $qb->update('User', 'u')
+     *         ->set('u.password', '?')
+     *         ->where($or);
+     * </code>
+     *
+     * @param mixed $predicates The restriction predicates.
+     *
+     * @return $this
+     */
+    public function where($predicates)
+    {
+        if (! (func_num_args() === 1 && $predicates instanceof Expr\Composite)) {
+            $predicates = new Expr\Andx(func_get_args());
+        }
+
+        return $this->add('where', $predicates);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+NOVAMENTE,
+
+ele adiciona a keyword 'where',
+
+
+e também 
+
+
+usa um object,
+
+
+no caso 
+
+''new Expr\Andx(func_get_args()) ''
+
+
+
+
+
+
+
+
+
+
+
+-> BASICAMENTE, ESSES 'EXPRESSION OBJECTS' 
+
+OU 'EXPRESSIONS' 
+
+
+SÃO __ MANEIRAS__ DE CRIAR QUERIES MAIS COMPLEXAS,
+
+E DE CRIAR CONDITIONS MAIS COMPLEXAS...
+
+
+
+
+
+
+
+
+
+--> ISSO DEIXA O CREATE DE QUERIES E CONDITIONS MAIS 
+
+FLEXÍVEL, E NÃO TÃO COMPLEXO...  TENTA SUPLEMENTAR 
+
+A SINTAXE DO SQL COMUM....
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE TAMBÉM PODEMOS USAR A SINTAXE DEFAULT DO SQL,
+
+COM O USO DE 'createNativeQuery',
+TIPO ASSIM:
+
+
+
+
+
+
+
+// * execute raw SQL query:
+// $query = $entityManager->createNativeQuery('SELECT * FROM invoice WHERE amount > :amount ORDER BY created_at DESC');
+// $query->setParameter('amount', 100);
+// $invoices = $query->getResult();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> o method de 'ADD()',
+
+NO CASO,
+
+
+é 
+
+
+RESPONSÁVEL PELO BUILD 
+
+
+DO ACTUAL 'DQL'... (doctrine query language)...
+
+
+
+
+
+
+
+
+
+--> SE INSPECIONAMOS ESSE METHOD,
+
+
+PERCEBEMOS QUE ELE ACEITA 3 ARGUMENTS:
+
+
+
+
+
+    public function add($dqlPartName, $dqlPart, $append = false)
+    {
+        if ($append && ($dqlPartName === 'where' || $dqlPartName === 'having')) {
+            throw new InvalidArgumentException(
+                "Using \$append = true does not have an effect with 'where' or 'having' " .
+                'parts. See QueryBuilder#andWhere() for an example for correct usage.'
+            );
+        }
+
+        $isMultiple = is_array($this->_dqlParts[$dqlPartName])
+            && ! ($dqlPartName === 'join' && ! $append);
+
+        // Allow adding any part retrieved from self::getDQLParts().
+        if (is_array($dqlPart) && $dqlPartName !== 'join') {
+            $dqlPart = reset($dqlPart);
+        }
+
+        // This is introduced for backwards compatibility reasons.
+        // TODO: Remove for 3.0
+        if ($dqlPartName === 'join') {
+            $newDqlPart = [];
+
+            foreach ($dqlPart as $k => $v) {
+                $k = is_numeric($k) ? $this->getRootAlias() : $k;
+
+                $newDqlPart[$k] = $v;
+            }
+
+            $dqlPart = $newDqlPart;
+        }
+
+        if ($append && $isMultiple) {
+            if (is_array($dqlPart)) {
+                $key = key($dqlPart);
+
+                $this->_dqlParts[$dqlPartName][$key][] = $dqlPart[$key];
+            } else {
+                $this->_dqlParts[$dqlPartName][] = $dqlPart;
+            }
+        } else {
+            $this->_dqlParts[$dqlPartName] = $isMultiple ? [$dqlPart] : $dqlPart;
+        }
+
+        $this->_state = self::STATE_DIRTY;
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+
+    OS ARGUMENTS SÃO:
+
+
+
+
+
+
+
+
+
+1) 'dqlPartName' 
+
+
+
+
+
+2) 'dqlPart'  
+
+
+
+
+3) 'append' 
+
+
+
+
+
+
+
+
+
+
+
+-> O PRIMEIRO ARGUMENTO, 'dqlPartName',
+
+
+    É A __ POSITION/LOCAL EM QUE 
+
+
+
+
+
+
+    A DQL PART TEM QUE SER POSICIONADA...
+
+
+
+
+
+
+
+--> COMO VIMOS COM O 'select', 'from' e 'where',
+
+
+ISSO É JUST LIKE A STRING,
+
+
+QUE __ DIZ __ O LOCAL EM QUE A PARTE DO 'dqlPart'
+
+
+DEVE IR...
+
+
+
+(tipo 'FROM', 'SELECT', 'GROUP BY', etc)...
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK...  JÁ O SEGUNDO ARGUMENT É 
+BEM ÓBVIO....
+
+
+
+É A PARTE DO 'dqlPart'... PODE SER 
+
+PASSADO 
+
+
+COMO 1 STRING, ARRAY OU EXPRESSION OBJECT (que geralment é utilizado)...
+
+
+
+
+
+
+
+
+
+
+
+
+-> JÁ O ÚLTIMO ARGUMENT É A FLAG DE 'append'...
+
+
+
+
+-_> ESSA FLAG BASICAMENTE DEFINE    
+    SE __ VC VAI QUERER 'OVERWRITE' 
+
+    OS ITEMS PREVIAMENTE DEFINIDOS, NA DQL, 
+    OU NÃO...
+
+
+
+
+
+
+
+
+
+OBS::: AS PARTS DE 'WHERE' e 'HAVING' 
+
+    __SEMPRE__ FAZEM OVERWRITE,
+
+    POR ISSO ESSA FLAG DE '$append',
+
+
+    MESMO SE SETTADA COMO TRUE,
+
+
+    NUNCA TERÁ 
+
+    EFEITO SOBRE ESSES STATEMENTS, POR CONTA DESTE BLOCK:
+
+
+
+
+
+
+        if ($append && ($dqlPartName === 'where' || $dqlPartName === 'having')) {
+            throw new InvalidArgumentException(
+                "Using \$append = true does not have an effect with 'where' or 'having' " .
+                'parts. See QueryBuilder#andWhere() for an example for correct usage.'
+            );
+        }
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK, MAS DIGAMOS QUE 
+
+QUEREMOS 
+
+BUILDAR 1 QUERY COM 
+
+
+
+UM WHERE DE 
+
+
+
+'amount > :amount' 
+
+
+
+E 
+
+
+'status = :status' 
+
+
+
+OR  'created_at >= :date'...
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+WHERE amount > :amount AND (status = :status OR created_at >= date);
+
+
+
+
+
+
+
+
+
+
+
+
+
+-_> PARA BUILDAR ISSO COM O QUERY BUILDER,
+
+PRECISAMOS DOS METHODS DE 
+
+
+'where()'
+
+
+'andWhere()'
+
+
+E 
+
+'orWhere()':
+
+
+
+
+
+
+
+
+
+
+
+
+
+$queryBuilder = $entityManager->createQueryBuilder();
+
+$queryBuilder
+    ->select('i')
+    ->from(Invoice::class, 'i')
+    ->where('i.amount > :amount')
+    ->andWhere('i.status = :status')
+    ->orWhere('i.status = :status2')
+    ->setParameter('amount', 100)
+    ->setParameter('status', InvoiceStatus::Pending)
+    ->setParameter('status2', InvoiceStatus::Paid)
+    ->orderBy('i.created_at', 'desc')
+    ->getQuery();
+
+
+
+
+
+
+
+
+
+
+OK... E ISSO REALMENTE FUNCIONA...
+
+
+
+
+
+
+
+
+
+NO CASO DO PROFESSOR, ELE ESCREVEU ASSIM:
+
+
+
+
+$queryBuilder = $entityManager->createQueryBuilder();
+
+$queryBuilder
+    ->select('i')
+    ->from(Invoice::class, 'i')
+    ->where('i.amount > :amount')
+    ->andWhere('i.status = :status')
+    ->orWhere('i.createdAt = :date')
+    ->setParameter('amount', 100)
+    ->setParameter('status', InvoiceStatus::Pending)
+    ->setParameter('date', '2022-01-01 00:00:00')
+    ->orderBy('i.created_at', 'desc')
+    ->getQuery();
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+MAS ISSO NÃO PRODUZIU A EXATA QUERY QUE QUERÍAMOS...
+
+
+
+
+
+
+
+A QUERY QUE QUERÍAMOS ERA ESTA:
+
+
+
+
+
+WHERE amount > :amount AND (status = :status OR created_at >= date);
+
+
+
+
+
+MAS A QUERY QUE FOI PRODUZIDA FOI ESTA:
+
+
+
+
+
+
+WHERE (i.amount > :amount AND i.status = :status) OR i.created_at >= :date;
+
+
+
+
+
+
+
+QUER DIZER QUE PRECISAMOS EDITAR ESSA QUERY, UM POUCO...
+
+
+
+
+
+
+
+
+
+ISSO QUER DIZER QUE AS 2 QUERIES NÃO SÃO A MESMA QUERY... E ISSO PODERIA 
+CAUSAR ALGUNS NASTY BUGS...
+
+
+
+
+
+
+
+
+
+--> PARA CONSERTAR ISSO, E PARA CONSEGUIRMOS GERAR A PRIMEIRA QUERY,
+    DEVEMOS 
+
+
+
+
+    ''BUILD OUR OWN __CUSTOM WHERE EXPRESSION'',
+
+
+    E NÃO USAR AQUELES 'andWhere' e 'orWhere' 
+
+ 
+    padrão...
+
+
+
+
+
+
+
+--> PARA ISSO, COMENTAMOS 'andWhere' e 'orWhere' 
+
+PARA FORA...
+
+
+
+
+
+
+
+
+
+
+-> PARA PASSAR 1 CUSTOM EXPRESSION,
+    
+
+    DEVEMOS EDITAR O PRÓPRIO 'where()',
+
+
+    COLOCAR COISAS DENTRO DELE...
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, DEVEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+->where(
+    $queryBuilder->expr()->
+)
+
+
+
+
+
+
+
+
+
+
+
+
+SE FAZEMOS ISSO, PERCEBEMOS QUE ESSE METHOD TEM 1 MONTE DE HELPER 
+
+METHODS...
+
+
+
+
+
+
+
+
+
+
+tipo:
+
+
+
+andX()
+orX() 
+all()
+abs() 
+any()
+avg()
+asc 
+
+
+
+
+
+
+
+--> PODEMOS USAR TODOS ELES, PARA CONSTRUIR NOSSA EXPRESSION...
+
+
+
+
+-_> vamos usar 'andX()':
+
+
+
+
+
+
+
+->where(
+    $queryBuilder
+    ->expr()
+    ->andX(
+        $queryBuilder->expr()->gt('i.amount', ':amount'),
+        $queryBuilder->expr()->orX(
+            $queryBuilder->expr()->eq('i.status', ':status'),
+            $queryBuilder->expr()->gte('i.createdAt' ':date'),
+        )
+    )
+
+)
+
+
+
+
+
+
+
+
+
+
+
+CÓDIGO COMPLETO:
+
+
+
+
+
+
+
+$queryBuilder = $entityManager->createQueryBuilder();
+
+$queryBuilder
+    ->select('i')
+    ->from(Invoice::class, 'i')
+    ->where(
+        $queryBuilder
+        ->expr()
+        ->andX(
+            $queryBuilder->expr()->gt('i.amount', ':amount'),
+            $queryBuilder->expr()->orX(
+                $queryBuilder->expr()->eq('i.status', ':status'),
+                $queryBuilder->expr()->gte('i.createdAt' ':date'),
+            )
+        )
+    )
+    ->setParameter('amount', 100)
+    ->setParameter('status', InvoiceStatus::Pending)
+    ->setParameter('date', '2022-01-01 00:00:00')
+    ->orderBy('i.created_at', 'desc')
+    ->getQuery();
+
+
+
+
+
+
+
+
+
+
+
+
+ok... esse código ficou TERRÍVEL...
+
+
+
+
+
+nem era uma query tão complexa,
+
+e ficou gigante....
+
+
+
+
+
+
+
+
+podemos conseguir os results com 
+
+
+
+$invoices->getResult();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PODERIAMOS CONSTRUIR 1 QUERY BUILDER QUE WRAPPA 
+
+AO REDOR DO QUERY BUILDER DO ORM , E QUE USA 
+
+
+EXPRESSIONS 
+
+PARA CONSTRUIR COMPLEX QUERIES, 
+
+USANDO FLUENT METHODS... TUDO PARA NÃO TERMOS QUE 
+
+ESCREVER 
+
+
+
+MTAS MANUAL EXPRESSIONS COMO ESSAS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VEREMOS 1 ÚLTIMO EXEMPLO, 
+    EM QUE FAZEMOS SELECT DE RELATED ITEMS... (ou seja, com utilização de 'JOINS")..
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+// * Using complex where clauses, with custom expressions:
+$queryBuilder
+    ->select('i')
+    ->from(Invoice::class, 'i')
+    ->join()
+    ->where(
+        $queryBuilder
+            ->expr()
+            ->andX(
+                $queryBuilder->expr()->gt('i.amount', ':amount'),
+                $queryBuilder->expr()->orX(
+                    $queryBuilder->expr()->eq('i.status', ':status'),
+                    $queryBuilder->expr()->gte('i.createdAt', ':date'),
+                )
+            )
+    )
+    ->setParameter('amount', 100)
+    ->setParameter('status', InvoiceStatus::Pending)
+    ->setParameter('date', '2022-01-01 00:00:00')
+    ->orderBy('i.created_at', 'desc')
+    ->getQuery();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COMO PRIMEIRO PARAMETER DE 'join',
+
+DEVEMOS PASSAR O NAME DA ASSOCIATION/RELATION...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> LÁ NA ENTITY DE 'Invoice.php',
+
+TEMOS ISTO:
+
+
+
+
+
+
+
+
+
+
+    #[OneToMany(targetEntity: InvoiceItem::class, mappedBy: 'invoice', cascade: ['persist', 'remove'])]
+    private Collection $items;
+
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA, o nome é 'items'...
+
+
+
+
+
+
+
+
+
+
+
+
+-> o que podemos fazer É JOINAR 'i.items' ,
+
+
+
+sendo 'i' a representação da class 'Invoice::class'..
+
+
+
+
+-> DEIXAMOS O ALIAS DE 'items' como sendo 'it'..
+
+
+
+
+
+
+EX:
+
+
+
+
+$queryBuilder
+    ->select('i')
+    ->from(Invoice::class, 'i')
+    ->join('i.items', 'it')  // * 'it' is the alias for the InvoiceItem table.
+
+
+
+
+
+
+
+
+
+
+PRECISAMOS EDITAR O 'select',
+
+
+PASSAR TAMBÉM 'it' como segundo parameter, para que 
+ele selecione os invoiceItems também:
+
+
+
+
+
+// * Using complex where clauses, with custom expressions and JOINS:
+$queryBuilder
+    ->select('i', 'it')
+    ->from(Invoice::class, 'i')
+    ->join('i.items', 'it')  // * 'it' is the alias for the invoiceItems table.
+    ->where(
+        $queryBuilder
+            ->expr()
+            ->andX(
+                $queryBuilder->expr()->gt('i.amount', ':amount'),
+                $queryBuilder->expr()->orX(
+                    $queryBuilder->expr()->eq('i.status', ':status'),
+                    $queryBuilder->expr()->gte('i.createdAt', ':date'),
+                )
+            )
+    )
+    ->setParameter('amount', 100)
+    ->setParameter('status', InvoiceStatus::Pending)
+    ->setParameter('date', '2022-01-01 00:00:00')
+    ->orderBy('i.created_at', 'desc')
+    ->getQuery();
+
+
+
+
+
+
+
+
+
+
+
+
+RODAMOS ESSA QUERY...
+
+
+
+
+
+
+
+
+
+-> COMO RESULT DISSO,
+
+
+    FICAMOS COM:
+
+
+
+    1) AS INVOICES 
+
+
+
+
+    2) DENTRO DAS PROPERTIES DE 'invoices',
+
+    TEMOS A KEY DE 'items',
+
+
+
+    QUE VAI CONTER TODOS OS INVOICEITEMS DE CADA 
+
+    1 DOS INVOICES... (é a related property,
+    
+    que vai conter os related items)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ALÉM DE QUERY BUILDING ABILITIES,
+
+
+PODEMOS CHAMAR CONNECTION METHODS NO 'entityManager',
+
+coisas como 
+
+
+'beginTransaction',
+
+
+'commit' e 
+
+'rollback'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TIPO ASSIM:
+
+
+
+
+
+
+$entityManager->getConnection()->beginTransaction();
+
+
+
+
+
+OU 
+
+
+$entityManager->getConnection()->commit();
+
+
+
+OU 
+
+
+
+
+
+$entityManager->getConnection()->rollback();
+
+
+
+
+
+OU 
+
+
+
+
+$entityManager->getConnection()->transactional();
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OU, ENTÃO, 
+    PODEMOS CHAMAR OS 'TRANSACTION RELATED METHODS'
+
+
+    DIRETAMENTE NO ENTITYMANAGER,
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+$entityManager->beginTransaction();
+
+$entityManager->commit();
+
+$entityManager->rollback();
+
+
+
+
+
+
+
+
+
+
+SE VC FIZER ASSIM, 
+
+
+A ÚNICA DIFERENÇA É COM 'transactional()',
+
+
+
+
+que será 
+
+
+
+
+$entityManager->wrapInTransaction(function() {})
+
+
+
+
+
+------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+ALÉM DE TRANSACTIONS, PODEMOS RODAR NATIVE SQL QUERIES (queries sem firula),
+
+
+
+
+BASTA 
+
+SEGUIR O CÓDIGO QUE EU JÁ HAVIA ESCRITO:
+
+
+
+
+
+
+
+
+// * execute raw SQL query:
+// $query = $entityManager->createNativeQuery('SELECT * FROM invoice WHERE amount > :amount ORDER BY created_at DESC');
+// $query->setParameter('amount', 100);
+// $invoices = $query->getResult();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NÓS NÃO VAMOS COBRIR TUDO DO DOCTRINE ORM..
+
+
+
+
+
+
+
+
+
+
+
+
+-_> O PROFESSOR RECOMENDA CHECARMOS OS DOCS, SE QUISERMOS 
+
+APRENDER MAIS SOBRE O DOCTRINE ORM...
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROPÓSITO PRINCIPAL DE TERMOS VISTO O DOCTRINE ORM
+NESSE CURSO 
+
+É PARA ENTENDERMOS MAIS SOBRE SUA UTILIZAÇÃO EM PROJECTS....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS 1 COISA QUE O PROFESSOR QUER COBRIR SÃO 
+    OS 'LIFECYCLE EVENTS' DO DOCTRINE ORM...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+LIFECYCLE EVENTS:
+
+
+
+
+
+
+''THEY ARE BASICALLY EVENTS THAT TRIGGER BEFORE/AFTER 
+
+    SOMETHING HAPPENS''.
+
+
+
+
+
+
+
+'''THIS  __SOMETHING___ 
+    CAN BE __ THE STATE OF AN ENTITY CHANGE...''
+
+
+
+
+
+
+
+
+
+
+
+FOR EXAMPLE, AN EVENT CAN BE TRIGGERED:
+
+
+
+
+
+1) 'PRE ENTITY PERSIST' 
+
+
+
+2) 'AFTER ENTITY PERSIST'
+
+
+3) 'PRE/POST' ENTITY REMOVE 
+
+
+
+4) 'PRE/POST ENTITY FLUSH'...
+
+
+5) OTHERS...
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO TUDO NOS DEIXA 'HOOK' A ESSES EVENTS,
+    PARA ENTÃO 'PROVIDE CUSTOM LISTENERS',
+
+    PARA FAZER CERTAS COISAS...
+
+
+
+
+
+
+
+--> O EVENT SYSTEM DO DOCTRINE 
+
+
+    É CONTROLADO 
+
+    PELA CLASS DE 'EventManager',
+
+
+
+    QUE É, DE CERTA FORMA,
+
+    PARECIDO 
+
+
+    COM 
+
+
+
+    A CLASS DE 'EntityManager'...
+
+
+
+
+
+--> ISSO PQ OL 
+
+
+'EventManager'
+
+é como um 'CENTRAL POINT',
+
+que controla os events...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE CHECAMOS OS DOCS, PERCEBEMOS QUE:
+
+
+''WE CAN CREATE CUSTOM EVENT CLASSES AND DISPATCH THEM,
+    USING THE EVENT MANAGER...''
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS REGISTRAR EVENT LISTENERS E EVENT SUBSCRIBERS,
+
+
+COM 
+
+
+
+'$eventManager->addEventListener()'
+
+
+e 
+
+'$eventManager->addEventSubscriber()'...
+
+
+
+
+
+
+
+ESSAS SÃO AS CLASSES QUE ACABAM 'NOTIFIED' SEMPRE QUE 
+
+CERTOS EVENTS ACONTECEM....
+
+
+
+
+
+
+
+
+-> QUANDO O ASSUNTO É ENTITIES,
+
+    HÁ CERTOS LIFECYCLE CALLBACK METHODS QUE 
+
+    PODEMOS CRIAR,
+
+
+
+    QUE SÃO:
+
+
+
+
+    preRemove 
+    postRemove 
+
+    prePersist 
+
+    postPersist 
+    preUpdate 
+    postUpdate
+    postLoad 
+    loadClassMetadata 
+    preFlush
+    onFlush 
+    postFlush 
+    onClear
+
+
+
+
+
+
+
+
+
+-> ESSES EVENTS SÃO AUTOAMTICAMENTE DISPATCHED,
+    SEMPRE QUE CERTOS EVENTS ACONTECEM...
+
+
+
+    
+
+
+
+
+
+
+--> PARA TESTAR ISSO,
+
+    DEVEMOS ABRIR A ENTITY DE 'Invoice.php'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> NELA, DEVEMOS VER COMO PODEMOS USAR OS LIFECYCLE METHODS...
+
+
+
+
+
+
+
+
+
+--> TEMOS A PROPRIEDADE DE 'createdAt',
+
+QUE ESTÁ MAPPEADA à COLUMN DE 'created_at'... 
+
+
+
+
+
+EX:
+
+
+
+
+    #[Column('created_at')]
+    private \DateTime $createdAt;
+
+
+
+
+
+
+
+
+
+
+
+ISSO SERVE PARA BASICAMENTE 
+
+
+
+
+
+''SET CURRENT DATE AND TIME,
+
+    WHENEVER THE INVOICE IS CREATED''...
+
+
+
+
+
+
+
+
+
+
+-> ISSO PQ, ANTERIORMENTE,
+    COM O DOCTRINE ORM,
+
+
+
+
+    TÍNHAMOS ESTE EXEMPLO:
+
+
+
+
+
+
+
+$invoice = (new Invoice())
+            ->setAmount(45)
+            ->setInvoiceNumber('1')
+            ->setStatus(InvoiceStatus::Pending)
+            ->setCreatedAt(new DateTime());
+
+
+
+
+
+
+
+COM ESSE EXEMPLO, 
+
+
+ESTÁVAMOS DEFININDO O VALUE 
+
+DE 'createdAt'
+
+
+MANUALMENTE,
+
+COM 'new DateTime()'...
+
+
+
+
+
+
+
+
+--> OK... MAS 'WHAT IF' 
+    GOSTARÍAMOS DE AUTOMATIZAR ISSO, NOS 
+
+    LIVRARMOS DO CALL DE 'setCreatedAt()',
+
+
+    PARA QUE 
+
+    'invoice'
+
+    JÁ SETTASSE AUTOMATICAMENTE O  VALUE DE'createdAt',
+
+    MESMO ANTES 
+
+
+    DE ESSE OBJECT SER CRIADO?
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, 
+    DEVEMOS FAZER HOOK A UM 
+    DOS LIFECYCLE METHODS,
+
+    CHAMADO DE 'prePersist'..
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO,
+
+CRIAMOS 1 NOVO METHOD,
+
+de nome 'onPrePersist()',
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+ 
+public function onPrePersist(LifecycleEventArgs $args) 
+{
+    $this->createdAt = new \DateTime();
+}
+
+
+
+
+
+
+
+
+
+
+COM ISSO, JÁ PODEMOS COMENTAR PARA FORA O 
+
+'setCreatedAt',
+
+
+pq isso já será settado automaticamente, com esse method aí....
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+    public function onPrePersist(LifecycleEventArgs $args)
+    {
+        $this->createdAt = new \DateTime();
+    }
+
+    // public function setCreatedAt(\DateTime $createdAt): self
+    // {
+    //     $this->createdAt = $createdAt;
+
+    //     return $this;
+    // }
+
+
+
+
+
+
+
+
+
+OK... DEPOIS DISSO,
+
+
+DEVEMOS COLOCAR 1 ATTRIBUTE EM CIMA DE 'onPrePersist',
+
+
+PARA FAZER COM QUE ESSE METHOD SEJA SEMPRE 
+TRIGGADO QUANDO O EVENT DE 'prePersist'
+
+ACONTECER...
+
+
+
+
+é por isso que escrevemos o attribute assim:
+
+
+
+
+
+    #[PrePersist]
+    public function onPrePersist(LifecycleEventArgs $args)
+    {
+        $this->createdAt = new \DateTime();
+    }
+
+
+
+
+
+
+
+
+POR FIM,
+
+
+
+TAMBÉM TEMOS QUE ADICIONAR 1 ATTRIBUTE 
+
+
+à NOSSA CLASS DE ENTITY,
+
+TUDO PARA
+
+INDICAR/MARCAR 
+
+QUE 
+ELA 
+TEM 
+LIFECYCLE CALLBACKS,
+
+
+
+
+COM O ATTRIBUTE DE 
+
+
+
+'#[HasLifecycleCallbacks]'...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+#[Entity]
+#[Table('invoices')]  // The table name to be used, for this entity ('Invoice' will be equal to the entries in the 'invoices' table).
+#[HasLifecycleCallbacks]  // Needed to make the 'onPrePersist' method work.
+class Invoice
+{
+
+
+
+        #[PrePersist]
+    public function onPrePersist(LifecycleEventArgs $args)
+    {
+        $this->createdAt = new \DateTime();
+    }
+
+    // public function setCreatedAt(\DateTime $createdAt): self
+    // {
+    //     $this->createdAt = $createdAt;
+
+    //     return $this;
+    // }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, 
+
+
+
+A INVOICE TERÁ SIDO CRIADA,
+
+E  
+
+O CREATEDAT TERÁ SIDO AUTOMATICAMENTE SETTADO...
