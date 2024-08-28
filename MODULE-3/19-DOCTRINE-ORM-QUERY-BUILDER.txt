@@ -3815,11 +3815,7 @@ class Invoice
 
 
 
-
-
-
-
-
+TESTAMOS ESSE CÓDIGO, E ENTÃO,
 
 COM ISSO, 
 
