@@ -1,0 +1,572 @@
+
+
+
+
+
+
+
+
+
+
+
+
+NAS ÚLTIMAS AULAS, APRENDEMOS:
+
+
+
+
+
+
+1) DATABASE ABSTRACTION LAYER (DBAL) 
+
+
+
+2) DATA MAPPER PATTERN 
+
+
+
+
+
+3) OBJECT RELATIONAL MAPPING (ORM)
+
+
+
+
+4) MIGRATIONS 
+
+
+
+
+
+5) ETC...
+
+
+
+
+
+
+
+
+
+
+
+USAMOS LIBRARIES DO DOCTRINE COMO EXEMPLO,
+
+PARA COBRIR ESSES TÓPICOS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS AINDA NÃO COBRIMOS O 'ACTIVE RECORD PATTERN'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ACTIVE RECORD PATTERN --> É UMA OUTRA MANEIRA/STRATEGY 
+                        USADA PARA IMPLEMENTAR 
+                        ORMs...
+
+
+
+
+
+LARAVEL FRAMEWORK ----> UTILIZA-SE 
+                        DE 
+
+                        ACTIVE RECORD PATTERN 
+
+                        PARA 'POWER' 
+
+
+                        SUA PRÓPRIA 
+
+                        PACKAGE DE ORM,
+
+
+                        QUE É O 'ELOQUENT'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NESSE VIDEO E NO PRÓXIMO,
+    APRENDEREMOS 1 POUCO SOBRE 'ELOQUENT'...
+
+
+
+
+
+
+
+
+
+
+
+OK, MAS O QUE É 'ACTIVE RECORD PATTERN'?
+
+
+
+
+
+
+
+
+
+--> descrição:
+
+
+''The active record pattern is an approach to accessing data in a database.
+    A database table or VIEW is  WRAPPED INTO A CLASS... Thus,
+    an OBJECT INSTANCE is tied to a SINGLE ROW in the table. After the 
+    creation of an object, a NEW ROW is added to the table, upon save. Any 
+    object loaded gets its information from the database. When an object 
+    is updated, the corresponding row in the table is also updated. The 
+    wrapper class implements ACESSOR METHODS or properties for 
+    EACH COLUMN IN THE TABLE OR VIEW...''
+
+
+
+
+
+
+
+
+
+
+
+-> isso parece straightforward...
+
+
+
+
+
+
+
+
+
+
+''UNLIKE DATA MAPPER PATTERN,
+  WHERE THE PERSISTENCE/DATABASE LAYER 
+
+  IS _ SEPARATED_ FROM THE OBJECTS/ENTITIES'',
+
+
+
+ ''IN ''ACTIVE RECORD PATTERN'', THE DATABASE 
+  IS TIED _DIRECTLY _ TO THE OBJECT....''
+
+
+
+
+
+
+
+
+
+
+''WHEN YOU CREATE AN OBJECT 
+    AND CALL SOME KIND OF 'save()' method,
+    A NEW _ ROW _ IS REALLY ADDED TO THE TABLE...''
+
+
+
+
+
+''THESE OBJECTS HAVE THE SAME METHODS, IN THE ACTIVE RECORD..'''
+
+
+
+
+
+
+
+
+
+
+''BUT IN DATA MAPPER PATTERN, 
+    IN THE DOCTRINE ORM,
+
+    WE HAD ENTITIES WHERE THE _ PROPERTIES WERE 
+    MAPPED TO TABLE COLUMNS, LIKE THIS:
+
+
+    #[Column('amount', type: Types::DECIMAL, precision: 10, scale: 2)]
+    private float $amount;  // using float for money is not a good idea, it's better to use decimal or string, in your database and your code.
+
+    #[Column('invoice_number')]
+    private string $invoiceNumber;
+
+    #[Column('status')]
+    private InvoiceStatus $status;
+
+
+
+''
+
+
+
+
+
+
+
+
+
+
+
+
+''BUT THE PERSISTENCE 
+    OF ALL OF IT, TO BE ABLE TO PERSIST THESE OBJECTS 
+    IN THE DATABASE, WE 
+
+    __HAD__ TO USE ANOTHER SERVICE,
+
+
+    LIKE THE 'EntityManager' class...''
+
+
+
+
+EX:
+
+
+
+
+
+
+
+$entityManager = \Doctrine\ORM\EntityManager::create(
+    $params,
+    \Doctrine\ORM\Tools\Setup::createAttributeMetadataConfiguration([__DIR__ . '/src/Entity'], true)
+);
+
+
+$invoice = (new Invoice())
+            ->setAmount(45)
+            ->setInvoiceNumber('1')
+            ->setStatus(InvoiceStatus::Pending);
+
+        
+
+$entityManager->persist($invoice);
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+
+
+TÍNHAMOS DE USAR ESSE SERVICE AÍ,
+
+QUE HANDLAVA 
+
+'THE DATABASE RELATED STUFF'...
+
+
+
+
+
+
+
+
+
+-> quer dizer que 
+
+''WE WERE NOT 
+    CALLING ANY 
+
+    'save()' or 'update()'
+
+    METHODS IN THE OBJECTS THEMSELVES...''
+
+
+
+
+
+
+
+
+
+--> ''THE ENTITIES WERE/ARE 
+    JUST LIKE PLAIN PHP OBJECTS,
+    IN DOCTRINE ORM... THEY HAVE 
+    NO IDEA HOW THE DATA IS PERSISTED''...
+
+
+
+
+
+
+
+
+
+
+---> COM O ACTIVE RECORD, ENTRETANTO,
+     OS OBJECTS SÃO CAPAZES DE 
+
+     __REALIZAR_ ACTUAL _ DATABASE QUERIES,
+
+     INCLUSIVE/INCLUDING 
+
+
+     A ACTUAL_ _ABILIDADE DE 'persist' 
+
+     a data, por meio do method de '->save()'...
+
+
+
+
+
+    TIPO ASSIM:
+
+
+
+
+
+    
+$invoice = (new Invoice())
+            ->setAmount(45)
+            ->setInvoiceNumber('1')
+            ->setStatus(InvoiceStatus::Pending)
+            ->save();
+
+        
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+    ESSA É UMA DAS MAJOR DIFFERENCES 
+
+
+    ENTRE 'DATA MAPPER PATTERN' 
+
+    E 
+
+        'ACTIVE RECORD PATTERN'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OBS::
+
+
+não vamos cobrir tudo sobre o 'eloquent' nessa aula,
+
+
+PQ ESSE CURSO NÃO É FOCADO NO LARAVEL/ELOQUENT...
+
+
+
+
+
+
+
+
+VEREMOS APENAS OS BASICS DO ELOQUENT,
+
+
+PARA SABER:
+
+
+1) WHAT IT IS 
+
+
+2) HOW IT WORKS 
+
+
+3) HOW THE ACTIVE RECORD PATTERN IS IMPLEMENTED...
+
+
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS ACTUALLY USAR O 'ELOQUENT'
+
+
+EXTERNAMENTE AO LARAVEL...
+
+
+
+
+
+
+
+
+-> 'ITS KINDOF A COMPONENT ITSELF'...
+
+
+
+
+
+
+--> QUER DIZER QUE PODEMOS INSTALÁ-LO EM UM PROJETO 
+
+PHP VANILLA...
+
+
+
+
+
+
+
+
+
+
+
+MAS EM 1 APP DE VERDADE,
+VC NAO VAI FAZER ISSO, PQ FARÁ MT MAIS SENTIDO 
+
+USAR 
+
+O LARAVEL FRAMEWORK INTEIRO, QUE JÁ TEM ESSE ELOQUENT EMBUTIDO...
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS, AQUI, O PROFESSOR QUER INSTALAR O ELOQUENT COMO STANDALONE PACKAGE,
+    nessa aula, pq ele só quer cobrir a parte do eloquent, nessa série..
+
+
+
+
+
+
+
+
+-> PQ O SETUP DO LARAVEL É BEM EXTENSO...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA SETUPPAR 
+    O ELOQUENT, PRECISAMOS:
+
+
+
+
+
+
+1) DO COMPONENT 'DATABASE' DO LARAVEL,
+    QUE EXISTE 
+
+
+
+    em 
+
+    'Illuminate/database'...
+
+
+
+
+
+
+
+2) DO package de 'events' 
+    DO LARAVEL,
+
+    PARA CONSEGUIRMOS FAZER 'HOOK IN' AOS 
+
+    EVENTS DO ELOQUENT...
+
+
+
+    isso em 
+
+    'Illuminate/events'
+
+
+
+
+
+
+
+
+
+
+
+INSTALAMOS OS DOIS COM 
+
+
+
+composer require Illuminate/database Illuminate/events
