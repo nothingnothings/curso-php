@@ -1,0 +1,2760 @@
+
+
+
+
+
+
+
+O DOCTRINE TEM OUTRA LIBRARY, CHAMADA DE 'MIGRATIONS'...
+
+
+
+
+
+
+
+
+
+--> FORNECE MAIS UTILIDADES, ALÉM DE 'ORM' E 'DBAL'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MIGRATIONS --> SÃO COMO 1 VERSIONING SYSTEM,
+                    MAS PARA SUAS DATABASES...
+
+
+
+
+
+
+
+
+'''JUST LIKE USING GIT,
+    IN WHICH YOU CAN HAVE 
+
+    MULTIPLE TEAM MEMBERS WORKING ON THE SAME STUFF'',
+
+
+    ''MIGRATIONS CAN ALSO GET THE DATABASE SET UP 
+    PROPERLY, AND CAN ALWAYS BE IN SYNC...''
+
+
+
+
+
+
+
+
+
+--> ''WE CAN INSTALL THE MIGRATIONS LIBRARY USING THE COMPOSER''...
+
+
+
+
+
+
+
+
+
+
+
+BASTA RODAR 
+
+
+
+''composer require doctrine/migrations'...
+
+
+
+
+
+
+
+
+
+
+
+-> fazemos isso no nosso docker container...
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+DEPOIS DISSO,
+
+
+PRECISAMOS  
+
+
+
+
+CRIAR A CONFIG FILE DAS MIGRATIONS,
+
+QUE SE CHAMARÁ 
+
+DE 
+
+
+
+
+'migrations.php'...
+
+
+
+
+
+
+
+
+--> VAMOS COLOCAR ESSA FILE NO ROOT DE NOSSO PROJECT PHP...
+
+
+
+
+
+-_> pegamos um snippet modelo,
+
+que é este:
+
+
+
+
+
+
+
+
+<?php
+
+return [
+    'table_storage' => [
+        'table_name' => 'doctrine_migration_versions',
+        'version_column_name' => 'version',
+        'version_column_length' => 191,
+        'executed_at_column_name' => 'executed_at',
+        'execution_time_column_name' => 'execution_time',
+    ],
+    'migrations_paths' => [
+        'MyProject\Migrations' => '/data/doctrine/migrations/lib/MyProject/Migrations',
+        'MyProject\Component\Migrations' => './Component/MyProject/Migrations',
+    ],
+    'all_or_nothing' => true,
+    'transactional' => true,
+    'check_database_platform' => true,
+    'organize_migrations' => 'none',
+    'connection' => null,
+    'em' => null,
+];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+ABRIMOS ESSE CODE...
+
+
+
+
+
+
+
+
+
+
+--> 'table_storage'  --> É 
+
+                    ONDE AS VERSIONS 
+                    DE MIGRATION 
+
+                    SERÃO ARMAZENADAS...
+
+
+                
+
+                -> O DOCTRINE UTILIZA ESSA INFO 
+                PARA TRACKAR QUAIS MIGRATIONS FORAM EXECUTADAS...
+
+
+    
+    -> VAMOS DEIXAR AS KEYS E VALUES DE 'table_storage'
+
+
+    COMO OS DEFAULTS,
+
+
+
+    MAS VAMOS TROCAR 
+    os 
+
+    'migration_paths'...
+
+
+
+
+
+
+
+
+--> 'migration_paths'  --> O DOCTRINE VAI BUSCAR 
+                        AS MIGRATION FILES 
+                        NESSES DIRETÓRIOS...
+
+
+
+
+
+
+
+-> VAMOS MUDAR 'MyProject\Migrations',
+
+    deixar 'Migrations', apenas....
+
+
+
+
+
+
+-> O PATH TAMBÉM ALTERAREMOS, DEIXAREMOS apenas '/migrations'...
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php
+
+return [
+    'table_storage' => [
+        'table_name' => 'doctrine_migration_versions',
+        'version_column_name' => 'version',
+        'version_column_length' => 191,
+        'executed_at_column_name' => 'executed_at',
+        'execution_time_column_name' => 'execution_time',
+    ],
+    'migrations_paths' => [
+        // 'MyProject\Migrations' => '/data/doctrine/migrations/lib/MyProject/Migrations',
+        // 'MyProject\Component\Migrations' => './Component/MyProject/Migrations',
+        'Migrations' => '/migrations',
+    ],
+    'all_or_nothing' => true,
+    'transactional' => true,
+    'check_database_platform' => true,
+    'organize_migrations' => 'none',
+    'connection' => null,
+    'em' => null,
+];
+
+
+
+
+
+
+
+
+
+
+BASICAMENTE,
+
+
+
+
+
+
+É 
+
+
+'namespace => actual_path'....
+
+
+
+
+
+
+o namespace é 'Migrations',
+
+
+e o 
+
+path é '/migrations'... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> DEIXAREMOS O RESTO DAS CONFIGURAÇÕES COM OS VALUES DEFAULT...
+
+
+
+
+
+
+
+
+
+
+-> DEPOIS DISSO, PRECISAMOS CONFIGURAR A CONNECTION 
+PARA NOSSAS MIGRATIONS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO É PQ O DOCTRINE PRECISA __ 
+
+
+'KNOW  __ HOW__ AND __ WHEN__ TO CONNECT 
+TO THE DATABASE''..
+
+
+
+
+
+
+
+
+
+
+
+--> A MANEIRA MAIS SIMPLES DE ESTABELECER ESSA CONNECTION 
+
+
+É POR MEIO DE UM ARQUIVO 
+
+
+'migrations-db.php',
+
+NO ROOT DE SEU PROJECT...
+
+
+
+
+
+
+
+AÍ, NESSE ARQUIVO, VC TEM AS CREDENTIALS DE SUA DATABASE,
+
+TIPO ASSIM:
+
+
+
+<?php
+
+return [
+    'dbname' => 'migrations_docs_example',
+    'user' => 'root',
+    'password' => '',
+    'host' => 'localhost',
+    'driver' => 'pdo_mysql',
+];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É CLARO QUE ISSO É INSEGURO, E VC DEVE USAR UM 
+ARQUIVO '.env' adequado...
+
+
+
+
+ESSAS SÃO AS MESMAS CONFIG OPTIONS QUE USAMOS QUANDO SETTAMOS 
+
+
+A DBAL CONNECTION, ANTERIORMENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+--> COMO ESTAMOS USANDO COM ORM 
+    E TRABALHANDO COM 1 APP QUE 
+
+
+    USA O 'ENTITYMANAGER',
+
+
+
+    PODEMOS USAR A CONEXÃO JÁ EXISTENTE NO APP ATUAL,
+
+    USANDO O ENTITY MANAGER (passar como value, em vez de 
+    
+    usar esse return do 'migrations-db.php')..
+
+
+
+
+
+
+
+
+
+--> PARA FAZER ISSO, 
+BASTA LER, NOS DOCS,
+
+
+O SNIPPET 
+
+QUE UTILIZA O ENTITY MANAGER...
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+<?php
+
+require 'vendor/autoload.php';
+
+use Doctrine\DBAL\DriverManager;
+use Doctrine\Migrations\Configuration\EntityManager\ExistingEntityManager;
+use Doctrine\Migrations\Configuration\Migration\PhpFile;
+use Doctrine\Migrations\DependencyFactory;
+use Doctrine\ORM\Tools\Setup;
+use Doctrine\ORM\EntityManager;
+
+$config = new PhpFile('migrations.php');  // Or use one of the Doctrine\Migrations\Configuration\Configuration\* loaders
+
+$paths = [__DIR__ . '/lib/MyProject/Entities'];
+$isDevMode = true;
+
+$ORMConfig = Setup::createAttributeMetadataConfiguration($paths, $isDevMode);
+$connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
+
+$entityManager = new EntityManager($connection, $ORMConfig);
+
+return DependencyFactory::fromEntityManager($config, new ExistingEntityManager($entityManager));
+
+
+
+
+
+
+
+
+
+
+
+
+--> DEVEMOS COPIAR ESSE CÓDIGO,
+
+
+E AI 
+CRIAR 
+
+O ARQUIVO 
+
+
+
+
+'cli-config.php'...,
+
+no root do projeto:
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+<?php
+
+require 'vendor/autoload.php';
+
+use Doctrine\DBAL\DriverManager;
+use Doctrine\Migrations\Configuration\EntityManager\ExistingEntityManager;
+use Doctrine\Migrations\Configuration\Migration\PhpFile;
+use Doctrine\Migrations\DependencyFactory;
+use Doctrine\ORM\Tools\Setup;
+use Doctrine\ORM\EntityManager;
+
+$config = new PhpFile('migrations.php');  // Or use one of the Doctrine\Migrations\Configuration\Configuration\* loaders
+
+$paths = [__DIR__ . '/lib/MyProject/Entities'];
+$isDevMode = true;
+
+$ORMConfig = Setup::createAttributeMetadataConfiguration($paths, $isDevMode);
+$connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
+
+$entityManager = new EntityManager($connection, $ORMConfig);
+
+return DependencyFactory::fromEntityManager($config, new ExistingEntityManager($entityManager));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+LEMBRE-SE QUE, NAS ÚLTIMAS AULAS,
+
+
+UTILIZMAOS UM ARQUIVO 
+
+
+'doctrine_orm_example.php',
+
+
+
+
+EM QUE ESTÁVAMOS SETTANDO O ENTITY MANAGER E ETC...
+
+
+
+
+
+
+
+
+-> PODEMOS COPIAR 1 POUCO DO CÓDIGO DE LÁ,
+
+COMO 'entityManager'
+
+
+
+
+
+e a parte de load de env:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+require 'vendor/autoload.php';
+
+use Doctrine\DBAL\DriverManager;
+use Doctrine\Migrations\Configuration\EntityManager\ExistingEntityManager;
+use Doctrine\Migrations\Configuration\Migration\PhpFile;
+use Doctrine\Migrations\DependencyFactory;
+use Doctrine\ORM\Tools\Setup;
+use Dotenv\Dotenv;
+
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+$config = new PhpFile('migrations.php');  // Or use one of the Doctrine\Migrations\Configuration\Configuration\* loaders
+
+$params = [
+    'dbname' => $_ENV['DB_DATABASE'],
+    'user' => $_ENV['DB_USER'],
+    'password' => $_ENV['DB_PASS'],
+    'host' => $_ENV['DB_HOST'],
+    'driver' => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
+    'port' => $_ENV['DB_PORT'] ?? 3307,
+];
+
+$entityManager = \Doctrine\ORM\EntityManager::create(
+    $params,
+    \Doctrine\ORM\Tools\Setup::createAttributeMetadataConfiguration([__DIR__ . '/src/Entity'], true)
+);
+
+$paths = [__DIR__ . '/App/Entity'];
+$isDevMode = true;
+
+$ORMConfig = Setup::createAttributeMetadataConfiguration($paths, $isDevMode);
+$connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
+
+return DependencyFactory::fromEntityManager($config, new ExistingEntityManager($entityManager));
+
+
+
+
+
+
+
+
+
+
+
+
+
+PODERÍAMOS, É CLARO,
+
+
+PEGAR O ENTITYMANAGER DA 
+
+APP INSTANCE,
+
+
+'IF WE WERE BOOTSTRAPPING THE APP AND CONFIGURING THE 
+    ENTITYMANAGER THERE',
+
+
+
+
+MAS NÃO ESTAMOS FAZENDO ISSO NESSE PROJETO,
+ 
+ POR ISSO VAMOS MANTER AS COISAS SIMPLES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS ANTES DE CRIARMOS E GERARMOS MIGRATIONS,
+
+DEVEMOS CRIAR 1 FOLDER DE NOME 'migrations'...
+
+
+
+
+
+
+
+
+
+ISSO PQ NO 'migrations.php',
+
+ESTAMOS MAPPEANDO O NAMESPACE DE 'Migrations'
+
+
+AO DIRECTORY DE 'migrations'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS GERAR 1 SAMPLE MIGRATION CLASS 
+
+COM 
+
+
+
+O COMANDO 
+
+
+
+'doctrine migrations generate'...
+
+
+
+
+
+
+
+
+
+
+BASTA RODAR ASSIM, LÁ NO TERMINAL DO DOCKER, no bash:
+
+
+
+
+
+
+./vendor/bin/doctrine-migrations generate
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+root@bf506117eb89:/var/www# ./vendor/bin/doctrine-migrations generate
+
+
+
+ Generated new migration class to "/var/www/migrations/Version20240828190734.php"
+
+ To run just this migration for testing purposes, you can use migrations:execute --up 'Migrations\Version20240828190734'
+
+ To revert the migration you can use migrations:execute --down 'Migrations\Version20240828190734'
+
+root@bf506117eb89:/var/www# 
+
+
+
+
+
+
+
+
+
+
+
+ISSO TERÁ GERADO 1 NOVA MIGRATION CLASS NESSE DIRECTORY...
+
+
+
+
+
+A CLASS SEMPRE VAI COMEÇAR COM  O NAME 'Version'...
+
+
+
+É SEMPRE 1 VERSION ALGUMA COISA...
+ 
+
+
+ NO CASO,
+
+
+
+ É 
+
+ 'Version + timestamp'...
+
+
+
+
+
+EX:
+
+
+
+
+
+Version20240828190734.php
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+DEPOIS DISSO, PODEMOS OU RODAR ESSA MIGRATION,
+
+
+COM ESTE COMANDO:
+
+
+
+
+migrations:execute --up 'Migrations\Version20240828190734'
+
+
+
+
+
+
+OU, ENTÃO, PODEMOS FAZER ROLLBACK DE ESSA MIGRATION,
+
+
+COM O COMANDO 
+
+
+
+migrations:execute --down  'Migrations\Version20240828190734' 
+
+
+
+
+
+
+
+
+
+
+
+
+--> DEVEMOS 
+    ABRIR ESSA CLASS, De 'VERSION'...
+
+
+    PARA ENTENDERMOS O QUE ESSE 'UP' E 'DOWN' 
+
+    METHODS/FLAGS FAZEM...
+
+
+
+
+
+    EX:
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace Migrations;
+
+use Doctrine\DBAL\Schema\Schema;
+use Doctrine\Migrations\AbstractMigration;
+
+/**
+ * Auto-generated Migration: Please modify to your needs!
+ */
+final class Version20240828190734 extends AbstractMigration
+{
+    public function getDescription(): string
+    {
+        return '';
+    }
+
+    public function up(Schema $schema): void
+    {
+        // this up() migration is auto-generated, please modify it to your needs
+
+    }
+
+    public function down(Schema $schema): void
+    {
+        // this down() migration is auto-generated, please modify it to your needs
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+ESSAS CLASSES, 'Versionxxxxx',
+
+
+
+sempre devem fazer EXTEND da abstract class 'AbstractMigration'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> NESSE TIPO DE CLASS, DEVE SER PROVIDENCIADO,
+
+NO MÍNIMO:
+
+
+1) method 'up()'
+
+
+
+
+2) method 'down()'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O METHOD DE 'UP' 
+É EXECUTADO SEMPRE QUE MIGRATIONS SÃO EXECUTADOS 
+
+'FORWARD'... --> É POR ISSO QUE COLOCAMOS 
+
+                A TABLE CREATION LOGIC,
+
+
+                TABLE MODIFICATION,
+
+
+                TABLE DATA INSERTION, ETC...
+
+
+
+
+
+
+
+
+
+
+
+
+-> JÁ O METHOD DE 'DOWN' É UTILIZADO 
+    PARA REVERTER 'WHATEVER WAS DONE IN THE UP() METHOD''...
+
+
+
+
+
+
+
+
+
+
+
+CERTO... FAZ SENTIDO...
+
+
+
+
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE SE 1 TABLE FOI CRIADA COM O METHOD DE 'up',
+
+O METHOD DE 'down' vai fazer 
+
+
+
+o drop de essa table...
+
+
+
+
+
+
+
+
+
+
+
+--> SE ESTAMOS DROPPANDO 1 COLUMN OU TABLE NO METHOD DE 'up',
+
+
+
+VAMOS QUERER _ CRIAR_ ESSE TABLE OU ADICIONAR ESSA COLUMN,
+
+NO METHOD DE 'down()',
+ 
+ e vice-versa...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+QUICK-NOTE:
+
+
+
+
+
+___SEMPRE_ TENTE EVITAR RODAR MIGRATIONS (up ou down) EM PRODUCTION,
+
+PQ ISSO PODE LEVAR 
+
+
+à DESTRUCTION DE LIVE DATA...
+
+
+
+
+
+
+
+
+
+
+
+--> MAS MIGRATIONS SEMPRE SÃO ÚTEIS, DURANTE DEVELOPMENT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS PODEMOS 
+    OVERWRITE ALGUNS DOS METHODS QUE SÃO PROVIDENCIADOS PELA ABSTRACT 
+    CLASS DE MIGRATION,
+
+    PARA FAZER 'EXTEND' DA FUNCTIONALITY...
+
+
+
+
+
+
+
+
+
+
+
+EX (AbstractMigration):
+
+
+
+
+
+    /**
+     * @throws MigrationException|DBALException
+     */
+    public function preUp(Schema $schema): void
+    {
+    }
+
+    /**
+     * @throws MigrationException|DBALException
+     */
+    public function postUp(Schema $schema): void
+    {
+    }
+
+
+
+
+
+
+
+
+
+
+
+-> ESSES METHODS AÍ, NO CASO,
+
+
+    SÃO TRIGGADOS 
+
+
+
+
+    'BEFORE' E 'AFTER'
+     
+
+    
+
+    O METHOD DE 'up()"
+
+
+    SER EXECUTADO,
+
+    quando chamamos o comando de 
+
+
+
+
+
+
+migrations:execute --up 'Migrations\Version20240828190734'
+
+
+
+ 
+
+
+
+
+
+
+
+-- MESMA COISA COM 'preDown' e 'postDown'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... AGORA VAMOS ACTUALLY CRIAR 1 TABLE, COM ESSA MIGRATION... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO,
+
+
+
+VAMOS CRIAR 1 NOVA TABLE DE 'users',
+
+
+QUE ATUALMENTE NÃO TEMOS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OS METHODS DE UP E DOWN:
+
+
+
+
+
+
+
+
+    public function up(Schema $schema): void
+    {
+        // this up() migration is auto-generated, please modify it to your needs
+
+    }
+
+    public function down(Schema $schema): void
+    {
+        // this down() migration is auto-generated, please modify it to your needs
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+
+eles possuem acesso a esse object, '$schema'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS USAR ESSE OBJECT PARA CRIAR 
+
+
+    SCHEMAS, TABLES, COLUMNS, ETC...
+
+
+
+
+
+
+
+
+
+BASTA ESCREVER TIPO ASSIM:
+
+
+
+   public function up(Schema $schema): void 
+    {
+        
+      $users = $schema->createTable('users');
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO VAI CRIAR ESSA TABLE, de nome 'users'...
+
+
+
+
+
+
+
+
+
+--> PODEMOS ASSIGNAR COLUMNS A ESSA TABLE,
+
+    BASTA USAR O METHOD DE 'addColumn' 
+
+
+    nesse object de '$users',
+
+    TIPO ASSIM:
+
+
+
+
+
+    
+    public function up(Schema $schema): void
+    {
+        // This up() will create the users table, with the following columns:
+        $users = $schema->createTable('users');
+
+        $users->addColumn('id', Types::INTEGER, ['autoincrement' => true]);
+        $users->addColumn('user_name', Types::STRING);
+        $users->addColumn('created_at', Types::DATETIME_MUTABLE);
+        $users->setPrimaryKey(['id']);
+    }
+
+
+
+
+
+
+
+
+
+
+--> NO METHOD DE DOWN,
+TEMOS QUE REVERTER TUDO QUE FIZEMOS 
+
+NO METHOD DE 'up'...
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace Migrations;
+
+use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Types\Types;
+use Doctrine\Migrations\AbstractMigration;
+
+/**
+ * Auto-generated Migration: Please modify to your needs!
+ */
+final class Version20240828190734 extends AbstractMigration
+{
+    public function getDescription(): string
+    {
+        return '';
+    }
+
+    public function up(Schema $schema): void
+    {
+        // This up() will create the users table, with the following columns:
+        $users = $schema->createTable('users');
+
+        $users->addColumn('id', Types::INTEGER, ['autoincrement' => true]);
+        $users->addColumn('user_name', Types::STRING);
+        $users->addColumn('created_at', Types::DATETIME_MUTABLE);
+        $users->setPrimaryKey(['id']);
+    }
+
+    public function down(Schema $schema): void
+    {
+        // In the 'down()' method, we revert everything that we did in the 'up()' method:
+        $schema->dropTable('users');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA VAMOS RODAR AS MIGRATIONS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS OU:
+
+
+
+1) RUN A SINGLE MIGRATION FILE 
+
+
+
+
+
+2) RUN ALL MIGRATIONS IN ONE GO
+
+(to have the latest version)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA RODAR TODAS AS MIGRATIONS,
+    from old to new,
+
+
+    BASTA RODAR 
+
+
+
+    './vendor/bin/doctrine-migrations migrate',
+
+
+    LÁ NO DOCKER...
+
+
+
+
+
+
+
+
+
+GANHEI UM ERRO (sinal de que funcionou o migrate em si):
+
+
+
+
+
+  The table with name 'home_db.users' already exists.
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS ISSO FUNCIONA, FAZ TOTAL SENTIDO..
+
+
+
+
+
+
+
+
+
+mas além da table de 'users',
+
+
+ENCONTRAMOS A TABLE DE 'doctrine_migration_versions',
+
+
+recém  criada,
+
+
+
+
+
+
+QUE É A TABLE USADA PELO DOCTRINE PARA TRACKAR AS VERSIONS...
+
+
+
+
+
+
+
+A ENTRY FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+Migrations\Version20240828190734
+
+
+
+Migrations\Version20240828190734	2024-08-28 19:31:12	    271
+
+
+
+
+
+
+
+
+
+COM ISSO, TEMOS:
+
+
+1) A MIGRATION CLASS EXECUTADA 
+
+
+
+
+2) O TEMPO EM QUE FOI EXECUTADA 
+
+
+
+
+3) O TEMPO DE EXECUÇÃO, EM ms...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NÓS PODEMOS, AINDA,
+
+
+
+
+PASSAR 1 OPTIONAL VERSION,
+
+ALIAS DE VERSION,
+
+
+
+
+AO COMANDO DE 'doctrine-migrations migrate'....
+
+
+
+
+
+
+
+
+-> ISSO FARÁ 
+
+COM QUE 
+
+
+__ AS MIGRATIONS SEJAM EXECUTADAS SOMENTE ATÉ AQUELE 'PONTO'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE NÃO PROVIDENCIAMOS ESSE ARGUMENTO/OPÇÃO,
+
+    O 'doctrine-migrations migrate' vai, por default,
+
+    EXECUTAR TODOS OS ARQUIVOS DE MIGRATION, TODAS AS CLASSES,
+
+    FROM THE OLDEST TO THE LATEST...
+
+
+
+
+
+
+
+
+
+
+
+--> ''WE CAN ROLLBACK/REVERT THE MIGRATIONS BY 
+PROVIDING A VERSION ALIAS __ THAT 
+
+IS OLDER THAN THE CURRENT VERSION...''
+
+
+
+
+
+
+
+
+''OR WE CAN PASS THE 'first' keyword,
+    as the FIRST ARGUMENT,
+    WHICH WILL ROLLBACK THE 
+    MIGRATIONS 
+
+
+    AAAALLLL THE WAY TO THE FIRST VERSION....''
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+doctrine-migrations migrate first
+
+
+
+
+
+
+
+
+
+
+
+ISSO VAI ROLLBACK AS MIGRATIONS, ALL THE WAY TO THE FIRST VERSION... 
+
+
+
+
+
+
+
+
+O QUE ISSO FAZ, ACTUALLY,
+
+É RODAR 
+
+
+
+__TODOS __ OS METHODS DE 'down()',
+
+
+EM TODAS AS CLASSES 
+
+DE MIGRATION,
+
+
+desde a mais recente, até a mais velha...
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE ESSE MECANISMO FUNCIONA... 
+
+
+
+
+
+
+
+
+
+
+--> SE RODARMOS 'doctrine-migrations migrate first',
+
+
+
+
+VEREMOS QUE A TABLE DE 'users' vai sumir,
+
+sinal que o comando deu certo...
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+OS OUTROS ALIASES QUE PODEMOS UTILIZAR SÃO:
+
+
+
+
+
+
+
+
+
+1) prev 
+
+
+
+2) next 
+
+
+
+3) latest...
+
+
+
+
+
+
+
+
+
+
+
+
+
+PREV -> VAI FAZER ROLLBACK À VERSION ANTERIOR...
+
+
+
+
+NEXT -> WILL MIGRATE TO THE NEXT VERSION 
+
+
+
+
+
+LATEST --> VAI MIGRATE 'ALL THE WAY TO THE LATEST VERSION'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> TAMBÉM PODEMOS OBTER O STATUS DE NOSSA CURRENT MIGRATION (a migration atual),
+
+    por meio do comando 
+
+    de 'status',
+
+
+    TIPO ASSIM:
+
+
+
+
+./vendor/bin/doctrine-migrations status
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+root@bf506117eb89:/var/www# ./vendor/bin/doctrine-migrations status
+
+
+
++----------------------+----------------------+------------------------------------------------------------------------+
+| Configuration
+           |
++----------------------+----------------------+------------------------------------------------------------------------+
+| Storage              | Type                 | Doctrine\Migrations\Metadata\Storage\TableMetadataStorageConfiguration |
+|                      | Table Name           | doctrine_migration_versions
+           |
+|                      | Column Name          | version
+           |
+|----------------------------------------------------------------------------------------------------------------------|
+| Database             | Driver               | Doctrine\DBAL\Driver\PDO\MySQL\Driver
+           |
+|                      | Name                 | HOME_DB
+           |
+|----------------------------------------------------------------------------------------------------------------------|
+| Versions             | Previous             | 0
+           |
+|                      | Current              | 0
+           |
+|                      | Next                 | Migrations\Version20240828190734 
+           |
+|                      | Latest               | Migrations\Version20240828190734 
+           |
+|----------------------------------------------------------------------------------------------------------------------|
+| Migrations           | Executed             | 0
+           |
+|                      | Executed Unavailable | 0
+           |
+|                      | Available            | 1
+           |
+|                      | New                  | 1
+           |
+|----------------------------------------------------------------------------------------------------------------------|
+| Migration Namespaces | Migrations           | /var/www/migrations
+           |
++----------------------+----------------------+------------------------------------------------------------------------+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO NOS DÁ UM BOM OUTLINE DO STATUS DAS MIGRATIONS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ALÉM DE ESCREVER MIGRATIONS MANUALMENTE,
+
+PODEMOS TAMBÉM GENERATE MIGRATIONS 
+
+
+
+
+''BASED ON THE DIFFERENCE BETWEEN 
+    THE __ ENTITIES _ AND THE ACTUAL 
+    DATABASE SCHEMA''...
+
+
+
+
+
+
+
+
+
+--> OU SEJA,
+
+O DOCTRINE VAI LER SEU CÓDIGO,
+
+
+PERCEBER TODAS AS ENTITIES,
+E AÍ 
+
+VAI CRIAR TODAS AS TABLES CORRESPONDENTES,
+
+LÁ 
+
+
+NA SUA DATABASE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> FINALMENTE UMA FEATURE __ ÚTIL_...
+
+
+
+
+
+
+
+
+
+
+--> ISSO É ÚTIL QUANDO ESTAMOS TRABALHANDO 
+
+    COM O ORM E ENTITIES...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, DEVEMOS USAR O COMANDO DE 'diff',
+
+
+
+TIPO 
+
+ASSIM:
+
+
+
+
+./vendor/bin/doctrine-migrations diff
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO FICA O EFEITO DISSO?
+
+
+
+
+
+
+
+
+
+
+
+BEM, PRIMEIRAMENTE, EU FICO COM 1 ERROR:
+
+
+
+  File mapping drivers must have a valid directory path, however the given path [/var/www/src/Entity] see   
+  ms to be incorrect!                                                                                       
+                     
+
+
+
+
+
+
+
+CONSERTEI O PATH, FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+$entityManager = \Doctrine\ORM\EntityManager::create(
+    $params,
+    \Doctrine\ORM\Tools\Setup::createAttributeMetadataConfiguration([__DIR__ . '/app/Entities'], true)
+);
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, OBTIVE ISTO AQUI, NO TERMINAL:
+
+
+
+
+
+
+ Generated new migration class to "/var/www/migrations/Version20240828194515.php"
+
+ To run just this migration for testing purposes, you can use migrations:execute --up 'Migrations\\Version20240828194515'
+
+ To revert the migration you can use migrations:execute --down 'Migrations\\Version20240828194515'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, ESSE CÓDIGO AÍ, NOSSA MIGRATION FICOU ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace Migrations;
+
+use Doctrine\DBAL\Schema\Schema;
+use Doctrine\Migrations\AbstractMigration;
+
+/**
+ * Auto-generated Migration: Please modify to your needs!
+ */
+final class Version20240828194515 extends AbstractMigration
+{
+    public function getDescription(): string
+    {
+        return '';
+    }
+
+    public function up(Schema $schema): void
+    {
+        // this up() migration is auto-generated, please modify it to your needs
+        $this->addSql('CREATE TABLE invoice_items (id INT AUTO_INCREMENT NOT NULL, invoice_id INT NOT NULL, description VARCHAR(255) NOT NULL, quantity INT NOT NULL, unit_price NUMERIC(10, 2) NOT NULL, INDEX IDX_DCC4B9F82989F1FD (invoice_id), PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8 COLLATE `utf8_unicode_ci` ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE invoices (id INT AUTO_INCREMENT NOT NULL, amount NUMERIC(10, 2) NOT NULL, invoice_number VARCHAR(255) NOT NULL, status INT NOT NULL, created_at DATETIME NOT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8 COLLATE `utf8_unicode_ci` ENGINE = InnoDB');
+        $this->addSql('ALTER TABLE invoice_items ADD CONSTRAINT FK_DCC4B9F82989F1FD FOREIGN KEY (invoice_id) REFERENCES invoices (id)');
+    }
+
+    public function down(Schema $schema): void
+    {
+        // this down() migration is auto-generated, please modify it to your needs
+        $this->addSql('ALTER TABLE invoice_items DROP FOREIGN KEY FK_DCC4B9F82989F1FD');
+        $this->addSql('DROP TABLE invoice_items');
+        $this->addSql('DROP TABLE invoices');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA, É UMA MÃO NA RODA... CRIA ESSA MIGRATION TODA PARA NÓS,  AUTOMATICAMENTE...
+
+
+
+
+PODEMOS USAR 'up' e 'down' 
+
+
+para ALTERARMOS NOSSA TABLE, COM ESSA MIGRATION...
+
+
+
+
+
+
+
+
+
+
+OK.. RODEI ESSA MIGRATION...
+
+
+
+
+
+
+
+FIQUEI COM INVOICE_ITEMS,
+
+INVOICES E USERS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- QUANDO RODAMOS O COMANDO DE 'DIFF',
+
+O 
+
+
+DOCTRINE É CAPAZ DE IDENTIFICAR AS DIFFERENCES 
+
+
+ENTRE O DATABASE SCHEMA 
+E AS ENTITIES DE NOSSO CÓDIGO,
+
+NA PASTA 'ENTITIES'...
+
+
+
+
+
+
+--> ISSO PODE FAZER COM QUE SUAS TABLES SEJAM DROPPADAS,
+
+SE VC TIVER, POR EXEMPLO:
+
+
+
+1) uma table de nome 'cars' 
+
+
+
+2) mas NÃO TEM ENTITY ALGUMA DE NOME 'Cars', no seu  
+    código, na pasta 'Entities', com o attribute de 'Entity',
+
+
+
+
+
+SE VC N TIVER ESSA ENTITY, 'Cars',
+
+
+SUA TABLE DE 'cars', lá na database, SERÁ DROPPADA,
+
+
+
+NA SUA MIGRATION...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO TUDO É MT ÚTIL,
+    PQ MANTÉM O SCHEMA DA DATABASE SINCRONIZADO 
+    COM SUAS ENTITIES, COM SEU CÓDIGO...
+
+
+
+
+
+
+
+
+
+-> PQ SE FIZERMOS CHANGES 
+    NAS NOSSAS ENTITIES,
+
+
+    COMO 'CREATE A DIFFERENT MAPPING',
+
+
+    OU 
+
+
+    'CHANGE A MAPPING',
+
+
+    OU 
+
+    'CREATE A NEW ENTITY',
+
+
+
+
+    NÓS __ NÃO PRECISAMOS 
+
+
+    MANUALMENTE 
+
+
+    _ CRIAR _ AS MIGRATION CLASSES 
+
+
+    PARA ESSAS MUDANÇAS... PODEMOS SIMPLESMENTE 
+
+
+    RODAR ESSE COMANDO DE 'DIFF',
+
+
+
+    PARA QUE O DOCTRINE GERE ISSO AUTOMATICAMENTE PARA NÓS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O QUE O PROFESSOR FAZ, AGORA,
+
+    É O DROP DE TODAS AS TABLES,
+
+
+
+    PARA ENTÃO RODAR 'diff' novamente,
+
+ 
+    PARA 
+
+
+
+    FICARMOS COM O INITIAL DATABASE SCHEMA...
+
+
+
+
+
+
+
+--> DEPOIS DISSO, FAREMOS ALGUMAS CHANGES E RODAREMOS 'DIFF' NOVAMENTE,
+
+    PARA OBSERVARMOS O QUE ACONTECE...
+
+
+
+
+
+
+
+
+
+
+
+
+OK.. ISSO FUNCIONOU...
+
+
+
+ELE CRIOU 'INVOICES' E 'INVOICE_ITEMS',
+
+
+
+
+COM A FOREIGN KEY ADEQUADA...
+
+
+
+MAS NENHUMA TABLE DE 'USERS' FOI CRIADA,
+
+
+JUSTAMENTE 
+PQ 
+
+
+NÃO TEMOS NENHUMA ENTITY DE NOME 'users'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS AGORA DEVEMOS ADICIONAR 1  NOVO MAPPING,
+    NA ENTITY DE 'INVOICE'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> DIGAMOS QUE QUEREMOS TER A 'DUE_DATE'
+
+
+DA INVOICE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, ABRIMOS A ENTITY DE 'Invoice.php',
+
+
+
+E AÍ 
+
+
+
+
+CRIAMOS A NOVA PROPERTY, TIPO ASSIM:
+
+
+
+
+
+
+
+
+    #[Column('created_at')]
+    private \DateTime $createdAt;
+
+    #[Column('due_date')]
+    private \DateTime $dueDate;
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE, SE TENTAMOS CRIAR ESSA ENTITY, NO NOSSO CÓDIGO,
+FALHAMOS IMEDIATAMENTE,
+
+
+ISSO PQ NÃO TEMOS ESSA COLUMN DE 'due_date',
+
+
+LÁ NA TABLE de 'invoice'...
+
+
+
+
+
+
+
+
+
+-> UMA OPTION SERIA CRIAR A MIGRATION MANUALMENTE,
+    OU ENTAÕ RODAR O COMANDO DE 'DIFF',
+
+    PARA VER SE ESSA COLUMN É AUTOMATICAMENTE GERADA,
+
+    NA MIGRATION...
+
+
+
+
+EX:
+
+
+
+
+root@bf506117eb89:/var/www# ./vendor/bin/doctrine-migrations diff
+
+
+
+ Generated new migration class to "/var/www/migrations/Version20240828200322.php"
+
+ To run just this migration for testing purposes, you can use migrations:execute --up 'Migrations\\Version20240828200322'
+
+ To revert the migration you can use migrations:execute --down 'Migrations\\Version20240828200322'
+
+root@bf506117eb89:/var/www# ./vendor/bin/doctrine-migrations migrate
+
+
+
+
+ WARNING! You are about to execute a migration in database "HOME_DB" that could result in schema changes and data loss. Are you sure you wish to continue? (yes/no) [yes]:
+ > y
+
+
+root@bf506117eb89:/var/www# 
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... FUNCIONOU...
+
+
+
+
+
+
+
+E AGORA FICAMOS COM A NOVA MIGRATION FILE,
+
+COM ESSA ALTERAÇÃO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ALÉM DE SERMOS CAPAZES DE CREATE TABLES E COLUMNS USANDO 
+O OBJECT DE '$schema->xx''',
+
+
+
+
+
+
+
+
+SOMOS CAPAZES TAMBÉM DE USAR SQL RAW...
+
+
+
+
+
+
+
+
+
+
+
+--> MTOS DEVELOPERS PREFEREM RAW SQL,
+
+
+PQ 
+
+ISSO TE DÁ TODA 
+INFORMATION NECESSÁRIA 
+
+SOBRE 
+
+
+'''HOW THE TABLE IS CREATED'' 
+SEM PRECISAR 
+
+SABER QUAIS OS DEFAULT VALUES 
+
+DAQUELES METHODS SÃO, QUAL SQL GERAM, ETC...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ACABAMOS COM ESSA LESSON... 
+
+
+
+
+ACABAMOS COM OS BASICS DO DOCTRINE...
+
+
+
+
+
+
+
+
+
+
+-> SE QUEREMOS APRENDER MAIS SOBRE O DOCTRINE, DEVEMOS LER OS DOCS...
+
+
+
+
+
+
+
+
+
+-> A MAIN REASON DE ESTUDARMOS DOCTRINE 
+É 
+
+
+A DE QUE 
+
+
+ESSES SÃO TOPICOS QUE 
+
+DEVEMOS ENTENDER, ANTES DE ESTUDAR FRAMEWORKS...
+
+
+
+
+
+
+
+
+
+
+
+EM MTOS CASOS, N TRABALHAREMOS DIRETAMENTE COM DOCTRINE,
+
+
+MAS TRABALHAREMOS POR MEIO DE 1 FRAMEWORK COMO 
+
+
+'SYMFONY',
+
+'LARAVEL', ETC...
+
+
+
+
+
+
+NA PRÓXIMA AULA,
+
+FALAREMOS 
+
+SOBRE 'ACTIVE RECORD PATTERN'...
