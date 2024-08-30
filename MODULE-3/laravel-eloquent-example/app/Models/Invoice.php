@@ -25,7 +25,7 @@ class Invoice extends Model
     const UPDATED_AT = null; // we define a 'updated_at' property as null if we don't want to use/don't have a field that isn't 'updated_at' as the column name of the 'updated_at' column of this specific table.
 
 
-
+    // * This is what sets the relation between the Invoice and the InvoiceItem
     public function items()
     {
         return $this->hasMany(InvoiceItem::class);

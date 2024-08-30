@@ -2540,3 +2540,793 @@ TIPO ASSIM:
 
 
 
+
+
+    public function items()
+    {
+        return $this->hasMany(InvoiceItem::class);
+    }
+
+
+
+
+
+
+
+
+OK... ISSO RETORNA A RELATION DE 'HASMANY'....
+
+
+
+
+
+
+
+NOVAMENTE, O ELOQUENT ASSUME 
+
+
+OS COLUMN NAMES POR CONVENTION,
+
+MAS PODERÍAMOS OVERWRITTAR, 
+
+SE QUISÉSSEMOS...
+
+
+
+
+
+
+
+
+
+
+--> OS COLUMN NAMES, NESSE CASO,
+
+SÃO 'PRESUMED' COMO SENDO:
+
+
+
+
+
+1) em 'invoice_item', a column 'invoice_id', que é a foreign_key de invoice...
+
+
+
+'foreignKey' -> é a PRIMARY KEY DO ''PARENT MODEL''... (o id)
+
+
+2) 'localKey' --> é a key do 'invoice_item'...
+
+
+
+
+
+''IF WE HAD DIFFERENT NAMES FOR THE PRIMARY KEYS 
+AND WE WERE NOT USING THE PRIMARY KEY PROPERTY, 
+WE COULD SPECIFY THERE 'foreignKey' and 'localKey' 
+here....''
+
+
+
+
+
+
+
+
+MAS COMO NÃO ESTAMOS FAZENDO ISSO, AQUI,
+
+PODEMOS 
+
+SIMPLESMENTE USAR OS DEFAULTS...
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA QUE SETTAMOS ESSE 'items'
+
+    no invoice,
+
+
+    DEVEMOS FAZER O INVERSO, MAS LÁ 
+
+    NO 'invoiceItems'...
+
+
+
+
+
+
+-> PRECISAMOS ESCREVER O 
+
+
+'OneToMany (Inverse) / Belongs to ''
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, DEVEMOS CRIAR 
+
+1 METHOD E RETORNAR ESSE TIPO DE RELATION,
+
+
+TIPO ASSIM:
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class InvoiceItem extends Model
+{
+    protected $table = 'invoice_items'; // used if you want to define the corresponding table name explicitly
+
+    public $timestamps = false;
+
+    // * This is what sets the relation between the Invoice and the InvoiceItem
+    public function invoice(): BelongsTo
+    {
+
+        return $this->belongsTo(Invoice::class);
+    }
+}
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+QUER DIZER QUE O COMBO É ESTE:
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Invoice extends Model
+{
+    protected $table = 'invoices'; // used if you want to define the corresponding table name explicitly
+
+    protected $primaryKey = 'invoice_uid'; // we define a 'primaryKey' property if we want to use a field that isn't 'ID' as the primary key of this specific table. 
+
+    protected $incrementing = false; // we define this property to tell Laravel that we don't want to use the auto-incrementing feature of the database
+
+    protected $keyType = 'string'; // we define this property to tell Laravel that we want to use a string as the type of the primary key of this specific table.
+
+    protected $timestamps = false; // we define this property to tell Laravel that we don't want to use the timestamps feature (created_at and updated_at) of the database
+
+    public function __construct() {}
+
+    const CREATED_AT = 'created_date'; // we define a 'created_at' property if we want to use a field that isn't 'created_at' as the column name of the 'created_at' column of this specific table.
+
+    const UPDATED_AT = null; // we define a 'updated_at' property as null if we don't want to use/don't have a field that isn't 'updated_at' as the column name of the 'updated_at' column of this specific table.
+
+
+    // * This is what sets the relation between the Invoice and the InvoiceItem
+    public function items()
+    {
+        return $this->hasMany(InvoiceItem::class);
+    }
+}
+
+
+<?php
+
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class InvoiceItem extends Model
+{
+    protected $table = 'invoice_items'; // used if you want to define the corresponding table name explicitly
+
+    public $timestamps = false;
+
+    // * This is what sets the relation between the Invoice and the InvoiceItem
+    public function invoice(): BelongsTo
+    {
+
+        return $this->belongsTo(Invoice::class);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+CERTO... AGORA DEVEMOS COMPARAR 
+
+
+
+O INVOICE MODEL VS INVOICE ENTITY...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> A DIFERENÇA ENTRE OS 2:
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Invoice extends Model
+{
+    protected $table = 'invoices'; // used if you want to define the corresponding table name explicitly
+
+    protected $primaryKey = 'invoice_uid'; // we define a 'primaryKey' property if we want to use a field that isn't 'ID' as the primary key of this specific table. 
+
+    protected $incrementing = false; // we define this property to tell Laravel that we don't want to use the auto-incrementing feature of the database
+
+    protected $keyType = 'string'; // we define this property to tell Laravel that we want to use a string as the type of the primary key of this specific table.
+
+    protected $timestamps = false; // we define this property to tell Laravel that we don't want to use the timestamps feature (created_at and updated_at) of the database
+
+    public function __construct() {}
+
+    const CREATED_AT = 'created_date'; // we define a 'created_at' property if we want to use a field that isn't 'created_at' as the column name of the 'created_at' column of this specific table.
+
+    const UPDATED_AT = null; // we define a 'updated_at' property as null if we don't want to use/don't have a field that isn't 'updated_at' as the column name of the 'updated_at' column of this specific table.
+
+
+    // * This is what sets the relation between the Invoice and the InvoiceItem
+    public function items()
+    {
+        return $this->hasMany(InvoiceItem::class);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+VS
+
+
+
+
+
+
+
+
+
+#[Entity]
+#[Table('invoices')]  // The table name to be used, for this entity ('Invoice' will be equal to the entries in the 'invoices' table).
+#[HasLifecycleCallbacks]  // Needed to make the 'onPrePersist' method work.
+class Invoice
+{
+    #[Id]
+    #[Column('id'), GeneratedValue(strategy: 'AUTO')]  // GeneratedValue is an attribute that makes it so that the value of that column is automatically generated by the database. The default is 'AUTO', which is good enough for 'ID' fields...
+    private int $id;
+
+    #[Column('amount', type: Types::DECIMAL, precision: 10, scale: 2)]
+    private float $amount;  // using float for money is not a good idea, it's better to use decimal or string, in your database and your code.
+
+    #[Column('invoice_number')]
+    private string $invoiceNumber;
+
+    #[Column('status')]
+    private InvoiceStatus $status;
+
+    #[Column('created_at')]
+    private \DateTime $createdAt;
+
+    #[Column('due_date')]
+    private \DateTime $dueDate;
+
+    #[OneToMany(targetEntity: InvoiceItem::class, mappedBy: 'invoice', cascade: ['persist', 'remove'])]
+    private Collection $items;
+
+    public function __construct()
+    {
+        $this->items = new ArrayCollection();
+    }
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function getAmount(): float
+    {
+        return $this->amount;
+    }
+
+    public function getInvoiceNumber(): string
+    {
+        return $this->invoiceNumber;
+    }
+
+    public function getStatus(): InvoiceStatus
+    {
+        return $this->status;
+    }
+
+    public function getCreatedAt(): \DateTime
+    {
+        return $this->createdAt;
+    }
+
+    public function setAmount(float $amount): self
+    {
+        $this->amount = $amount;
+
+        return $this;
+    }
+
+    public function setInvoiceNumber(string $invoiceNumber): self
+    {
+        $this->invoiceNumber = $invoiceNumber;
+
+        return $this;
+    }
+
+    public function setStatus(InvoiceStatus $status): self
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    #[PrePersist]
+    public function onPrePersist(LifecycleEventArgs $args)
+    {
+        $this->createdAt = new \DateTime();
+    }
+
+
+    public function addItem(InvoiceItem $item): self
+    {
+        $item->setInvoice($this);  // this is the call that establishes the relationship between the 'Invoice' and 'InvoiceItem' entities.
+
+        $this->items->add($item);
+
+        return $this;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE VER,
+
+FICAMOS COM MT MENOS CÓDIGO DO QUE O 
+
+CÓDIGO 
+
+DAS ENTITIES...
+
+
+
+
+
+
+-> MT MENOS BOILERPLATE CODE...
+
+
+
+
+
+
+
+
+
+
+--> ISSO PQ, COM ENTITIES,
+
+TUDO É PRATICAMENTE 
+
+'EXPLICITLY MAPPED' 
+
+E 
+
+'EXPLICITLY CONFIGURED'...
+
+
+
+
+
+
+
+
+
+--> OUTRO DETALHE:
+
+
+
+COM ENTITIES, NÓS TEMOS 1 MONTE DE PROPERTIES ESPECIFICADAS,
+
+COM OS ATTRIBUTES EM CIMA...
+
+
+
+
+
+
+
+
+
+
+
+
+--> JÁ COM Models do ELOQUENT,
+    TEMOS NENHUMA DAQUELAS PROPERTIES ESPECIFICADAS...
+
+
+
+
+
+
+---> ISSO É PQ, 
+COM DATA MAPPER,
+
+''WE MAP DATA PROPERTIES TO COLUMNS IN THE TABLES'...
+
+
+
+
+
+
+
+POR OUTRO LADO, 
+
+COM ACTIVE RECORD,
+
+
+''THE TABLE COLUMNS 
+    __BECOME _ THE 
+    OBJECT'S PROPERTIES''...
+
+
+
+
+
+
+
+
+
+
+->> HÁ UM POUCO DE MÁGICA, AQUI,
+
+E VEREMOS ISSO EM AÇÃO LOGO LOGO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COMO O PROFESSOR MENCIONOU ANTES,
+
+AS TABLE COLUMNS SE TRANSFORMAM AS PROPERTIES DOS OBJECTS..
+
+
+
+
+
+
+
+
+
+
+--> ISSO QUER DIZER QUE PODEMOS 
+
+DEFINIR OS VALUES 
+
+DE ESSAS PROPERTIES 
+
+
+
+NO NOSSO CÓDIGO...
+
+
+
+
+
+
+
+
+
+
+
+-> DIGAMOS QUE TEMOS A TABLE DE INVOICES..
+
+
+
+
+
+
+
+
+
+
+
+--> FIELDS DE 
+
+
+
+
+ID,
+AMOUNT,
+INVOICE_NUMBER,
+status,
+CREATED_AT,
+DUE_DATE...
+
+
+
+
+
+
+
+--> NÃO PRECISAMOS SETTAR AS COLUMNS DE 'ID' 
+E 'CREATED_AT',
+
+PQ 
+
+AMBAS 
+
+SERÃO 
+
+
+
+SETTADAS AUTOMATICAMENTE, PARA NÓS,
+
+PELO ELOQUENT,
+
+
+MAS 
+
+PODEMOS 
+SETTAR O RESTO DAS COLUMNS...
+
+
+
+
+
+
+
+
+--> BASTA ESCREVERMOS ASSIM:
+
+
+
+<?php declare(strict_types=1);
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+require __DIR__ . '../eloquent.php';
+
+
+
+
+$invoice = new \App\Models\Invoice();
+
+
+$invoice->amount = 45;
+$invoice->invoice_number = '1';
+$invoice->status = \App\Enums\InvoiceStatus::Pending;
+$invoice->due_date = new \DateTime('2023-01-01');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS VAMOS SETTAR 1 VALUE DIFERENTE EM 'due_date'...
+
+
+
+
+
+
+
+-> QUEREMOS SETTAR O DUE DATE COMO SENDO 
+
+10 DIAS NO FUTURO...
+
+
+
+
+
+
+
+
+
+--> O LARAVEL USA UMA LIBRARY CHAMADA DE 'CARBON' 
+
+PARA TRABALHAR 
+COM DATES...
+
+
+
+
+
+
+
+---> O CARBON É COMO UM NICE WRAPPER 
+    AO REDOR DOS OBJECTS 'DATE' DO PHP,
+
+    QUE PROVIDENCIA HELPER E FLUENT METHODS QUE 
+    DEIXAM O TRABALHO COM DATES MAIS FÁCIL...
+
+
+
+
+
+
+->  ALTERNATIVAMENTE,
+    PODEMOS INSTANCIAR UM NOVO DATETIME OBJECT 
+    E ENTAO USAR INTERVALS PARA ADICIONAR DAYS A ELE...
+
+
+
+
+    OU, COM O CARBON, DE FORMA BEM MAIS FACILITADA,
+
+
+    BASTA ESCREVER ASSIM:
+
+
+
+
+
+
+
+$invoice->due_date = (new \Carbon\Carbon())->addDays(10);
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS INSTALAR O CARBON ASSIM:
+
+
+
+composer require nesbot/carbon
+
+
+
+
+
+
+
+
+
+
+FICA TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+require __DIR__ . '../eloquent.php';
+
+
+
+
+$invoice = new \App\Models\Invoice();
+
+
+$invoice->amount = 45;
+$invoice->invoice_number = '1';
+$invoice->status = \App\Enums\InvoiceStatus::Pending;
+// $invoice->due_date = new \DateTime('2023-01-01'); // without Carbon.
+$invoice->due_date = (new \Carbon\Carbon())->addDays(10);
+
+
+
+
+
+
+
+CERTO...
