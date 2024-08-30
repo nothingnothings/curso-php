@@ -1382,4 +1382,1161 @@ NO MOMENTO DO BOOTSTRAP DE NOSSO APP...
 
 ''ENTITIES ARE JUST PLAIN PHP CLASSES,
  AND WE USE THE DATA MAPPER TO 
- MAP THE PROPERTIES TO DATA COLUMNS...''
+ MAP THE PROPERTIES TO TABLE COLUMNS...''
+
+
+
+
+
+
+
+
+
+ -> JÁ OS MODELS, NO ELOQUENT,
+
+ POSSUEM ACESSO à DATABASE,
+
+ E USAM 'MAGIC' 
+
+ PARA HYDRATE OS MODELS...
+
+
+
+
+
+ --> OS MESMOS MODELS PODEM SER USADOS 
+    PARA RUN E BUILD QUERIES, E ASSIM POR DIANTE...
+
+
+
+
+
+
+
+
+
+
+
+
+--> VAMOS CRIAR 1 MODEL PARA A INVOICE...
+
+
+
+
+
+--> É POR ISSO QUE, NA PASTA DE 'Models',
+
+criamos 'Invoice.php'...
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use App\Model;
+
+class Invoice extends Model
+{
+
+
+    public function __construct() {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+podemos definir as partes específicas 
+desse model por meio do override de certas 
+propriedades, do base model,
+
+
+e por meio do define de certos methods...
+
+
+
+
+
+
+
+
+
+--> a primeira coisa que 
+
+
+DEVEMOS FAZER É 
+
+
+DEFINIR 
+
+1 TABLE...
+
+
+
+
+
+fazemos isso com a 
+property 
+
+
+protected $table = 'invoices';
+
+
+
+
+
+
+
+
+
+
+
+O LARAVEL 
+
+USA 'CONVENTION-BASED CONFIGURATIONS'
+
+
+EM UM MONTE DE PARTES,
+
+INCLUSIVE 
+
+
+NO ELOQUENT...
+
+
+
+
+
+
+--> SE VC SEGUE AS STANDARD 
+CONVENTIONS,
+
+VC NEM MESMO PRECISA 
+SETTAR 1 BOA PARTE DO BOILERPLATE 
+CODE...
+
+
+
+
+
+
+--> NESSE CASO, POR EXEMPLO,
+
+
+''We don't even need to define 
+the property value of '$table' with 
+our table name,
+
+BECAUSE __THE__ CLASS NAME 
+IS ALREADY GOING TO BE TURNED 
+INTO PLURAL, CONVERTED INTO snake_case 
+AND USED AS THE TABLE NAME''...
+
+
+
+
+
+
+QUER DIZER QUE ISTO AQUI JÁ É LIDO 
+AUTOMATICAMENTE:
+
+
+
+
+class Invoice extends Model
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK....
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODERÍAMOS NOS 
+    LIVRAR DA PROPERTY, MAS EU DEIXO 
+    ELA ALI, MESMO ASSIM....
+
+
+
+
+
+
+
+
+
+
+
+-> HÁ ALGUMAS OUTRAS COISAS QUE 
+O LARAVEL ELOQUENT ASSUME, POR CONVENÇÃO...
+
+
+
+EX:
+
+
+''LARAVEL ELOQUENT 
+    ASSUMES THAT THE ID 
+    OF THE TABLE IS 
+    THE __ PRIMARY_ _KEY,
+    BY DEFAULT...''
+
+
+
+
+
+
+
+'''IF WE HAVE/HAD ANOTHER KEY AS THE PRIMARY KEY
+IN THE TABLE, WE CAN USE 
+THE PROPERTY "protected $primaryKey = 'column_name'"
+TO __ OVERRIDE THAT PRIMARY KEY DEFAULT...''
+
+
+
+
+
+
+
+
+
+
+
+
+-> O ELOQUENT TAMBÉM 
+    ASSUME QUE 
+    SUAS PRIMARY 
+    KEYS SÃO AUTOINCREMENTED 
+    INTEGERS (convenção)
+
+
+
+
+
+
+-> ''BUT IF WE HAVE/HAD A 
+    NON-INCREMENTING PRIMARY KEY,
+    WE CAN __ TURN THIS DEFAULT 
+    OFF,
+
+    WITH THE PROPERTY 
+
+    '' public $incrementing = false; ''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VAI FICANDO TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use App\Model;
+
+class Invoice extends Model
+{
+    protected $table = 'invoices'; // used if you want to define the corresponding table name explicitly
+
+    protected $primaryKey = 'invoice_uid'; // we define a 'primaryKey' property if we want to use a field that isn't 'ID' as the primary key of this specific table. 
+
+    protected $incrementing = false; // we define this property to tell Laravel that we don't want to use the auto-incrementing feature of the database
+
+    public function __construct() {}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+--> TAMBÉM PODEMOS USAR '$keyType,'
+
+PARA DEFINIR O TYPE DA PRIMARY 
+KEY 
+
+COMO SENDO ALGO DIFERENTE DE 'INTEGER',
+
+como, por exemplo, 'string'...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use App\Model;
+
+class Invoice extends Model
+{
+    protected $table = 'invoices'; // used if you want to define the corresponding table name explicitly
+
+    protected $primaryKey = 'invoice_uid'; // we define a 'primaryKey' property if we want to use a field that isn't 'ID' as the primary key of this specific table. 
+
+    protected $incrementing = false; // we define this property to tell Laravel that we don't want to use the auto-incrementing feature of the database
+
+    protected $keyType = 'string'; // we define this property to tell Laravel that we want to use a string as the type of the primary key of this specific table.
+
+
+    public function __construct() {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+O ELOQUENT TAMBÉM,
+
+POR DEFAULT,
+
+
+
+
+ESPERA QUE ALGUMAS 
+
+COLUMNS DE TIPO 'timestamp'
+
+VÃO EXISTIR NA SUA TABLE...
+
+
+
+
+
+
+
+
+
+
+--> NO CASO,
+ ELE ESPERA QUE JÁ EXISTIRÃO
+ AS COLUMNS 
+
+
+ DE 
+
+ 'created_at'
+
+ e 
+
+
+ 'updated_at'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESSAS COLUMNS SERÃO SETTADAS 
+AUTOMATICAMENTE PELO 
+_ELOQUENT,
+SEMPRE QUE
+
+OS MODELS FOREM 'CREATED' OU 'UPDATED'...
+
+
+
+
+
+
+
+
+
+--> NO NOSSO CASO,
+
+    A TABLE DE 'invoices' 
+    
+    SÓ TEM A COLUMN DE 'created_at',
+    E NÃO  TEM A COLUMN 
+
+
+    DE 
+
+
+    'updated_at'...
+
+
+
+
+
+
+-> ISSO QUER DIZER QUE, SE 
+
+TENTÁSSEMOS CRIAR OU UPDATAR 
+
+1 MODEL NESSE EXATO MOMENTO,
+
+ACABARÍAMOS TRIGGANDO 
+
+
+1 ERROR DO LARAVEL ELOQUENT....
+
+
+
+
+
+
+
+
+
+
+--> PARA CONTORNAR ESSE ERRO, PODEMOS:
+
+
+
+
+
+
+
+
+1) ADICIONAR UM FIELD DE 'updated_at'
+    NA NOSSA TABLE...
+
+
+
+
+
+
+2) DESABILITAR COMPLETAMENTE ESSA FEATURE 
+    DE 'created_at' e 'updated_at'
+    TIMESTAMP FIELDS,
+
+
+
+    por meio da property 
+
+    de 
+
+
+    'public $timestamps = false;'
+
+
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use App\Model;
+
+class Invoice extends Model
+{
+    protected $table = 'invoices'; // used if you want to define the corresponding table name explicitly
+
+    protected $primaryKey = 'invoice_uid'; // we define a 'primaryKey' property if we want to use a field that isn't 'ID' as the primary key of this specific table. 
+
+    protected $incrementing = false; // we define this property to tell Laravel that we don't want to use the auto-incrementing feature of the database
+
+    protected $keyType = 'string'; // we define this property to tell Laravel that we want to use a string as the type of the primary key of this specific table.
+
+    protected $timestamps = false; // we define this property to tell Laravel that we don't want to use the timestamps feature (created_at and updated_at) of the database
+
+    public function __construct() {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+OU, ALTERNATIVAMENTE,
+
+
+PODEMOS DESABILITAR 
+APENAS COLUMNS ESPECÍFICAS,
+
+
+
+COMO 'CREATED_AT',
+
+
+
+
+por meio da definição das CONSTANTS...
+
+
+
+
+
+
+
+
+
+
+--> AS CONSTANTS SÃO:
+
+
+
+
+
+1) const CREATED_AT 
+
+
+
+2) const UPDATED_AT
+
+
+
+
+
+
+
+--> vc pode OVERWRITTAR ELAS,
+    deixar outros string values
+
+    nelas (se vc quer definir sua column 
+    correspondente como detentora de um 
+    nome diferente dos defaults 'created_at' e 'updated_at'),
+
+
+OU, ALTERNATIVAMENTE,
+
+PODE DEFINIR SEUS VALUES COMO 'null',
+
+PARA DESABILITÁ-LAS INTEIRAMENTE:
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use App\Model;
+
+class Invoice extends Model
+{
+    protected $table = 'invoices'; // used if you want to define the corresponding table name explicitly
+
+    protected $primaryKey = 'invoice_uid'; // we define a 'primaryKey' property if we want to use a field that isn't 'ID' as the primary key of this specific table. 
+
+    protected $incrementing = false; // we define this property to tell Laravel that we don't want to use the auto-incrementing feature of the database
+
+    protected $keyType = 'string'; // we define this property to tell Laravel that we want to use a string as the type of the primary key of this specific table.
+
+    protected $timestamps = false; // we define this property to tell Laravel that we don't want to use the timestamps feature (created_at and updated_at) of the database
+
+    public function __construct() {}
+
+
+    const CREATED_AT = 'created_date';
+
+    const UPDATED_AT = null;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE DEIXEI ESSA 
+
+
+CONSTANT DE 'UPDATED_AT'
+
+
+
+COMO SENDO null,
+
+PARA DESABILITAR 
+
+
+
+ESSE FIELD AÍ, pq não temos ele,
+
+nessa table de nosso db...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA VAMOS CRIAR O MODEL DE 'InvoiceItem'...
+
+
+
+
+
+
+
+
+
+
+
+--> CRIAMOS ELE TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php 
+
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use App\Model;
+
+class InvoiceItem extends Model
+{
+    protected $table = 'invoice_items'; // used if you want to define the corresponding table name explicitly
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+--------> não precisamos especificar a table 
+    property,
+
+    mas eu especifico mesmo assim, 
+
+    só para garantir...
+
+
+
+
+
+
+
+
+--> O PROFESSOR APONTA QUE NÃO PRECISAMOS 
+
+ESPECIFICAR 
+
+$primaryKey 
+
+
+
+ou 
+
+$incrementing,
+
+
+
+PQ ESSA TABLE TAMBÉM TEM OS DEFAULTS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS PRECISAMOS DESLIGAR OS TIMESTAMPS,
+
+PQ NÃO TEMOS NEM O FIELD DE 'created_at'
+
+ nem o de 'updated_at'
+
+
+
+ NA NOSSA TABLE..
+
+
+
+
+
+
+
+
+
+
+
+ -> FAZEMOS ISSO TIPO ASSIM:
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use App\Model;
+
+class InvoiceItem extends Model
+{
+    protected $table = 'invoice_items'; // used if you want to define the corresponding table name explicitly
+
+    public $timestamps = false;
+}
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+isso feito,
+ 
+
+
+ PRECISAMOS CRIAR A RELATIONSHIP 
+
+
+ ENTRE A INVOICE 
+
+ E OS INVOICE ITEMS...
+
+
+
+
+
+
+
+
+
+
+ --> COM 'ENTITIES',
+
+
+ TÍNHAMOS DEFINIDO 
+
+
+
+ QUE A RELATION ERA 
+
+ DE 
+
+
+
+ ONE-TO-MANY....
+
+
+
+
+
+
+
+
+
+
+
+
+ -> AGORA PRECISAMOS FAZER ISSO COM O LARAVEL..
+
+
+
+
+
+
+
+
+
+ --> ABRIMOS OS DOCS DO LARAVEL ELOQUENT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK...
+
+
+
+
+
+
+
+
+--> TEMOS 'ONE-TO-MANY'...
+
+
+
+
+
+
+
+
+One-TO-many 
+
+
+
+e 
+
+
+'ONE-TO-MAN (inverse) / Belongs to' 
+
+
+
+
+
+
+SÃO AS NECESSÁRIAS NO NOSSO EXEMPLO...
+
+
+
+
+
+
+
+
+
+
+--> PRECISAMOS USAR O 
+
+METHOD DE '->hasMany()',
+
+
+PARA AÍ 
+
+ESPECIFICARMOS 
+
+
+O RELATED MODEL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, VAMOS PRECISAR DE UM NOVO 
+
+
+METHOD, lá em 'Invoice',
+
+
+
+CUJO NOME SERÁ 'items()'....
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use App\Model;
+
+class Invoice extends Model
+{
+    protected $table = 'invoices'; // used if you want to define the corresponding table name explicitly
+
+    protected $primaryKey = 'invoice_uid'; // we define a 'primaryKey' property if we want to use a field that isn't 'ID' as the primary key of this specific table. 
+
+    protected $incrementing = false; // we define this property to tell Laravel that we don't want to use the auto-incrementing feature of the database
+
+    protected $keyType = 'string'; // we define this property to tell Laravel that we want to use a string as the type of the primary key of this specific table.
+
+    protected $timestamps = false; // we define this property to tell Laravel that we don't want to use the timestamps feature (created_at and updated_at) of the database
+
+    public function __construct() {}
+
+    const CREATED_AT = 'created_date'; // we define a 'created_at' property if we want to use a field that isn't 'created_at' as the column name of the 'created_at' column of this specific table.
+
+    const UPDATED_AT = null; // we define a 'updated_at' property as null if we don't want to use/don't have a field that isn't 'updated_at' as the column name of the 'updated_at' column of this specific table.
+
+
+
+    public function items() {
+        
+    }
+}
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+
+
+NOSSO MODEL, DO ELOQUENT,
+
+
+SEMPRE TERÁ ESSE METHOD DE 'hasMany'....
+
+
+
+
+
+
+NESSE METHOD DE 'items()',
+
+
+
+PODEMOS 
+
+
+
+fazer return de 
+
+
+'$this->hasMany()',
+
+
+
+E PASSAMOS 
+
+
+
+O MODEL DE 'invoiceItem' 
+
+
+
+
+COMO PARAMETER,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
