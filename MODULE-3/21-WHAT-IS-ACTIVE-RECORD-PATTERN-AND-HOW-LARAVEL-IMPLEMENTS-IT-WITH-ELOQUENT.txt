@@ -3330,3 +3330,997 @@ $invoice->due_date = (new \Carbon\Carbon())->addDays(10);
 
 
 CERTO...
+
+
+
+
+
+
+FINALMENTE, DEPOIS DE RODARMOS O QUE QUERÍAMOS COM O MODEL 
+DO INVOICE,
+
+
+BASTA CHAMAR O METHOD DE 'save()',
+
+PARA SALVAR AS CHANGES E ADICIONAR ESSE OBJECT NA DATABASE...
+
+
+
+
+
+
+->  para isso, escrevemos 
+
+
+'$invoice->save();'
+
+
+
+
+
+
+
+
+
+
+ ISSO VAI ACABAR CRIANDO O RECORD NA TABLE...
+
+
+
+
+
+
+
+
+
+ -> MAS ANTES DE CHAMARMOS ESSE 'save(),
+
+ DEVEMOS ADICIONAR/CRIAR INVOICE ITEMS RELACIONADOS A ELE,
+
+
+ E ASSOCIÁ-LOS A ELE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ -> PARA ISSO, ESCREVEMOS ASSIM:
+
+
+
+
+
+ <?php declare(strict_types=1);
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+require __DIR__ . '../eloquent.php';
+
+
+
+
+$invoice = new \App\Models\Invoice();
+
+
+$invoice->amount = 45;
+$invoice->invoice_number = '1';
+$invoice->status = \App\Enums\InvoiceStatus::Pending;
+// $invoice->due_date = new \DateTime('2023-01-01'); // without Carbon.
+$invoice->due_date = (new \Carbon\Carbon())->addDays(10);
+
+
+
+$invoice->save();
+
+
+
+$items = [['Item 1', 1, 15] , ['Item 2', 2, 20], ['Item 3', 3, 25]];
+
+foreach($items as [$description, $quantity, $unitPrice]) {
+    $item = new \App\Models\InvoiceItem();
+    $item->description = $description;
+    $item->quantity = $quantity;
+    $item->unit_price = $unitPrice;
+    $item->invoice_id = $invoice->id;
+    $item->save();
+}
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+$items = [['Item 1', 1, 15] , ['Item 2', 2, 20], ['Item 3', 3, 25]];
+
+foreach($items as [$description, $quantity, $unitPrice]) {
+    $item = new \App\Models\InvoiceItem();
+    $item->description = $description;
+    $item->quantity = $quantity;
+    $item->unitPrice = $unitPrice;
+    $item->invoice_id = $invoice->id;
+    $item->save();
+}
+
+
+
+
+
+
+
+
+
+
+PODERÍAMOS TER ESSA LINHA,
+
+
+''     $item->invoice_id = $invoice->id; '',
+
+
+
+
+QUE DEFINIRIA O VALUE DO invoice_id 
+
+de esses records como sendo 
+
+
+o id daquele invoice anterior, sim,
+
+
+MAS O PROFESSOR APONTA QUE 
+
+
+
+
+
+''it is better to create 
+    a proper association, by calling 
+    THE RELATION-SPECIFIC METHOD...''
+
+
+
+
+
+
+
+
+-> OK, ENTÃO... 
+
+
+
+
+
+
+-_> PARA AS RELATIONS DE 'BELONGSTO',
+
+    O METHOD ADEQUADO PARA ISSO É 
+
+
+    'associate()'....
+
+
+
+
+-_> É POR ISSO QUE CHAMAMOS 
+
+
+
+
+$item->invoice()->associate($invoice);
+
+
+
+
+
+
+
+-> COM ISSO, ASSOCIAMOS ESSE ITEM 
+
+A ESSE INVOICE ESPECÍFICO....
+
+
+
+
+
+
+
+FICA TIPO ASSIM:
+
+
+
+
+
+
+
+$items = [['Item 1', 1, 15] , ['Item 2', 2, 20], ['Item 3', 3, 25]];
+
+foreach($items as [$description, $quantity, $unitPrice]) {
+    $item = new \App\Models\InvoiceItem();
+    $item->description = $description;
+    $item->quantity = $quantity;
+    $item->unitPrice = $unitPrice;
+    // $item->invoice_id = $invoice->id; // Instead of doing it like this, manually, use the 'associate' method, inside the object you want to relate this item to, as seen below, with 'associate()':
+    $item->invoice()->associate($invoice);
+    
+    $item->save();
+}
+
+
+
+
+
+
+
+
+
+
+por fim, o method de 'save()'
+
+
+É CHAMADO NO INVOICE ITEM,
+
+
+para salvá-lo À database...
+
+
+
+
+
+
+
+
+
+
+
+
+
+AGORA DEVEMOS TESTAR TUDO ISSO...
+
+
+
+
+
+
+
+
+
+
+
+--> RODAMOS, E AÍ FICAMOS COM 
+    1 ERRO...
+
+
+
+
+
+
+
+
+
+
+
+--> É PQ O PROFESSOR ESCREVEU
+ 
+
+
+
+
+$item->unitPrice,
+
+
+
+
+QUANDO 
+
+
+
+O NOME DEVERIA TER SIDO 'unit_price',
+
+
+PARA SEGUIR O NAMING 
+
+DA TABLE (que é o que conta,
+
+nesse approach active record...)..
+
+
+
+
+
+
+
+
+
+
+
+
+
+É POR ISSO QUE O CÓDIGO COMPLETO FICA ASSIM:
+
+
+
+$invoice = new \App\Models\Invoice();
+
+
+$invoice->amount = 45;
+$invoice->invoice_number = '1';
+$invoice->status = \App\Enums\InvoiceStatus::Pending;
+// $invoice->due_date = new \DateTime('2023-01-01'); // without Carbon.
+$invoice->due_date = (new \Carbon\Carbon())->addDays(10);
+
+
+
+$invoice->save();
+
+
+
+$items = [['Item 1', 1, 15] , ['Item 2', 2, 20], ['Item 3', 3, 25]];
+
+foreach($items as [$description, $quantity, $unitPrice]) {
+    $item = new \App\Models\InvoiceItem();
+    $item->description = $description;
+    $item->quantity = $quantity;
+    $item->unit_price = $unitPrice;
+    // $item->invoice_id = $invoice->id; // Instead of doing it like this, manually, use the 'associate' method, inside the object you want to relate this item to, as seen below, with 'associate()':
+    $item->invoice()->associate($invoice);
+
+    $item->save();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ VC PODE ESTAR SE PERGUNTANDO:
+
+
+
+
+
+
+
+
+
+
+'OK, MAS COMO DIABOS O LARAVEL SABE, DE CARA,
+QUE ESSAS PROPERTIES 
+SÃO MAPPEADAS A TABLE COLUMNS??W''
+
+
+
+
+
+
+
+ISSO PQ NÓS NÃO CRIAMOS NENHUM TIPO DE MAPPING 
+ENTRE 
+AS PROPERTIES 
+
+E AS TABLE COLUMNS...
+
+
+
+E TAMBÉM NÃO TEMOS PROPERTIES ALGUMAS, NOS MODELS...
+
+
+
+
+
+
+
+
+
+--> SE NENHUM MAPPING FOI CODADO,
+    E SE NENHUMA PROPERTY FOI ESCRITA 
+    DENTRO DOS MODELS,
+
+    COMO ELE ESTÁ CONSIDERANDO TUDO ISSO?
+
+
+
+
+--> COMO PODEMOS ACESSAR E MODIFICAR
+    TODAS ESSAS TABLE COLUMNS, DESSA FORMA??
+
+
+
+
+    PROFESSOR:
+
+    ''THIS MUST MEAN THERE ARE SOME MAGIC GETTER 
+    AND SETTER METHODS SET UP SOMEWHERE IN THE CLASS''....
+
+
+
+
+
+
+
+
+
+
+
+--> JÁ COBRIMOS MAGIC SETTER E GETTER METHODS 
+    EM AULAS ANTERIORES... 
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR ENTRA DENTRO DA CLASS DE 
+    'Model'
+
+    DO ELOQUENT...
+
+
+
+
+
+
+
+
+
+
+-_> DENTRO DELA, ELE ENCONTRA 
+
+
+UM MAGIC GETTER METHOD:
+
+
+
+
+
+
+
+    /**
+     * Dynamically retrieve attributes on the model.
+     *
+     * @param  string  $key
+     * @return mixed
+     */
+    public function __get($key)
+    {
+        return $this->getAttribute($key);
+    }
+
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+
+TAMBÉM TEMOS O __set method...
+
+
+
+
+
+
+
+
+
+
+BASICAMENTE, 
+
+
+''WHENEVER WE SET A NON-EXISTING PROPERTY 
+IN THIS OBJECT,
+ 
+ IT ADDS A NEW 'ATTRIBUTE' 
+
+ TO AN 'ATTRIBUTES' ARRAY... 
+
+
+ ''
+
+
+
+
+ ''AND, WHEN WE TRY TO ACCESS
+  A NOT-EXISTING PROPERTY, 
+
+  IT TRIES TO ACCESS THAT FROM THE ATTRIBUTES 
+  ARRAY,
+
+
+  WITH 
+
+
+  'return $this->getAttribute($key);'
+
+
+
+
+
+
+
+
+
+
+COMO ESTAMOS TRABALHANDO 
+
+
+COM __ MAGIC _ PROPERTIES,
+
+
+
+SEMPRE É MELHOR 
+
+
+ADICIONAR DOC BLOCKS AOS NOSSOS MODELS,
+
+PARA AJUDAR NOSSO IDE COM O AUTO-COMPLETE,
+
+
+E PARA NOS AJUDAR NO FUTURO... 
+
+
+
+
+
+
+PQ NÓS, NO FUTURO,
+
+SABEREMOS QUE COLUMNS EXISTEM...
+
+
+
+
+
+
+
+
+
+
+
+
+--> TUDO PARA TER AUTOCOMPLETE E UNDERLINING NO VSCODE...
+
+
+
+
+
+
+
+
+--> PARA CONSERTAR ISSO, PODEMOS ADICIONAR OS DOC BLOCKS 
+
+
+NOS MODELS,
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+// * Doc blocks should be provided, with your Eloquent Models, to generate better autocomplete for your fellow developers (and yourself):
+/**
+ * @property int $id
+ * @property string $invoice_number
+ * @property float $amount 
+ * @property InvoiceStatus $status
+ * @property Carbon $created_at
+ * @property Carbon $due_date
+ */
+class Invoice extends Model
+{
+    protected $table = 'invoices'; // used if you want to define the corresponding table name explicitly
+
+    protected $primaryKey = 'invoice_uid'; // we define a 'primaryKey' property if we want to use a field that isn't 'ID' as the primary key of this specific table. 
+
+    protected $incrementing = false; // we define this property to tell Laravel that we don't want to use the auto-incrementing feature of the database
+
+    protected $keyType = 'string'; // we define this property to tell Laravel that we want to use a string as the type of the primary key of this specific table.
+
+    protected $timestamps = false; // we define this property to tell Laravel that we don't want to use the timestamps feature (created_at and updated_at) of the database
+
+    public function __construct() {}
+
+    const CREATED_AT = 'created_date'; // we define a 'created_at' property if we want to use a field that isn't 'created_at' as the column name of the 'created_at' column of this specific table.
+
+    const UPDATED_AT = null; // we define a 'updated_at' property as null if we don't want to use/don't have a field that isn't 'updated_at' as the column name of the 'updated_at' column of this specific table.
+
+
+    // * This is what sets the relation between the Invoice and the InvoiceItem
+    public function items()
+    {
+        return $this->hasMany(InvoiceItem::class);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS FAZER A MESMA COISA NO MODEL DE 'INVOICEITEM',
+
+TIPO ASSIM:
+
+
+
+
+
+<?php
+
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+
+/**
+ * @property int $id 
+ * @property int $invoice_id
+ * @property string $description
+ * @property int $quantity
+ * @property float $unit_price
+ */
+class InvoiceItem extends Model
+{
+    protected $table = 'invoice_items'; // used if you want to define the corresponding table name explicitly
+
+    public $timestamps = false;
+
+    // * This is what sets the relation between the Invoice and the InvoiceItem
+    public function invoice(): BelongsTo
+    {
+
+        return $this->belongsTo(Invoice::class);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE VOLTAMOS AO MAIN FILE DE NOSSO APP,
+
+
+PERCEBEMOS QUE O AUTOCOMPLETE FOI ADICIONADO...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+require __DIR__ . '../eloquent.php';
+
+
+
+
+$invoice = new \App\Models\Invoice();
+
+
+$invoice->amount = 45;
+$invoice->invoice_number = '1';
+$invoice->status = \App\Enums\InvoiceStatus::Pending;
+// $invoice->due_date = new \DateTime('2023-01-01'); // without Carbon.
+$invoice->due_date = (new \Carbon\Carbon())->addDays(10);
+
+
+
+$invoice->save();
+
+
+
+$items = [['Item 1', 1, 15] , ['Item 2', 2, 20], ['Item 3', 3, 25]];
+
+foreach($items as [$description, $quantity, $unitPrice]) {
+    $item = new \App\Models\InvoiceItem();
+    $item->description = $description;
+    $item->quantity = $quantity;
+    $item->unit_price = $unitPrice;
+    
+    // $item->invoice_id = $invoice->id; // Instead of doing it like this, manually, use the 'associate' method, inside the object you want to relate this item to, as seen below, with 'associate()':
+    $item->invoice()->associate($invoice);
+
+    $item->save();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS É UMA IDEIA MELHOR EXECUTAR ESSE BLOCO DE CÓDIGO 
+
+COMO 1 TRANSACTION....
+
+
+
+
+ISSO PQ 
+
+'IF SOMETHING GOES WRONG WHILE TRYING TO CREATE
+THE INVOICEITEM,
+NOTHING WILL HAPPEN (rollback)',
+
+
+o que É MELHOR...
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS  CHAMAR TRANSACTION-RELATED 
+METHODS 
+
+
+LÁ __ DA CONNECTION EM SI....
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA CONSEGUIR A CONNECTION EM SI,
+    NESSE APPROACH DO ELOQUENT,
+
+
+    DEVEMOS USAR 
+
+
+
+A ESCRITA DE 
+
+
+
+\Illuminate\Database\Capsule\Manager::connection();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX
+
+
+\Illuminate\Database\Capsule\Manager::connection(); // This provides us access to the database connection, which is used by the Eloquent ORM. We can use it to call rollback(), commit() and 'transaction()' (which works like transactional, will run a closure, everything inside of it, commit if everything goes right, and rollback if something goes wrong).
+
+
+
+
+
+
+
+
+
+
+
+
+
+-_> vamos ESCREVER O CALL DO METHOD '->transaction()'...
+
+
+
+
+
+
+
+
+
+
+
+'transaction()',
+
+
+POR SUA VEZ,
+
+EXIGE 1 CLOSURE,
+
+
+POR ISSO VAMOS PASSAR TODO NOSSO CÓDIGO ANTERIOR,
+
+DE CREATE DO INVOICE E CREATE DOS INVOICE ITEMS,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\Illuminate\Database\Capsule\Manager::connection()->transaction(function() {
+
+    $invoice = new \App\Models\Invoice();
+
+    $invoice->amount = 45;
+    $invoice->invoice_number = '1';
+    $invoice->status = \App\Enums\InvoiceStatus::Pending;
+    // $invoice->due_date = new \DateTime('2023-01-01'); // without Carbon.
+    $invoice->due_date = (new \Carbon\Carbon())->addDays(10);
+    $invoice->save();
+
+    $items = [['Item 1', 1, 15] , ['Item 2', 2, 20], ['Item 3', 3, 25]];
+
+    foreach($items as [$description, $quantity, $unitPrice]) {
+        $item = new \App\Models\InvoiceItem();
+        $item->description = $description;
+        $item->quantity = $quantity;
+        $item->unit_price = $unitPrice;
+        // $item->invoice_id = $invoice->id; // Instead of doing it like this, manually, use the 'associate' method, inside the object you want to relate this item to, as seen below, with 'associate()':
+        $item->invoice()->associate($invoice);
+        $item->save();
+    }
+});
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+RODAMOS O CÓDIGO, E TUDO FUNCIONA...
+
+

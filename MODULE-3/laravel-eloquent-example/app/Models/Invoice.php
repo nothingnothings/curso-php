@@ -6,6 +6,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+// * Doc blocks should be provided, with your Eloquent Models, to generate better autocomplete for your fellow developers (and yourself):
+/**
+ * @property int $id
+ * @property string $invoice_number
+ * @property float $amount 
+ * @property InvoiceStatus $status
+ * @property Carbon $created_at
+ * @property Carbon $due_date
+ */
 class Invoice extends Model
 {
     protected $table = 'invoices'; // used if you want to define the corresponding table name explicitly
