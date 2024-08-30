@@ -4324,3 +4324,2600 @@ CERTO...
 RODAMOS O CÓDIGO, E TUDO FUNCIONA...
 
 
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+OK... APRENDEMOS A CRIAR MODELS...
+
+
+
+
+
+
+
+AGORA DEVEMOS VER COMO FUNCIONAM 'UPDATES'
+
+COM ESSE SISTEMA...
+
+
+
+
+
+DIGAMOS QUE QUEREMOS UPDATAR 
+
+
+O STATUS 
+DE UM 
+
+DOS INVOICES,
+
+DEIXAR COMO 'PAID'...
+
+
+
+
+
+
+-> SE TEMOS ACESSO AO MODELO DE 'INVOICES',
+
+ISSO É FÁCIL, 
+
+PQ PODEMOS SIMPLESMENTE DEFINIR A PROPRIEDADE 'status' como paid,
+
+
+depois chamar '->save()',
+
+e aí acabamos...
+
+
+
+
+
+
+
+
+
+
+--> MAS SE TEMOS APENAS 1 invoice_id,
+    ou outro tipo de info,
+
+    temos que fazer de forma diferente...
+
+
+
+
+
+
+
+
+
+
+
+TEMOS ALGUMAS MANEIRAS DIFERENTES DE FAZER ISSO:
+
+
+
+
+
+
+
+
+
+1) FAZENDO O RUN DE UM UPDATE, RAW,
+
+COM A CLAUSE DE 'WHERE', COM O ID...
+
+
+
+
+
+--> PARA ISSO, VAMOS USAR O 
+MODEL DE 'Invoice'
+
+
+COMO QUERY BUILDER, BASICAMENTE...
+
+
+
+
+
+
+--> PARA ISSO,
+
+
+PODEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+
+
+
+Invoice::query()-> 
+
+
+
+
+
+
+
+
+ESSE STATIC METHOD, DE 'query()',
+
+RETORNA UM _ QUERY BUILDER....
+
+
+
+
+
+
+(É BEM PARECIDO COM O QUERY BUILDER 
+DO DOCTRINE)
+
+
+
+
+
+
+
+
+--> ASSIM COMO O QUERY BUILDER DO DOCTRINE,
+    ESSES QUERY BUILDERS DOS MODELS DO ELOQUENT 
+    FORNECEM 
+
+    __FLUENT__ METHODS, QUE PODEM SER USADOS PARA CONSTRUIR 
+    NOSSAS QUERIES...
+
+
+
+
+
+
+
+
+
+
+-> NO NOSSO CASO, VAMOS CONSTRUIR UMA 
+
+UPDATE QUERY, TIPO ASSIM:
+
+
+
+
+
+
+
+
+Invoice::query()->where('id', '=', $invoiceId);
+
+
+
+
+
+
+
+
+
+
+CERTO... DEPOIS DISSO, PRECISAMOS DO METHOD DE 'update()',
+
+TIPO ASSIM:
+
+
+
+
+
+
+Invoice::query()->where('id', '=', $invoiceId)->update();
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+Invoice::query()->where('id', '=', $invoiceId)->update();
+
+
+
+
+
+
+
+DENTRO DE 'update()',
+
+
+
+PRECISAMOS 
+
+
+PASSAR __ 
+
+
+1 LISTA DE VALUES QUE QUEREMOS UPDATAR...
+
+
+
+
+
+
+
+
+NO NOSSO CASO, QUEREMOS UPDATAR 'status',
+
+deixar como 'InvoiceStatus:Paid'...
+
+
+
+
+
+
+
+
+
+Ex:
+
+
+
+
+
+Invoice::query()->where('id', '=', $invoiceId)->update(['status' => InvoiceStatus::Paid]);
+ 
+
+
+
+
+
+
+
+
+ OK... MAS AGORA FALTA O 'invoiceId'...
+
+
+
+
+
+
+
+
+ --> fazemos hardcode do id, tipo assim:
+
+
+
+
+
+Invoice::query()->where('id', '=', 5)->update(['status' => InvoiceStatus::Paid]);
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+
+
+
+
+
+
+
+O OPERATOR É USADO NORMALMENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE DEIXAMOS SEM NENHUM OPERATOR COMO SEGUNDO PARAMETER,
+
+O LARAVEL automaticamente ASSUME QUE 
+
+
+ESTAMOS PEDINDO O OPERATOR DE '='...
+
+
+
+
+
+
+
+
+ou seja:
+
+
+
+
+
+ISTO:
+
+
+
+
+
+Invoice::query()->where('id', '=', 5)->update(['status' => InvoiceStatus::Paid]);
+
+
+
+
+
+
+É IGUAL A ISTO:
+
+
+
+
+
+
+
+Invoice::query()->where('id', 5)->update(['status' => InvoiceStatus::Paid]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR DESTACA, TAMBÉM, QUE 
+
+
+QUANDO ESCREVEMOS ASSIM:
+
+
+
+
+
+Invoice::query()->where('id', '=', 5)->update(['status' => InvoiceStatus::Paid]);
+
+
+
+
+
+
+
+
+
+NÓS NÃO ESTAMOS USANDO PLACEHOLDERS...
+
+
+
+
+
+QUER DIZER QUE NÃO ESTAMOS FAZENDO ALGO COMO ISTO:
+
+Invoice::query()->where('id', '=', '?')
+
+
+
+
+
+
+
+
+
+
+--> e isso torna nosso código VULNERÁVEL A SQL INJECTION...
+
+
+
+
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE ESTAMOS PASSANDO O VALUE DIRETAMENTE NO 
+QUERY BUILDER...
+
+
+
+
+
+
+
+
+
+--> A VANTAGEM, AQUI, É QUE O  LARAVEL 
+
+''BINDS THE PARAMETERS, BEHIND THE SCENES, FOR US...''...
+
+
+
+
+
+
+
+ 
+ --> PARA VISUALIZAR ISSO, PODEMOS USAR O METHOD DE 
+
+ '->toSql()',
+
+
+ PARA PEGAR O ACTUAL SQL CRIADO POR ESSE STATEMENT:
+
+
+
+echo Invoice::query()->where('id', '=', 5)->toSql();
+
+
+
+
+
+
+
+
+
+
+
+ -> PODEMOS FAZER ISSO,
+    VER O QUE ACONTECE..
+
+
+
+
+
+
+
+
+
+O QUE É printado é isto:
+
+
+
+
+
+
+
+select * from 'invoices' where 'id' = ? 
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK.... QUER DIZER QUE ESSAS QUERIES SÃO 
+BUILDADAS JÁ CONSIDERANDO PLACEHOLDERS, O QUE É ÓTIMO...
+
+
+
+
+
+
+
+
+
+TIRAMOS ESSE 'toSql',
+
+E AÍ RODAMOS ASSIM:
+
+
+
+Invoice::query()->where('id', '=', 5)->update(['status' => InvoiceStatus::Paid]);
+
+
+
+
+
+
+
+
+
+ISSO NOS RETORNA 
+
+
+UM VALUE DE '1',
+
+
+QUE É 
+
+O NÚMERO 
+DE ROWS 
+
+AFETADOS POR ESSE UPDATE STATEMENT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+AQUI ESTAMOS FAZENDO UMA QUERY SIMPLES DE UPDATE,
+
+MAS PODERÍAMOS ESCREVER QUERIES COMPLEXAS,
+TANTO PARA SELECT COMO PARA UPDATES...
+
+
+
+
+
+
+
+
+
+-> PODEMOS FAZER GROUP BYS,
+
+JOINS,
+
+COISAS NOS RELATED MODELS,
+
+ETC...
+
+
+
+
+
+
+--> ''NOW WE'LL CHANGE ANOTHER OF THE INVOICESTATUS 
+    AS PAID,
+
+    AND WE'LL ALSO FETCH ALL THE PAID INVOICES RIGHT BELOW,
+    TO THEN DISPLAY THEIR ID, STATUS AND CREATED DATES...''
+
+
+
+
+
+
+
+
+
+
+
+PARA ISSO, ESCREVEMOS TIPO ASSIM:
+
+
+
+
+
+
+
+
+$invoiceId = 28;
+
+Invoice::query()->where('id', '=', 5)->update(['status' => InvoiceStatus::Paid]);
+
+
+
+
+
+
+
+
+
+
+AÍ VAMOS QUERER FETCHEAR TODAS AS PAID INVOICES...
+
+
+
+
+
+
+
+PARA ISSO, ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+$invoiceId = 28;
+
+Invoice::query()->where('id', '=', 5)->update(['status' => InvoiceStatus::Paid]);
+
+
+// Select all paid invoices:
+Invoice::query()->where('status', InvoiceStatus::Paid)->select(['id', 'status', 'created_at']);
+
+
+
+
+
+
+
+
+
+
+
+TIPO ISSO, ACHO...
+
+
+
+
+
+
+
+
+o 'where' method RETORNA A BUILDER INSTANCE EM SI....
+
+
+
+
+--> PARA ACTUALLY FETCHEAR AS 
+    INVOICES, PRECISAMOS DO METHOD DE 'get()',
+
+    e não 'select()'...
+
+
+
+--> ESSE 'get()'
+
+    RETORNA __ UMA COLLECTION _ DE INVOICE MODELS,
+
+    UMA 'COLLECTION INSTANCE'...
+
+
+
+
+
+--> O LARAVEL TEM UMA IMPLEMENTAÇÃO DE 'COLLECTION' PRÓPRIA...
+    PODEMOS VER ISSO NOS DOCS...
+
+
+
+
+
+
+
+
+
+--> PODEMOS ITERATE DIRETAMENTE SOBRE A COLLECTION,
+    OU PODEMOS CHAMAR O METHOD DE 
+
+    'each()'
+
+
+    NESSA INstance de 'Collection',
+
+    TIPO ASSIM:
+
+
+
+// Select all paid invoices:
+Invoice::query()
+->where('status', InvoiceStatus::Paid)
+->get()
+->each(
+    
+);
+
+
+
+
+
+
+
+
+
+O METHOD DE 'each()'
+requer que vc passe 1 CLOSURE...
+
+
+
+
+
+
+
+COMO PARAMETER DE ESSA CLOSURE,
+
+VC DEVE 
+
+TIPAR O MODEL QUE VC SELECIONOU (no caso, 'Invoice')...
+
+
+
+
+EX:
+
+
+
+// Select all paid invoices:
+Invoice::query()
+->where('status', InvoiceStatus::Paid)
+->get()
+->each(
+    function(Invoice $invoice) {
+
+    }
+);
+
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ, DENTRO DE ESSE CLOSURE,
+PODEMOS FAZER WHATEVER WE WANT COM ESSA INSTANCE 
+
+DE INVOICE...
+
+
+
+
+
+
+
+
+-> como queremos fazer ECHO do invoice id e status,
+
+
+ESCREVEMOS TIPO ASSIM:
+
+
+
+
+
+// Select all paid invoices:
+Invoice::query()
+->where('status', InvoiceStatus::Paid)
+->get()
+->each(
+    function(Invoice $invoice) {
+        echo $invoice->id . ', ' . $invoice->status->toString() . ', ' . $invoice->created_at->format('m/d/Y') . PHP_EOL;
+    }
+);
+
+
+
+
+
+// * Update a specific invoice:
+Invoice::query()->where('id', '=', 5)->update(['status' => InvoiceStatus::Paid]);
+
+// * Select all paid invoices, then print them out:
+Invoice::query()
+    ->where('status', InvoiceStatus::Paid)
+    ->get()
+    ->each(
+        function (Invoice $invoice) {
+            echo $invoice->id . ', ' . $invoice->status->toString() . ', ' . $invoice->created_at->format('m/d/Y') . PHP_EOL;
+        }
+    );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... MAS AO TENTARMOS FAZER ISSO, 
+
+FICAMOS COM 1 ERROR, ESTE:
+
+
+
+
+
+
+
+
+
+'Call to a member function toString() on int'...
+
+
+
+
+
+
+
+--> BASICAMENTE, ISSO QUER DIZER QUE 
+    O VALUE DE 'STATUS' ESTÁ SENDO 'HYDRATED' COMO 
+
+    INTEGER,
+
+    E NÃO ESTÁ SENDO CASTADO COMO 1 PROPER 'ENUM CASE'...
+
+
+
+--> ISSO QUER DIZER QUE '->status'
+
+NÃO É CONSIDERADO/CRIADO COMO 1 ENUM OBJECT,
+
+E SIM É CONSIDERADO/CRIADO COMO 1 INTEGER...
+
+
+
+
+
+
+
+QUER DIZER QUE NOSSO TYPEHINTING, LÁ EM 'Invoice',
+
+
+
+DE TIPO 
+
+
+''''
+@property InvoiceStatus $status
+'''
+
+
+
+
+NÃO TEVE/TEM EFEITO ALGUM SOBRE O ACTUAL VALUE RETORNADO AQUI...
+
+
+
+
+
+
+
+
+BASICAMENTE, OS VALUES SÃO HYDRATED 
+SEM SER CASTADOS AOS TYPES APROPRIADOS...
+
+
+
+
+
+
+
+
+
+--> OK... MAS O ELOQUENT NOS DEIXA 
+    A OPÇAÕ DE DEFINIR O CASTING MANUALMENTE...
+
+
+
+
+
+
+
+
+
+
+--. PARA ISSO, DEVEMOS IR ATÉ 
+
+O MODEL DE 'Invoice',
+
+
+E AÍ 
+
+ADICIONAR 1 PROPERTY de '$casts',
+
+EM QUE 
+
+DEFINIREMOS AS PROPER CASTING RULES...
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+
+/**
+ * @property int $id
+ * @property string $invoice_number
+ * @property float $amount
+ * @property InvoiceStatus $status
+ * @property Carbon $created_at
+ * @property Carbon $due_date
+ */
+class Invoice extends Model
+{
+    protected $casts = [];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+AQUI, NO CASO,
+
+
+VAMOS DEFINIR QUE AS DATES DEVEM SER CASTADAS COMO 'datetime',
+
+
+
+
+QUE 'due_date' deve ser castada como  'datetime' também,
+
+
+e que 
+
+status deve ser castado como aquele enum de InvoiceStatus,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+/**
+ * @property int $id
+ * @property string $invoice_number
+ * @property float $amount
+ * @property InvoiceStatus $status
+ * @property Carbon $created_at
+ * @property Carbon $due_date
+ */
+class Invoice extends Model
+{
+    protected $casts = [
+        'created_at' => 'datetime',
+        'due_date' => 'datetime',
+        'status' => InvoiceStatus::class
+    ];
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+COM ISSO, SE TENTAMOS RODAR O CÓDIGO DE ANTES,
+
+
+NÃO FICAMOS MAIS COM 1 ERROR,
+
+
+PQ AGORA 
+
+
+
+
+
+O NEGÓCIO NÃO SERÁ MAIS 1 INTEGER,
+
+
+E SIM 
+
+
+SERÁ RETORNADO COMO 1 OBJECT DE 'InvoiceStatus' (enum)...
+
+
+
+
+
+
+
+-> E AÍ É CONVERTIDO, O QUE FAZ COM QUE NÃO FIQUEMOS COM AQUELE ERROR...
+
+
+
+
+
+
+
+
+
+
+
+
+---> OK.. AÍ TUDO FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR DESTACA QUE PODEMOS EXECUTAR ALGUNS 
+
+METHODS ESTATICAMENTE NO MODEL DE 'Invoice',
+
+
+EM VEZ DE CHAMAR O METHOD DE 'query()'
+
+ANTES...
+
+
+
+
+
+
+
+
+
+
+
+---> EXEMPLO:
+
+
+
+
+PODEMOS CHAMAR 
+
+
+
+'Invoice::where()',
+
+DIRETAMENTE,
+
+
+QUE ISSO AINDA FUNCIONARIA, 
+
+
+MESMO SEM O CALL DE '::query()'
+antes...
+
+
+
+
+ou seja:
+
+
+
+
+
+
+
+ISTO FUNCIONA:
+
+
+
+Invoice::query()->where('id', '=', 5)
+
+
+
+
+
+E ISTO TAMBÉM FUNCIONA:
+
+
+
+
+
+
+Invoice::where('id', '=', 5)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO TAMBÉM FUNCIONA...
+
+
+
+
+
+
+
+
+
+---> MAS MESMO NÓS ESCREVENDO ASSIM,
+
+    NÃO PODEMOS 
+
+    CLICAR NO METHOD DE 'where' para abrir 
+    sua definição,
+
+    PQ ELE NÃO EXISTE DIRETAMENTE NO 
+
+
+    MODEL DE 'Invoice'..
+
+
+
+
+
+
+
+
+
+-> MAS, ENTÃO, COMO ISSO FUNCIONA?
+
+
+
+
+
+--> ISSO FUNCIONA PQ HÁ 1 POUCO DE MÁGICA ENVOLVIDA...
+
+
+
+
+
+
+
+
+
+---> SE ABRIMOS A CLASS DE 'Model' base,
+
+    e aí 
+    procuramos 
+
+    pelo 
+    magic method de 
+
+
+
+    '__callStatic()',
+
+
+    PERCEBEMOS QUE ELA TEM ESTE FORMATO:
+
+
+
+
+
+
+    public static function __callStatic($method, $parameters)
+    {
+        return (new static)->$method(...$parameters);
+    }
+
+
+
+
+
+
+
+
+-> OU SEJA,
+
+ELA BASICAMENTE 
+
+
+instancia o MODEL EM SI,
+
+E AÍ 
+DEFERE 
+
+
+A EXECUÇÃO DO METHOD CALL...
+
+
+
+
+
+QUER DIZER QUE ELE ESTÁ BASICAMENTE TRADUZINDO SEU CÓDIGO,
+
+
+
+PARA QUE ELE EXECUTE ISTO:
+
+
+
+
+(new Invoice())->where();
+
+
+
+
+
+
+
+
+OU SEJA,
+
+
+ELE ESTÁ INSTANCIANDO A CLASS DE 'Invoice' mesmo assim...
+ 
+
+
+
+
+
+
+
+ --> E É POR ISSO QUE 
+ O METHOD de 'where()' (e outros)
+
+
+ PODE SER CHAMADO DIRETAMENTE DEPOIS DE 'Invoice::',
+
+
+ ''''ESTATICAMENTE''',
+
+
+ TUDO POR CONTA DO MAGIC METHOD DE '__callStatic()'...
+
+
+
+
+
+
+
+
+--> TAMBEM HÁ O MAGIC METHOD DE '__call()',
+
+
+
+
+que acaba fazendo com que sua query fique com este formato:
+
+
+
+
+
+
+
+
+(new Invoice())->newQuery()->where();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR ESTÁ 
+    MOSTRANDO TUDO ISSO PARA NOS MOSTRAR 
+
+
+    QUE NÃO HÁ NENHUMA MAGIA NEGRA,
+
+
+    E
+     SIM 
+
+
+
+     A UTILIZAÇÃO DE MAGIC METHODS...
+
+
+
+
+
+
+
+
+
+
+--> AGORA TEMOS MAIS 1 EXEMPLO DE UPDATE,
+MAS, DESSA VEZ,
+
+DA 'description'
+
+
+
+DOS INVOICEITEMS....
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODERÍAMOS PROCURAR POR 1 InvoiceItem COM O INVOICE_ID,
+    E AÍ UPDATAR A DESCRIPTION E AÍ 
+
+    RODAR SAVE, SIM...
+
+
+
+
+
+
+
+
+
+
+-> MAS PODEMOS TAMBÉM FAZER 1 UPDATE USANDO 
+
+O MODEL DE 'Invoice',
+
+
+em vez do model de 'InvoiceItem'...
+
+
+
+
+
+
+
+
+
+--> QUEREMOS
+
+
+
+''UPDATE 
+
+    THE DESCRIPTION OF THE FIRST INVOICE ITEM,
+    OF EACH INVOICE model...''
+    ,
+
+
+    DENTRO DE ESTE LOOP:
+
+
+
+
+
+    ->each(
+        function (Invoice $invoice) {
+            echo $invoice->id . ', ' . $invoice->status->toString() . ', ' . $invoice->created_at->format('m/d/Y') . PHP_EOL;
+        }
+    );
+
+
+
+
+
+OK, MAS COMO PODEMOS ACESSAR OS RELATED ITEMS,
+
+
+DE CADA INVOICE?
+
+
+
+
+
+
+-->  NÃO PODEMOS CHAMAR '$invoice->items()',
+
+
+PQ ISSO NÃO VAI RETORNAR O 'InvoiceItem' model...
+
+
+
+
+-> EM VEZ DISSO,
+    ISSO RETORNA A RELATION DE 'HASMANY'...
+
+
+
+
+
+
+
+--> ESSA RELATION É KINDOF UM QUERY BUILDER,
+    O QUE QUER DIZER QUE 
+    
+    PODEMOS CONSTRUIR 1 QUERY COM ELE,
+
+    PARA AÍ CHAMARMOS '->get()'
+
+
+    PARA PEGAR A COLLECTION DE ITEMS....
+
+
+
+
+
+tipo algo como 
+
+
+
+
+
+$invoice->items()->where('description', 'awdwdwas')->update(['description' => 'foo bar']);
+
+
+
+
+
+
+
+
+
+
+
+
+E ISSO FUNCIONARIA, SIM...
+
+
+MAS O PROFESSOR QUER SER CAPAZ DE 
+
+
+'ACCESS ALL OF THE INVOICE ITEM MODELS,
+FROM THE INVOICE MODEL'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA VER COMO FAZER ISSO,
+    ESTUDAMOS OS 
+
+    MAGIC GETTERS E SETTER METHODS,
+
+    DENTRO DA CLASS 'Model' base, novamente:
+
+
+
+
+
+
+
+
+
+
+encontramos o method de 'getAttribute()'...
+
+
+
+
+DENTRO DELE,
+TEMOS ISTO:
+
+
+
+
+
+
+    public function getAttribute($key)
+    {
+        if (! $key) {
+            return;
+        }
+
+        // If the attribute exists in the attribute array or has a "get" mutator we will
+        // get the attribute's value. Otherwise, we will proceed as if the developers
+        // are asking for a relationship's value. This covers both types of values.
+        if (array_key_exists($key, $this->attributes) ||
+            array_key_exists($key, $this->casts) ||
+            $this->hasGetMutator($key) ||
+            $this->hasAttributeMutator($key) ||
+            $this->isClassCastable($key)) {
+            return $this->getAttributeValue($key);
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+ESSA SECTION TENTA PEGAR O ATTRIBUTE DO ARRAY DE 'attributes',
+
+se ele existe ou se HÁ ALGUM MUTATOR METHOD....
+
+
+
+
+-> DEPOIS DISSO, ELE CHECA SE 'THE CLASS ITSELF HAS THE GIVEN KEY'...
+
+
+
+
+
+
+
+
+--> CASO CONTRÁRIO, 
+    ELE TENTA PEGAR O VALUE DA RELATIONSHIP,
+
+    com 
+
+    'getRelationValue()'...
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO QUER DIZER, EM OUTRAS PALAVRAS:
+
+
+
+
+
+
+
+'''IF WE ACCESS THE RELATED MODEL AS A REGULAR 
+    PROPERTY, IT IS GOING TO LOAD THE RELATIONSHIP AND
+    RETURN IT...''
+
+
+
+
+--> É JUSTAMENTE POR ISSO QUE PODEMOS 
+
+ESCREVER 
+
+
+"$invoice->items"
+
+
+em vez de 
+
+
+"$invoice->items()",
+
+
+E ISSO JÁ VAI RETORNAR A COLLECTION DE ITEMS...
+
+
+
+
+
+--> COM ESSA COLLECTION DE ITEMS,
+    podemos chamar 
+
+
+
+    '->first()',
+
+    para PEGAR O PRIMEIRO ITEM DE ESSA COLLECTION...
+
+
+
+
+
+
+--> E AÍ PODEMOS DEFINIR ESSE ITEM  
+
+    A 1 VARIABLE DE NOME '$item',TIPO ASSIM:
+
+
+
+
+    // * Select all paid invoices, then print them out:
+Invoice::query()
+    ->where('status', InvoiceStatus::Paid)
+    ->get()
+    ->each(
+        function (Invoice $invoice) {
+            echo $invoice->id . ', ' . $invoice->status->toString() . ', ' . $invoice->created_at->format('m/d/Y') . PHP_EOL;
+
+            // $invoice->items()->where('description', 'awdwdwas')->update(['description' => 'foo bar']);
+
+            // * Select the first invoice item of each invoice:
+            $item = $invoice->items()->first();
+        }
+    );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+PODEMOS ENCONTRAR O ID DE CADA INVOICE_ITEM,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+    ->each(
+        function (Invoice $invoice) {
+            echo $invoice->id . ', ' . $invoice->status->toString() . ', ' . $invoice->created_at->format('m/d/Y') . PHP_EOL;
+
+            // $invoice->items()->where('description', 'awdwdwas')->update(['description' => 'foo bar']);
+
+            // * Select the first invoice item of each invoice:
+            $item = $invoice->items()->first();
+
+            var_dump($item->id);  // This will return the ID of the first invoice item of each invoice.
+        }
+    );
+
+
+
+
+
+
+
+
+
+
+
+
+
+para adicionar 1 melhor typehinting/autocomplete a esses 
+
+invoice_items,
+
+
+podemos escrever assim, lá em 'Invoice':
+
+
+
+
+
+
+/**
+ * @property int $id
+ * @property string $invoice_number
+ * @property float $amount
+ * @property InvoiceStatus  $status
+ * @property Carbon $created_at
+ * @property Carbon $due_date
+ *
+ * @property-read Collection $items
+ */
+
+
+
+
+
+
+
+ --> MAS O PROFESSOR DESTACA:
+
+
+
+
+
+
+ '''STILL,
+    GETTING RELATED ITEMS LIKE THIS __ 
+    STILL EXECUTES THE ADDITIONAL QUERY...''
+
+
+
+
+
+
+'''THERE ARE WAYS TO AVOID N+1 PROBLEMS AND 
+THE EXECUTING OF MULTIPLE QUERIES, BUT THAT IS 
+BEYOND THE SCOPE OF THIS SECTION...'''
+
+
+
+
+
+
+
+
+--> MAS O PROFESSOR APONTA QUE 
+
+'first()'
+
+
+FICA DISPONÍVEL TANTO 
+
+
+NA 'COLLECTION' COMO NO 'BUILDER'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA:
+
+
+
+
+SE EXECUTAMOS ASSIM:
+
+
+
+$invoice->items()->first();
+
+
+
+
+
+ISSO USA A CLAUSE DE 'LIMIT' NA QUERY,
+
+
+E AÍ 
+
+
+
+SELECIONA APENAS 1 RECORD,
+
+E FAZ O HYDRATE APENAS DE ESSE ÚNICO METHOD...
+
+
+
+
+
+
+
+
+
+
+
+--> APESAR DE TEREM 1 APARÊNCIA SEMELHANTE,
+
+
+
+ISTO:
+
+
+
+$invoice->items()->first();
+
+
+
+E 
+
+
+ISTO:
+
+
+
+$invoice->items->first();
+
+
+
+
+
+
+
+
+NÃO SÃO A MESMA COISA...
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PRIMEIRO SELECIONA E FAZ HYDRATE APENAS  DO PRIMEIRO RECORD...
+
+
+
+
+
+
+
+
+
+
+
+--> O SEGUNDO SELECIONA __ TODOS __ OS INVOICE ITEMS,
+    TODOS ELES SÃO HYDRATED NA MEMORY,
+    E AÍ 
+
+    APENAS 
+
+    PEGAMOS 
+
+
+    O PRIMEIRO ITEM, NESSA COLLECTION, com o 'first()' 
+
+
+    ( o que quer dizer que é bem mais intensivo,
+    em questão de resources)...
+
+
+
+
+
+
+
+
+
+
+-> CERTO...
+
+
+
+
+
+--> ADICIONALMENTE,
+    ALÉM DE 
+
+
+    SER POSSÍVEL 
+
+    SALVAR AS CHANGES EM 1 ITEM 
+
+
+    COM '$item->save()',
+
+
+
+
+
+também é possível 
+
+
+
+
+
+FAZER __ PUSH__ DAS CHANGES/UPDATES 
+
+
+
+
+
+DO INVOICE MODEL,
+
+DIRETAMENTE...
+
+
+
+
+
+
+
+
+
+
+
+--> FAZEMOS ISSO TIPO ASSIM:
+
+
+
+
+
+Invoice::query()
+    ->where('status', InvoiceStatus::Paid)
+    ->get()
+    ->each(
+        function (Invoice $invoice) {
+            echo $invoice->id . ', ' . $invoice->status->toString() . ', ' . $invoice->created_at->format('m/d/Y') . PHP_EOL;
+
+            // $invoice->items()->where('description', 'awdwdwas')->update(['description' => 'foo bar']);
+
+            // * Select the first invoice item of each invoice:
+            $item = $invoice->items()->first();
+
+
+
+            $item->description = 'Foo bar';
+
+
+            $invoice->push(); // AQUI
+        }
+    );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+$invoice->push(); 
+
+
+
+
+
+
+
+
+''THIS UPDATES THE INVOICE MODEL, ALONG WITH ITS RELATIONSHIPS''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESSE METHOD AÍ É ÚTIL JUSTAMENTE 
+
+PQ 
+
+
+
+''MAYBE WE ARE DOING SOME UPDATES ON THE INVOICE MODEL, 
+TOO, MAYBE CHANGING THE invoice_number,
+
+AND THEN WE MAYBE WANT TO UPDATE THE INVOICE ALONG WITH THE INVOICE ITEMS''...
+
+
+
+
+
+
+
+
+
+
+
+--> BASICAMENTE, ISSO É USADO PARA 'UPDATE EVERYTHING AT ONCE'...
+
+
+
+
+--> PQ SE VC CHAMAR APENAS '$invoice->save()',
+ISSO 
+
+__NÃO VAI___ UPDATE/CHANGE 
+
+OS 
+
+
+'InvoiceItem' na sua database automaticamente,
+
+
+
+MAS o '->push()'
+
+VAI...
+
+
+
+
+
+
+
+
+
+
+---------------------------
+
+
+
+
+
+
+
+POR FIM, TEMOS O ASSUNTO DO 'DELETE DE MODELS/ROWS'...
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS FAZER ISSO COM O CALL DO METHOD DE '->delete()' NOS OBJECTS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+$item->delete();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... AQUI, NO CASO, ESTAMOS CHAMANDO O DELETE 
+
+NO 'HYDRATED MODEL', no invoiceItem hydrated,
+
+
+MAS É CLARO QUE 
+PODERÍAMOS 
+
+
+CHAMAR 'delete' NA QUERY EM SI,
+
+
+NO BUILDER EM SI..
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+$invoice->items()->delete();
+
+
+
+
+
+
+
+
+
+--> ISSO DELETA/DELETARIA __ TODOS OS ITEMS DE ESSE GIVEN INVOICE...
+
+
+
+
+
+
+
+
+
+--> PODEMOS TAMBÉM RODAR QUERIEs com WHERE, 
+
+TIPO ASSIM:
+
+
+
+$invoice->items()->where('description', 'Item 2')->delete();
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE EXISTEM OUTRAS MANEIRAS PARA SELECT, UPDATE 
+E DELETE MODELS....
+
+
+
+
+
+
+-> BASICAMENTE, HÁ MTAS MANEIRAS DE FAZER AS MESMAS COISAS 
+
+NO LARAVEL/ELOQUENT...
+
+
+https://laracasts.com/series/30-days-to-learn-laravel-11
+
+
+
+
+
+
+
+
+--> OUTRO DETALHE:
+
+
+
+
+
+
+''WHILE LARAVEL PROTECTS US FROM SQL 
+INJECTION BY THE PASS OF THE VARIABLES LIKE THIS,
+
+
+YOU ARE NOT FULLY PROTECTED''...
+
+
+
+
+
+
+
+-> VC NÃO ESTÁ TOTALMENTE PROTEGIDO PQ VC AINDA PODE:
+
+
+1) BUILD RAW QUERIES 
+
+
+2) PASS THE RAW QUERY STATEMENTS 
+
+
+
+3) PASS UNSANITIZED AND UNTRUSTED DATA IN PLACES 
+    WHERE PLACEHOLDERS ARE NOT ALLOWED...
+
+
+
+
+
+
+
+--> ANTES DE ENVIAR QUALQUER DATA   UNTRUSTED       
+    DIRETAMENTE NAS QUEWRIES,
+
+
+
+    VC DEVE PRIMEIRAMENTE CHECAR SE AQUELE LUGAR 
+
+    PERMITE 
+
+    O USO DE PLACEHOLDERS...
+
+
+    SE AQUELE LUGAR N PERMITIR,
+
+
+    VC PRECISARÁ DE 1 ALLOW-LIST CUSTOMIZADA, 
+
+    PARA IDENTIFICAR 
+
+
+
+    SE O VALUE PASSADO EXISTE DENTRO DA PRE-DEFINED LIST...
+
+
+
+
+
+
+
+
+TIPO ALGO ASSIM:
+
+
+
+
+
+$column = 'status';
+
+
+$allowedColumns = ['status'];
+
+if (!in_array($column, $allowedColumns)) {
+    throw Exception();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OUTRA COISA:
+
+
+
+
+
+''EM VEZ DE USAR O MODEL PARA CONSTRUIR 
+AS QUERIES,
+
+
+PODERÍAMOS CONSTRUIR AS QUERIES DIRETAEMNTE 
+
+
+
+DA CLASS DE 'Capsule'...'''
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+Capsule::connection()->query()->from('table_name');
+
+
+
+
+Capsule::connection()->table('table_name')->where();
+
+
+
+
+
+// \Illuminate\Database\Capsule\Manager::connection()->table('invoices')->where('status', InvoiceStatus::Paid)->get();
+
+// var_dump($invoices);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+A DIFERENÇA ENTRE RODAR ISTO:
+
+
+\Illuminate\Database\Capsule\Manager::connection()->table('invoices')->where('status', InvoiceStatus::Paid)->get();
+
+
+
+
+E ISTO:
+
+
+
+
+
+// * Update a specific invoice:
+Invoice::query()->where('id', '=', 5)->update(['status' => InvoiceStatus::Paid]);
+
+
+
+
+É QUE O QUERYBUILDER 
+
+QUE É RETORNADO 
+
+
+PELO 
+CAPSULEMANAGER 
+
+NÃO É EXATAMENTE O MESMO QUERYBUILDER 
+
+
+
+RETORNADO PELO 'ELOQUENT (pelo Invoice::, aqui...)...
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO É PQ O LARAVEL TEM 2 QUERY BUILDERS...
+
+--> 1 DELES FUNCIONA COM O ELOQUENT...
+
+
+
+--> O OUTRO É O BASE QUERY BUILDER...
+
+
+
+
+
+
+
+
+
+ESTE:
+
+
+
+\Illuminate\Database\Capsule\Manager::connection()->table('invoices')->where('status', InvoiceStatus::Paid)->get();
+
+
+
+
+É O BASE QUERY BUILDER...
+
+
+
+
+
+
+E 
+
+
+
+ESTE:
+
+
+ 
+
+// * Update a specific invoice:
+Invoice::query()->where('id', '=', 5)->update(['status' => InvoiceStatus::Paid]);
+
+
+
+
+
+
+
+É O ELOQUENT QUERY BUILDER...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE ABRIMOS O CONSTRUCTOR DO ELOQUENT QUERY BUILDER, 
+        PERCEBEMOS QUE O CONSTRUCTOR 
+        USA O QUERY BUILDER DO LARAVEL..., 
+
+
+        O BASE QUERY BUILDER... ELE APENAS FAZ COM QUE ELE FUNCIONE  
+
+
+        COM O ELOQUENT...
+    
+
+
+
+
+QUER DIZER QUE O ELOQUENT QUERY BUILDER 
+
+
+
+''ACCEPTS THE BASE QUERY BUILDER IN THE CONSTRUCTOR,
+
+E BUILDS ON TOP OF IT, TO PROVIDE THE QUERY BUILDER FUNCTIONALITIES 
+
+WITH THE ELOQUENT''...
+
+
+
+
+
+
+
+
+
+--> A MESMA COISA ACONTECE COM COLLECTIONS, TEMOS DUAS NO LARAVEL:
+
+
+
+
+
+1) AS ELOQUENT COLLECTIONS, QUE FUNCIONAM COM O ELOQUENT,
+
+E UTILIZAM A BASE COLLECTION CLASS...
+
+
+
+
+
+2) A BASE COLLECTION INSTANCE, DO LARAVEL...
