@@ -1,0 +1,1096 @@
+
+
+
+
+
+
+
+
+
+
+O TÓPICO DE HOJE É 'CURL'...
+
+
+
+
+
+
+
+
+
+
+CURL --> SIGNIFICA 
+
+
+''Client URL''....
+
+
+
+
+
+
+
+
+
+
+
+CURL --> É USADO PARA 
+
+
+
+''TRANSFER DATA WITH URLS,
+    BETWEEN NETWORKS,
+    USING DIFFERENT 
+    PROTOCOLS''...
+
+
+
+
+
+
+
+PROTOCOLS COMUNS: 
+
+
+
+1) HTTP/HTTPS 
+
+2) FTP/SFTP 
+
+
+3) POP3/IMAP...
+
+
+
+
+
+
+
+--> É UMA PACKAGE QUE PROVIDENCIA TANTO:
+
+
+
+1) a library, CHAMADA DE 'libcurl'...
+
+
+2) A FERRAMENTA DE CLI, chamada de 'curl'...
+
+
+
+
+
+
+
+
+-> VAMOS FOCAR NO PROTOCOLO 'HTTP/HTTPS',
+
+    AO MESMO TEMPO QUE APRENDEMOS O BÁSICO SOBRE APIs...
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK...
+
+
+
+
+
+
+
+
+
+
+
+
+
+PHP --> 
+
+
+
+
+
+
+O PHP SUPORTA O 'libcurl',
+
+
+E PROVIDENCIA ACESSO A SUAS FUNCIONALIDADES...
+
+
+
+
+
+
+
+
+
+--> MAS PARA CONSEGUIR USAR SUAS FUNCTIONS,
+    O 'cURL'
+
+    precisa PRIMEIRAMENTE SER INSTALADO...
+
+
+
+
+
+
+
+
+
+
+
+--> NA MAIOR PARTE DOS CASOS,
+    O CURL JÁ VAI ESTAR INSTALADO NO SEU 
+
+
+    PROJECT.... VC VERÁ COISAS 
+
+
+
+COMO:
+
+
+
+
+
+
+
+
+
+(no php.ini):
+
+
+
+
+extension=bz2 
+extension=curl;
+
+
+
+
+
+
+
+
+
+
+NA SUA DOCKERFILE:
+
+
+
+
+
+RUN apt-get update && apt-get install -y \
+    git \ 
+    curl \ 
+    zip \
+    vim \
+    unzip
+
+
+
+
+
+
+
+
+
+
+
+
+QUASE SEMPRE O CURL JÁ VEM INSTALADO NO SEU ENVIRONMENT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NO NOSSO CASO,
+
+ESTAMOS USANDO DOCKER... 
+
+
+
+E, NA IMAGE OFICIAL DO PHP,
+
+JÁ TEMOS O CURL INSTALADO E SET-UP....
+
+
+
+
+
+
+
+
+
+
+
+
+ESTAMOS USANDO A MESMA DOCKER CONFIGURATION DO PROFESSOR,
+
+
+
+POR ISSO JÁ TEMOS TUDO ISSO SETTADO...
+
+
+
+
+
+
+
+
+
+
+
+--> SE ESTAMOS USANDO ALGO COMO XAMPP,
+    PROVAVELMENTE JÁ ESTAMOS COM O  CURL INSTALADO,
+    TAMBÉM...
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+
+--> MAS, PARA COMEÇAR,
+
+ABRIMOS O TERMINAL E RODAMOS ALGUNS COMANDOS...
+
+
+
+
+
+
+
+
+
+
+-> NOSSO CÓDIGO PHP INICIAL É ESTE:
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Attributes\Get;
+
+class CurlController
+{
+    #[Get('/curl')]
+    public function index() {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK...
+
+
+ENTRAMOS NO DOCKER CONTAINER 
+
+
+DE NOSSO APP,
+
+
+
+
+E AÍ 
+
+O PROFESSOR NOS MOSTRA OS COMANDOS BÁSICOS DO CURL...
+
+
+
+
+
+
+
+
+
+
+
+O COMANDO MAIS BÁSICO DO CURL É: 
+
+
+
+
+
+
+
+
+curl -s ...
+
+
+
+
+
+
+
+
+
+--> curl -s <url-contra-a-qual-vc-quer-disparar-o-request>
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+curl -s https://example.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+FICAMOS COM ESTE RESULTADO:
+
+
+
+
+
+
+
+
+
+
+<!doctype html>
+<html>
+<head>
+    <title>Example Domain</title>
+
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type="text/css">
+    body {
+        background-color: #f0f0f2;
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+    }
+    div {
+        width: 600px;
+        margin: 5em auto;
+        padding: 2em;
+        background-color: #fdfdff;
+        border-radius: 0.5em;
+        box-shadow: 2px 3px 7px 2px rgba(0,0,0,0.02);
+    }
+    a:link, a:visited {
+        color: #38488f;
+        text-decoration: none;
+    }
+    @media (max-width: 700px) {
+        div {
+            margin: 0 auto;
+            width: auto;
+        }
+    }
+    </style>
+</head>
+
+<body>
+<div>
+    <h1>Example Domain</h1>
+    <p>This domain is for use in illustrative examples in documents. You may use this
+    domain in literature without prior coordination or asking for permission.</p>
+    <p><a href="https://www.iana.org/domains/example">More information...</a></p>
+</div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESTÁ PRINTANDO O CONTEÚDO DE ESSA URL...
+
+
+
+
+
+
+
+
+
+--> MAS AGORA DEVEMOS VER O EXEMPLO BÁSICO NO PHP,
+
+USANDO CURL FUNCTIONS....
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> USAREMOS A ROUTE DE '/curl'...
+
+
+
+
+
+
+
+
+--> OK...
+
+
+
+
+
+
+AS ETAPAS SÃO ASSIM:
+
+
+
+
+
+
+
+
+
+
+1) PRECISAMOS INICIALIZAR UMA 'CURL SESSION',
+
+
+
+com esta linha:
+
+
+
+$handle = curl_init();
+
+
+
+
+
+
+
+
+
+-> ESSA FUNCTION RETORNA UM 'CURL HANDLE OBJECT'
+
+
+
+
+
+
+
+--> É ISSO QUE APARECE, NA DEFINIÇÃO DA FUNCTION:
+
+
+
+
+
+
+
+
+/**
+ * Initialize a cURL session
+ * @link https://php.net/manual/en/function.curl-init.php
+ * @param string|null $url [optional] <p>
+ * If provided, the CURLOPT_URL option will be set
+ * to its value. You can manually set this using the
+ * curl_setopt function.
+ * </p>
+ */
+#[LanguageLevelTypeAware(['8.0' => 'CurlHandle|false'], default: 'resource|false')]
+function curl_init(?string $url) {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+->  ANTES DO PHP8,
+
+
+ESSA FUNCTION COSTUMAVA 
+
+RETORNAR 
+
+
+'resource'.... 
+
+
+
+
+
+
+MAS DEPOIS DO PHP8,
+
+
+ELE RETORNA 
+
+
+
+UM OBJECT DE CLASS 'CurlHandle'...
+
+ 
+
+
+
+
+
+
+
+-> COMO VC PODE VER, O PASS DE 1 URL A ESSA FUNCTION 
+
+É _ OPCIONAl:
+
+
+
+
+
+
+#[LanguageLevelTypeAware(['8.0' => 'CurlHandle|false'], default: 'resource|false')]
+function curl_init(?string $url) {}
+
+
+
+
+
+
+
+
+
+SE VC PASSA A URL,
+
+ELA É BASICAMENTE UTILIZADA...
+
+
+
+
+
+
+
+
+--> É CLARO QUE PODEMOS PASSAR ALGUMAS OUTRAS OPTIONS,
+    MANUALMENTE,
+     DEPOIS... DENTRO DE ESSAS OPTIONS MANUAIS,
+     PODEMOS SETTAR 
+     A URL TAMBÉM...
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO NOS LEVA à SEGUNDA ETAPA,
+    EM QUE CONFIGURAMOS 
+
+    ALGUMAS OPTIONS PARA NOSSA SESSION DO CURL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2) PODEMOS USAR A FUNCTION DE 'curl_setopt()',
+
+
+    PARA SETTAR NOSSAS OPTIONS...
+
+
+
+
+
+
+
+-> COMO PARAMETER DE ESSA FUNCTION, PASSAMOS A HANDLE 
+    DO CURL QUE CRIAMOS ANTERIORMENTE...
+
+
+
+
+
+--> COMO SEGUNDO PARAMETER, 
+PASSAMOS a KEY da option que queremos alterar...
+
+
+
+-> COMO __TERCEIRO PARAMETER, PASSAMOS O __ VALUE __ 
+
+QUE DEVERÁ SER ATRIBUÍDO A ESSA KEY...
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+        $handle = curl_init();  // returns a cURL handle object.
+
+        curl_setopt($handle, CURLOPT_URL, 'https://www.google.com/');
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR NOS EXPLICA QUE 
+
+EXISTEM 
+
+MTAS DIFERENTES OPTIONS...
+
+
+
+
+
+
+
+
+--> SÃO TODAS ELAS CONSTANTS, QUE PRECISAMOS 
+    PASSAR, NO LUGAR DAS OPTIONS...
+
+
+
+
+
+--> 'CURLOPT_URL' -> É A OPTION 
+                    PARA DEFINIR 
+
+                    A URL QUE DEVERÁ SER USADA...
+
+
+
+
+
+
+
+
+
+
+--> PARA SABER QUAIS OPTIONS EXISTEM,
+EXISTEM OS DOCS DO CURL PHP...
+
+
+
+
+
+
+
+
+
+-> TODAS OPTIONS COMEÇAM COM 'CURLOPT'...
+
+
+
+
+
+
+
+
+
+--> NOSSO VALUE, NO CASO, SERÁ A URL...
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+curl_setopt($handle, CURLOPT_URL, 'https://www.google.com/');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... AGORA VAMOS PARA A TERCEIRA ETAPA, EM QUE FAZEMOS O ACTUAL REQUEST...
+
+
+
+
+
+
+
+
+
+
+
+
+
+3) FIRE THE ACTUAL REQUEST:
+
+
+
+
+--> PARA ISSO, PRECISAMOS 
+
+
+__EXECUTAR__ NOSSA  CURL SESSION...
+
+
+
+
+
+--> PARA EXECUTÁ-LA,
+
+
+EXECUTAMOS A FUNCTION DE 
+
+
+'curl_exec()',
+
+
+e aí passamos 
+
+
+a NOSSA HANDLE como 
+PARAMETER...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Attributes\Get;
+
+class CurlController
+{
+    #[Get('/curl')]
+    public function index()
+    {
+        $handle = curl_init();  // returns a cURL handle object.
+
+        curl_setopt($handle, CURLOPT_URL, 'https://www.google.com/');
+
+        // This fires the actual request;
+        curl_exec($handle);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> E A FUNCTION DE 'curl_exec()"
+
+retorna 
+
+'TRUE' ou 'FALSE',
+
+
+
+DEPENDENDO DO SUCCESS/FAILURE...
+
+
+
+
+
+
+
+
+-> MAS ESSA FUNCTION TAMBÉM PODE RETORNAR 
+'THE RESULT', EM VEZ DE 'true',
+
+
+SE 1 CERTA OPTION FOR CONFIGURADA/SETTADA... MAIS TARDE 
+FALAREMOS SOBRE ESSA OPTION...
+
+
+
+
+
+
+
+
+
+
+
+
+--> FINALMENTE, PARA FECHAR A SESSION E LIBERAR 
+OS RESOURCES,
+
+
+DEVEMOS RODAR A FUNCTION DE CLOSE:
+
+
+
+
+
+
+
+
+4) CLOSE THE SESSION AND FREE THE RESOURCES:
+
+
+
+
+
+--> PARA ISSO,
+RODAMOS A FUNCTION DE 
+
+
+
+'curl_close($handle);'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Attributes\Get;
+
+class CurlController
+{
+    #[Get('/curl')]
+    public function index()
+    {
+        // returns a cURL handle object, without url assigned
+        $handle = curl_init();
+
+        // assigns the URL to the handle (along with other options, if you want)
+        curl_setopt($handle, CURLOPT_URL, 'https://www.google.com/');
+
+        // This fires the actual request;
+        curl_exec($handle);
+
+        // Close the handle to free up resources.
+        curl_close($handle);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS ANTES DO PHP8,
+
+O 'curl_init()'
+
+
+
+function 
+
+SEMPRE RETORNAVA 1 RESOURCE...
+
+
+
+
+
+
+
+
+
+--> POR ISSO CHAMAR 'curl_close()'
+    FAZIA SENTIDO, NAQUELA ÉPOCA...
+
+
+
+--> FAZIA SENTIDO PQ VC 
+    FECHAVA A SESSION,
+    E LIBERAVA RESOURCES...
+
+
+
+
+
+--> MAS DEPOIS DO PHP8,
+    O 'curl_init()'
+
+    NÃO FAZ MAIS 
+    O RETURN DE 1 RESOURCE DIRETAMENTE,
+
+    E SIM RETORNA 1 OBJECT....
+
+
+
+
+
+    --> A DIFERENÇA, NO CASO,
+    É QUE CURL HANDLES
+
+    SÃO SEMPRE __ CLOSED__ QUANDO 
+    O OBJECT É DESTRUÍDO OU QUANDO 
+    NÃO HÁ MAIS REFERENCES A ESSE OBJECT...
+
+
+
+
+
+
+--> É POR ISSO QUE NÃO PRECISAMOS CHAMAR 'curl_close()",
+
+    AQUI....
