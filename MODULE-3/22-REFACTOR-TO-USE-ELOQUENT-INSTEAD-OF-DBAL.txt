@@ -1,0 +1,3065 @@
+
+
+
+
+
+
+
+
+
+
+
+NA AULA ANTERIOR, FALAMOS SOBRE ACTIVE RECORD PATTERN...
+
+
+
+
+
+
+
+
+
+--> VIMOS OS BASICS SOBRE O LARAVEL ELOQUENT (ORM)...
+
+
+
+
+
+
+-->  NESSA AULA VEREMOS BASTANTE REFACTORING, DO NOSSO APP,
+
+
+
+
+E VEREMOS 
+
+
+
+
+
+''HOW TO HOOK INTO SOME OF THE EVENTS THAT ARE TRIGGERED 
+BY ELOQUENT...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> JÁ ESTAMOS FAMILIARES COM O MINI PROJECT DE 
+
+
+
+'DBAL',
+
+AQUELE MINI PROJECT 
+
+
+
+
+
+QUE TEM ESTE CÓDIGO:
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+use App\App;
+use App\Controllers\HomeController;
+use App\Controllers\InvoiceController;
+use App\Router;
+use Illuminate\Container\Container;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+define('STORAGE_PATH', __DIR__ . '/../storage');
+define('VIEW_PATH', __DIR__ . '/../views');
+
+$container = new Container();
+$router    = new Router($container);
+
+$router->registerRoutesFromControllerAttributes(
+    [
+        HomeController::class,
+        InvoiceController::class,
+        UserController:class
+    ]
+);
+
+(new App(
+    $container,
+    $router,
+    ['uri' => $_SERVER['REQUEST_URI'], 'method' => $_SERVER['REQUEST_METHOD']]
+))->boot()->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESSE É O ENTRYPOINT AO NOSSO APP,
+
+QUE EXISTE EM public/index.php...
+
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE TODOS OS REQUESTS VÃO POR DENTRO DE ESSE 'index.php'...
+
+
+
+
+--> É NESSE INDEX.PHP QUE ESTAMOS INSTANCIANDO O ROUTER,
+
+
+E FAZENDO O REGISTER DE TODAS AS NOSSAS ROUTES...
+
+
+
+
+
+
+
+COM ESTE CÓDIGo:
+
+
+
+
+
+
+$router = new Router($container);
+
+$router->registerRoutesFromControllerAttributes(
+    [
+        HomeController::class,
+        InvoiceController::class,
+    ]
+);
+
+
+
+
+
+
+
+
+
+
+
+NÓS ENTÃO ESTAMOS INSTANCIANDO O NOSSO APP,
+
+CHAMANDO O METHOD DE 'boot()',
+
+e aí RODANDO-O, 
+ 
+com 'run()"...
+
+
+
+
+
+
+
+
+
+
+
+--> ESTAMOS USANDO IMPLEMENTAÇÕES CUSTOMIZADAS 
+
+
+DE 'Container()'
+
+
+e 'Router()',
+
+
+QUE 
+
+
+
+IMPLEMENTAMOS AO LONGO DO NOSSO CURSO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> DENTRO DE 'App.php',
+
+
+
+TEMOS A PROPERTY STATIC DE 
+
+
+'private static DB $db'....
+
+
+
+
+ 
+
+
+
+
+
+--> TEMOS TAMBÉM O METHOD STATIC 'db()',
+
+QUE RETORNA A DB INSTANCE,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use App\Exceptions\RouteNotFoundException;
+use App\Services\PaymentGatewayService;
+use App\Services\PaymentGatewayServiceInterface;
+use Dotenv\Dotenv;
+use Symfony\Component\Mailer\MailerInterface;
+
+class App
+{
+    private static DB $db;
+    private Config $config;
+
+    public function __construct(
+        protected Container $container,
+        protected ?Router $router = null,
+        protected array $request = [],
+    ) {}
+
+    public static function db(): DB
+    {
+        return static::$db;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE VAMOS ATÉ A PARTE DO 'boot()',
+
+
+
+PERCEBEMOS QUE O CREATE DO DB ACONTECE 
+
+
+NESTE TRECHO:
+
+
+
+
+
+
+
+
+    public function boot(): static
+    {
+        $dotenv = Dotenv::createImmutable(dirname(__DIR__));
+        $dotenv->load();
+
+        $this->config = new Config($_ENV);
+
+        static::$db = new DB($this->config->db ?? []);
+
+
+
+
+
+
+
+
+
+
+
+
+ESSA DB INSTANCE É CRIADA NESSE TRECHO, PORTANTO...
+
+
+
+
+
+
+
+
+
+
+--> A CLASS DE 'DB' 
+
+EM SI É 'NOTHING MORE' 
+
+
+
+QUE 1 WRAPPER AO REDOR DO DBAL DO DOCTRINE...
+
+
+
+
+
+
+
+
+
+
+
+--> ANTES DO REFACTOR PARA USAR O DOCTRINE DBAL,
+    ISSO ERA APENAS UM WRAPPER AO REDOR DO PDO...
+
+
+
+
+
+
+
+
+
+
+
+--> NOSSO OBJETIVO, AQUI, É BASICAMENTE 
+    REFACTOR ESSE CÓDIGO DO DBAL,
+
+    PARA QUE 
+
+    SEJA IMPLEMENTADO O ELOQUENT (com aquele pattern de 'active record')...
+
+
+
+
+
+
+
+
+
+
+
+
+--> COMO BONUS, TAMBÉM VAMOS REFATORAR NOSSO CÓDIGO 
+PARA QUE ELE USE O CONTAINER DO LARAVEL,
+
+EM VEZ DAQUELA IMPLEMENTATION DO CONTAINER CUSTOM QUE ESCREVEMOS NAS ÚLTIMAS AULAS...
+
+
+
+
+
+
+
+
+
+
+--> FAREMOS ISSO PQ O CONTAINER DO LARAVEL CONTÉM FEATURES MELHORES...
+
+
+
+
+
+
+
+
+
+--> O REFACTOR VAI SER BEM SIMPLES, NA VERDADE...
+
+
+
+
+
+
+
+
+-> ISSO É PQ JÁ TÍNHAMOS FEITO A MAIOR PARTE DO SETUP NA ÚLTIMA AULA....
+
+
+
+
+
+
+
+
+
+
+
+
+--> NA ÚLTIMA AULA,
+
+CRIAMOS 1 ARQUIVO DE 'eloquent.php',
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+use Dotenv\Dotenv;
+use Illuminate\Database\Capsule\Manager as Capsule;
+use Illuminate\Events\Dispatcher;
+use Illuminate\Container\Container;
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+$capsule = new Capsule;
+
+$params = [
+    'host'      => $_ENV['DB_HOST'],
+    'username'  => $_ENV['DB_USER'],
+    'password'  => $_ENV['DB_PASS'],
+    'database'  => $_ENV['DB_DATABASE'],
+    'driver'    => $_ENV['DB_DRIVER'] ?? 'mysql',
+    'charset'   => 'utf8',
+    'collation' => 'utf8_unicode_ci',
+    'prefix'    => '',
+];
+
+$capsule->addConnection($params);
+$capsule->setEventDispatcher(new Dispatcher(new Container));
+$capsule->setAsGlobal();
+$capsule->bootEloquent();
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+-> VAMOS COPIAR ISSO AÍ, E AÍ COLAR DENTRO DE ALGUM LUGAR 
+
+
+DO 'App.php'...
+
+
+
+
+
+
+
+
+
+
+
+
+---> PARA ISSO, O PROFESSOR 
+
+
+SE LIVRA DESTA LINHA, em 'boot':
+
+
+
+        // static::$db = new DB($this->config->db ?? []);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ O PROFESSOR DIZ QUE VAI QUERER CHAMAR UM NOVO METHOD,
+
+DE NOME 'initDb()',
+
+QUE VAMOS CRIAR AGORA,
+,
+
+
+E QUE VAI RODAR AQUELE CÓDIGO DO 'eloquent.php',
+
+TIPO ASSIm:
+
+
+
+    public function initDb(): void  // This is the eloquent implementation, replacing  DBAL implementation
+    {
+        $capsule = new Capsule;
+
+        $params = [
+            'host' => $_ENV['DB_HOST'],
+            'username' => $_ENV['DB_USER'],
+            'password' => $_ENV['DB_PASS'],
+            'database' => $_ENV['DB_DATABASE'],
+            'driver' => $_ENV['DB_DRIVER'] ?? 'mysql',
+            'charset' => 'utf8',
+            'collation' => 'utf8_unicode_ci',
+            'prefix' => '',
+        ];
+
+        $capsule->addConnection($params);
+        $capsule->setEventDispatcher(new Dispatcher(new Container));
+        $capsule->setAsGlobal();
+        $capsule->bootEloquent();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, NOS LIVRAMOS DO METHOD 'db()',
+
+
+e também da static property '$db',
+
+TIPO ASSIM:
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use App\Exceptions\RouteNotFoundException;
+use App\Services\PaymentGatewayService;
+use App\Services\PaymentGatewayServiceInterface;
+use Dotenv\Dotenv;
+use Illuminate\Database\Capsule\Manager as Capsule;
+use Symfony\Component\Mailer\MailerInterface;
+
+class App
+{
+    // private static DB $db;
+    private Config $config;
+
+    public function __construct(
+        protected Container $container,
+        protected ?Router $router = null,
+        protected array $request = [],
+    ) {}
+
+    public function boot(): static
+    {
+        $dotenv = Dotenv::createImmutable(dirname(__DIR__));
+        $dotenv->load();
+
+        $this->config = new Config($_ENV);
+
+        // static::$db = new DB($this->config->db ?? []); // This will be replaced by the eloquent usage, instead of this usage of DBAL, this wrapper around DBAL.
+
+        $this->container->set(PaymentGatewayServiceInterface::class, PaymentGatewayService::class);
+        $this->container->set(MailerInterface::class, fn() => new CustomMailer($this->config->mailer['dsn']));
+
+        return $this;
+    }
+
+    // public static function db(): DB
+    // {
+    //     return static::$db;
+    // }
+
+    public function initDb(): void  // This is the eloquent implementation, replacing  DBAL implementation
+    {
+        $capsule = new Capsule;
+
+        $params = [
+            'host' => $_ENV['DB_HOST'],
+            'username' => $_ENV['DB_USER'],
+            'password' => $_ENV['DB_PASS'],
+            'database' => $_ENV['DB_DATABASE'],
+            'driver' => $_ENV['DB_DRIVER'] ?? 'mysql',
+            'charset' => 'utf8',
+            'collation' => 'utf8_unicode_ci',
+            'prefix' => '',
+        ];
+
+        $capsule->addConnection($params);
+        $capsule->setEventDispatcher(new Dispatcher(new Container));
+        $capsule->setAsGlobal();
+        $capsule->bootEloquent();
+    }
+
+    public function run()
+    {
+        try {
+            echo $this->router->resolve($this->request['uri'], strtolower($this->request['method']));
+        } catch (RouteNotFoundException) {
+            http_response_code(404);
+
+            echo View::make('error/404');
+        }
+    }
+}
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO, 
+
+
+
+VAMOS TER ESSE METHOD...
+
+
+
+
+
+
+
+
+MAS ESSE METHOD ESTÁ ERRADO, PQ PRECISAMOS TER '$config' como argument, tipo assim:
+
+
+
+
+
+
+
+
+
+
+    public function initDb(array $config): void  // This is the eloquent implementation, replacing  DBAL implementation
+    {
+        $capsule = new Capsule;
+
+        $capsule->addConnection($params);
+        $capsule->setEventDispatcher(new Dispatcher(new Container));
+        $capsule->setAsGlobal();
+        $capsule->bootEloquent();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> aí tiramos os params inline, ali,
+    PQ ELES VÃO SER PASSADOS NO ARGUMENT..
+
+
+
+
+
+
+
+    TIPO ASSIM:
+
+
+
+    
+    public function initDb(array $config): void  // This is the eloquent implementation, replacing  DBAL implementation
+    {
+        $capsule = new Capsule;
+
+        $capsule->addConnection($params);
+        $capsule->setEventDispatcher(new Dispatcher(new Container));
+        $capsule->setAsGlobal();
+        $capsule->bootEloquent();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+MAS AINDA PRECISAMOS DE UM CONTAINER...
+
+
+
+
+
+
+
+
+--> NÃO PODEMOS USAR O CONTAINER DO LARAVEL AINDA, PQ FALTA SETUP...
+
+
+
+
+
+
+
+
+
+--> POR ENQUANTO, VAMOS DEIXAR O DISPATCHER VAZIO:
+
+
+
+
+
+
+    public function initDb(array $config): void  // This is the eloquent implementation, replacing  DBAL implementation
+    {
+        $capsule = new Capsule;
+
+        $capsule->addConnection($params);
+        $capsule->setEventDispatcher(new Dispatcher());
+        $capsule->setAsGlobal();
+        $capsule->bootEloquent();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    CERTO...
+
+
+
+
+
+
+
+--> AÍ VAMOS CHAMAR, no boot,
+
+
+'$this->initDb()',
+
+
+MAS PRECISAMOS PASSAR O CONFIG DE NOSSO APP,
+
+
+
+COM 1 CÓDIGO TIPO 
+
+
+'$this->config->db'...
+
+
+
+EX:
+
+
+
+
+
+
+
+
+    public function boot(): static
+    {
+        $dotenv = Dotenv::createImmutable(dirname(__DIR__));
+        $dotenv->load();
+
+        $this->config = new Config($_ENV);
+
+        // static::$db = new DB($this->config->db ?? []); // This will be replaced by the eloquent usage, instead of this usage of DBAL, this wrapper around DBAL.
+
+        $this->initDb($this->config->db ?? []);
+
+
+
+
+
+
+
+
+
+
+
+
+
+    --> LÁ NO ARQUIVO 'Config.php',
+
+    PRECISAMOS DE ALGUNS ADJUSTMENTS,
+
+    PARA QUE 
+
+    A PARTE DE 
+
+    '$params' encaixe:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+/**
+ * @property-read ?array $db
+ * @property-read ?array $mailer
+ */
+class Config
+{
+    protected array $config = [];
+
+    public function __construct(array $env)
+    {
+        $this->config = [
+            'db' => [
+                'host' => $env['DB_HOST'],
+                'username' => $env['DB_USER'],
+                'password' => $env['DB_PASS'],
+                'database' => $env['DB_DATABASE'],
+                'driver' => $env['DB_DRIVER'] ?? 'mysql',
+                'charset' => 'utf8',
+                'collation' => 'utf8_unicode_ci',
+                'prefix' => '',
+            ],
+            'mailer' => [
+                'dsn' => $env['MAILER_DSN'] ?? '',
+            ],
+        ];
+    }
+
+    public function __get(string $name)
+    {
+        return $this->config[$name] ?? null;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+COM ISSO, PRATICAMENTE ACABAMOS, MAS AINDA FALTARAM ALGUMAS COISAS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COMO VC DEVE SE LEMBRAR,
+
+AINDA TEMOS UMA CLASS DE 'Model',
+
+
+
+QUE É A CLASS  'BASE' DE MODEL,
+
+
+
+E ELA _ USA/USAVA A INSTANCE DE 'DB'
+
+
+PARA SETTAR A PROPERTY DE '$db',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+namespace App;
+
+use PDOStatement;
+
+abstract class Model
+{
+    protected DB $db;
+
+    public function __construct()
+    {
+        $this->db = App::db();
+    }
+
+    public function fetchLazy(PDOStatement $stmt): \Generator
+    {
+        foreach($stmt as $record) {
+            yield $record;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+E ESSA PROPERTY '$db'
+
+
+ERA USADA PELOS MODELS QUE FAZIAM EXTEND DO BASE MODEL...
+
+
+
+
+
+
+
+
+
+
+--> MAS AGORA NÃO VAMOS MAIS PRECISAR DE ESSA CLASS 'BASE MODEL'
+
+de 'Model',
+
+
+PQ NÃO VAMOS MAIS USAR O PDO DIRETAMENTE,
+
+
+E PQ NÃO VAMOS MAIS TER ACESSO A ESSA CONNECTION DE DB...
+
+
+
+
+
+
+
+
+
+--> COMO VAMOS USAR BASICAMENTE APENAS O ELOQUENT DO LARAVEL,
+    ESSE MODEL NÃO É MAIS NECESSÁRIO...
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE O PROFESSOR VAI DELETAR O BASE MODEL INTEIRO,
+    E AÍ VAI DELETAR A CLASS DE 'DB' também,
+
+
+    PQ NÃO A UTILIZAREMOS MAIS...
+
+
+
+
+
+
+
+
+--> a última coisa que precisamos fazer, no caso, 
+
+    é MUDAR 
+
+
+     A PARTE DE 'InvoiceController',
+
+
+     EM QUE ESTÁVAMOS USANDO O INVOICEMODEL ANTIGAO,
+
+
+     o 
+
+
+
+     'Invoice' model
+
+     que ainda usava essa class base de 'Model',
+
+     essa class que ainda usava o wrapper em volta do DBAL...
+
+
+
+
+
+
+
+
+
+
+
+    OU SEJA,
+
+
+    ESSE CONTROLLER AINDA ESTÁ USANDO ESTE SNIPPET:
+
+
+
+
+
+class InvoiceController
+{
+    #[Get('/invoices')]
+    public function index(): View
+    {
+        $invoices = (new Invoice())->all(InvoiceStatus::Paid);
+
+        return View::make('invoices/index', ['invoices' => $invoices]);
+    }
+
+
+
+
+
+
+
+ESTE CALL AQUI:
+
+
+
+
+        $invoices = (new Invoice())->all(InvoiceStatus::Paid);
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO FAZ/FAZIA O RETURN DE TODAS AS PAID INVOICES...
+
+
+
+
+
+
+
+
+
+
+--> É CLARO QUE ISSO NÃO VAI MAIS FUNCIONAR,
+
+    PQ NÓS JÁ NOS LIVRAMOS DO MODEL ANTIGO DE 'Invoice',
+
+     
+     PQ AGORA ESTAMOS USANDO O MODEL 'Invoice'
+
+
+     DO LARAVEL ELOQUENT,
+
+
+
+     QUE FOI CRIADO NA ÚLTIMA AULA,
+
+
+
+     COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+namespace App\Models;
+
+use App\Enums\InvoiceStatus;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+/**
+ * @property int           $id
+ * @property string        $invoice_number
+ * @property float         $amount
+ * @property InvoiceStatus $status
+ * @property Carbon        $created_at
+ * @property Carbon        $due_date
+ *
+ * @property-read Collection $items
+ */
+class Invoice extends Model
+{
+    const UPDATED_AT = null;
+
+    protected $casts = [
+        'created_at' => 'datetime',
+        'due_date'   => 'datetime',
+        'status'     => InvoiceStatus::class,
+    ];
+
+    protected static function booted()
+    {
+        static::creating(function(Invoice $invoice) {
+            if ($invoice->isClean('due_date')) {
+                $invoice->due_date = (new Carbon())->addDays(10);
+            }
+        });
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(InvoiceItem::class);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESSE 'Model' que está sendo extended é o model do ELOQUENT EM SI,
+
+
+e não 
+
+o nosso base model, model que fazia o wrap em volta do DBAL...
+
+
+
+
+
+
+
+
+
+
+-> É CLARO QUE EXISTEM VÁRIAS MANEIRAS DE CONSERTAR ESSA USAGE DE 
+
+
+
+''        $invoices = (new Invoice())->all(InvoiceStatus::Paid); ''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- uma maneira seria usar o 'BASE QUERY BUILDER',
+
+LÁ DO CAPSULE\MANAGER,
+
+
+E AÍ __ FAZER O BUILD DE NOSSA QUERY E FAZER O FETCH DE NOSSAS INVOICES,
+
+
+A PARTIR DO VALUE DE 'InvoiceStatus'...
+
+
+
+
+
+
+
+
+
+
+
+--> A OUTRA MANEIRA É __ USAR _ 
+    O ELOQUENT INVOICE MODEL,
+
+    E AÍ 
+
+    CONSTRUIR 
+
+    A QUERY COM ELE...
+
+
+
+
+
+
+
+
+
+--> FAZEMOS ISSO COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+$invoices = Invoice::query()->where('status', InvoiceStatus::Paid);
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> DEPOIS DISSO, PRECISAMOS FAZER FETCH DOS RESULTS,
+
+
+ALGO QUE PODEMOS FAZER COM '->get()":
+
+
+
+
+
+
+
+
+$invoices = Invoice::query()->where('status', InvoiceStatus::Paid)->get()
+
+
+
+
+
+
+
+
+
+
+
+
+
+POR FIM, CASTAMOS TUDO COMO 1 ARRAY:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+$invoices = Invoice::query()->where('status', InvoiceStatus::Paid)->get()->toArray();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+QUEREMOS CASTAR ISSO COMO 1 ARRAY JUSTAMENTE PQ 
+O PROFESSOR 
+
+
+NÃO QUER TER DE ALTERAR A VIEW DE 'invoices/index',
+
+
+
+QUE JUSTAMENTE 
+
+
+USA ARRAYS PARA ACESSAR A DATA...
+
+
+
+
+(com esta parte '$invoice['invoice_number]')
+
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE FICA ASSIM:
+
+class InvoiceController
+{
+    #[Get('/invoices')]
+    public function index(): View
+    {
+        $invoices = Invoice::query()->where('status', InvoiceStatus::Paid)->get()->toArray();
+
+        return View::make('invoices/index', ['invoices' => $invoices]);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ PODEMOS TESTAR ISSO... FUNCIONA COMO ANTES,
+
+FICAMOS COM APENAS 
+
+AS PAID INVOICES SENDO MOSTRADAS NA TELA...  
+
+
+
+
+
+
+
+
+
+
+
+ISSO FOI EASY, E AGORA ESTAMOS USANDO 
+ELOQUENT EM VEZ DE DOCTRINE (OU DBAL) DIRETAMENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE PODERÍAMOS 
+
+
+
+COLOCAR ESSA QUERY EM 
+
+
+
+
+UMA CLASS DE 'SERVICE' 
+
+
+OU 1 REPOSITORY,
+
+
+
+PARA MANTER 
+
+NOSSOS CONTROLLERS THIN,
+
+
+MAS ISSO 
+
+É ALGO FORA DO ESCOPO DE NOSSA LESSON...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... MAS AGORA DEVEMOS VER COMO PODEMOS USAR 
+
+    O LARAVEL CONTAINER,
+
+    EM VEZ 
+
+
+    DE 
+    NOSSO CUSTOM CONTAINER...
+
+
+
+
+
+
+
+-> PARA ISSO,
+
+LÁ EM 'index.php', em public,
+
+
+percebemos o nosso container:
+
+
+
+<?php declare(strict_types=1);
+
+use App\Controllers\HomeController;
+use App\Controllers\InvoiceController;
+use App\App;
+use App\Container;
+use App\Router;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+define('STORAGE_PATH', __DIR__ . '/../storage');
+define('VIEW_PATH', __DIR__ . '/../views');
+
+$container = new Container();
+$router = new Router($container);
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO INSTANCIA O NOSSO CONTAINER...
+
+
+
+
+
+
+
+
+
+
+--> É O NOSSO CUSTOM CONTAINER...
+
+
+
+
+
+
+
+
+
+
+MAS AGORA IMAGINE QUE INSTANCIAMOS O LARAVEL CONTAINER,
+
+EM VEZ DE ESSE CUSTOM CONTAINER...
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, 
+
+ESCREVEMOS ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Controllers\HomeController;
+use App\Controllers\InvoiceController;
+use App\App;
+// use App\Container;
+use App\Router;
+use Illuminate\Container\Container as ContainerContainer;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+define('STORAGE_PATH', __DIR__ . '/../storage');
+define('VIEW_PATH', __DIR__ . '/../views');
+
+$container = new Container();
+$router = new Router($container);
+
+$router->registerRoutesFromControllerAttributes(
+    [
+        HomeController::class,
+        InvoiceController::class,
+    ]
+);
+
+(new App(
+    $container,
+    $router,
+    ['uri' => $_SERVER['REQUEST_URI'], 'method' => $_SERVER['REQUEST_METHOD']]
+))->boot()->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS FICAMOS COM ERRORS...
+
+
+
+
+
+
+
+
+
+
+
+-> NOSSAS CLASSES DE 
+
+'ROUTER' 
+
+E 
+
+'APP' 
+
+
+TAMBÉM FICAM ERRADAS,
+
+
+PQ 
+
+
+
+ESSAS CLASSES EXPECT O 
+CONTAINER 
+
+
+CUSTOM NOSSO,
+
+E NÃO O LARAVEL CONTAINER...
+
+
+
+
+
+
+
+
+
+
+POR ISSO ESCREVEMOS ASSIM:
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use App\Exceptions\RouteNotFoundException;
+use App\Services\PaymentGatewayService;
+use App\Services\PaymentGatewayServiceInterface;
+use Dotenv\Dotenv;
+use Illuminate\Container\Container;
+use Illuminate\Database\Capsule\Manager as Capsule;
+use Illuminate\Events\Dispatcher;
+use Symfony\Component\Mailer\MailerInterface;
+
+class App
+{
+    // private static DB $db;
+    private Config $config;
+
+    public function __construct(
+        protected Container $container,
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App;
+
+use App\Attributes\Route;
+use App\Exceptions\RouteNotFoundException;
+use Illuminate\Container\Container;
+
+class Router
+{
+    private array $routes = [];
+
+    public function __construct(private Container $container)
+    {
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... 
+
+
+
+
+
+
+MAS AINDA PRECISAMOS 
+
+
+AJUSTAR O CONTAINER DO LARAVEL.... FAZER O SETUP CORRETO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS TAMBÉM TEMOS OUTRA COISA QUE DEVE SER AJUSTADA...
+
+
+
+
+
+
+
+
+
+
+
+
+--> LÁ EM 'App.php',
+
+
+
+EM 'boot()',
+
+
+TEMOS 
+
+
+ESTE TRECHo:
+
+
+
+
+
+
+
+
+    public function boot(): static
+    {
+        $dotenv = Dotenv::createImmutable(dirname(__DIR__));
+        $dotenv->load();
+
+        $this->config = new Config($_ENV);
+
+        // static::$db = new DB($this->config->db ?? []); // This will be replaced by the eloquent usage, instead of this usage of DBAL, this wrapper around DBAL.
+
+        $this->initDb($this->config->db ?? []);
+
+        $this->container->set(PaymentGatewayServiceInterface::class, PaymentGatewayService::class);
+        $this->container->set(MailerInterface::class, fn() => new CustomMailer($this->config->mailer['dsn']));
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+    NO CASO, O TRECHO DE 
+
+
+
+    ''
+
+            $this->container->set(PaymentGatewayServiceInterface::class, PaymentGatewayService::class);
+        $this->container->set(MailerInterface::class, fn() => new CustomMailer($this->config->mailer['dsn']));
+
+
+''
+
+
+
+
+
+
+ESSE METHOD DE 'set()'
+
+
+É O METHOD QUE EXISTIA NO 
+
+
+NOSSO CONTAINER ANTIGO, CUSTOM...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROBLEMA, AQUI, É QUE O NOME DE ESSE METHOD,
+    NO LARAVEL,
+
+    É 'bind',
+
+    e não 'set'...
+
+
+
+
+--> É POR ISSO QUE ESCREVEMOS ASSim:
+
+
+
+
+
+
+
+    public function boot(): static
+    {
+        $dotenv = Dotenv::createImmutable(dirname(__DIR__));
+        $dotenv->load();
+
+        $this->config = new Config($_ENV);
+
+        // static::$db = new DB($this->config->db ?? []); // This will be replaced by the eloquent usage, instead of this usage of DBAL, this wrapper around DBAL.
+
+        $this->initDb($this->config->db ?? []);
+
+        // ! In laravel, the 'set' method is called 'bind'
+        // $this->container->set(PaymentGatewayServiceInterface::class, PaymentGatewayService::class);
+        // $this->container->set(MailerInterface::class, fn() => new CustomMailer($this->config->mailer['dsn']));
+
+        $this->container->bind(PaymentGatewayServiceInterface::class, PaymentGatewayService::class);
+        $this->container->bind(MailerInterface::class, fn() => new CustomMailer($this->config->mailer['dsn']));
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+e em 'initDb',
+
+
+
+JÁ PODEMOS 
+
+PASSAR O CONTAINER 
+
+
+
+
+COMO PARAMETER DE 'Dispatcher()',
+
+PQ 
+
+
+
+
+O CONTAINER DO LARAVEL É COMPATÍVEL COM ELE....
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+    public function initDb(array $config): void  // This is the eloquent implementation, replacing  DBAL implementation
+    {
+        $capsule = new Capsule;
+
+        $capsule->addConnection($config);
+        $capsule->setEventDispatcher(new Dispatcher($this->container));
+        $capsule->setAsGlobal();
+        $capsule->bootEloquent();
+    }
+
+
+
+
+
+
+
+
+-> O CONTAINER É ELOQUENT CONTAINER...
+
+
+
+
+
+
+
+
+-> NÃO PRECISAMOS QUE O DISPATCHER USE 1 NOVO CONTAINER,
+
+QUEREMOS QUE ELE UTILIZE O MESMO CONTAINER,
+
+POR ISSO PASSAMOS O CONTAINER QUE JÁ FOI INSTANCIADO E DEFINIDO COMO PROPERTY 
+
+
+DE 
+
+'App.php'...
+
+
+
+
+
+
+
+
+
+-> TESTAMOS SE ISSO FUNCIONA.... TUDO FUNCIONA COMO ANTES...
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO JÁ SIGNIFICA QUE 
+O CONTAINER ESTÁ 
+
+
+FUNCIONANDO ADEQUADAMENTE, EXATAMENTE O MESMO BEHAVIOR DE NOSSO 
+
+CONTAINER CUSTOM,
+
+
+MAS COM  MAIS FEATURES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE ESSE CONTAINER TEM A MESMA FUNCIONALIDADE DE 
+
+
+
+'' 
+        if (class_exists($class)) {
+            $class = $this->container->get($class);
+
+'',
+
+
+LÁ NO ROUTER,
+
+
+
+EM QUE USAMOS O CONTAINER PARA RESOLVE A CLASS...
+
+ 
+
+
+
+
+
+
+
+MAS AGORA DEVEMOS FAZER MAIS 1 TEST,
+PARA VER SE O  BINDING ESTÁ FUNCIONANDO...
+
+
+
+
+
+
+
+
+
+
+
+-> FAREMOS O INJECT DA 'MailerInterface'
+
+
+LÁ NO INVOICECONTROLLER,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+class InvoiceController
+{
+    public function __construct(MailerInterface $mailer)
+    {
+        var_dump($mailer);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+fazemos isso e recarregamos o browser,
+
+
+e funciona exatamente como antes...
+
+
+
+
+
+FICAMOS COM O DUMP DE UMA INSTANCE DE 'CustomMailer'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE O REPLACE DO NOSSO CUSTOM CONTAINER PELO 
+
+CONTAINER 
+DO 
+
+LARAVEL FOI 1 SUCESSO..
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS AGORA PRECISAMOS FALAR 1 POUCO SOBRE EVENTS...
+
+
+
+
+
+
+
+
+NA LESSON DO DOCTRINE ORM,
+
+
+
+ESTÁVAMOS 
+
+FAZENDO 'HOOK' 
+
+EM 1 DOS LIFECYCLE EVENTS 
+
+
+
+DA NOSSA CLASS/ENTITY 
+
+PARA 
+
+
+
+''SET THE CREATED_AT DATE VALUE,
+    PRIOR THE 'persist()' OPERATION:''
+
+
+
+
+
+
+
+
+#[Entity]
+#[Table('invoices')]  // The table name to be used, for this entity ('Invoice' will be equal to the entries in the 'invoices' table).
+#[HasLifecycleCallbacks]  // Needed to make the 'onPrePersist' method work.
+class Invoice
+{
+
+
+
+    #[PrePersist]
+    public function onPrePersist(LifecycleEventArgs $args)
+    {
+        $this->createdAt = new \DateTime();
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS, COM O ELQOUENT,
+
+
+
+NEM MESMO É NECESSÁRIO SETTAR ESSA DATE
+
+
+DE 'createdAt' EXPLICITAMENTE...
+
+
+
+
+
+
+
+
+
+
+ISSO É PQ 
+
+
+''IF IT IS A TIMESTAMP,
+ ELOQUENT AUTOMATICALLY HANDLES THAT 
+ FOR US''...
+
+
+
+
+
+
+
+
+--> certo... mas 
+    o MODEL DE 'INVOICE' 
+
+    TEM OUTRA COLUMN,
+
+
+    CHAMADA DE 
+
+
+    'due_date'...
+
+
+
+
+
+
+
+
+
+--. E, NA AULA ANTERIOR,
+
+ESTÁVAMOS SETTANDO 
+
+
+
+O VALUE DE ESSA 'due_date'
+
+
+
+como SENDO 10 DIAS NO FUTURO,
+
+MANUALMENTE,,
+
+
+
+COM ESTE CÓDIGO:
+
+
+
+
+
+
+    $invoice = new \App\Models\Invoice();
+
+    $invoice->amount = 45;
+    $invoice->invoice_number = '1';
+    $invoice->status = \App\Enums\InvoiceStatus::Pending;
+    $invoice->due_date = (new \Carbon\Carbon())->addDays(10);
+    $invoice->save();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+MAS, AGORA,
+
+
+
+
+
+''WHY DON'T WE HOOK INTO SOME EVENT THAT 
+    ELOQUENT TRIGGERS,
+
+    AND THEN HAVE THE DUE_DATE BE SET AUTOMATICALLY 
+    TO 10 DAYS IN THE FUTURE, IF IT IS NOT EXPLICITLY SET...?''
+
+    
+
+
+
+
+
+
+
+
+-> PARA ISSO, TEMOS A PARTE DE EVENTS DO ELOQUENT...
+
+
+
+
+
+
+
+
+
+--> OS EVENTS A QUE PODEMOS 'HOOK INTO' SÃO:
+
+
+
+
+
+
+1) retrieved 
+
+2) creating 
+
+
+3) created 
+
+
+4) updating 
+
+
+5) updated 
+
+
+6) saving 
+
+
+7) saved 
+
+
+8) deleting 
+
+
+9) deleted 
+
+
+
+10) trashed 
+
+
+
+11) forceDeleted 
+
+
+
+12) restoring 
+
+
+
+13) restored 
+
+
+14) replicating 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PROVAVELMENTE QUEREMOS 'creating'..
+
+
+
+
+
+
+
+
+
+
+
+--> QUEREMOS FAZER HOOK AO 
+    EVENT DE 'creating',
+
+
+    PQ ELE É TRIGGADO 
+
+
+    'BEFORE THE MODEL IS ACTUALLY CREATED'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> HÁ ALGUMAS MANEIRAS PELAS QUAIS PODEMOS 
+'LISTEN TO' a esses events...
+
+
+
+
+
+
+
+
+--> uma das maneiras é 
+
+
+
+
+    'DEFINE CLOSURE-BASED LISTENERS',
+
+
+    DENTRO DOS MODELS EM SI,
+
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+protected static function booted()
+{
+    static::created(
+        function($user) {
+            //
+        }
+    )
+}
+
+
+
+
+
+
+
+
+ 
+
+
+
+-> E É ISSO QUE FAREMOS, AGORA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ABRIMOS A CLASS DE 'Invoice',
+
+
+E AÍ 
+
+VAMOS OVERWRITTAR 
+
+O METHOD DE 'booted()'...
+
+
+
+
+
+
+
+
+
+-> AÍ, DENTRO DE ESSE METHOD,
+
+
+DEVEMOS CHAMAR O METHOD DE EVENT ESPECÍFICO A QUE QUEREMOS 
+HOOKAR...
+
+
+
+
+FICA TIPO ASSIM:
+
+
+
+
+
+protected static function booted()
+{
+    static::creating(
+        function($user) {
+            
+        }
+    )
+}
+
+
+
+
+
+
+
+
+ 
+
+
+DENTRO, NA CLOSURE,
+
+
+ELA SEMPRE RECEBE 
+
+
+A INSTANCE DO SEU MODEL, COMO PARAMETER...
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE ESCREVEMOS ASSIM:
+
+
+
+protected static function booted()
+{
+    static::creating(
+        function(Invoice $invoice) {
+                //
+        }
+    )
+}
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, DENTRO DE ESSA CLOSURE,
+
+
+PODEMOS FAZER O QUE QUISERMOS,
+
+
+
+QUE ESSA LÓGICA SERÁ EXECUTADA, 
+
+LOGO ANTES 
+DO MODEL DE INVOICE SER CRIADO... ('created')... 
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR VAI SETTAR A DUE_DATE 
+
+do invoice como sendo 10 days no futuro,
+
+com este códigoo:
+
+
+
+
+    protected static function booted()
+    {
+        static::creating(
+            function (Invoice $invoice) {
+                $invoice->due_date = Carbon::now()->addDays(10);
+            }
+        );
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> certo... mas ISSO NOS CAUSARÁ 1 PROBLEMA....
+
+
+
+
+
+
+
+PQ, COM ESSE CÓDIGO,
+ESTAMOS  
+
+
+
+''ALWAYS ASKING IT TO SET THIS VALUE AS 10 DAYS IN THE FUTURE''..
+
+
+
+
+
+
+
+
+
+
+--> CERTO,  MAS QUEREMOS QUE ISSO SEJA CUSTOMIZÁVEL,
+
+    PARA QUE 
+
+
+    ''WE CAN CUSTOMIZE IT, SET IT TO SOMETHING ELSE''...
+
+
+
+
+
+
+
+-> PARA ISSO, VAMOS QUERER 
+
+
+'ONLY SET THE DUE_DATE TO 10 DAYS IN THE FUTURE 
+    _ IF ___ IT HASN'T BEEN EXPLICITLY SET... ''
+
+
+
+
+    ( ou seja, tipo um DEFAULT VALUE)...
+
+
+
+
+
+--> PARA FAZER ISSO, 
+
+PODEMOS CHECAR O 
+
+'DIRTY'
+
+OU 
+'CLEAN' 
+
+STATE 
+
+DA PROPERTY 
+
+DE 
+
+'due_date'...
+
+
+
+
+--> fazemos isso com o method de 'isClean()',
+
+
+
+DENTRO DA INSTANCE DE '$invoice',
+
+
+TIPO ASSim:
+
+
+
+    protected static function booted()
+    {
+        static::creating(
+            function (Invoice $invoice) {
+                if ($invoice->isClean('due_date')) {
+                    $invoice->due_date = Carbon::now()->addDayss(10);
+                }
+            }
+        );
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+COM ISSO, DEVE FUNCIONAR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA TESTAR ISSO,
+
+
+O PROFESSOR CRIA 1 
+
+
+NOVO METHOD PARA O 'INVOICECONTROLLER',
+
+
+
+
+DE NOME 
+
+'create()"...
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR COLOCA 1 ROUTE DE GET DE '/invoices/new',
+
+
+
+E AÍ ESCREVE ASSim:
+
+
+
+
+
+
+
+    #[Get('/invoices/new')]
+    public function create()
+    {
+        $invoice = new Invoice();
+
+        $invoice->invoice_number = 5;
+        $invoice->amount = 20;
+        $invoice->status = InvoiceStatus::Pending;
+
+        $invoice->save();
+
+        echo $invoice->id . ', ' . $invoice->due_date->format('m/d/Y');
+    }
+
+
+
+
+
+
+
+
+
+
+--> ISSO VAI BASICAMENTE CRIAR      ESSA INVOICE,
+
+
+SETTAR ESSES VALUES,
+
+
+
+E AÍ 
+
+
+
+VAI CRIAR ESSA INVOICE NA DATABASE,
+
+QUANDO FOR CHAMADO O '$invoice->save()"....
+
+
+
+
+
+
+
+
+-> e, nesse caso,
+
+
+O DUE_DATE SERÁ SETTADO COMO '10 DAYS IN THE FUTURE',
+
+
+TUDO GRAÇAS 
+àQUELA LÓGICA DE 
+
+
+'
+
+
+    protected static function booted()
+    {
+        static::creating(
+            function (Invoice $invoice) {
+                if ($invoice->isClean('due_date')) {
+                    $invoice->due_date = Carbon::now()->addDayss(10);
+                }
+            }
+        );
+    }
+
+
+
+''
+
+
+
+QUE JOGA EM CIMA DO EVENT DE 'creating' 
+
+de esse model...
+
+
+
+
+
+
+
+
+
+--> SE DEFINIMOS 1 VALUE CONCRETO DE DUE_DATE,
+
+NÓS EVITAMOS O DEFAULT,
+
+POR CONTA DAQUELE 'if isClean()',
+
+
+
+O QUE FAZ COM QUE 
+
+SEJA SETTADO 
+
+
+O NOSSO VALUE CONCRETO.
+
+
+
+TIPO ASSIM>:
+
+
+
+
+
+
+    #[Get('/invoices/new')]
+    public function create()
+    {
+        $invoice = new Invoice();
+
+        $invoice->invoice_number = 5;
+        $invoice->amount = 20;
+        $invoice->status = InvoiceStatus::Pending;
+        $invoice->due_date = (new Carbon())->addDay();
+
+        $invoice->save();
+
+        echo $invoice->id . ', ' . $invoice->due_date->format('m/d/Y');
+    }
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, NESSE CASO,
+
+
+
+SETTAMOS A DUE_DATE DE ESSE RECORD COMO SENDO 'TOMORROW',
+
+E NÃO 
+
+10 DIAS NO FUTURO (que é tipo o 'caso default')...
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+OK... ACABMOS COM ESSE QUICK REFACTOR...
+
+
+
+
+
+
+
+
+
+
+
+''WE REPLACED DOCTRINE WITH ELOQUENT, AS AN EXAMPLE''..
+
+
+
+
+
+
+
+
+
+--> ISSO NOS ENSINA 1 POUCO 
+    SOBRE DOCTRINE E ELOQUENT,..
+
+
+
+    AGORA SABEMOS A DIFERENÇA ENTRE OS 2,
+
+
+    E A DIFERENÇA ENTRE DATA MAPPER 
+
+
+    E ACTIVE RECORD...
