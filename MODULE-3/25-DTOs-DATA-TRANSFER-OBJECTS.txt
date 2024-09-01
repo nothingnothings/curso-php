@@ -1,0 +1,1844 @@
+
+
+
+
+
+
+
+
+
+
+
+
+OK... QUANDO TRABALHAMOS COM 1 APP,
+
+É COMUM TER DE TRANSFERIR DATA DE 1 LADO PARA OUTRO...
+
+
+
+
+
+
+
+
+
+
+
+DE A PARA B...
+
+
+
+
+
+
+
+
+
+
+
+''POINT A AND B CAN BE MANY THINGS...''
+
+
+
+
+CAN BE:
+
+
+
+1) BROWSER  REQUEST 
+
+
+
+2) API REQUEST...
+
+
+
+
+
+
+
+
+
+
+
+--> HÁ DIFERENTES MANEIRAS DE MODELAR ESSES OBJECTS...
+
+
+
+
+
+
+
+
+-> FALAREMOS SOBRE DTOs
+
+
+
+
+
+
+
+
+
+
+DTO --> DATA TRANSFER OBJECTS...
+
+
+
+
+
+
+
+
+
+
+
+
+-_> NA PRÓXIMA AULA,
+    ESTUDAREMOS OUTRA COISA, CHAMADA DE 'VALUE OBJECTS' (VOs)...
+
+
+
+
+
+
+
+
+
+OK, MAS O QUE É 'DTO'?
+
+
+
+
+
+
+
+
+
+
+
+
+
+DTO (Data Transfer Object):
+
+
+
+
+
+
+
+
+FORMALMENTE, É:
+
+
+
+''AN OBJECT THAT CARRIES DAAT BETWEEN PROCESSES. THE MOTIVATION FOR 
+ITS USE IS THAT COMMUNICATION BETWEEN PROCESSES IS USUALLY DONE RESORTING 
+TO REMOTE INTERFACES (e.g., web services), where EACH CALL IS AN EXPENSIVE OPERATION.
+Because the majority of the cost of each call is related to the round-trip time 
+between the client and the server, one way of reducing the number of calls 
+is to use an OBJECT (the DTO itself) that aggregates the data that would have been transferred 
+by several calls, but that is served by one call only''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É SIMPLESMENTE UM OBJECT QUE CARREGA DATA 
+    AO LONGO DE PROCESSOS...
+
+
+
+
+
+
+
+
+--> É EXATAMENTE O QUE DIZ NA DESCRIÇÃO...
+
+
+
+
+
+
+
+-> ELE É ''MEANT TO MODEL THE DATA,
+            IN AN OBJECT FORM,
+            TO BE TRANSFERRED AROUND, AS AN OBJECT, 
+            INSTEAD OF SOMETHING RANDOM, LIKE SOME 
+            RANDOM OR MAGICAL ARRAY...''
+
+
+
+
+
+
+
+--> DTOS TE AJUDAM A ESTRUTURAR A DATA QUE VEM DE DIFERENTES LUGARES...
+
+    ESSA DATA PODE VIR DE 1 API REQUEST, 1 BROWSER REQUEST, ETC ETC..
+
+
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE DTOs 
+    PODEM SER USADOS PARA ESTRUTURAR TANTO REQUEST COMO RESPONSE DATA...
+
+
+
+
+
+
+
+
+
+
+--> AGORA DEVEMOS VER 1 EXEMPLO EM QUE DTOs podem ser úteis,
+    para entender como eles funcionam...
+
+
+
+
+
+
+
+--> NÓS TRABALHAMOS COM APIs na última lesson,
+em que 
+
+fizemos basic api requests a múltiplas apis,
+
+para 
+
+
+VALIDATE EMAIL...
+
+
+
+
+
+
+
+
+
+--> VAMOS USAR ISSO, ESSA API,
+
+    PARA MOSTRAR  
+
+    OS LOCAIS EM QUE ESSE DTO poderia ser útil...
+
+
+
+
+
+
+TÍNHAMOS ESTE CÓDIGo:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Attributes\Get;
+use App\Contracts\EmailValidationInterface;
+
+class CurlController
+{
+    public function __construct(private EmailValidationInterface $emailValidationService) {}
+
+    #[Get('/curl')]
+    public function index()
+    {
+        $email = 'example@example.com';
+        $result = $this->emailValidationService->verify($email);
+
+        echo '<pre>';
+        print_r($result);
+        echo '</pre>';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESSE CÓDIGO UTILIZAVA-SE 
+
+
+
+DO 
+
+SERVICE DE 'emailValidationService',
+
+
+QUE CHAMA AQUELE METHOD DE 'verify'
+
+
+NESSA INTERFACE 
+
+
+DE 
+
+
+
+
+'EmailValidationInterface'...
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+
+
+
+
+--> AÍ, NO CASO, TÍNHAMOS 
+    IMPLEMENTADO ESSA INTERFACE EM 2 
+
+    SERVICES DE 
+
+    'emailValidationService'
+
+
+    DIFERENTES...
+
+
+
+
+
+    o emailValidationService
+
+
+    do 
+
+
+    ABSTRACT API 
+
+
+    e do 
+
+
+    Emailable API
+
+
+
+
+
+
+
+
+
+
+-> certo.. 
+
+
+
+
+
+aí, em 'App.php',
+
+
+ESTÁVAMOS/ESTAMOS FAZENDO BIND 
+
+
+DA INTERFACE DE 'EmailValidationInterface'
+
+
+
+AO 'EmailValidationService' do abstract api:
+
+
+
+
+
+
+        $this->container->bind(EmailValidationInterface::class, new EmailValidationService($this->config->apiKeys['abstract']));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, PODEMOS FACILMENTE SWAPPAR ENTRE AS IMPLEMENTATIONS DE ABSTRACT API 
+E EMAILABLE API...
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK...
+
+
+
+
+
+
+
+
+
+
+
+
+COMENTAMOS O CÓDIGO PARA FORA, PARA SWAPPARMOS 
+
+PARA  A OUTRA IMPLEMENTATION...
+
+
+
+
+
+
+
+->  AS ESTRUTURAS DAS RESPONSES 
+    SÃO DIFERENTES... 
+
+
+
+
+-> ISSO ACONTECE PQ AS 2 APIs 
+
+são diferentes...
+
+
+
+
+
+
+
+
+
+--> ISSO QUER DIZER QUE AS 2 RESPONSES POSSUEM __ KEYS DIFERENTES...
+
+
+
+
+
+
+
+
+
+
+
+E ISSO JÁ NOS MOSTRA 1 PROBLEMA, QUE VAI APARECER NO FUTURO:
+
+
+
+
+''WE'VE GOT 2 DIFFERENT APIs,
+    WHICH RETURN TWO DIFFERENTLY STRUCTURED
+    SETS OF DATA''..
+
+
+
+
+
+
+
+
+--> NO NOSSO EXEMPLO, ESTAMOS SIMPLESMENTE FAZENDO UM VAR_DUMP
+ 
+ DAS RESPONSES,
+
+ COM ISTO:
+
+
+ 
+    #[Get('/curl')]
+    public function index()
+    {
+        $email = 'example@example.com';
+        $result = $this->emailValidationService->verify($email);
+
+        echo '<pre>';
+        print_r($result);
+        echo '</pre>';
+    }
+
+
+
+
+
+
+
+
+
+
+MAS SE TIVÉSSEMOS 
+
+ISSO EM 1 APP DE VERDADE,
+
+
+
+PROVAVELMENTE USARÍAMOS ESSA DATA DA RESPONSE EM ALGUM 
+
+LUGAR 
+
+DENTRO DO APP.... 
+
+
+
+
+
+
+
+
+
+
+
+E SE ISSO ACONTECESSE, SERIA PÉSSIMO,
+
+
+PQ TERÍAMOS DE ACESSAR ARRAY KEYS QUE NÃO EXISTIRIAM 
+
+EM 
+
+
+AMBOS OS DATA SETS, EM AMBOS RESPONSE ARRAYS...
+
+
+
+
+
+
+
+SE QUISÉSSEMOS FAZER ISSO FUNCIONAR,
+
+SERÍAMOS FORÇADOS A CODAR
+
+'SOME MAGIC ARRAY KEYS'...
+
+
+
+
+
+
+
+
+
+
+
+
+NÃO PODERÍAMOS ESCREVER ALGO COMO ISTO:
+
+
+
+
+
+$score = $result['quality_score']:
+
+
+
+
+
+
+
+
+
+
+PQ SE FIZÉSSEMOS ISSO, A VERSÃO DO ABSTRACT API 
+
+NÃO RETORNARIA COISA ALGUMA,
+
+
+PQ 
+
+
+A 
+
+
+KEY É DE 'score'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ESTE EXEMPLO,
+    ASSUMA QUE ESTAREMOS USANDO 
+
+
+    ESTAS VARIABLES EM MÚLTIPLOS LUGARES DO CÓDIGO:
+
+
+
+
+$score = $result['quality_score']:
+$isDeliverable = $result['deliverability'] === 'DELIVERABLE';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK...
+
+
+
+
+
+
+DIGAMOS QUE, DOWN THE ROAD,
+
+
+DECIDAMOS 
+
+TROCAR PARA A API DE 'EMAILABLE',
+
+
+QUE 
+
+
+TEM KEYS COM OUTROS NOMES,
+
+
+
+
+que não são 'quality_score' 
+
+
+e 
+
+'deliverability'....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> É CLARO QUE VC PODERIA TER 
+
+FALLBACK LOGIC PARA 
+
+USAR OS 2 SERVICES AO MESMO TEMPO...
+
+
+
+
+
+
+
+
+--> MAS, PARA ESTE EXEMPLO,
+    VAMOS SIMULAR 
+
+    TODO O FLOW 
+
+    USANDO CONTAINER,
+
+
+    PARA KINDOF SWAPPAR A IMPLEMENTATION..
+
+
+
+
+
+
+
+
+
+
+
+
+- NÓS TROCAMOS OS SERVICES,
+
+
+POR MEIO DO BIND NO CONTAINER, TIPO ASSIM:
+
+
+
+
+use App\Services\Emailable\EmailValidationService;
+
+
+        $this->container->bind(EmailValidationInterface::class, new EmailValidationService($this->config->apiKeys['emailable']));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+AO FAZER ISSO, FICAMOS COM ERRORS,
+
+
+
+
+ERRORS DE UNDEFINED, JUSTAMENTE POR CONTA DO MOTIVO APONTADO ANTERIORMENTE...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+Warning: Undefined array key "quality_score" in CurlController.php
+Warning: Undefined array key "deliverability" in CurlController.php
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ISSO ACONTECEU PQ A RESPONSE DO ABSTRACT API 
+
+É BEM DIFERENTE...
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, ACABAMOS FORÇADOS A 
+
+
+'BUILD SOME UGLY IF-ELSE 
+ STATEMENTS, HERE, 
+ TO CHECK IF 'quality_score' 
+ is set or not,
+ then use it... if not, try to get the 
+ value from the emailable structure, etc...''
+
+
+
+
+
+
+
+
+
+
+
+ --> GRAÇAS AO NULLABLE COALESCING OPERATOR,
+
+
+    PODEMOS ESCREVER DE FORMA DIFERENTE, TIPO ASSIM:
+
+
+
+
+
+
+$score = $result['quality_score'] ?? $result['score'];
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS ISSO AINDA É FEIO,
+
+    E NÃO É A MANEIRA CORRETA DE FAZER ISSO...
+
+
+
+
+
+
+
+
+--> ISSO É PQ 
+
+''WE ARE STILL ACCESSING SOME MAGIC KEYS ON SOME ARRAYS 
+THAT MAY/MAY NOT EXIST, IN THE FUTURE'...
+
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE SERIA BEM MELHOR 
+    NÓS TRABALHARMOS COM __ OBJECTS__ EM VEZ DE 
+    ARRAYS....
+
+
+    E É AÍ QUE OS 'DATA TRANSFER OBJECTS'
+
+
+    ENTRAM NA JOGADA,
+
+    OS 'DTOs'...
+
+
+
+
+
+
+
+
+
+
+--> EM VEZ DE RETORNAR ALGUM ARRAY MISTERIOSO,
+    DO METHOD DE '->verify()',
+
+
+    NÓS RETORNAMOS 
+    UM __ OBJECT _ CUJA _ ESTRUTURA 
+    
+
+    JÁ SERÁ CONHECIDA, JÁ SERÁ TIPADA...
+
+
+
+
+
+
+
+
+
+-> OU SEJA,
+ EM VEZ DE ACESSAR 
+
+
+ NOSSAS KEYS DESTA FORMA:
+
+
+ $score = $result['quality_score'];
+
+
+
+
+
+ ,
+
+
+ PODERÍAMOS ACESSAR 
+
+
+
+NOSSAS KEYS 
+
+
+_DESTA FORMA:
+
+
+
+
+
+
+
+
+$score = $result->score;
+
+$isDeliverable = $result->isDeliverable;
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... 
+
+
+
+
+
+
+
+
+
+
+
+--> PARA CONSEGUIRMOS FAZER ISSO,
+
+
+
+BASTA 
+
+IR ATÉ O METHOD DE 'verify',
+
+
+lá no EmailValidationInterface,
+
+
+
+
+E AÍ 
+
+TROCAR A TIPAGEM do return...
+
+
+
+
+
+
+
+
+
+
+ELA ESTÁ TIPO ASSIM:
+
+
+
+
+
+interface EmailValidationInterface
+{
+    public function verify(string $email): array;
+}
+
+
+
+
+
+
+
+
+
+
+
+MAS COLOCARÍAMOS TIPO ASSIM:
+
+
+
+
+
+
+
+interface EmailValidationInterface
+{
+    public function verify(string $email): EmailValidationResult;
+}
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA, TIPAMOS QUE ELE VAI RETORNAR ALGUM TIPO DE OBJECT 
+
+'EmailValidationResult'...
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+
+
+
+--> ESSE SERÁ NOSSO DTO OBJECT...
+
+
+
+
+
+
+
+
+--> VAMOS CRIAR 1 NOVO NAMESPACE/FOLDER,
+
+    DE NOME 'DTO'...
+
+
+
+
+
+
+
+
+--> AÍ VAMOS ESCREVENDO ASSIM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\DTO;
+
+class EmailValidationResult {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... ENTÃO, DENTRO DO CONSTRUCTOR,
+
+
+VAMOS ACEITAR ALGUNS COMMON ARGUMENTS,
+
+COISAS QUE ESTARÃO PRESENTES 
+
+NAS DUAS APIs,
+
+basicamente...
+
+
+
+
+
+
+
+
+
+
+--> PARA NOSSO EXEMPLO,
+    BASICAMENTE SÓ NOS IMPORTAMOS COM O 'score',
+
+    E SE ELE É DELIVERABLE OU NÃO (boolean)...
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE 
+
+COLOCAREMOS APENAS ESSES 2 ARGUMENTS NO CONSTRUCTOR,
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\DTO;
+
+class EmailValidationResult
+{
+    public function __construct(
+        public string $score,
+        public bool $is_deliverable
+    ) {}
+}
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+MAS PRECISAMOS REFATORAR NOSSO CÓDIGO,
+
+PARA TIRAR VANTAGEM DISSO...
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+class EmailValidationService implements EmailValidationInterface
+{
+    private string $baseUrl = 'https://emailvalidation.abstractapi.com/v1';
+
+    public function __construct(private string $apiKey) {}
+
+    public function verify(string $email): EmailValidationResult
+    {
+        // * Used to define custom retry logic, on only some status codes (249, 429 and 503)
+        $stack = HandlerStack::create();
+
+        $maxRetry = 3;
+
+        $stack->push($this->getRetryMiddleware($maxRetry));
+        // $handle = curl_init(); // Replaced by Guzzle http client
+
+        $client = new Client([
+            'base_uri' => $this->baseUrl,
+            'timeout' => 5,
+            'handler' => $stack,
+        ]);
+
+        $params = [
+            'api_key' => $this->apiKey,
+            'email' => $email,
+        ];
+
+        $response = $client->get('', ['query' => $params]);
+
+        if ($response !== false) {
+            $formattedResponse = json_decode($response->getBody()->getContents(), true);  // getBody() returns a StreamInterface... and getContents() returns the actual contents of the stream as a string.
+
+            return new EmailValidationResult($formattedResponse['quality_score'], $formattedResponse['is_deliverable']);
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+E ASSIm:
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+namespace App\Services\Emailable;
+
+use App\Contracts\EmailValidationInterface;
+use App\DTO\EmailValidationResult;
+use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Client;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+
+class EmailValidationService implements EmailValidationInterface
+{
+    private string $baseUrl = 'https://api.emailable.com/v1/verify';
+
+    public function __construct(private string $apiKey) {}
+
+    public function verify(string $email): EmailValidationResult
+    {
+        // * Used to define custom retry logic, on only some status codes (249, 429 and 503)
+        $stack = HandlerStack::create();
+
+        $maxRetry = 3;
+
+        $stack->push($this->getRetryMiddleware($maxRetry));
+        // $handle = curl_init(); // Replaced by Guzzle http client
+
+        $client = new Client([
+            'base_uri' => $this->baseUrl,
+            'timeout' => 5,
+            'handler' => $stack,
+        ]);
+
+        $params = [
+            'api_key' => $this->apiKey,
+            'email' => $email,
+        ];
+
+        $response = $client->get('verify', ['query' => $params]);
+
+        if ($response !== false) {
+            $formattedResponse = json_decode($response->getBody()->getContents(), true);  // getBody() returns a StreamInterface... and getContents() returns the actual contents of the stream as a string.
+
+            return new EmailValidationResult($formattedResponse['quality_score'], $formattedResponse['deliverable']);
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    CERTO...
+
+
+
+
+
+
+
+
+É CLARO QUE PODERÍAMOS COLOCAR MAIS KEYS,
+
+
+MAIS KEYS QUE PODERIAM SER ÚTEIS,
+
+
+NESSE DTO (data transfer object),
+
+
+MAS, NESSE EXEMPLO CONCRETO NOSSO,
+
+
+
+BASTAM ESSAS 2 KEYS...
+
+
+
+
+
+
+
+
+
+
+
+--> OK...
+
+
+
+
+
+COLOCAMOS ESSAS 2 PROPERTIES...
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR ESCREVE A EXATA MESMA COISA...
+
+
+<?php declare(strict_types=1);
+
+namespace App\DTO;
+
+class EmailValidationResult
+{
+    public function __construct(
+        public string $score,
+        public bool $is_deliverable
+    ) {}
+}
+
+
+
+
+
+
+
+
+UMA DAS MAIORES VANTAGENS DOS DTOS 
+
+é que tudo pode ser type hinted, exatamente como fizemos...
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+FAREMOS COM QUE AS 2 PROPERTIES SEJAM READONLY,
+
+
+PQ DTOs tipicamente 
+
+SÃO __ IMMUTABLE... O QUE QUER DIZER QUE OS VALUES NUNCA DEVEM 
+
+SER ALTERADOS,
+
+DEPOIS DE ESSES OBJECTS SEREM CRIADOS...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\DTO;
+
+// This is a DTO example. All of its properties should be readonly, as they should never be altered after it is created.
+class EmailValidationResult
+{
+    public function __construct(
+        public readonly string $score,
+        public readonly bool $is_deliverable
+    ) {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+SE POR QUALQUER RAZÃO VC PRECISA 
+TROCAR O VALUE,
+
+
+É SEMPRE MELHOR VC CRIAR 1 NOVO DTO OBJECT,
+
+
+E NÃO ALTERAR 
+
+O DTO QUE JÁ FOI CRIADO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+AS CARACTERÍSTICAS DE DTOs são:
+
+
+
+
+
+
+
+1) 'No business LOGIC/BEHAVIORS'... --> o que quer dizer que NÃO SÃO MODELS...
+
+
+
+
+2) 'Can contain methods related to SERIALIZATION 
+    AND PARSING OF VALUES'...
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE 
+
+ELA É 'JUST A DUMMY CLASS,
+        WITH SOME PROPERTIES,
+        WHOSE ONLY PURPOSE IS TO TRANSFER DATA...''
+
+
+
+
+
+
+
+
+--> VAMOS RETORNAR AQUELAS PROPERTIES, EM VEZ DE RETORNAR AQUELE ARRAY,
+
+
+TIPO ASSIM:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Attributes\Get;
+use App\Contracts\EmailValidationInterface;
+
+class CurlController
+{
+    public function __construct(private EmailValidationInterface $emailValidationService) {}
+
+    #[Get('/curl')]
+    public function index()
+    {
+        $email = 'example@example.com';
+        $result = $this->emailValidationService->verify($email);
+
+        // Instead of getting these keys from an array, with magic keys, we use the properties of the DTO, which are much safer and better.
+        $score = $result->score;
+        $isDeliverable = $result->is_deliverable;
+
+        echo '<pre>';
+        print_r($score, $isDeliverable);
+        echo '</pre>';
+    }
+}
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+LÁ NO EmailValidationService 
+
+DO EMAILABLE,
+
+ESCREVEMOS ASSIM:
+
+
+
+
+
+        if ($response !== false) {
+            $formattedResponse = json_decode($response->getBody()->getContents(), true);  // getBody() returns a StreamInterface... and getContents() returns the actual contents of the stream as a string.
+
+            return new EmailValidationResult($formattedResponse['quality_score'], $formattedResponse['deliverable']);
+        }
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, ESTAMOS ENVIANDO ESSES DADOS DENTRO DA CLASS DE 
+
+
+'EmailValidationResult',
+
+
+
+ESSE DTO...
+
+
+
+
+
+--> FAZEMOS A MESMA COISA NA API DO EMAILABLE:
+
+
+
+
+
+        if ($response !== false) {
+            $formattedResponse = json_decode($response->getBody()->getContents(), true);  // getBody() returns a StreamInterface... and getContents() returns the actual contents of the stream as a string.
+
+            return new EmailValidationResult($formattedResponse['quality_score'], $formattedResponse['is_deliverable']);
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... FAZ SENTIDO...
+
+
+
+
+
+
+
+
+
+
+E AS 2 APIs estão funcionando, sem problemas...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AGORA QUE ESTAMOS USANDO DTOS,
+
+
+SABEMOS EXATAMENTE O QUE ESTÁ SENDO RETORNADO 
+
+
+DO METHOD DE 'verify',
+
+INDEPENDENTEMENTE DO API SERVICE QUE ESTAMOS USANDO...
+
+
+
+
+
+
+
+
+
+
+-> SABEMOS QUE ELE RETORNA UM object de 'EmailValidationResult',
+
+
+E SABEMOS A EXATA ESTRUTURA DE ESSE OBJECT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É ISSO QUE SÃO DTOS.. são apenas 
+
+
+WRAPPERS EM VOLTA DE UM BOCADO DE DATA,
+
+PARA QUE ELA FIQUE MODELADA APROPRIDAMENTE,
+
+SEM MT LÓGICA NO INTERIOR..
+
+
+
+
+
+É TIPO UMA DUMB CLASS,
+
+CUJO ÚNICO JOB É TRANSFERIR 
+
+DATA DE UM PONTO A PARA UM PONTO B..
+
+
+
+
+
+
+
+É CLARO QUE DTOs podem ser usados para outras coisas,
+
+
+NÃO SÓ API RESPONSES...
+
+
+
+
+
+
+
+PODEMOS USAR PARA REQUEST PARAMETERS,
+
+FILTERS, ETC...
+
+
+
+
+
+
+
+
+
+-> É CLARO QUE ESSA NÃO É A ÚNICA MANEIRA DE CONSTRUCT 
+DTOs... 
+
+
+
+
+
+
+-> HÁ DIFERENTES MANEIRAS, E TUDO DEPENDE DE PREFERÊNCIA...
+
+
+
+
+
+
+
+
+
+--> VC PODERIA CRIAR DTOs a partir de static methods...
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS VC NAO DEVE USAR DTOs para 
+
+
+TUDO...
+
+
+
+
+MAS  ''SE VC PERCEBER QUE ESTÁ 
+    ENVIANDO O MESMO ARRAY A MÚLTIPLOS METHODS,
+
+    E QUE PRECISA TRANSFERIR A MESMA DATA AO LONGO 
+    DE MÚLTIPLAS CLASSES,
+
+    DTOs podem ser uma boa ideia, sim....''
+
+
+
+
+
+
+
+
+
+
+
+
+-_> NA PRÓXIMA AULA, 
+
+VEREMOS O CONCEITO CHAMADO DE 'VALUE OBJECTS'...
+
+
+
+
+
+
+
+
+E AS DIFERENÇAS ENTRE 
+
+'ENTITIES' 
+
+
+'DTO's 
+
+
+e 
+
+'VALUE OBJECTS' (VOs)..
