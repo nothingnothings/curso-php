@@ -1094,3 +1094,2279 @@ SEMPRE RETORNAVA 1 RESOURCE...
 --> É POR ISSO QUE NÃO PRECISAMOS CHAMAR 'curl_close()",
 
     AQUI....
+
+
+
+
+
+
+
+MAS MESMO ASSIM, TESTAMOS ISSO... 
+
+
+
+TESTAMOS O METHOD DE CURL,
+
+
+com a route de 
+
+
+'/curl' GET...
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO VAI FAZER COM QUE O MESMO HTML OBTIDO DE 'EXAMPLE.COM'
+
+
+seja __RENDERIZADO _ NO NOSSO SITE...
+
+
+
+
+
+
+
+
+
+--> ISSO NÃO É TÃO ÚTIL...
+
+
+
+
+
+
+
+
+
+
+-> O QUE SERIA MAIS ÚTIL, NO CASO,
+
+
+SERIA _ _ARMAZENAR O OUTPUT 
+
+DE ESSE HTML, do site 'example.com',
+
+
+em uma VARIABLE...
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS FAZER ISSO, SIM,
+
+BASTA  DEFINIR A OPTION DE 
+
+
+
+'CURLOPT_RETURNTRANSFER' como sendo 'true',
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Attributes\Get;
+
+class CurlController
+{
+    #[Get('/curl')]
+    public function index()
+    {
+        // returns a cURL handle object, without url assigned
+        $handle = curl_init();
+
+        // assigns the URL to the handle (along with other options, if you want)
+        curl_setopt($handle, CURLOPT_URL, 'https://www.google.com/');
+
+        curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);  // This will make it so that the output (HTML) is returned as a string, instead of being printed directly to the browser
+
+        // This fires the actual request;
+        curl_exec($handle);
+
+        // Close the handle to free up resources //! (This is not really needed, after php8)
+        // curl_close($handle);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NESSE CASO, COM 
+
+
+''
+
+        curl_setopt($handle, CURLOPT_RETURNTRANSFER, true); 
+
+'',
+
+
+
+
+
+O METHOD DE 
+
+'curl_exec' 
+
+
+VAI RETORNAR O RESULT, EM VEZ DE PRINTÁ-LO NA TELA...
+
+
+
+
+
+
+
+O QUE QUER DIZER QUE PODEMOS 
+ASSIGNÁ-LO A 1 VARIABLE,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Attributes\Get;
+
+class CurlController
+{
+    #[Get('/curl')]
+    public function index()
+    {
+        // returns a cURL handle object, without url assigned
+        $handle = curl_init();
+
+        // assigns the URL to the handle (along with other options, if you want)
+        curl_setopt($handle, CURLOPT_URL, 'https://www.google.com/');
+
+        curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);  // This will make it so that the output (HTML) is returned as a string, instead of being printed directly to the browser
+
+        // This fires the actual request;
+        // curl_exec($handle);
+
+        $content = curl_exec($handle);  // this will store the HTML in a variable
+
+        var_dump($content);  // this will print out the HTML content
+
+        // Close the handle to free up resources //! (This is not really needed, after php8)
+        // curl_close($handle);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO..
+
+
+
+
+
+
+
+
+
+
+
+
+
+O VAR_DUMP 
+
+
+
+
+
+NOS MOSTRA ALGO COMO 
+
+
+string(1256)... ISSO É A LENGTH DO CONTENT, BASICAMENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR TAMBÉM APONTA QUE 
+
+PODERÍAMOS DEFINIR 
+
+
+
+
+TODAS AS OPTIONS DE 1 VEZ SÓ,
+
+EM VEZ DE DEFINI-LAS 1 POR 1...
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, BASTA 
+
+ESCREVER 
+
+O METHOD 
+
+
+
+
+
+curl_setopt_array()...
+
+
+
+
+
+
+
+
+
+
+COMO PRIMEIRO PARAMETER,
+
+
+passamos o HANDLE OBJECT,
+
+
+
+e, como segundo parameter,
+
+
+PASSAMOS 1 ARRAY, 
+
+UM ASSOCIATIVE ARRAY, 
+
+
+COM AS OPTIONS E OS VALUES...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Attributes\Get;
+
+class CurlController
+{
+    #[Get('/curl')]
+    public function index()
+    {
+        // returns a cURL handle object, without url assigned
+        $handle = curl_init();
+
+        // assigns the URL to the handle (along with other options, if you want)
+        // curl_setopt($handle, CURLOPT_URL, 'https://www.google.com/');
+
+        // curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);  // This will make it so that the output (HTML) is returned as a string, instead of being printed directly to the browser
+
+        // This fires the actual request;
+        // curl_exec($handle);
+
+        // * Same as code seen above, but with a single method call:
+        curl_setopt_array($handle, [
+            CURLOPT_URL => 'https://www.google.com/',
+            CURLOPT_RETURNTRANSFER => true,
+        ]);
+
+        $content = curl_exec($handle);  // this will store the HTML in a variable
+
+        var_dump($content);  // this will print out the HTML content
+
+        // Close the handle to free up resources //! (This is not really needed, after php8)
+        // curl_close($handle);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+E
+PODEMOS OBTER MAIS INFO 
+SOBRE O DATA TRANSFER/REQUEST 
+
+
+POR MEIO 
+
+
+
+DO METHOD DE 'curl_getinfo()'...
+
+
+
+
+
+
+
+
+
+-> TIPO ASSIM:
+
+
+
+
+
+var_dump(curl_getinfo($handle));
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... ESSA FUNCTION EXIGE UM HANDLE OBJECT COMO PARAMETER...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... E ESSA FUNCITON 
+    
+    TEM 1 SEGUNDO PARAMETER OPCIONAL,
+
+
+    É UMA OPTION QUE PODEMOS PASS...
+
+
+
+
+
+
+
+
+
+--> PODEMOS ESCOLHER VÁRIAS OPTIONS,
+
+COMO 
+
+
+
+'filetime',
+
+
+
+
+
+'http_code',
+
+'content_type',
+
+'url',
+
+
+'total_time',
+
+
+
+'size_upload',
+
+
+etc...
+
+
+
+
+
+
+
+
+-> SE PASSAMOS APENAS ALGUMA DE ESSAS OPTIONS,
+    FICAMOS COM APENAS ESSA INFO SENDO RETORNADA POR 'curl_getinfo()'...
+
+
+
+
+    --> CASO CONTRÁRIO, SE NÃO ESPECIFICAMOS ESSE SEGUNDO PARAMETER,
+
+    FICAMOS 
+
+    COM 1 ARRAY __ COM TODAS ESSAS OPTIONS/INFOS, AO MESMO TEMPO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR REFRESHA A PAGE,
+
+E AÍ 
+
+FICAMOS COM 1 ARRAY COM 1 MONTE DE OPTIONS/INFOS...
+
+
+
+
+
+
+
+
+
+tipo 
+
+
+
+
+url => https://example.com 
+
+
+
+content_type => text/html; charset =UTF-8
+
+
+
+charset => 
+
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS FORMATAR ISSO DE FORMA MELHOR,
+
+COM 'print_r' e '<pre>' tags...
+
+
+
+
+
+EX:
+
+
+
+        echo '<pre>';
+        print_r(curl_getinfo($handle));  // this will print out the info about the request (headers, status code, etc)
+        echo '</pre>';
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+E ISSO REALMENTE FUNCIONA...
+
+
+
+
+
+
+
+
+
+FICAMOS COM UM MONTE DE ESSAS INFOS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EM CASO DE ERRORS, PODEMOS USAR 
+
+
+
+A FUNCTION de 
+
+
+
+
+'curl_error()',
+
+PARA 
+
+
+
+'GET THE LAST ERROR FOR THE CURRENT SESSION'....
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA TESTAR ISSO, O PROFESSOR ESCREVE TIPO ASSIM:
+
+
+
+
+
+
+if ($error = curl_error($handle)) {
+
+
+}
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+class CurlController
+{
+    #[Get('/curl')]
+    public function index()
+    {
+        // returns a cURL handle object, without url assigned
+        $handle = curl_init();
+
+        // assigns the URL to the handle (along with other options, if you want)
+        // curl_setopt($handle, CURLOPT_URL, 'https://www.google.com/');
+
+        // curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);  // This will make it so that the output (HTML) is returned as a string, instead of being printed directly to the browser
+
+        // This fires the actual request;
+        // curl_exec($handle);
+
+        // * Same as code seen above, but with a single method call:
+        curl_setopt_array($handle, [
+            CURLOPT_URL => 'https://www.google.com/',
+            CURLOPT_RETURNTRANSFER => true,
+        ]);
+
+        $content = curl_exec($handle);  // this will store the HTML in a variable
+
+        var_dump($content);  // this will print out the HTML content
+
+        echo '<pre>';
+        print_r(curl_getinfo($handle));  // this will print out the info about the request (headers, status code, etc)
+        echo '</pre>';
+
+        // Close the handle to free up resources //! (This is not really needed, after php8)
+        // curl_close($handle);
+
+        if ($error = curl_error($handle)) {  // curl_error() returns the last error message, if an error occurred
+            // do something
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... COM ISSO, AGORA SABEMOS OS _ _BASICS __ SOBRE O CURL...
+
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA DEVEMOS FALAR 1 POUCO SOBRE APIs...
+
+
+
+ 
+
+
+
+
+
+
+
+
+ --> MAS O QUE SÃO APIs?
+
+
+
+
+
+
+
+
+
+
+
+
+
+ --> APPLICATION PROGRAMMING INTERFACES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+ -> É BASICAMENTE 
+
+ ''A WAY FOR MULTIPLE PROGRAMS/DEVICES 
+    TO COMMUNICATE WITH EACH OTHER''....
+
+
+
+
+
+
+
+
+
+
+-> QUANDO VC FAZ 1 COMPRA NA AMAZON, 
+UM MONTE DE COISAS OCORREM, POR TRÁS DAS CENAS...
+
+
+
+
+
+
+
+HÁ VÁRIOS SERVICES OCULTOS, COMO:
+
+
+
+1) SHIPPING SERVICE 
+
+
+2) BILLING SERVICE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> A ORDER É FEITA DE 1 CELULAR/PC/TABLET...
+
+
+
+
+
+
+--> E APIs 'make it easy'
+
+O COMMUNICATE POR ENTRE TODOS ESSES DIFERENTES DEVICES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VC DEVE PENSAR EM 1 API 
+    COMO 1 'MESSENGER',
+     
+
+
+     QUE _ VAI _ PEGAR O REQUEST,
+
+
+     ENTREGAR AO DESTINO (como 1 service),
+
+
+     AÍ 
+    
+
+    'TELLS THAT SERVICE/SOFTWARE WHAT TO DO',
+
+
+
+    E AÍ __ PEGA __ A RESPONSE, GERADA POR AQUELE SERVICE,
+
+    E A TRAZ DE VOLTA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR USA 1 EXEMPLO BEM MAIS SIMPLES:
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> IMAGINE 1 RESTAURANTE...
+
+
+
+
+--> VC ESTÁ NA MESA, E AÍ QUER FAZER 1 PEDIDO..
+
+
+
+
+-> A COZINHA ESTÁ PRONTA PARA RECEBER SEU PEDIDO 
+    PARA ENTREGAR A COMIDA NA SUA TABLE..
+
+
+
+
+
+
+-> MAS QUE PARTE ESTÁ FALTANDO,
+    ENTRE A COZINHA E VOCE?
+
+
+
+
+--> É O GARÇOM...
+
+
+
+
+
+
+
+-> É O 'MESSENGER' --> É A PESSOA 
+
+
+QUE VAI TAKE THE ORDER,
+
+
+QUE VAI ENVIAR A ORDER À COZINHA,
+
+PEGAR A COMIDA 
+
+E ENTREGAR 
+
+
+A COMIDA NA NOSSA MESA...
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSE MESSENGER É O __ GARÇOM,
+
+
+E O GARÇOM É NOSSA API...
+
+
+
+
+
+
+
+
+
+
+-> WAITER -> É A API... É A INTERFACE ENTRE VOCE (user) e a COZINHA....
+
+
+
+
+
+
+
+
+
+
+
+
+
+MENU --> SÃO AS OPTIONS/ESPECIFICAÇÕES DA API...
+
+
+
+
+
+
+COZINHA -> É O SERVICE/SOFTWARE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+API -> É UM TÓPICO IMENSO...
+
+
+
+
+
+
+
+
+
+
+
+
+-> E ESSA SÉRIE É SOBRE PHP...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS O PROFESSOR QUER COBRIR OS BASICS SOBRE ISSO,
+    PARA QUANDO TIVERMOS DE APRENDER MAIS SOBRE 
+    APIs, down the road...
+
+
+
+
+
+
+
+--> QUANDO O ASSUNTO É 
+    AUTHENTICATION,
+
+
+
+    ''THERE ARE MULTIPLE WAYS
+    WE CAN AUTHENTICATE, WITH APIs''...
+
+
+
+
+
+
+--> E TUDO ISSO DEPENDE DA API COM QUE VC ESTÁ TENTANDO INTEGRATE...
+
+
+
+
+
+
+
+
+--> ALGUMAS APIs te deixam 'GENERATE THE TOKEN/API KEY'
+
+DIRETAMENTE DA SUA ACCOUNT,
+
+E AÍ DEIXAM VC USAR ISSO SEM TER 
+
+
+
+
+
+A 'oAuth' authentication completa...
+
+
+'oAuth' -> é OPEN AUTHENTICATION
+
+
+
+
+
+
+
+
+--> JÁ OUTROS SERVICES/APIs 
+    PODEM TER OUTRAS 
+
+    MANEIRAS PARA O AUTHENTICATE
+
+    DE SUAS APIs..
+
+
+
+
+
+
+
+
+
+
+-> TOKENS/API KEYS  -> SÃO TIPICAMENTE ENVIADAS, NOS NOSSOS REQUESTS,
+                                                POR MEIO DOS 
+                                                REQUEST HEADERS...
+
+
+
+
+
+
+---> ALTERNATIVAMENTE, ESSES TOKENS PODEM SER ENVIADOS COMO  'REQUEST PARAMS'...
+
+
+
+(na url)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> A API TIPICAMENTE RESPONDE COM:
+
+
+1) HTTP STATUS CODE 
+
+
+
+
+2) BODY
+
+
+
+
+
+HÁ VÁRIOS STATUS CODES QUE PODEM SER RETORNADOS...
+
+
+
+
+
+CADA 1 DELE PODE TER SUA PRÓPRIA DEFINITION..
+
+
+
+
+1XX 
+
+
+2XX
+
+3XX 
+
+
+4XX 
+
+
+5XX 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A RESPONSE DE UM API REQUEST 
+
+GERALMENTE VEM EM FORMATO JSON...
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+MAS É CLARO QUE O FORMATO PODE SER DIFERENTE...
+
+
+
+
+--> MAS O MAIS UTILIZADO É JSON...
+
+
+
+
+
+
+
+
+
+
+
+
+
+de acordo com a definição formal,
+
+
+
+JSON é 
+
+
+''an open standard file format''...
+
+
+
+''and data interchange format'',
+
+
+
+que usa 
+
+
+'human-readable text'
+
+
+
+PARA STORE E TRANSMIT  
+
+DATA OBJECTS 
+
+
+compostos por 'attribute-value' pairs,
+
+e arrays...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CONFORME MENCIONADO ANTERIORMENTE,
+
+
+CADA API PODE TER MAIS STEPS ENVOLVIDAS 
+
+NO PROCESSO DE INTEGRATE...
+
+
+
+
+
+
+
+
+
+''THEY MIGHT USE DIFFERENT AUTH METHODS,
+RETURN DIFFERENT STATUS CODES, or 
+different messages and meanings''...
+
+
+
+
+
+
+
+
+-> ''THE API MIGHT EVEN RETURN IN A DIFFERENT FORMAT, ETC''...
+
+
+
+
+
+
+-> VC SEMPRE TEM QUE LER OS DOCS DOS 
+API QUE VC 
+
+ESTÁ USANDO, PARA SABER O QUE ELES VÃO RETORNAR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> A RAZÃO PELA QUAL FALAMOS SOBRE API 
+E CURL 
+
+EM CONJUNTO 
+
+É QUE 
+
+
+
+
+
+
+'''WE CAN USE __ CURL__ TO MAKE API REQUESTS/API CALLS''...
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO, MAS, NA MAIOR PARTE DOS CASOS, 
+    VC NÃO VAI PRECISAR USAR 
+
+    CURL FUNCTION DIRETAMENTE PARA FAZER O INTEGRATE 
+    COM APIs... 
+
+
+
+
+
+
+-> ISSO É PQ _ A MAIOR PARTE DAS APIs 
+JÁ VÊM COM ALGUM TIPO DE 
+
+SDK LIBRARIES... E MTAS DELAS INCLUEM PHP SDK LIBRARIES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA DEMONSTRAR ISSO COM O PHP,
+
+VAMOS FAZER 1 QUICK API TEST 
+
+COM 1 EMAIL VALIDATION SERVICE,
+
+PARA CHECAR 
+
+SE EMAILS SÃO VALID E DELIVERABLE OU NÃO...
+
+
+
+
+
+
+
+
+-> PARA ISSO, USAREMOS O SERVICE DE 'EMAILABLE'....
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR GOSTA DA API DO EMAILABLE...
+
+
+
+
+
+
+
+
+
+
+-> TEMOS QUE IR ATÉ OS API DOCS,
+
+E AÍ SEGUIR AS INSTRUCTIONS...
+
+
+
+
+
+
+
+
+
+-_> A PRIMEIRA COISA QUE PRECISAMOS FAZER É CRIAR 1 
+CONTA E GENERATE 1 API KEY...
+
+
+
+
+
+
+
+
+
+
+ESCOLHEMOS 'PRIVATE' E 'TEST API KEY', 
+
+
+PQ NAÕ QUEREMOS DESPERDIÇAR 
+
+OS FREE CREDITS DURANTE O DEV PROCESS...
+
+
+
+
+
+
+
+
+
+OK... COPIAMOS A API KEY...
+
+
+
+
+
+
+
+
+-> MAS TEMOS 1 TEST URL,
+QUE PODEMOS 
+
+COLCOAR NO BROWSER...
+
+
+
+
+
+
+
+
+
+
+
+
+-> CONFORME MENCIONADO ANTERIORMENTE,
+
+
+'APIs do AUTHENTICATION DIFFERENTLY'..
+
+
+
+
+
+
+
+
+
+
+
+-> E ESSA API É UM EXEMPLO CLÁSSICO DISSO,
+
+
+PQ ELA N EXIGE NENHUM TIPO DE oAuth authentication complexa,
+
+não exige nenhum tipo 
+
+de request headr...
+
+
+
+a única coisa que precisamos fazer é 
+
+passar a key como 1 param de ESSE REQUEST DE GET,
+
+tipo 
+
+
+https://api.emailable.com/v1/verify?email=arthur.panazolo@acad.pucrs.br&api_key=test_dd40c29cca2cb597cf6d
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+AÍ 
+
+
+ABRIMOS ESSA URL NO BROWSER...
+
+
+
+
+
+
+
+FICAMOS COM 1 JSON RESPONSE, POR PARTE DE ESSA API:
+
+
+
+
+
+
+{
+  "accept_all": false,
+  "did_you_mean": null,
+  "disposable": false,
+  "domain": "acad.pucrs.br",
+  "duration": 0,
+  "email": "arthur.panazolo@acad.pucrs.br",
+  "first_name": "Arthur",
+  "free": false,
+  "full_name": "Arthur Panazolo",
+  "gender": "male",
+  "last_name": "Panazolo",
+  "mailbox_full": false,
+  "mx_record": "alt4.aspmx.l.google.com",
+  "no_reply": false,
+  "reason": "accepted_email",
+  "role": false,
+  "score": 100,
+  "smtp_provider": "Google",
+  "state": "deliverable",
+  "tag": null,
+  "user": "arthur.panazolo"
+
+}
+
+
+
+
+
+
+
+
+
+ESSA RESPONSE CONTÉM 
+
+
+
+TODA A INFO QUE QUERÍAMOS...
+
+
+
+
+
+
+TAMBÉM NOS RETORNA O STATUS/STATE 
+
+
+DE NOSSA CONTA...
+
+
+
+NO CASO,
+
+''
+
+  "state": "deliverable",
+
+
+
+''
+
+
+
+
+QUER DIZER QUE MEU EMAIL É 'DELIVERABLE'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+->  MAS O PROFESSOR APONTA QUE 
+
+'deliverable'
+
+
+e 
+
+'undeliverable'
+
+
+
+NÃO SÃO CONFIÁVEIS COM A KEY DE TEST,
+
+
+JUSTAMENTE 
+
+POR CONTA DE ELA RANDOMIZAR O RESULTAOD...
+
+
+
+QUER DIZER QUE ELA NÃO É ACCURATE... it's JUST RANDOM DATA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS PODEMOS PEGAR ESSA URL 
+
+E COLAR nas nossas CURL FUNCTIONS,
+
+PARA 
+
+'FIRE API REQUESTS FROM OUR PHP CODE'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE ABRIMOS OS DOCS E ABRIMOS A PARTE DE EMAILS,
+
+
+
+
+ENCONTRAMOS 
+
+
+ALGUNS SNIPPETS 
+
+DE CODE,
+
+
+QUE USAM O CURL...
+
+
+
+
+
+EX:
+
+
+
+
+curl "https://api.emailable.com/v1/verify?email=john@smith.com&api_key=your_api_key"
+
+
+
+
+
+
+
+
+
+
+ALÉM DE 'CURL',
+
+
+ELE PROVIDENCIA 
+
+
+SNIPPETS OF CODE 
+
+
+
+PARA PROGRAMMING LANGUAGES 
+
+
+
+COMO RUBY,
+
+ NODE E PYTHON..
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> INFELIZMENTE,
+    O EMAILABLE 
+
+    NÃO POSSUI 
+
+
+    VERSÃO DO PHP,
+
+
+    MAS ISSO NÃO É PROBLEMA ALGUM,
+
+    PQ 
+
+    PODEMOS CONSTRUIR ISSO POR CONTA PRÓPRIA,
+
+
+    USANDO O CURL,
+
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+{
+    #[Get('/curl')]
+    public function index()
+    {
+        // returns a cURL handle object, without url assigned
+        $handle = curl_init();
+        
+        // * Same as code seen above, but with a single method call:
+        curl_setopt_array($handle, [
+            CURLOPT_URL => 'https://api.emailable.com/v1/verify?email=arthur.panazolo@acad.pucrs.br&api_key=test_dd40c29cca2cb597cf6d/',
+            CURLOPT_RETURNTRANSFER => true,
+        ]);
+
+        $content = curl_exec($handle);  // this will store the HTML in a variable
+
+        var_dump($content);  // this will print out the HTML content
+
+        echo '<pre>';
+        print_r(curl_getinfo($handle));  // this will print out the info about the request (headers, status code, etc)
+        echo '</pre>';
+
+    }
+
+
+
+
+
+
+
+
+
+
+    AÍ TESTAMOS ISSO...
+
+
+
+
+
+E FUNCIONA,
+
+FICAMOS COM A RESPONSE
+
+
+JSON,
+
+
+MAS COM NOSSO CÓDIGO PHP...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> E PODEMOS CONVERTER ESSA JSON RESPONSE EM 1 ARRAY,
+
+    BASTA FAZER ALGO COMO 
+
+
+
+
+
+$content = curl_exec($handle);  // this will store the HTML in a variable
+
+
+
+
+if ($content !== false) { 
+
+    $data = json_decode($content, true);
+
+
+    echo '<pre>';
+    print_r($data);
+    echo '</pre>';
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK.. 
+
+
+
+
+
+
+
+
+E ISSO REALMENTE FUNCIONA,
+
+
+FICAMOS COM 1 ASSOCIATIVE ARRAY,
+
+COM TODAS AS INFOS 
+
+DAQUELE JSON DA RESPONSE DA API...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS O PROFESSOR APONTA QUE PODEMOS MELHORAR ESSE CÓDIGO...
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR DIZ QUE NÃO QUEREMOS DEIXAR NOSSAS 
+    API KEYS ESCRITAS 
+
+    DE FORMA HARDCODED...
+
+
+
+
+
+
+
+
+É POR ISSO QUE CRIAMOS UMA VARIABLE DE 
+
+
+
+'EMAILABLE_API_KEY',
+
+no arquivo '.env',
+
+
+
+
+E AÍ 
+ 
+
+
+OBTEMOS ISSO DO GLOBAL DE '$_ENV['EMAILABLE_API_KEY'];'
+
+
+
+
+tipo assim:
+
+
+
+
+
+
+$apiKey = $_ENV['EMAILABLE_API_KEY'];
+$email = 'programwithgio@gmail.com';
+$url = 'https://api.emailable.com/v1/verify?email=' . $email . '&api_key=' . $apiKey;
+
+
+curl_setopt($handle, CURLOPT_URL, $url);
+curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+
+$content = curl_exec($handle);  // this will store the HTML in a variable
+
+if ($content !== false) { 
+
+    $data = json_decode($content, true);
+
+
+    echo '<pre>';
+    print_r($data);
+    echo '</pre>';
+
+}
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+
+
+
+
+
+
+ESSE EMAIL SERÁ HARDCODADO, MAS ELE PODERIA VIR DE 1 DATABASE,
+
+OU DE QUALQUER OUTRO LUGAR...
+
+
+
+
+
+
+
+
+
+
+
+-> É CLARO QUE PODERÍAMOS TER OUTROS PARAMETERS, AQUI...
+
+
+
+
+
+
+
+
+-> E CONSTRUIR URLS MANUALMENTE, DESSA FORMA,
+PODE SER PAINFUL...
+
+
+
+
+
+
+
+
+
+
+-> '''INSTEAD OF DOING THIS,
+WE CAN USE HTTP BUILD QUERY FUNCTION,
+
+TO BUILD THE QUERY FROM THE GIVEN ARRAY''..
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+$params = [
+    'api_key' => $apiKey,
+    'email' => $email
+];
+
+
+
+$url = 'https://api.emailable.com/v1//verify?' . http_build_query($params);
+
+
+
+
+
+
+
+
+
+
+
+
+E ISSO REALMENTE FUNCIONA... FICA BEM MAIS SIMPLIFICADO...
+
+
+
+
+
+
+
+
+
+
+
+NÃO VAMOS COBRIR TUDO SOBRE APIs...
+
+
+
+
+
+
+
+
+NÃO ESTAMOS FAZENDO ERROR HANDLING,
+
+
+STATUS CODE CHECKING,
+
+ ETC....
+
+
+
+
+
+
+
+
+
+
+--> VC TERIA DE CHECAR OS DOCS SOBRE A API ESCOLHIDA,
+PARA SABER MAIS SOBRE O QUE ELA ACEITA, O QUE ELA RESPONDE, ETC...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--. ESSA API TEM OUTROS ENDPOINTS,
+
+COMO 1 PARA 
+
+'VERIFY A BATCH OF EMAILS'..
+
+
+
+
+
+
+
+
+
+
+
+-> QUANDO VC TRABALHA COM APIs,
+
+
+SEMPRE ESPERE QUE 
+
+ELA 
+
+TENHA MAIS DO QUE 1 ÚNICO ENDPOINT...
+
+
+
+
+
+
+
+
+
+
+
+-> ALGUMAS APIs FORNECEM TODOS SDKs,
+
+
+inclusive PHP SDKs,
+
+e outras não o fazem...
+
+
+
+
+
+
+
+-> AS QUE NÃO OFERECEM SDKs PHP,
+
+VC PODE USAR CURL,
+
+PARA FAZER ESSES HTTP REQUESTS, NO PHP...
+
+
+
+
+
+
+
+
+
+
+
+-> É CLARO QUE EXISTEM OUTRAS LIBRARIES QUE 
+FUNCIONAM COM O CURL,
+
+E QUE OFERECEM 
+
+FEATURES ADICIONAIS E FUNCIONALIDADES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> UM EXEMPLO DE LIBRARY 
+    QUE USA CURL É 
+
+    'GUZZLE'...
+
+
+
+
+
+
+    Guzzle --> é um PHP HTTP 
+                    CLIENT,
+
+
+                    QUE SEGUE 
+
+                    PSR-7 STANDARDS...
+
+
+
+
+    PSR-7 --> 'PROVIDES 
+                THE COMMON INTERFACES FOR HTTP 
+                MESSAGES, THAT THESE FRAMEWORKS TRY 
+                TO USE/FOLLOW,
+                SO THAT IT IS EASIER FOR A DEVELOPER TO SWITCH 
+                FROM ONE TO THE OTHER'...
+
+
+
+
+
+
+        --> O PROFESSOR VAI MOSTRAR COMO USAR O GUZZLE, NA PRÓXIMA AULA...
+
+        ELE NOS AJUDA A TRABALHAR COM APIs...
