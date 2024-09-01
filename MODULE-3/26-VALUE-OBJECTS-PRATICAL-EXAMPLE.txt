@@ -1,0 +1,358 @@
+
+
+
+
+
+
+
+NA ÚLTIMA AULA, FALAMOS SOBRE DATA MODELLING,
+
+
+MAIS ESPECIFICAMENTE 
+
+
+DATA TRANSFER OBJECTS ('DTOs')...
+
+
+
+
+
+
+
+
+
+
+
+-> HOJE FALAREMOS SOBRE VALUE OBJECTS (VOs)...
+
+
+
+
+
+
+
+
+--> ANTES DE FALARMOS SOBRE A TEORIA E FORMAL DEFINITIONS,
+
+    O PROFESSOR QUER MOSTRAR 1 EXEMPLO...
+
+
+
+
+
+
+
+
+
+-> SERÁ MT MAIS FÁCIL ENTENDER:
+
+
+
+1) WHEN 
+
+2) WHY
+
+
+3) WHERE 
+
+
+4) HOW 
+
+
+
+
+
+
+DOS VALUE OBJECTS...
+
+
+
+
+
+
+
+
+
+
+
+
+-> O EXEMPLO DE HOJE É SOBRE O __ CALCULATE__ DE 
+
+SHIPPING COSTS....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SHIPPING COSTS:
+
+
+
+
+
+---> TIPICAMENTE,
+    PARA CALCULAR 
+    O CUSTO DE ENVIO DE 1 PACKAGE,
+
+    ISSO DEPENDE DE ALGUNS FACTORS E VARIABLES...
+
+
+    ALGUMAS DELAS SÃO:
+
+
+
+
+
+    1) DIMENSIONS OF THE PACKAGE (width x height x length)
+
+
+    2) Weight 
+
+
+    3) distance 
+
+
+    4) carrier 
+
+
+    5) speed
+
+    6) value 
+
+
+
+
+
+
+
+
+
+
+
+--> VAMOS ASSUMIR ALGUNS DOS FATORES 
+
+NESSA LESSON...
+
+
+
+
+
+
+
+
+
+-> VAMOS FAZER 1 CÁLCULO BEM SIMPLES,
+
+    PARA NÃO 'GO OUT OF THE SCOPE'..
+
+
+
+
+
+
+
+
+
+
+
+
+
+-->  VAMOS FOCAR APENAS EM ALGUNS FACTORS...
+
+
+
+
+
+SÃO ELES:
+
+
+
+1) PACKAGE DIMENSION 
+
+
+
+
+2) WEIGHT ...
+
+
+
+
+
+
+
+
+
+
+
+--> USAREMOS ISSO PARA CALCULAR AQUILO QUE CHAMAMOS 
+
+DE 
+
+'BILLABLE WEIGHT'...
+
+
+
+
+
+
+
+
+
+BILLABLE WEIGHT...
+
+
+
+
+
+
+
+
+
+--> É ALGO USADO POR CARRIERS, PARA 
+    CALCULAR O SHIPPING COST DE CADA PACKAGE...
+
+
+
+
+
+
+
+
+
+
+
+--> O BILLABLE WEIGHT 
+É BASEADO EM ALGO CHAMADO DE 
+
+
+'DIMENSIONAL WEIGHT',
+
+QUE POR SUA VEZ TAMBÉM É CONHECIDO COMO 'DIM Weight'...
+
+
+
+
+
+
+
+
+
+
+
+--> É BASEADO NO 'DIM WEIGHT' E O 'ACTUAL WEIGHT' 
+DA PACKAGE...
+
+
+
+
+
+
+
+
+
+
+
+
+--> BILLABLE WEIGHT -->     SEMPRE SERÁ 
+                        EQUIVALENTE 
+
+
+                        AO WEIGHT 
+
+                        MAIOR 
+
+                        ENTRE 
+
+                        O 
+
+                        'DIM Weight' 
+
+
+                        e 
+
+                        o 
+
+                        'Actual Weight'...
+
+
+
+
+
+
+--> POR ISSO, A FÓRMULA É 
+
+
+
+max(DIM Weight, Weight);
+
+
+
+
+
+
+
+
+-> SE O DIM Weight é maior 
+    do que o weight da package,
+
+    ele será o billable weight... e vice-versa...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    --> PARA CALCULAR ISSO,
+
+
+
+
+
+O PROFESSOR CRIOU 1 SERVICE DE 
+
+
+'BillableWeightCalculatorService',
+
+
+
+
+
+
+COM ESTE CÓDIGO:
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services\BillableWeightCalculator;
+
+class BillableWeightCalculator
+{
+    public function calculate(
+        int $width,
+        int $height,
+        int $length,
+        int $weight,
+        int $dimDivisor
+    ): int {
+        return 241;
+    }
+}
