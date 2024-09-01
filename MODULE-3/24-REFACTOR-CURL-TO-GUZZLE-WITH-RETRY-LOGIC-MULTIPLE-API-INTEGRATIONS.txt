@@ -209,9 +209,6 @@ CÓDIGO:
 
 
 
-    #[Get('/curl')]
-    public function index()
-    {
         // returns a cURL handle object, without url assigned
         $handle = curl_init();
 
@@ -258,4 +255,4414 @@ CÓDIGO:
             print_r($data);
             echo '</pre>';
         }
+
+
+
+
+OU
+ 
+
+
+
+     {
+        $handle = curl_init();
+
+        $apiKey = $_ENV['EMAILABLE_API_KEY'];
+        $email = 'programwithgio@gmail.com';
+        $url = 'https://api.emailable.com/v1/verify?email=' . $email . '&api_key=' . $apiKey;
+
+        curl_setopt($handle, CURLOPT_URL, $url);
+        curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+
+        $content = curl_exec($handle);  // this will store the HTML in a variable
+
+        var_dump($content);  // this will print out the HTML content
+
+        if ($content !== false) {
+            $data = json_decode($content, true);
+
+            echo '<pre>';
+            print_r($data);
+            echo '</pre>';
+        }
     }
+
+
+
+
+
+
+
+
+
+E ENTÃO O REMOVEMOS DO CONTROLLER DE 'CURLCONTROLLER'...
+
+
+
+
+
+
+
+
+--> EM VEZ DE FAZER CURL CALLS DIRETAMENTE,
+
+VAMOS INJETAR ALGUM TIPO DE EMAIL VALIDATION SERVICE 
+
+NESSE CONTROLLER...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Attributes\Get;
+
+class CurlController
+{
+    public function __construct(private EmailValidationService $emailValidationService) {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ, DENTRO DO CONTROLLER METHOD, VAMOS CHAMAR METHODS NESSE SERVICE...
+
+
+
+
+
+
+
+
+-> UM METHOD COMO 'verify',
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Attributes\Get;
+
+class CurlController
+{
+    public function __construct(private EmailValidationService $emailValidationService) {}
+
+    #[Get('/curl')]
+    public function index()
+    {
+        $this->emailValidationService->verify($email);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+deixamos o '$email' como argument... 
+
+
+
+
+
+
+
+
+
+--->_ PODEMOS FAZER COM QUE ISSO  RETORNE 1 RESULT,
+
+
+
+POR ISSO COLOCAMOS O RESULT EM 1 VARIABLE DE NOME '$result',
+
+e, por fim,
+
+
+faremos PRINT DO RESULTADO, TIPO ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Attributes\Get;
+
+class CurlController
+{
+    public function __construct(private EmailValidationService $emailValidationService) {}
+
+    #[Get('/curl')]
+    public function index()
+    {
+        $email = 'example@example.com';
+        $result = $this->emailValidationService->verify($email);
+
+        echo '<pre>';
+        print_r($result);
+        echo '</pre>';
+    }
+}
+
+
+
+
+
+
+AGORA DEVEMOS CRIAR ESSE EMAIL VALIDAITON SERVICE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+
+class EmailValidationService
+{
+    public function verify(string $email): array {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VAMOS IMPLEMENTAR A API DO EMAILABLE,
+
+
+POR ISSO DEIXAMOS O NAMESPACE COMO 
+
+
+App\Services\Emailable
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VAMOS CRIAR A FUNCTION DE 'verify',
+
+que vai accept EMAIL COMO 1 ARGUMENT, E QUE VAI RETORNAR ARRAY..
+
+
+
+
+
+
+
+
+-> AÍ PODEMOS COLAR A LÓGICA ANTERIOR, TIPO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+namespace App\Services\Emailable;
+
+class EmailValidationService
+{
+    public function verify(string $email): array
+    {
+        $handle = curl_init();
+
+        $apiKey = $_ENV['EMAILABLE_API_KEY'];
+        $email = 'programwithgio@gmail.com';
+        $url = 'https://api.emailable.com/v1/verify?email=' . $email . '&api_key=' . $apiKey;
+
+        curl_setopt($handle, CURLOPT_URL, $url);
+        curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+
+        $content = curl_exec($handle);  // this will store the HTML in a variable
+
+        var_dump($content);  // this will print out the HTML content
+
+        if ($content !== false) {
+            $data = json_decode($content, true);
+
+            return $data;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ NOS LIVRAMOS DO HARDCODE DO EMAIL COM O ENV...
+
+
+
+TROCAMOS O ECHO STATEMENT PELO RETURN DO VALUE DO JSON_DECODE...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+namespace App\Services\Emailable;
+
+class EmailValidationService
+{
+    public function verify(string $email): array
+    {
+        $handle = curl_init();
+
+        $url = 'https://api.emailable.com/v1/verify?email=' . $email . '&api_key=' . $apiKey;
+
+        curl_setopt($handle, CURLOPT_URL, $url);
+        curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+
+        $content = curl_exec($handle);  // this will store the HTML in a variable
+
+        var_dump($content);  // this will print out the HTML content
+
+        if ($content !== false) {
+            $data = json_decode($content, true);
+
+            return $data;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS NÃO VAMOS QUERER HARDCODAR A API KEY..
+
+
+
+
+
+
+
+
+
+QUEREMOS QUE, DE DENTRO DE NOSSO APP,
+
+
+
+
+
+''WE ARE ABLE TO USE A DIFFERENT ACCOUNT FOR THE EMAIL SERVICE''...
+
+
+
+
+
+
+
+
+
+
+--> TIPO USAR DIFERENTES CONTAS,
+
+    COM DIFERENTES API KEYS...
+
+
+
+
+
+
+
+
+
+
+--> NO MOMENTO, A ÚNICA MANEIRA DE USAR OUTRA 
+    API KEY É TROCAR O VALUE DE ESSA ENVIRONMENT VARIABLE...
+
+
+
+
+
+
+
+
+
+
+
+
+--> SERIA BEM MELHOR PODER RECEBER ESSA 'apiKey'
+
+DO CONSTRUCTOR DE 'emailValidationService',
+
+
+
+
+E ENTÃO UTILIZAR ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+namespace App\Services\Emailable;
+
+class EmailValidationService
+{
+    public function __construct(private string $apiKey) {}
+
+    public function verify(string $email): array
+    {
+        $handle = curl_init();
+
+        $params = [
+            'api_key' => $this->apiKey,
+            'email' => $email,
+        ];
+
+        $url = 'https://api.emailable.com/v1/verify?email=' . $email . '&api_key=' . $apiKey;
+
+        curl_setopt($handle, CURLOPT_URL, $url);
+        curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+
+        $content = curl_exec($handle);  // this will store the HTML in a variable
+
+        var_dump($content);  // this will print out the HTML content
+
+        if ($content !== false) {
+            $data = json_decode($content, true);
+
+            return $data;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+A PRÓXIMA COISA QUE PODEMOS FAZER, PARA MELHORAR ISSO,
+
+
+
+
+
+É OUTSOURCEAR ESSA URL EM 1 PROPERTY... ISSO PQ 
+
+
+PROVAVELMENTE TEREMOS MÚLTIPLOS METHODS, USANDO 
+ESSA MESMA URL...
+
+
+
+
+
+
+
+
+
+
+--> BASTA RECORDAR:
+
+
+
+''A API DO EMAILABLE TEM 2 
+ENDPOINTS,
+
+UM PARA VALIDATE A SINGLE EMAIL,
+
+E OUTRO 
+PARA VALIDATE MULTIPLE EMAILS'''...
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE COLOCAMOS ISSO EM 1 PROPERTY SEPARADA, TIPO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+namespace App\Services\Emailable;
+
+class EmailValidationService
+{
+    private string $baseUrl = 'https://api.emailable.com/v1/verify';
+
+    public function __construct(private string $apiKey) {}
+
+    public function verify(string $email): array
+    {
+        $handle = curl_init();
+
+        $params = [
+            'api_key' => $this->apiKey,
+            'email' => $email,
+        ];
+
+        $url = $this->baseUrl . $email . '&api_key=' . $apiKey;
+
+        curl_setopt($handle, CURLOPT_URL, $url);
+        curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+
+        $content = curl_exec($handle);  // this will store the HTML in a variable
+
+        var_dump($content);  // this will print out the HTML content
+
+        if ($content !== false) {
+            $data = json_decode($content, true);
+
+            return $data;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ISSO FEITO, TESTAMOS ESSE CÓDIGO...
+
+
+
+
+
+
+
+
+
+
+
+-> TESTAMOS A ROUTE, E FICAMOS COM 1 EXCEPTION...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO ACONTECEU POR CONTA DESTA PARTE DO CÓDIGO:
+
+
+
+
+
+('CurlController'):
+
+
+    public function __construct(private EmailValidationService $emailValidationService) {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+
+
+O CONTAINER ESTÁ TENTANDO INSTANCIAR ESSA CLASS PARA NÓS...
+
+
+
+
+
+
+
+
+
+
+
+-> O PROBLEMA, NO CASO, É QUE 
+
+ESSA CLASS, DE 'EmailValidationService',
+
+
+
+TEM UMA DEPENDENCY PRÓPRIA, TAMBEM...
+
+
+
+
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Attributes\Get;
+use App\Services\Emailable\EmailValidationService;
+
+class CurlController
+{
+    public function __construct(private EmailValidationService $emailValidationService) {}
+
+    #[Get('/curl')]
+    public function index()
+    {
+        $email = 'example@example.com';
+        $result = $this->emailValidationService->verify($email);
+
+        echo '<pre>';
+        print_r($result);
+        echo '</pre>';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> A DEPENDENCY, NO CASO:
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+namespace App\Services\Emailable;
+
+class EmailValidationService
+{
+    private string $baseUrl = 'https://api.emailable.com/v1/verify';
+
+    public function __construct(private string $apiKey) {}
+
+    public function verify(string $email): array
+    {
+        $handle = curl_init();
+
+        $params = [
+            'api_key' => $this->apiKey,
+            'email' => $email,
+        ];
+
+        $url = $this->baseUrl . $email . '&api_key=' . $apiKey;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A DEPENDENCY É REALMENTE '$apiKey',
+
+dentro daquele constructor...
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSA DEPENDENCY NÃO É UMA CLASS,
+
+
+E SIM É UM __ SCALAR__ VALUE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> POR SER 1 SCALAR VALUE,
+
+    O CONTAINER DO LARAVEL NÃO SABE COMO FAZER 
+
+    INSTANTIATE DELE... É POR ISSO QUE 
+    ESTAMOS 
+
+    FICANDO COM 1 EXCEPTION..
+
+
+
+
+
+
+
+
+
+
+
+
+-> COMO CONSERTAR ISSO?
+
+
+
+
+
+''WE TELL THE CONTAINER 
+    __ HOW TO INSTANTIATE THE CLASS,
+    AND PASS IN THE REQUIRED API KEY IN THE CONSTRUCTOR,
+    USING ""CONTAINER BINDING"" ''
+
+
+
+
+
+
+
+
+
+
+WTF.... o que é isso?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR VAI ATÉ 'App.php',
+
+
+EM QUE ESTAMOS FAZENDO BIND DE NOSSAS CLASSES AO CONTAINER,
+
+
+COM '$this->container->bind()':
+
+
+
+
+
+
+
+
+
+
+    public function boot(): static
+    {
+        $dotenv = Dotenv::createImmutable(dirname(__DIR__));
+        $dotenv->load();
+
+        $this->config = new Config($_ENV);
+
+
+        $this->initDb($this->config->db ?? []);
+
+        $this->container->bind(PaymentGatewayServiceInterface::class, PaymentGatewayService::class);
+        $this->container->bind(MailerInterface::class, fn() => new CustomMailer($this->config->mailer['dsn']));
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+AQUI VAMOS FAZER ALGO PARECIDO COM O QUE FIZEMOS COM O 'CUSTOMMAILER'...
+
+
+
+
+
+
+
+
+
+
+
+--> AINDA NÃO TEMOS UMA INTERFACE PARA O 'EMAILABLESERVICE',
+
+
+    MAS, POR ENQUANTO,
+
+    VAMOS SIMPLESMENTE BIND 
+
+
+    O 'EmailValidationService::class'
+
+
+
+
+AO 'new EmailValidationService()',
+
+
+MAS COM O PASS DA API KEY ADEQUADA, por meio de uma key no 'config',
+
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+$this->container->bind(EmailValidationService::class, new EmailValidationService($this->config->apiKeys['emailable']));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ISSO FEITO,
+
+ADICIONAMOS ESSA KEY NA CLASS DE 'CONFIG',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+/**
+ * @property-read ?array $db
+ * @property-read ?array $mailer
+ */
+class Config
+{
+    protected array $config = [];
+
+    public function __construct(array $env)
+    {
+        $this->config = [
+            'db' => [
+                'host' => $env['DB_HOST'],
+                'username' => $env['DB_USER'],
+                'password' => $env['DB_PASS'],
+                'database' => $env['DB_DATABASE'],
+                'driver' => $env['DB_DRIVER'] ?? 'mysql',
+                'charset' => 'utf8',
+                'collation' => 'utf8_unicode_ci',
+                'prefix' => '',
+            ],
+            'mailer' => [
+                'dsn' => $env['MAILER_DSN'] ?? '',
+            ],
+            'apiKeys' => [
+                'emailable' => $env['EMAILABLE_API_KEY'] ?? '',
+            ],
+        ];
+    }
+
+    public function __get(string $name)
+    {
+        return $this->config[$name] ?? null;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+FECHAMOS TUDO ISSO, E TESTAMOS...
+
+
+
+
+
+
+
+
+
+
+
+--> REFRESHAMOS A PAGE, E TUDO FUNCIONA,
+
+FICAMOS COM O RESULTADO JSON EM 1 FORMATO ARRAY...
+
+
+
+
+
+
+
+
+-> AGORA VAMOS SUBSTITUIR ESSE USO DE 'CURL'
+
+
+
+COM UMA USAGE DO HTTP CLIENT DO 'GUZZLE'...
+
+
+
+
+
+
+
+
+
+--> ''AS YOU KNOW, THE GUZZLE IS 
+    PHP HTTP CLIENT, THAT WE CAN USE 
+    TO SEND HTTP REQUESTS''...
+
+
+
+
+
+
+
+
+
+-> PARA INSTALAR O GUZZLE, BASTA ESCREVER ASSIM:
+
+
+
+
+
+
+
+composer require guzzlehttp/guzzle
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... EXAMINAMOS OS DOCS DO GUZZLE...
+
+
+
+
+
+
+
+
+
+
+COMO PODEMOS FAZER 1 HTTP REQUEST?
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PRIMEIRAMENTE, PRECISAMOS CRIAR 1 CLIENT,
+
+
+
+COM UM CÓDIGO COMO ESTE:
+
+
+
+
+
+
+
+use GuzzleHttp\Client;
+
+
+
+$client = new Client([
+    'base_uri' => 'http:///httpbin.org',
+    'timeout' => 2.0
+]);
+
+
+
+
+
+
+
+
+
+--> BASICAMENTE, PRECISAMOS INSTANCIAR 1 NOVO OBJECT 'CLIENT'...
+
+
+
+
+
+
+
+
+DENTRO DO CLIENT OBJECT É QUE PASSAMOS A 'base_uri'
+
+
+COMO 1 OPTION, DENTRO DO CONSTRUCTOR,
+
+JUNTO DE OUTRAS OPTIONS QUE PODEMOS DEIXAR NO CLIENT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO FEITO, PODEMOS FAZER 1 REQUEST ASSIM:
+
+
+
+
+
+
+
+$client = new Client([
+    'base_uri' => 'http:///httpbin.org',
+    'timeout' => 2.0
+]);
+
+$response = $client->request('GET', 'test'); // sends a request to foo.com/api/test
+$response = $client->request('GET', '/root'); // sends a request to foo.com/root
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+
+
+
+
+
+
+
+
+
+DE VOLTA AO CÓDIGO, TROCAMOS O 'curl_init()'
+
+
+
+
+
+
+POR 1 NOVO CLIENT DO GUZZLE,
+
+TIPO ASSIM:
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+namespace App\Services\Emailable;
+
+use GuzzleHttp\Client;
+
+class EmailValidationService
+{
+    private string $baseUrl = 'https://api.emailable.com/v1/verify';
+
+    public function __construct(private string $apiKey) {}
+
+    public function verify(string $email): array
+    {
+        // $handle = curl_init(); // Replaced by Guzzle http client
+
+        $client = new Client([
+            'base_uri' => 'http:///httpbin.org',
+            'timeout' => 2.0
+        ]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'timeout'
+
+É O NÚMERO DE SEGUNDOS 
+
+
+ATÉ QUE O HTTP REQUEST FAZ TIMEOUT...
+
+
+
+
+
+
+
+
+- PROFESSOR COLOCA 1 VALUE DE 5 ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+namespace App\Services\Emailable;
+
+use GuzzleHttp\Client;
+
+class EmailValidationService
+{
+    private string $baseUrl = 'https://api.emailable.com/v1/verify';
+
+    public function __construct(private string $apiKey) {}
+
+    public function verify(string $email): array
+    {
+        // $handle = curl_init(); // Replaced by Guzzle http client
+
+        $client = new Client([
+            'base_uri' => $this->baseUrl,
+            'timeout' => 5
+        ]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+depois disso, podemos fazer 1 get request,
+
+
+usando 
+
+
+o method de 'get'...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+        $client = new Client([
+            'base_uri' => $this->baseUrl,
+            'timeout' => 5
+        ]);
+
+        $params = [
+            'api_key' => $this->apiKey,
+            'email' => $email,
+        ];
+
+        // $url = $this->baseUrl . 'verify?' . http_build_query($params);
+
+        // curl_setopt($handle, CURLOPT_URL, $url);
+        // curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+
+        // $content = curl_exec($handle);  // this will store the HTML in a variable
+
+        // var_dump($content);  // this will print out the HTML content
+
+        $response = $client->get('verify', ['query' => $params]); 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+
+        $client = new Client([
+            'base_uri' => $this->baseUrl,
+            'timeout' => 5
+        ]);
+
+        $params = [
+            'api_key' => $this->apiKey,
+            'email' => $email,
+        ];
+
+        // $url = $this->baseUrl . 'verify?' . http_build_query($params);
+
+        // curl_setopt($handle, CURLOPT_URL, $url);
+        // curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+
+        // $content = curl_exec($handle);  // this will store the HTML in a variable
+
+        // var_dump($content);  // this will print out the HTML content
+
+        $response = $client->get('verify', ['query' => $params]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO SEGUNDO PARAMETER DE '->get()',
+
+
+
+PODEMOS PASSAR 1 OBJECT DE 'options',
+
+CASO NECESSÁRIO...
+
+
+
+
+
+
+
+
+-> nessas options, podemos colocar:
+
+1) headers 
+
+
+2) params, etc...
+
+
+
+
+
+
+
+
+
+-> PODEMOS COLOCAR OS QUERY PARAMS ALI, 
+
+QUE FICA BEM MAIS ORGANIZADO...
+
+
+
+
+
+
+
+E É ISSO QUE FIZ, LOGO ACIMA...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+$response = $client->get('verify', ['query' => $params]);
+
+
+
+
+
+
+
+
+O PRIMEIRO PARAMETER É A ROUTE, O SEGUNDO PARAMETER 
+
+É AS OPTIONS QUE VC QUER COLOCAR NO REQUEST...
+
+
+
+
+
+
+
+
+HÁ VÁRIAS OPTIONS:
+
+
+
+ALLOW_REDIRECTS 
+
+BODY 
+
+
+AUTH 
+
+CERT 
+
+COOKIES 
+
+DEBUG 
+
+
+CONNECT_TIMEOUT 
+
+DELAY 
+
+EXPECT 
+
+
+FORCE_IP_RESOLVE 
+
+
+
+JSON 
+
+
+MULTIPART,
+
+
+
+ETC...
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... SE INSPECIONAMOS O METHOD DE 'get()',
+
+
+
+
+PERCEBEMOS ESTA DEFINIÇÃO:
+
+
+
+
+
+
+
+
+public function get($uri, array $options = []): ResponseInterface 
+
+
+
+
+
+
+
+
+
+
+
+
+-> OU SEJA, ELE RETORNA UM OBJECT DE 'ResponseInterface'...
+
+
+
+
+
+
+
+
+
+
+-> E ESSA INTERFACE 
+    É UMA DAS INTERFACES FORNECIDAS 
+
+
+    PELO 
+
+
+    'Psr\Http\Message'...
+
+
+
+
+
+
+
+
+--> OK...
+
+
+
+
+
+
+É POR ISSO QUE ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+$response = $client->get('verify', ['query' => $params]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO, PRECISAMOS PEGAR O BODY/CONTENT 
+
+DA RESPONSE QUE ESTAMOS RECEBENDO..
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO,
+
+poderíamos usar 
+
+
+
+'$response = $client->get('verify', ['query' => $params]);
+
+
+$response->getBody();'
+
+
+
+
+
+
+
+
+
+
+
+--> MAS O PROBLEMA, COM ISSO,
+
+
+É QUE ESSE 
+
+METHOD RETORNA 1 OBJECT 
+
+
+
+DE 'StreamInterface'...
+
+
+
+
+
+----> PARA CONSEGUIRMOS O _ ACTUAL__ CONTENT,
+    SEM SER EM formato 'STREAM',
+
+    DEVEMOS 
+
+    CHAINAR O METHOD '->getContents()',
+
+
+    TIPO ASSIM:
+
+
+
+
+'''
+
+
+$response = $client->get('verify', ['query' => $params]);
+
+
+$response->getBody()->getContents();
+
+
+'''
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+
+        $response = $client->get('verify', ['query' => $params]);
+
+        if ($response !== false) {
+
+            return $response->getBody()->getContents();  // getBody() returns a StreamInterface... and getContents() returns the actual contents of the stream as a string.
+        }
+
+
+
+
+
+
+
+
+-_> por fim,
+
+usamos o mesmo method 'json_decode()",
+
+
+PARA 
+
+
+CONVERTER 
+
+
+ESSE CONTENT EM 
+
+1 ASSOC ARRAY...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+        $response = $client->get('verify', ['query' => $params]);
+
+        if ($response !== false) {
+            // $data = json_decode($content, true);
+
+            // return $data;
+            $formattedResponse = json_decode($response->getBody()->getContents(), true);  // getBody() returns a StreamInterface... and getContents() returns the actual contents of the stream as a string.
+
+            return $formattedResponse;
+        }
+
+
+
+
+
+
+
+
+
+
+
+REFRESHAMOS A PAGE, E TUDO FUNCIONA COMO ANTES..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS AGORA O PROFESSOR QUER MOSTRAR O QUE ACONTECE QUANDO ALGO DÁ ERRADO,
+
+COMO QUANDO RECEBEMOS UM ERROR 404, OU ALGO DO GÊNERO...
+
+
+
+
+
+
+
+--> PODEMOS SIMULAR ISSO COM 1 TYPO NO ENDPOINT...
+
+    PQ AÍ ISSO VAI TRIGGAR 1 RESPONSE 404...
+
+
+
+
+
+
+
+
+--> PODEMOS VER COMO ISSO É HANDLADO, POR DEFAULT...
+
+
+
+
+
+
+
+
+
+
+
+--> COM 1 TYPO (verify1, em vez de 'verify'),
+
+
+FICAMOS COM ISTO:
+
+
+
+
+
+
+
+'Fatal error: Uncaught ClientException: Client error: 'GET https://api/emailable.com/v1/verify1?'
+
+
+
+
+Resulted in a 404 NOT FOUND RESPONSE...
+
+
+
+
+
+
+
+
+
+
+
+-> OK.. FICAMOS COM ESSA CLIENT EXCEPTION...
+
+
+
+
+
+
+--> COMO VC PODE IMAGINAR,
+
+A MAIOR 
+
+
+
+PARTE DAS APIs É RELIABLE...
+
+
+
+
+
+
+99.99% OF UPTIME, NA MAIOR PARTE DELAS...
+
+
+
+
+
+
+
+
+
+
+
+-> MAS OCASIONALMENTE, HÁ MANUTENÇÃO DOS SERVERS,
+
+E AS APIs não ficam UP...
+
+
+
+
+
+
+
+
+--> OU, ENTÃO, PODEMOS TER FEITO MTOS REQUESTS 
+
+EM 1 PERÍODO MT CURTO... OU UM RANDOM GLITCH... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+''''WE DON'T WANT OUR APPLICATION 
+    TO FAIL __ ON THE FIRST TRY, AS SOON AS IT ENCOUNTERS 
+    SOME KIND OF CLIENT ERROR...'''
+
+
+
+
+
+
+
+
+queremos GIVE IT A COUPLE OF CHANCES,
+
+ANTES DE DEIXARMOS NOSSO APP FAZER THROW DE 1 EXCEPTION...
+
+
+
+
+
+
+
+
+--> PARA ISSO, PRECISAMOS CONSTRUIR ALGUM TIPO DE FUNCIONALIDADE DE 
+
+'RETRY', TUDO PARA QUE REQUESTS SEJAM retried algumas vezes,
+
+com certos status codes/exceptions,
+
+
+antes de finalmente fazer throw de 1 exception...
+
+
+
+
+
+
+
+
+
+
+
+
+-> É CLARO QUE 
+    CADA API TEM DOCS SOBRE 
+
+    QUAIS STATUS CODES PODEM RESPONDER,
+
+    E TAMBÉM 
+
+    SUAS PRÓPRIAS DESCRIPTIONS... 
+
+
+
+
+
+
+
+--> POR EXEMPLO, SE ABRIMOS OS DOCS DO EMAILABLE,
+
+ENCONTRAMOS UMA PARTE SOBRE STATUS CODES...
+
+
+
+
+
+
+
+--> PODE RETORNAR VÁRIOS TIPOS DE STATUS CODES...
+
+
+
+
+
+
+
+
+
+
+
+
+249 --> 'try again' 
+
+
+
+'429' -_> 'too many requests' 
+
+
+
+
+'503' --> service unavailable --> OCORRE EM MAINTENANCE...
+
+
+
+
+
+
+
+
+
+
+
+--> ESSES 3 CASES PODEM 
+    SER TARGETTADOS POR NOSSA RETRY FUNCTIONALITY...
+
+
+
+
+'249' --> NOSSO REQUEST ESTÁ DEMORANDO TEMPO DEMAIS...
+
+
+
+
+
+
+
+
+
+
+
+NOS OUTROS STATUS CODES, NÃO FAZ SENTIDO FAZER ISSO...
+
+
+
+
+
+
+
+'401' --> UNAUTHORIZED...
+
+
+
+
+
+
+403 --> FORBIDDEN API KEY... 
+
+
+
+
+--> O RETRY NESSE TIPO DE ERRORS SERIA INÚTIL...
+
+
+
+
+
+
+
+
+
+
+
+
+---> É CLARO QUE TUDO ISSO DEPENDE DE API PARA API...
+
+
+TAMBÉM DEPENDE DE COMO VC QUER ESTRUTURAR SEU APP...
+
+VC TALVEZ NEM MESMO QUEIRA FAZER 'RETRY' AT ALL...
+
+
+
+
+
+
+
+
+
+
+OU, TALVEZ, VÁ QUERER RETRY EM APENAS 1 ÚNICO TIPO DE STATUS,
+
+E ASSIM POR DIANTE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PODERÍAMOS CONSTRUIR ESSA FUNCTIONALITY DE DIVERSAS MANEIRAS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODERIAMOS BUILD TUDO ISSO FROM SCRATCH,
+
+
+
+
+
+'''BY WRAPPING THIS IN A TRY-CATCH BLOCK 
+AND CATCHING GUZZLE SPECIFIC EXCEPTIONS'' 
+
+
+
+
+(isso nos deixaria
+CHECAR OS STATUS CODES, E AÍ PODERÍAMOS TER ALGUM TIPO DE RECURSIVE CALL 
+
+AO METHOD DA 'API', PARA FAZER O CALL DA REQUEST DE NOVO,
+
+DE ACORDO COM UMA CONDIÇÃO DE RETRY OU NOT,
+
+E AÍ DEIXAR O CÓDIGO COM 'SLEEP', ETC...  )
+
+
+
+
+
+
+
+
+
+
+
+
+-> outra maneira é usar algo chamado de 
+
+'GUZZLE HANDLERS AND MIDDLEWARE FEATURE'...
+
+
+
+
+
+
+
+
+--> O PROFESSOR DESCOBRIU ESSA FEATURE RECENTEMENTE...
+
+
+
+
+
+
+
+
+--> GUZZLE TEM 1 BUILT-IN WAY DE HANDLAR RETRIES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> 'HANDLERS AND MIDDLEWARE'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MIDDLEWARE --> É UMA PARTE DO CÓDIGO QUE 
+PODE   SER RODADA/EXECUTADA NO MEIO DE 'SOMETHING ELSE'...
+
+
+
+
+
+
+
+
+
+
+--> BASICAMENTE, PODEMOS CRIAR 1 HANDLER STACK
+
+E ENTÃO FAZER 'PUSH' DOS MIDDLEWARES NECESSÁRIOS NELE,
+
+ E AÍ SETTAR O CUSTOM HANDLER, CASO NECESSÁRIO...
+
+
+
+
+
+
+
+ --> AÍ PODEMOS PASSAR ESSE STACK, COMO HANDLER,
+
+
+ AO 'new Client()',
+
+ COMO 1 OPTION...
+
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+    public function verify(string $email): array
+    {
+
+        $stack = new HandlerStack();
+
+        $client = new Client([
+            'base_uri' => $this->baseUrl,
+            'timeout' => 5
+        ]);
+
+        $params = [
+            'api_key' => $this->apiKey,
+            'email' => $email,
+        ];
+
+        $response = $client->get('verify', ['query' => $params]);
+
+        if ($response !== false) {
+            // $data = json_decode($content, true);
+
+            // return $data;
+            $formattedResponse = json_decode($response->getBody()->getContents(), true);  // getBody() returns a StreamInterface... and getContents() returns the actual contents of the stream as a string.
+
+            return $formattedResponse;
+        }
+    }
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+        $stack = new HandlerStack();
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+ISSO FEITO, VAMOS FAZER PUSH DE 1 NOVO MIDDLEWARE, PARA DENTRO 
+
+DE ESSE STACK...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+$stack = new HandlerStack();
+
+
+$stack->push();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> EXISTE 1 CLASS DE 'Middleware',
+
+
+QUE JÁ OFERECE ALGUNS BUILT-IN METHODS...
+
+
+
+
+
+
+-> O METHOD QUE NOS INTERESSA É O DE 
+
+
+
+'::retry()'...
+
+
+
+
+
+
+
+
+
+
+
+--> ESSE METHOD NÃO EXISTE NOS DOCS...
+
+
+
+
+
+
+
+
+
+
+---> ''THE MIDDLEWARES ARE BASICALLY CALLABLE FUNCTIONS''...
+
+
+
+
+
+
+
+
+
+
+
+--> O METHOD DE RETRY, POR EXEMPLO,
+
+APENAS RETORNA 1 CALLABLE FUNCTION...
+
+
+
+
+
+
+
+
+--> ESSA CALLABLE FUNCTION EXIGE 
+
+
+2 FUNCTIONS COMO PARAMETERS...
+
+
+
+
+
+
+
+
+1) DECIDER 
+
+
+2) DELAY...
+
+
+
+
+
+
+
+
+
+
+
+'decider'-> É UMA FUNCTION QUE VAI 
+
+'DECIDE' 
+
+SE VAMOS RETRY O REQUEST OU NÃO...
+
+
+
+
+
+-> VAI RETORNAR TRUE OU FALSE... 
+
+
+
+
+
+SE RETORNA TRUE, VAI RETRY, E FALSE VAI FAZER COM QUE PARE DE RETRY...
+
+
+
+
+
+
+
+
+
+
+
+
+DELAY --> É BASICAMENTE 1 FUNCTION QUE 
+        DEVE RETORNAR O NÚMERO DE MILISECONDS 
+        PARA RETRY THE API REQUEST...
+
+
+
+
+
+
+
+
+-> O PARAMETER DE 'DELAY' É OPCIONAL,
+
+E SE 'NULL' É PASSADO, ELE USA 
+
+
+UM DEFAULT DELAY... 
+
+
+ESSE DEFAULT DELAY É UM 'EXPONENTIAL BACKOFF DELAY' 
+
+
+
+(termo genérico) --> SIGNIFICA QUE 
+                    OS SCRIPTS VAO SEMPRE SLEEP LONGER QUE A 
+                    VEZ ANTERIOR,
+                    COM BASE NO NÚMERO DE VEZES 
+                    QUE ELE JÁ FEZ 'RETRY'..
+
+
+
+
+
+
+
+
+-> ISSO TUDO PODE PARECER COMPLEXO,
+
+    MAS O SOURCE CODE É BEM SIMPLES...
+
+
+
+
+
+
+
+
+
+--> ISSO É VISTO NA LINHA 
+
+
+
+$this->delay = $delay ?: __CLASS__ . '::exponentialDelay';
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+
+ELE CHAMA O 'exponentialDelay' method, na mesma class...
+
+
+
+
+--> esse method, por sua vez, é apenas uma power function,
+
+
+
+com esta logica:
+
+
+
+
+
+return (int) \pow(2, $retries - 1) * 1000;
+
+
+
+
+
+
+
+
+
+
+CERTO... 
+
+
+É APENAS UMA POWER FUNCTION,
+ 
+ MULTIPLICADA POR 1000 (miliseconds)...
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... JÁ A DECIDER FUNCTION 
+
+
+PASSA OS ARGUMENTS DE 
+
+
+
+'$options['retries']" --> é o núemro de retries...
+'$request' --> É O REQEUST INTERFACE OBJECT, providenciado pelo PSR 
+'$value' --> É O CURRENT RESPONSE/VALUE PARA ESSA RESPONSE...
+null --> É UMA EXCEPTION, SE ALGUMA EXCEPTION OCORRER...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE O RESULT DE ESSE CALL DESSA CALLBACK FUNCTION 
+    RETORNA FALSE,
+
+    NÃO VAI OCORRER O RETRY,
+
+    E AÍ 
+
+
+    VAMOS RODAR 'return $value'..
+
+
+
+
+
+-> CASO RETORNA TRUE,
+
+
+
+VAMOS FAZER O ACTUAL RETRY,
+
+
+com 'return $this->doRetry($request, $options, $value)'
+
+
+
+
+
+
+
+
+
+CERTO... ESSA É A FUNCTION DE 'onFulfilled()'...
+
+
+
+
+
+
+
+
+
+--> JÁ O 'onRejected()':
+
+
+
+
+
+
+
+
+'$options['retries']" --> é o núemro de retries...
+'$request' --> É O REQEUST INTERFACE OBJECT, providenciado pelo PSR 
+null --> é a response...
+'reason' --> passa 1 exceptio/reason como o último argument...
+
+
+
+
+
+
+
+
+--> faz a mesma coisa que a function de 'onFulfilled'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA SABEMOS MAIS SOBRE COMO CONSTRUIR NOSSA DECIDER FUNCTION,
+
+
+PQ SABEMOS OS 4 PARAMETERS QUE ESTÃO SENDO PASSADOS A ELA....
+
+
+
+
+
+
+
+--> POR ISSO VOLTAMOS AO 
+
+
+
+'$stack',
+
+E AÍ VAMOS ESCREVENDO ASSIM:
+
+
+
+
+
+
+
+
+    public function verify(string $email): array
+    {
+
+        $stack = new HandlerStack();
+
+        $stack->push(Middleware::retry());
+
+
+
+        $client = new Client([
+            'base_uri' => $this->baseUrl,
+            'timeout' => 5
+        ]);
+
+        $params = [
+            'api_key' => $this->apiKey,
+            'email' => $email,
+        ];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PRECISAMOS DOS 4 PARAMETERS, DENTRO DE ESSA FUNCTION DE RETRY...
+
+
+
+
+
+
+
+
+
+--> NA VERDADE, COLOCAMOS ESSES 4 PARAMETERS DENTRO DA DECIDER FUNCTION,
+
+QUE É A QUE OS RECEBERÁ...
+
+
+
+            
+1o PARAMETER --> É O NÚMERO DE RETRIES... 
+                
+            
+
+        
+
+2o parameter --> É A REQUEST INTERFACE...
+
+
+
+
+
+
+
+3o parameter --> É UMA RESPONSEINTERFACE OPTIONAL ... 
+
+
+
+
+4o parameter --> É UMA RUNTIME EXCEPTION, TAMBÉM 
+                 OPCIONAL...
+
+
+
+
+
+
+
+
+        VAI FICANDO TIPO ASSIM:
+
+
+
+        
+
+
+
+        
+    public function verify(string $email): array
+    {
+
+        $stack = new HandlerStack();
+
+        $stack->push(Middleware::retry(
+
+            function(
+                int $retries,
+                RequestInterface $request,
+                ?ResponseInterface $response = null,
+                ?\RuntimeException $e = null
+            ) {
+
+            }
+        ));
+
+
+
+        $client = new Client([
+            'base_uri' => $this->baseUrl,
+            'timeout' => 5
+        ]);
+
+        $params = [
+            'api_key' => $this->apiKey,
+            'email' => $email,
+        ];
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... AÍ, DENTRO DE ESSA INNER FUNCTION,
+
+PRECISAMOS DEFINIR 
+
+A RETRY LOGIC (conditions)...
+
+
+
+EX:
+
+
+
+
+
+
+
+    public function verify(string $email): array
+    {
+        // * Used to define custom retry logic.
+        $stack = new HandlerStack();
+
+        $stack->push(Middleware::retry(
+            function (
+                int $retries,
+                RequestInterface $request,
+                ?ResponseInterface $response = null,
+                ?\RuntimeException $e = null
+            ) {}
+        ));
+        // $handle = curl_init(); // Replaced by Guzzle http client
+
+        $client = new Client([
+            'base_uri' => $this->baseUrl,
+            'timeout' => 5
+        ]);
+
+        $params = [
+            'api_key' => $this->apiKey,
+            'email' => $email,
+        ];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS COMO CONSTRUÍMOS ESSA LÓGICA DE RETRY?
+
+
+
+
+
+
+
+
+
+
+
+
+'''FIRST, WE NEED TO MAKE SURE THAT THE NUMBER OF RETRIES IS LESS 
+THAN SOME SORT OF MAXIMUM RETRY QUANTITY...''
+
+
+
+ex:
+
+
+
+
+
+if ($retries >= $maxRetry) {
+
+
+}
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+        // * Used to define custom retry logic.
+        $stack = new HandlerStack();
+
+        $maxRetry = 3;
+
+        $stack->push(Middleware::retry(
+            function (
+                int $retries,
+                RequestInterface $request,
+                ?ResponseInterface $response = null,
+                ?\RuntimeException $e = null
+            ) {
+                if ($retries >= $maxRetry) {
+                    return false;
+                }
+            }
+        ));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... DEPOIS DISSO, PRECISAMOS CHECK SE A RESPONSE 
+
+ESTÁ 'AVAILABLE'...
+
+
+
+
+
+
+
+ex:
+
+
+
+if ($response) 
+
+
+
+
+
+
+-> SE TEMOS A RESPONSE, PODEMOS CHECAR SE 
+    O STATUS CODE EXISTE ENTRE 
+
+
+    '249, 429 ou 503'...
+
+
+
+
+
+-> SE O RESPONSE CODE FOR 1 DESSES AÍ,
+
+PODEMOS RETRY, POR ISSO ESCREVEMOS 'TRUE',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+    public function verify(string $email): array
+    {
+        // * Used to define custom retry logic, on only some status codes (249, 429 and 503)
+        $stack = new HandlerStack();
+
+        $maxRetry = 3;
+
+        $stack->push(Middleware::retry(
+            function (
+                int $retries,
+                RequestInterface $request,
+                ?ResponseInterface $response = null,
+                ?\RuntimeException $e = null
+            ) use ($maxRetry) {
+                if ($retries >= $maxRetry) {
+                    return false;
+                }
+
+                if ($response && in_array($response->getStatusCode(), [249, 429, 503])) {
+                    return true;
+                }
+
+             
+            }
+        ));
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... FINALMENTE,
+
+SE NÃO TIVERMOS RESPONSE ALGUMA,
+
+PODEMOS TER 1 EXCEPTION...
+
+
+
+
+
+
+
+
+--> HÁ VÁRIOS TIPOS DE EXCEPTION QUE PODEM SE THROWN...
+
+
+
+
+
+
+NO GUZZLE,
+
+TEMOS ESTA HIERARCHY:
+
+
+
+
+
+RuntimeException
+    TransferEXCEPTION 
+        ConnectException 
+        RequestException 
+            bADrESPONSEexception 
+                ServERException 
+                clientException
+            TooMANYREDIRECTSEXCEPTION...
+
+
+
+
+
+
+
+
+
+
+
+    --> OK... SE A EXCEPTION FOR ' CONNECTEXCEPTION',
+
+    VAMOS QUERER RETRY 
+
+    O API REQUEST... E O RETRY TALVEZ FAÇA RESOLVE DISSO...
+
+
+
+
+
+
+
+-> POR ISSO ESCREVEMOS ASSIM:
+
+
+
+
+
+
+        // * Used to define custom retry logic, on only some status codes (249, 429 and 503)
+        $stack = new HandlerStack();
+
+        $maxRetry = 3;
+
+        $stack->push(Middleware::retry(
+            function (
+                int $retries,
+                RequestInterface $request,
+                ?ResponseInterface $response = null,
+                ?\RuntimeException $e = null
+            ) use ($maxRetry) {
+                if ($retries >= $maxRetry) {
+                    return false;
+                }
+
+                if ($response && in_array($response->getStatusCode(), [249, 429, 503])) {
+                    return true;
+                }
+
+                if ($e instanceof ConnectException) {
+                    return true;
+                }
+
+                return false;
+            }
+        ));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE TUDO ISSO VAI DEPENDER 
+
+DA SUA IMPLEMENTAÇÃO DA LÓGICA DE RETRY...
+
+
+
+
+É EXATAMENTE POR ISSO QUE O GUZZLE TE FORNECE A FLEXIBIILIDADE PARA PROVIDENCIAR 
+
+A FULL IMPLEMENTATION DE 'WHEN TO DO THE RETRY',
+
+E 
+
+PARA 'HOW LONG TO WAIT FOR EACH ATTEMPT'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> também poderíamos 
+    CHECK POR REQUESTexception,
+
+
+    e aí 
+
+
+    tentar pegar a response dele, para pegar o statuscode,
+
+    mas o professor quer manter as coisas simplse...
+
+
+
+
+
+
+
+
+
+-> MAS O PROFESSOR AINDA QUER FAZER OUTSOURCE DA LÓGICA 
+
+    DO RETRY INTEIRA,
+
+    TUDO PARA QUE TENHAMOS 1 MIDDLEWARE DE 
+
+
+    RETRY...
+
+
+
+
+
+
+
+---> ELE QUER FAZER ISSO PARA QUE FIQUE MAIS CLEAN,
+
+
+FIQUE COM ALGO TIPO 
+
+
+
+
+$stack->push($this->getRetryMiddleware($maxRetry));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, BASTA CRIAR ESSE METHOD, NO PRÓPRIO SERVICE,
+
+TIPO ASSIM:
+
+
+
+
+
+    private function getRetryMiddleware(int $maxRetry): callable
+    {
+        return Middleware::retry(
+            function (
+                int $retries,
+                RequestInterface $request,
+                ?ResponseInterface $response = null,
+                ?\RuntimeException $e = null
+            ) use ($maxRetry) {
+                if ($retries >= $maxRetry) {
+                    return false;
+                }
+
+                if ($response && in_array($response->getStatusCode(), [249, 429, 503])) {
+                    return true;
+                }
+
+                if ($e instanceof ConnectException) {
+                    return true;
+                }
+
+                return false;
+            }
+        );
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+e assim:
+
+
+
+
+
+
+
+
+
+
+    public function verify(string $email): array
+    {
+        // * Used to define custom retry logic, on only some status codes (249, 429 and 503)
+        $stack = new HandlerStack();
+
+        $maxRetry = 3;
+
+        $stack->push($this->getRetryMiddleware($maxRetry));
+        // $handle = curl_init(); // Replaced by Guzzle http client
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+POR FIM,
+
+PRECISAMOS PASSAR ESSE '$stack' como handler do nosso client,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+namespace App\Services\Emailable;
+
+use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Client;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+
+class EmailValidationService
+{
+    private string $baseUrl = 'https://api.emailable.com/v1/verify';
+
+    public function __construct(private string $apiKey) {}
+
+    public function verify(string $email): array
+    {
+        // * Used to define custom retry logic, on only some status codes (249, 429 and 503)
+        $stack = new HandlerStack();
+
+        $maxRetry = 3;
+
+        $stack->push($this->getRetryMiddleware($maxRetry));
+        // $handle = curl_init(); // Replaced by Guzzle http client
+
+        $client = new Client([
+            'base_uri' => $this->baseUrl,
+            'timeout' => 5,
+            'handler' => $stack,
+        ]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, 
+
+O PROFESSOR ADICIONA ALGUNS ECHO STATEMENTS,
+
+PARA CHECAR 
+
+QUANTAS VEZES O NEGÓCIO FEZ RETRY,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+    private function getRetryMiddleware(int $maxRetry): callable
+    {
+        return Middleware::retry(
+            function (
+                int $retries,
+                RequestInterface $request,
+                ?ResponseInterface $response = null,
+                ?\RuntimeException $e = null
+            ) use ($maxRetry) {
+                if ($retries >= $maxRetry) {
+                    return false;
+                }
+
+                if ($response && in_array($response->getStatusCode(), [249, 429, 503])) {
+                    echo 'Retrying [' . $retries . '], Status: ' . $response->getStatusCode() . PHP_EOL;
+
+                    return true;
+                }
+
+                if ($e instanceof ConnectException) {
+                    echo 'Retrying [' . $retries . '], Connection Error<br />' ;
+
+                    return true;
+                }
+
+                return false;
+            }
+        );
+    }
+
+
+
+
+
+
+
+
+
+
+
+OK... AÍ TESTAMOS TUDO ISSO...
+
+
+
+
+
+
+
+
+
+
+
+
+OK... COM 404 ERRORS,
+
+ELE NÃO FAZ RETRY...
+
+
+
+
+
+
+
+O QUE QUER DIZER QUE NOSSA LÓGICA DE RETRY CUSTOM FUNCIONOU...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO...
+
+
+
+
+
+
+
+
+
+-> MAS ANTES DE CONTINUARMOS, O PROFESSOR DIZ QUE ESTAMOS COM 1 PROBLEMA...
+
+
+
+
+
+
+
+
+--> SEMPRE QUE ACONTECE ALGUMA EXCEPTION,
+
+A NOSSA API KEY FICA VISÍVEL, NA EXCEPTION...
+
+
+
+
+
+
+
+-> E VC PRECISA TER CUIDADO, NO HANDLE DE ESSE TIPO DE EXCEPTIONS...
+
+
+
+
+
+
+-> NÃO QUEREMOS QUE NOSSA API KEY FIQUE EXPOSTA...
+
+
+
+
+
+
+-> O QUE VC PODE FAZER, PARA OCULTAR ESSA API KEY,
+
+É WRAPPAR TUDO EM 1 TRY-CATCH BLOCK,
+
+
+E AÍ 
+
+
+
+OCULTAR ESSA API KEY,
+
+
+
+COM O CATCH BLOCK, NO PRINT DO ECHO BLOCK...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA VEREMOS COMO PODEMOS INTEGRAR UMA SEGUNDA API,
+
+UMA API QUE FAÇA A MESMA COISA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR QUER TER 1 FALLBACK LOGIC...
+
+
+TUDO PARA QUE, SE ACABAREM OS NOSSOS CREDITS DE 'EMAILABLE',
+
+
+
+
+SEJA UTILIZADO OUTRO SERVICE,
+
+QUE FAÇA A MESMA COISA...
+
+
+
+
+
+
+
+
+
+
+
+-> OU, TALVEZ, DOWN THE ROAD, QUEIRAMOS 
+TROCAR ESSA IMPLEMENTATION POR OUTRA,
+
+POR 1 PROVIDER DIFERENTE...
+
+
+
+
+
+
+
+
+
+
+--> O PROBLEMA, NO MOMENTO,
+
+É QUE ESTAMOS SENDO BEM ESPECÍFICOS SOBRE A IMPLEMENTATION 
+
+DE NOSSO EMAILVALIDATIONSERVICE,
+
+
+LÁ EM 'CurlController':
+
+
+
+
+
+
+
+    public function __construct(private EmailValidationService $emailValidationService) {}
+
+    #[Get('/curl')]
+    public function index()
+    {
+        $email = 'example@example.com';
+        $result = $this->emailValidationService->verify($email);
+
+        echo '<pre>';
+        print_r($result);
+        echo '</pre>';
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    PQ ESTAMOS INJETANDO 
+
+
+
+    1 
+
+
+SERVICE BEM ESPECÍFICO,
+
+DE 
+
+
+
+emailable,
+
+
+
+o 'EmailValidationService'
+
+de emailable,
+
+
+NESSE CONTROLLER...
+
+
+
+
+
+
+
+
+
+
+-> A MANEIRA PELA QUAL PODEMOS RESOLVER ESSE PROBLEMA É POR MEIO 
+
+
+DO PROVIDE DE UMA INTERFACE, 
+
+UMA 
+
+'EmailValidationInterface',
+
+COMO TYPE,
+
+EM VEZ DE 
+
+
+'EmailValidationService'...
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO VAI DEIXAR NOSSO CÓDIGO BEM MAIS FLEXÍVEL...
+
+
+
+
+
+
+
+
+
+--> PODEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Attributes\Get;
+
+class CurlController
+{
+    public function __construct(private EmailValidationInterface $emailValidationService) {}
+
+    #[Get('/curl')]
+    public function index()
+    { 
+        $email = 'example@example.com';
+        $result = $this->emailValidationService->verify($email);
+
+        echo '<pre>';
+        print_r($result);
+        echo '</pre>';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+-> PRECISAMOS CRIAR ESSA INTERFACE, NO FOLDER DE 'contracts',
+
+TIPO ASSIM:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Contracts;
+
+interface EmailValidationInterface
+{
+    public function verify(string $email): array;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO TERÁ 1 ÚNICO METHOD ,
+
+
+QUE SERÁ 'verify'...
+
+
+
+
+
+
+
+AÍ IMPLEMENTAMOS ESSA INTERFACE, LÁ NO 'EmailValidationService',
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+namespace App\Services\Emailable;
+
+use App\Contracts\EmailValidationInterface;
+use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Client;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+
+class EmailValidationService implements EmailValidationInterface
+{
+    private string $baseUrl = 'https://api.emailable.com/v1/verify';
+
+    public function __construct(private string $apiKey) {}
+
+    public function verify(string $email): array
+    {
+        // * Used to define custom retry logic, on only some status codes (249, 429 and 503)
+        $stack = HandlerStack::create();
+
+        $maxRetry = 3;
+
+        $stack->push($this->getRetryMiddleware($maxRetry));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A ÚLTIMA COISA QUE PRECISAMOS FAZER 
+É 
+
+
+
+ESCREVER O 'bind' 
+
+de essa interface,
+
+lá no App.php,
+
+
+NO CONTAINER,
+
+TIPO ASSIM:
+
+
+
+
+      $this->container->bind(EmailValidationInterface::class, new EmailValidationService($this->config->apiKeys['emailable']));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... E ISSO FUNCIONA, TUDO AINDA FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ESSA INTERFACE FUNCIONANDO,
+
+DEVEMOS INTEGRAR NOSSO CÓDIGO COM OUTRO 
+
+SERVICE 
+
+
+
+DE EMAIL VALIDATION,
+
+OUTRA API...
+
+
+
+
+
+
+
+
+
+--> VAMOS USAR O 'ABSTRACT API'...
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, CRIAMOS UM NOVO SERVICE, LÁ EM 'Services',
+
+
+    mas dessa vez para esse validation api 
+
+
+    do Abstract API...
+
+
+
+
+
+
+
+
+
+COMEÇAMOS COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+namespace App\Services\AbstractAPI;
+
+use App\Contracts\EmailValidationInterface;
+use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Client;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware; 
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+
+class EmailValidationService implements EmailValidationInterface
+{
+    private string $baseUrl = 'https://emailvalidation.abstractapi.com/v1';
+
+    public function __construct(private string $apiKey) {}
+
+    public function verify(string $email): array
+    {
+        // * Used to define custom retry logic, on only some status codes (249, 429 and 503)
+        $stack = HandlerStack::create();
+
+        $maxRetry = 3;
+
+        $stack->push($this->getRetryMiddleware($maxRetry));
+        // $handle = curl_init(); // Replaced by Guzzle http client
+
+        $client = new Client([
+            'base_uri' => $this->baseUrl,
+            'timeout' => 5,
+            'handler' => $stack,
+        ]);
+
+        $params = [
+            'api_key' => $this->apiKey,
+            'email' => $email,
+        ];
+
+        $response = $client->get('verify', ['query' => $params]);
+
+        if ($response !== false) {
+            // $data = json_decode($content, true);
+
+            // return $data;
+            $formattedResponse = json_decode($response->getBody()->getContents(), true);  // getBody() returns a StreamInterface... and getContents() returns the actual contents of the stream as a string.
+
+            return $formattedResponse;
+        }
+    }
+
+    private function getRetryMiddleware(int $maxRetry): callable
+    {
+        return Middleware::retry(
+            function (
+                int $retries,
+                RequestInterface $request,
+                ?ResponseInterface $response = null,
+                ?\RuntimeException $e = null
+            ) use ($maxRetry) {
+                if ($retries >= $maxRetry) {
+                    return false;
+                }
+
+                if ($response && in_array($response->getStatusCode(), [249, 429, 503])) {
+                    echo 'Retrying [' . $retries . '], Status: ' . $response->getStatusCode() . PHP_EOL;
+
+                    return true;
+                }
+
+                if ($e instanceof ConnectException) {
+                    echo 'Retrying [' . $retries . '], Connection Error<br />';
+
+                    return true;
+                }
+
+                return false;
+            }
+        );
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> LÁ NO METHOD DE '$client->get()',
+
+
+
+TIRAMOS O ENDPOINT DE 'verify',
+
+pq ele não existe mais na url...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+        $response = $client->get('', ['query' => $params]);
+
+
+
+
+
+
+
+
+
+CERTO... 
+
+
+
+O RESTO DOS PARAMS É O MESMO....
+
+
+
+
+
+
+
+DEMOS SORTE, PQ OS 2 APIS SÃO 
+
+
+QUASE IGUAIS...
+
+
+
+
+
+
+
+
+
+--> MAS APIS GERALMENTE SÃO DIFERENTES,
+    UMAS EM COMPARAÇÃO COM AS OUTRAS...
+
+
+
+
+
+
+
+
+
+
+    LÁ NO APP.PHP,
+
+
+    ESCREVEMOS ASSIM:
+
+
+
+
+
+        $this->container->bind(EmailValidationInterface::class, new EmailValidationService($this->config->apiKeys['emailable']));
+
+
+
+
+
+
+
+E, LÁ EM CONFIG,
+
+ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+/**
+ * @property-read ?array $db
+ * @property-read ?array $mailer
+ */
+class Config
+{
+    protected array $config = [];
+
+    public function __construct(array $env)
+    {
+        $this->config = [
+            'db' => [
+                'host' => $env['DB_HOST'],
+                'username' => $env['DB_USER'],
+                'password' => $env['DB_PASS'],
+                'database' => $env['DB_DATABASE'],
+                'driver' => $env['DB_DRIVER'] ?? 'mysql',
+                'charset' => 'utf8',
+                'collation' => 'utf8_unicode_ci',
+                'prefix' => '',
+            ],
+            'mailer' => [
+                'dsn' => $env['MAILER_DSN'] ?? '',
+            ],
+            'apiKeys' => [
+                'emailable' => $env['EMAILABLE_API_KEY'] ?? '',
+                'abstract' => $env['ABSTRACT_API_KEY'] ?? '',
+            ],
+        ];
+    }
+
+    public function __get(string $name)
+    {
+        return $this->config[$name] ?? null;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+SWAPPAMOS A IMPLEMENTATION,
+
+
+E TUDO FUNCIONA, O QUE É ÓTIMO...
+
+
+
+
+
+
+
+
+
+
+REFRESHAMOS A PAGE, 
+E FICAMOS COM A DATA DA RESPONSE DO ABSTRACT API,
+
+
+
+QUE FICOU DIFERENTE (o que faz sentido, pq é outra API)...
+
+
+
+
+VEREMOS DTOs (data transfer objects) 
+
+NA PRÓXIMA AULA...
