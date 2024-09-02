@@ -1,13 +1,11 @@
-<?php
-
-declare(strict_types = 1);
+<?php declare(strict_types=1);
 
 namespace App;
 
+use Symfony\Component\Mailer\Transport\TransportInterface;
 use Symfony\Component\Mailer\Envelope;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mailer\Transport;
-use Symfony\Component\Mailer\Transport\TransportInterface;
 use Symfony\Component\Mime\RawMessage;
 
 class CustomMailer implements MailerInterface
@@ -21,7 +19,7 @@ class CustomMailer implements MailerInterface
 
     public function send(RawMessage $message, Envelope $envelope = null): void
     {
-        //... some logic
+        // ... some logic
 
         $this->transport->send($message, $envelope);
 

@@ -2538,8 +2538,1798 @@ EX:
 
 
 
-$dimensions (original variable) ---------
+$dimensions (original variable) ------------
+                                            I
+$dimensions (in method_1 function) -------  I  --- [ OBJECT IN MEMORY ]
+                                            I
+$dimensions (in method_2 function) -------  I 
 
-$dimensions (in method_1 function) -------
 
-$dimensions (in method_2 function)
+
+
+
+
+
+
+
+
+2) ALÉM DE SEREM IMMUTABLE,
+    OUTRA CARACTERÍSTICA DE 'VALUE OBJECTS'
+
+    É QUE ___ ELES DEVEM SER 'VALID BY DEFAULT'...
+
+
+
+
+
+    -> OU SEJA, VALUE OBJECTS 
+
+    ''ARE ALWAYS ASSUMED TO BE IN A __vALID STATE....''
+
+
+
+--> ISSO QUER DIZER QUE PODEMOS 
+    COLOCAR VALIDATION METHODS DENTRO 
+    DOS VALUE OBJECTS...
+
+
+
+
+
+
+--> NO CASO, PODEMOS PEGAR UMA BOA PARTE DA LÓGICA DAQUELE METHOD DE 'calculate',
+
+que tínhamos NO BillableWeightCalculatorService,
+
+
+e colocar diretamente no value object, tipo assim:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISTO:
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services\Shipping;
+
+class BillableWeightCalculatorService
+{
+    public function calculate(
+        int $width,
+        int $height,
+        int $length,
+        int $weight,
+        int $dimDivisor
+    ): int {
+        // Basic validation, to avoid invalid values:
+        match (true) {
+            $width < 0 || $width > 80 => throw new \InvalidArgumentException('Invalid package width '),
+            $height < 0 || $height > 70 => throw new \InvalidArgumentException('Invalid package height '),
+            $length < 0 || $length > 120 => throw new \InvalidArgumentException('Invalid package length '),
+            $weight < 0 || $weight > 150 => throw new \InvalidArgumentException('Invalid package weight '),
+            $dimDivisor <= 0 => throw new \InvalidArgumentException('Invalid dim divisor '),
+            default => true
+        };
+
+        $dimWeight = (int) round($width * $height * $length / $dimDivisor);
+
+        return max($weight, $dimWeight);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+pegamos isTO:
+
+
+        match (true) {
+            $width < 0 || $width > 80 => throw new \InvalidArgumentException('Invalid package width '),
+            $height < 0 || $height > 70 => throw new \InvalidArgumentException('Invalid package height '),
+            $length < 0 || $length > 120 => throw new \InvalidArgumentException('Invalid package length '),
+            $weight < 0 || $weight > 150 => throw new \InvalidArgumentException('Invalid package weight '),
+            $dimDivisor <= 0 => throw new \InvalidArgumentException('Invalid dim divisor '),
+            default => true
+        };
+
+
+
+
+
+
+
+
+
+
+E COLOCAMOS DENTRO 
+
+
+
+
+DO PACKAGEDIMENSION (value object) object:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services\Shipping;
+
+class PackageDimensions
+{
+    public function __construct(
+        private readonly int $width,
+        private readonly int $height,
+        private readonly int $length,
+    ) {
+
+        match (true) {
+            $this->width < 0 || $this->width > 80 => throw new \InvalidArgumentException('Invalid package width '),
+            $this->height < 0 || $this->height > 70 => throw new \InvalidArgumentException('Invalid package height '),
+            $this->length < 0 || $this->length > 120 => throw new \InvalidArgumentException('Invalid package length '),
+            default => true
+        };
+    }
+}
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+3) VALUE OBJECTS TAMBÉM DEVEM SER 
+    'SIDE-EFFECT FREE',
+
+
+
+    ou seja,
+
+
+    NÃO DEVEM GERAR SIDE EFFECTS NO CÓDIGO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> DIGAMOS QUE QUEREMOS TER 1 METHOD QUE VAI AUMENTAR AS DIMENSIONS,
+
+TALVEZ ESTE AQUI:
+
+
+
+
+
+
+ 
+
+
+public function increaseWidth(int $width)
+{
+    $this->width += $width;
+}
+
+
+
+
+
+
+
+
+
+
+
+--> TENTAMOS COLOCAR ISSO DENTRO DO VALUE OBJECT:
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services\Shipping;
+
+class PackageDimensions
+{
+    public function __construct(
+        private readonly int $width,
+        private readonly int $height,
+        private readonly int $length,
+    ) {
+
+        match (true) {
+            $this->width < 0 || $this->width > 80 => throw new \InvalidArgumentException('Invalid package width '),
+            $this->height < 0 || $this->height > 70 => throw new \InvalidArgumentException('Invalid package height '),
+            $this->length < 0 || $this->length > 120 => throw new \InvalidArgumentException('Invalid package length '),
+            default => true
+        };
+    }
+
+
+
+
+public function increaseWidth(int $width)
+{
+    $this->width += $width;
+}
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS GRAÇAS A READ-ONLY PROPERTIES,
+
+ISSO NÃO É POSSÍVEL, AINDA BEM...
+
+
+
+
+
+
+
+
+
+
+
+
+--> ou seja,
+
+VALUE OBJECTS 
+
+
+NÃO DEVEM PERMITIR ESSE TIPO DE CHANGE...
+
+
+DEVEM SER TOTALMENTE IMMUTABLE, SUAS PROPERTIES...
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services\Shipping;
+
+class PackageDimensions
+{
+    public function __construct(
+        private readonly int $width,
+        private readonly int $height,
+        private readonly int $length,
+    ) {
+
+        match (true) {
+            $this->width < 0 || $this->width > 80 => throw new \InvalidArgumentException('Invalid package width '),
+            $this->height < 0 || $this->height > 70 => throw new \InvalidArgumentException('Invalid package height '),
+            $this->length < 0 || $this->length > 120 => throw new \InvalidArgumentException('Invalid package length '),
+            default => true
+        };
+    }
+
+    // ! This is not possible (because of the 'readonly' keyword, on the property), and this is good.
+    // public function increaseWidth(int $width)
+    // {
+    //     $this->width += $width;
+    // }
+}
+
+
+
+
+
+
+
+
+
+
+e é justamente 
+
+
+
+
+
+
+
+POR ISSO QUE READONLY PROPERTIES SÃO UMA ÓTIMA NOVA FEATURE 
+DO PHP8... EVITA SIDE EFFECTS,
+
+PQ EVITA ESSAS CHANGES 
+
+INDESEJADAS....
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE VC QUER REALMENTE SUPORTAR 1 METHOD COMO 'increaseWidth()'
+
+EM 1 VALUE OBJECT,
+
+
+
+E ENTÃO SER CAPAZ DE AUMENTAR A WIDTH,
+
+
+
+
+''INSTEAD OF TRYING TO MODIFY THE INTERNAL STATE OF THE OBJECT,
+    WE CAN SIMPLY RETURN A NEW PACKAGEDIMENSION OBJECT,
+    WITH THE INCREASED WIDTH AS THE WIDTH ARGUMENT...
+    AND ALL THE OTHER ARGUMENTS WOULD BE THE SAME...''
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+    // * This is possible/correct, because we return a new instance of PackageDimensions, with the new, increased width.
+    public function increaseWidth(int $width): self
+    {
+        return new self($this->width + $width, $this->height, $this->length);
+    }
+
+
+
+
+
+
+
+
+
+
+
+OK... E, ANTERIORMENTE, MENCIONAMOS 'UNITS'...
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS ACEITAR UM 4o parameter nesse constructor de 'PackageDimensions',
+
+
+
+algo como 
+
+
+Unit $unit,
+
+
+
+
+
+
+
+talvez fazer com que isso também seja 1 value object,
+
+ou então 1 enum class...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS, EM VEZ DISSO, O PROFESSOR QUER GARANTIR QUE 
+    A CONVERSÃO EM 'INCHES' OCORRA EM ALGUM OUTRO LUGAR DO CÓDIGO 
+
+    (metric to inches),
+
+
+
+    fora dessa class (value object) de 'PackageDimensions'...
+
+
+
+
+
+
+
+
+
+-> NO CASO, QUEREMOS QUE ESSE VALUE OBJECT SEMPRE RECEBA OS VALUES EM 
+    INCHES...
+
+
+
+
+
+
+
+
+
+
+
+--> OK... AGORA FALAREMOS SOBRE EQUALITY, E SOBRE COMO
+    VALUE OBJECTS ACABAM COMPARADOS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> COMO VC SABE, PARA COMPARAR OBJECTS NO PHP,
+
+
+    VC SEMPRE USA '==' e '==='...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'==' compara property values, loose...
+
+
+
+
+
+
+
+
+
+'===' STRICT COMPARISONM --> compares object identity, in objects...  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'==' --> pode parecer 1 boa maneira para comparar 
+        value objects,
+
+        pq 
+        VALUE OBJECTS 
+
+        SÃO ___ COMPARADOS USANDO SEUS VALUES...
+
+
+
+
+
+
+
+--> MAS O PROBLEMA, AQUI,
+
+
+É QUE 
+
+
+'=='
+
+
+
+
+''WOULD COMPARE ITS __  PROPERTIES__ ALSO 
+
+USING __ THE SAME STRATEGY''...
+
+
+
+
+
+
+
+
+
+-> ISSO QUER DIZER, EM OUTRAS PALAVRAS,
+    QUE SE TIVERMOS 1 OBJECT/ARRAY 
+    DENTRO 
+
+    DE UMA DAS PROPERTIES DE NOSSO 
+
+    VALUE OBJECT,
+
+
+
+    ESSA PROPERTY/ARRAY TAMBÉM SERÁ COMPARADO 
+
+    USANDO 
+
+    '==' em vez de '===',
+     
+     em todas as operations de comparação...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR GOSTA DE SEMPRE USAR STRICT COMPARISONS,
+
+E STRICT TYPES...
+
+
+
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE, EM VEZ DE USAR '==' 
+
+PARA COMPARAR 2 VALUE OBJECTS,
+
+NÓS VAMOS 
+
+
+
+
+TER ''CUSTOM EQUALITY CHECK METHODS'',
+
+
+DENTRO DE NOSSOS VALUE OBJECTS...
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, CRIAMOS UM NOVO METHOD, DE NOME 
+
+'equalTo()'
+
+
+
+
+
+
+
+
+
+
+
+-> DENTRO DE ESSE METHOD,
+
+ESCREVEMOS TIPO ASSIM:
+
+
+
+
+
+
+public function equalTo(PackageDimensions $other) 
+{
+
+    return $this->width === $other->width && $this->height === $other--> 
+}
+
+
+
+
+
+
+
+
+
+Ex:
+
+
+
+
+
+
+
+
+
+
+    // * This is possible/correct, because we return a new instance of PackageDimensions, with the new, increased width.
+    public function increaseWidth(int $width): self
+    {
+        return new self($this->width + $width, $this->height, $this->length);
+    }
+
+    // * This lets us compare two PackageDimensions objects' property valeus, and see if they are equal.
+    public function equalTo(PackageDimensions $other) 
+    {
+        return $this->width === $other->width &&
+         $this->height === $other->height &&
+        $this->length === $other->length;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... AGORA DEVEMOS AJUSTAR A CLASS DE SERVICE,
+
+
+
+
+
+
+aquela linha que calcula o 'dimWeight',
+
+tipo assim:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services\Shipping;
+
+use App\Services\Shipping\PackageDimensions;
+
+class BillableWeightCalculatorService
+{
+    public function calculate(
+        // int $width,
+        // int $height,
+        // int $length,
+        PackageDimensions $packageDimensions,  // * Example of value object usage.
+        int $weight,
+        int $dimDivisor
+    ): int {
+        // Basic validation, to avoid invalid values:
+        match (true) {
+            // $width < 0 || $width > 80 => throw new \InvalidArgumentException('Invalid package width '),
+            // $height < 0 || $height > 70 => throw new \InvalidArgumentException('Invalid package height '),
+            // $length < 0 || $length > 120 => throw new \InvalidArgumentException('Invalid package length '),
+            $weight < 0 || $weight > 150 => throw new \InvalidArgumentException('Invalid package weight '),
+            $dimDivisor <= 0 => throw new \InvalidArgumentException('Invalid dim divisor '),
+            default => true
+        };
+
+        // * With value objects:
+        $dimWeight = (int) round($packageDimensions->width * $packageDimensions->height * $packageDimensions->length / $dimDivisor);
+
+        return max($weight, $dimWeight);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS AÍ O PROFESSOR QUER FAZER A MESMA COISA COM 'weight'...
+
+
+
+
+
+
+
+
+
+
+ISSO PQ 'weight'
+
+TAMBÉM PODE SER 1 VALUE OBJECT...
+
+
+
+
+
+
+
+
+--> ISSO PQ ELE TAMBÉM 
+    PODE CONTER UNITS,
+
+    E TAMBÉM PQ PODE TER VALIDATION E ETC...
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE ESCREVEMOS ASSIM:
+
+
+
+
+class BillableWeightCalculatorService
+{
+    public function calculate(
+        // int $width,
+        // int $height,
+        // int $length,
+        PackageDimensions $packageDimensions,  // * Example of value object usage.
+        // int $weight,
+        Weight $weight,
+        int $dimDivisor
+    ): int {
+
+
+    }
+
+
+
+
+
+
+E 
+
+
+
+ASSIM:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services\Shipping;
+
+class Weight
+{
+    public function __construct(
+        public readonly int $weight,
+    ) {
+
+    }
+
+}   
+
+
+
+
+
+
+
+
+
+
+
+
+
+NO CASO,
+ESSE 
+
+VALUE OBJECT DE 'WEIGHT'
+
+
+VAI SER EM POUNDS...
+
+
+
+
+
+
+
+
+
+-> COLOCAMOS 1 CHECK 
+DENTRO DO CONSTRUCTOR,
+
+checando se o value de weight realmente 
+
+É VÁLIDO, TIPO ASSIM:
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services\Shipping;
+
+class Weight
+{
+    public function __construct(
+        public readonly int $weight,
+    ) {
+        if ($this->weight < 0 || $this->weight > 150) {
+            throw new \InvalidArgumentException('Invalid package weight ');
+        }
+    }
+
+    public function equalTo(Weight $other): bool
+    {
+        return $this->weight === $other->weight;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services\Shipping;
+
+class Weight
+{
+    public function __construct(
+        public readonly int $value,
+    ) {
+        if ($this->value < 0 || $this->value > 150) {
+            throw new \InvalidArgumentException('Invalid package value ');
+        }
+    }
+
+    public function equalTo(Weight $other): bool
+    {
+        return $this->value === $other->value;
+    }
+}
+
+
+
+
+
+E:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services\Shipping;
+
+use App\Services\Shipping\PackageDimensions;
+use App\Services\Shipping\Weight;
+
+class BillableWeightCalculatorService
+{
+    public function calculate(
+        // int $width,
+        // int $height,
+        // int $length,
+        PackageDimensions $packageDimensions,  // * Example of value object usage.
+        // int $weight,
+        Weight $weight,
+        int $dimDivisor
+    ): int {
+        // Basic validation, to avoid invalid values:
+        match (true) {
+            // $width < 0 || $width > 80 => throw new \InvalidArgumentException('Invalid package width '),
+            // $height < 0 || $height > 70 => throw new \InvalidArgumentException('Invalid package height '),
+            // $length < 0 || $length > 120 => throw new \InvalidArgumentException('Invalid package length '),
+            // $weight < 0 || $weight > 150 => throw new \InvalidArgumentException('Invalid package weight '),
+            $dimDivisor <= 0 => throw new \InvalidArgumentException('Invalid dim divisor '),
+            default => true
+        };
+
+        // ! Without value objects:
+        // $dimWeight = (int) round($width * $height * $length / $dimDivisor);
+
+        // * With value objects:
+        $dimWeight = (int) round($packageDimensions->width * $packageDimensions->height * $packageDimensions->length / $dimDivisor);
+
+        return max($weight->value, $dimWeight);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FINALMENTE,
+
+HÁ ESSE 'dimDivisor',
+
+
+QUE PRECISAMOS
+
+
+TRANSFORMAR DE ALGUMA FORMA...
+
+
+
+
+
+
+
+
+
+
+''SHOULD WE PUT THIS INTO A VALUE OBJECT,
+OR MAYBE KEEP IT THE WAY IT IS?''
+
+
+
+
+
+O PROFESSOR NÃO QUER USAR VALUE OBJECTS 
+
+
+PARA CADA PEQUENA COISINHA DE NOSSO CÓDIGO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR EXPLICA QUE PODEMOS EXTRAIR ISSO PARA 1 CLASS 
+
+DE 'ENUM',
+
+
+PQ O DIMDIVISOR É 'KINDOF'
+
+
+1 VALUE ESTÁTICO...
+
+
+
+
+
+
+
+
+
+-> SE TRANSFORMARMOS 
+    ISSO EM 1  ENUM CLASS,
+
+
+    NEM MESMO PRECISAREMOS 
+
+    VALIDATE,
+
+
+PQ AÍ SÓ ALGUNS VALUES SERÃO ACEITOS (os enums em si),
+
+
+
+E AÍ TEREMOS TYPEHINTING...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services\Shipping;
+
+use App\Enums\DimDivisorEnum;
+use App\Services\Shipping\PackageDimensions;
+use App\Services\Shipping\Weight;
+
+class BillableWeightCalculatorService
+{
+    public function calculate(
+        PackageDimensions $packageDimensions,  // * Example of value object usage.
+        Weight $weight,
+        DimDivisorEnum $dimDivisor
+    ): int {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS A DEFINITION DO ENUM, EM SI,
+
+SERÁ ASSIM:
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Enums;
+
+enum DimDivisorEnum: int
+{
+    case FEDEX = 139;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO FEITO, LÁ NA CLASS DE 'BillableWeightCalculatorService',
+
+
+
+VAMOS ACESSAR ESSE VALUE ASSIM:
+
+
+
+
+
+        // * With value objects:
+        $dimWeight = (int) round($packageDimensions->width * $packageDimensions->height * $packageDimensions->length / $dimDivisor->value);
+
+
+
+
+OU SEJA,
+
+
+COM 
+
+
+'$dimDivisor->value'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> COMO VC PODE VER, NOSSO METHOD 
+
+
+DE CALCULATE FICOU BEM MAIS SIMPLES,
+MAIS READABLE,
+
+E LESS-PRONE A BUGS...
+
+
+
+EX:
+
+
+
+
+
+    public function calculate(
+        PackageDimensions $packageDimensions,  // * Example of value object usage.
+        Weight $weight,  // * Another example of value object usage.
+        DimDivisorEnum $dimDivisor  // * This is an enum. Better type hinting.
+    ): int {
+        $dimWeight = (int) round($packageDimensions->width * $packageDimensions->height * $packageDimensions->length / $dimDivisor->value);
+
+        return max($weight->value, $dimWeight);
+    }
+
+
+
+
+
+
+
+
+-> MAS VC NÃO DEVE CONVERTER TUDO EM VALUE OBJECTS...
+
+
+ 
+
+
+
+
+
+
+-> USE VALUE OBJECTS QUANDO FAZ SENTIDO, NO SEU CÓDIGO...
+
+
+
+
+
+
+
+
+''THINK IF THERE'S MORE TO THAT OBJECT THAN ITS 
+SIMPLE SCALAR VALUE/VALUES''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VC TAMBÉM NÃO DEVE CRIAR VALUE OBJECTS 
+
+SÓ PQ 
+
+VC QUER TER CADA OBJECT VALIDATED DENTRO 
+
+
+DO SEU PRÓPRIO CONSTRUCTOR...
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ''IT'S JUST THAT, SOMETIMES,
+    VALUE OBJECTS MAKE MORE SENSE''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VALUE OBJECTS SÃO GERALMENTE USADOS
+    E SÃO PARTE 
+
+
+    DO 'DOMAIN-DRIVEN DESIGN',
+
+
+    de esse tipo de arquitetura aí...
+
+
+
+
+
+
+
+
+--> MAS ELES PODEM SER USADOS EM OUTROS TIPOS DE ARQUITETURAS,
+    E O PROFESSOR JÁ USOU 
+
+    VALUE OBJECTS EM PROJETOS QUE NÃO ERAM DDD...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR TESTA O CÓDIGO, PARA VER SE AINDA FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ELE TESTA TIPO ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use App\Enums\DimDivisorEnum;
+use App\Services\Shipping\BillableWeightCalculatorService;
+use App\Services\Shipping\PackageDimensions;
+use App\Services\Shipping\Weight;
+
+$package = [
+    'weight' => 6,
+    'dimensions' => [
+        'width' => 9,
+        'height' => 15,
+        'length' => 7
+    ],
+];
+
+$fedexDimDivisor = 139;
+
+// ! Without value objects:
+// $billableWeight = (new BillableWeightCalculatorService())->calculate(
+//     $package['dimensions']['width'],
+//     $package['dimensions']['height'],
+//     $package['dimensions']['length'],
+//     $package['weight'],
+//     $fedexDimDivisor
+// );
+
+// * With value objects:
+$packageDimensions = new PackageDimensions(
+    $package['dimensions']['width'],
+    $package['dimensions']['height'],
+    $package['dimensions']['length']
+);
+
+$billableWeight = (new BillableWeightCalculatorService())->calculate(
+    $packageDimensions,
+    new Weight($package['weight']),
+    DimDivisorEnum::FEDEX
+);
+
+echo "Billable Weight: $billableWeight\n";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+
+
+
+AÍ RODAMOS ESSE CÓDIGO, NO TERMINAL,
+
+
+FICAMOS COM '7lb',
+
+
+E TUDO FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+AGORA DIGAMOS QUE QUEREMOS CALCULAR O BILLABLE WEIGHT DE ESSA PACKAGE, SIM,
+
+MAS QUANDO ELA É 10 INCHES WIDER...
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, ESCREVEMOS o call do method de 'increaseWidth()',
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use App\Enums\DimDivisorEnum;
+use App\Services\Shipping\BillableWeightCalculatorService;
+use App\Services\Shipping\PackageDimensions;
+use App\Services\Shipping\Weight;
+
+$package = [
+    'weight' => 6,
+    'dimensions' => [
+        'width' => 9,
+        'height' => 15,
+        'length' => 7
+    ],
+];
+
+
+
+// * With value objects:
+$packageDimensions = new PackageDimensions(
+    $package['dimensions']['width'],
+    $package['dimensions']['height'],
+    $package['dimensions']['length']
+);
+
+$packageWeight = new Weight($package['weight']);
+
+$billableWeight = (new BillableWeightCalculatorService())->calculate(
+    $packageDimensions,
+    $packageWeight,
+    DimDivisorEnum::FEDEX
+);
+
+echo "Billable Weight: $billableWeight\n";
+
+$packageDimensions2 = new PackageDimensions(
+    $package['dimensions']['width'],
+    $package['dimensions']['height'],
+    $package['dimensions']['length']
+);
+
+$packageDimensions2->increaseWidth(10);
+
+$billableWeight2 = (new BillableWeightCalculatorService())->calculate(
+    $packageDimensions2,
+    $packageWeight,
+    DimDivisorEnum::FEDEX
+);
+
+echo "Billable Weight: $billableWeight2\n";
+;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... FICAMOS COM 14 lb...
+
+
+
+
+''NOTICE THAT THE ORIGINAL BILLABLE WEIGHT IS UNCHANGED...
+THIS IS BECAUSE OF IMMUTABILITY, AND THE SIDE-EFFECT FREE 
+VALUE OBJECTS...''
+
+
+
+
+
+-> QUER DIZER QUE O CALL DE 'increaseWidth()',
+
+AQUI, NÃO ALTERA O WIDTH DO OBJECT 'packageDimensions' 
+
+original... o que é ótimo...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+
+
+
+
+
+
+
+MAS QUAIS SÃO AS DIFERENÇAS ENTRE:
+
+
+
+
+
+
+
+1) ENTITIES 
+
+
+
+
+2) DTOs 
+
+
+
+
+
+3) VALUE OBJECTS...
+
+
+
+
+
+
+
+
+
+
+
+VALUE OBJECTS VS ENTITIES
+
+
+-> ENTITIES SÃO IDENTIFICADAS POR IDs...
+
+--> já VALUE OBJECTS SÃO IDENTIFICADOS APENAS 
+     PELO CONJUNTO DE SUAS PROPERTIES... ELAS FORMAM 
+     SUA IDENTIDADE, NÃO POSSUEM 'ID'...
+
+
+--> ENTITIES SÃO MUTABLE, ENQUANTO QUE 'VALUE OBJECTS' 
+SÃO __IMMUTABLE E __ SIDE-EFFECT FREE...
+
+
+
+
+
+
+
+
+
+
+DTO VS VALUE OBJECTS:
+
+
+
+-- DTOs são apenas 'DATA TRANSFER OBJECTS'...
+
+
+
+-- DTOs são sempre DUMMY OBJECTS, CUJO ÚNICO PROPÓSITO 
+   É TRANSFERIR DATA DE 1 LADO PARA O OUTRO... O ÚNICO 
+   FOCO DESSE OBJECT É 'PLAIN DATA', NÃO TEM NENHUM TIPO DE BEHAVIOR,
+   NENHUM TIPO DE LÓGICA (nenhum tipo de validate)...
+
+
+
+
+-- JÁ VALUE OBJECTS PODEM TER 1 POUCO DE LÓGICA NO SEU INTERIOR,
+    TAMBÉM BEHAVIORS, PQ PODEM RODAR VALIDATION...
