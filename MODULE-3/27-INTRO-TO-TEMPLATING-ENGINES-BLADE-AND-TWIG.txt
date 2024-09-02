@@ -1,0 +1,2863 @@
+
+
+
+
+
+
+
+
+
+O TÓPICO DE HOJE É TEMPLATING ENGINES...
+
+
+
+
+
+
+
+
+
+-> FALAREMOS SOBRE O QUE SÃO,
+
+E AÍ VEREMOS 2 TEMPLATING ENGINES 
+
+
+
+COMUNS DO PHP,
+
+QUE SÃO:
+
+
+
+
+
+
+
+
+1) TWIG --> USADO COM SYMFONY 
+
+
+
+
+
+
+
+2) BLADE --> USADO COM LARAVEL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+VAMOS INSTALAR E ANALISAR O TWIG NO FIM DA AULA..
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS O QUE É UM TEMPLATE?
+
+
+
+
+
+
+
+
+
+
+
+--> É COMO UMA VIEW FILE,
+
+MAS COM PLACEHOLDERS...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title> <!-- TITLE PLACEHOLDER --></title>
+  </head>
+  <body>
+    <!-- BODY PLACEHOLDER -->
+  
+  </body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS SUBSTITUIR ESSE PLACEHOLDER COM CONTENT...
+
+
+
+
+
+
+
+
+-> OS PLACEHOLDERS 
+
+
+''SEPARATE THE _ APP CODE__ FROM THE PRESENTATION CODE''..
+
+
+
+
+
+
+
+
+
+
+
+
+--> NO CONTEXTO DO MVC,
+
+
+
+AS 'VIEWS'
+
+SÃO O QUE SEPARA A PRESENTATION EM RELAÇÃO AO APP CODE...
+
+
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE VIEWS SÃO TEMPLATES,
+
+DE CERTA FORMA...
+
+
+
+
+
+
+
+
+-> NÓS CONSTRUÍMOS 1 VIEW RENDERING BEM SIMPLES MAIS CEDO NO CURSO,
+
+
+
+O QUE NOS PERMITIU 
+
+
+RENDERIZAR VIEWS LÁ DOS CONTROLLERS... 
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+    #[Get('/invoices')]
+    public function index(): View
+    {
+        $invoices = Invoice::query()->where('status', InvoiceStatus::Paid)->get()->toArray();
+
+        return View::make('invoices/index', ['invoices' => $invoices]);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NO CASO,
+
+
+AS VIEWS PODEM CONTER VARIABLES/PLACEHOLDERS,
+
+OS QUAIS PODEM SER REPLACED POR ACTUAL VALUES,
+
+QUE PASSAMOS 
+
+LÁ DOS CONTROLLERS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É EXATAMENTE ISSO QUE FIZEMOS COM ESTE CÓDIGO AQUI:
+
+
+
+
+
+
+    #[Get('/invoices')]
+    public function index(): View
+    {
+        $invoices = Invoice::query()->where('status', InvoiceStatus::Paid)->get()->toArray();
+
+        return View::make('invoices/index', ['invoices' => $invoices]);
+    }
+
+
+
+
+
+
+
+
+
+
+SE ABRIMOS ESSA VIEW FILE,
+
+
+PERCEBEMOS QUE TEMOS ESTE CÓDIGO:
+
+
+
+
+
+
+</style>
+<table>
+    <thead>
+        <tr>
+            <th>Invoice #</th>
+            <th>Amount</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach ($invoices as $invoice): ?>
+            <tr>
+                <td><?= $invoice['invoice_number'] ?></td>
+                <td>$<?= number_format($invoice['amount'], 2) ?></td>
+                <td class="<?= \App\Enums\InvoiceStatus::tryFrom($invoice['status'])->color()->getClass() ?>">
+                    <?= \App\Enums\InvoiceStatus::tryFrom($invoice['status'])->toString() ?>
+                </td>
+            </tr>
+        <?php endforeach ?>
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA, ESTÁVAMOS/ESTAMOS LOOPANDO POR DENTRO DAS INVOICES,
+
+E AÍ 
+
+ESTAMOS 
+
+
+DISPLAYANDO INFO PARA CADA INVOICE... 
+
+
+
+
+
+
+
+
+
+
+ISSO TAMBÉM PERMITE O USO DE CONDITIONS,
+
+
+COMO 'if', 'else', 'elseif',
+
+etc...
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO, POR SI SÓ,
+
+PODE SER CONSIDERADO UM EXEMPLO DE 'TEMPLATE'...
+
+
+
+
+
+
+
+
+
+
+
+--> E PODEMOS 
+    REUTILIZAR ESSE TEMPLATE,
+
+
+    E AÍ 
+
+    PASSAR DIFERENTES SETS DE 
+
+    INVOICES,
+
+
+    PARA CONSEGUIR DIFERENTE CONTEÚDO NA PÁGINA...
+
+
+
+
+
+
+
+
+
+
+
+
+''TEMPLATING ENGINE IS WHAT PROCESSES/PARSES 
+    THE TEMPLATES, COMBINING IT WITH THE DATA MODEL,
+    TO RENDER/RETURN THE FINAL CONTENT...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> E É ISSO QUE FIZEMOS ALI,
+COMBINAMOS 
+
+O MODEL DE 'INVOICES'
+
+
+COM AQUELA VIEW,
+
+PARA 
+
+RENDERIZAR O CONTEÚDO FINAL..
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO QUER DIZER QUE 
+
+
+
+''''PHP ITSELF IS 
+        A TEMPLATING ENGINE, IN A WAY....'''
+
+
+
+
+
+
+
+
+--> É TOTALMENTE FINE USAR 
+    O PHP 
+    E PHP TEMPLATES COMO SUA TEMPLATING ENGINE..
+
+
+
+
+
+
+
+--> MAS É CLARO QUE O PHP VANILLA 
+NÃO TEM VÁRIAS FEATURES,
+
+QUE SÃO PROVIDENCIADAS POR OUTROS THIRD-PARTY 
+TEMPLATING ENGINES,...
+
+
+
+
+
+
+
+
+
+
+
+-> AGORA VEREMOS ALGUNS DOS BENEFÍCIOS INTRODUZIDOS 
+COM AS TEMPLATING ENGINES DE THIRD-PARTIES...
+
+
+
+
+
+
+
+
+
+
+--> COMO TWIG  E BLADE...
+
+
+
+
+
+
+
+
+
+BENEFÍCIOS:
+
+
+
+
+
+
+
+1) VOCE PODE TER 1 DEDICATED FRONT-END DEV/DESIGNER
+    QUE NÃO PRECISA SABER MT PHP... E QUE AINDA VAI  CONSEGUIR 
+    TRABALHAR NA PARTE FRONTEND DO APP...
+
+
+    ISSO PQ __ TEMPLATING ENGINES TIPICAMENTE CONTÉM CÓDIGO PHP MÍNIMO,
+    OU QUASE NENHUM, A DEPENDER DA TEMPLATING ENGINE QUE VC ESCOLHA..
+
+
+
+
+
+
+
+2) É ARGUABLY EASIER LER E ENTENDER ESSES TEMPLATES,
+    DEVIDO A SUA SINTAXE CLEANER E LESS VERBOSE...
+
+
+
+
+
+
+
+3) A MAIOR PARTE DAS TEMPLATING ENGINES 
+    JÁ VEM COM BUILT-IN SECURITY, COMO VARIABLE 
+    ESCAPING, PARA _ EVITAR VULNERABILIDADES COMO 'XSS'...
+
+
+    (AO CONTRÁRIO DE VANILLA PHP TEMPLATES,
+    EM QUE VC DEVE SEMPRE ESCAPAR O CONTENT APROPRIADAMENTE...
+    )
+
+
+
+
+
+
+4) TAMBÉM DEIXA O BUILD DE LAYOUTS E ETC BEM MAIS FÁCIL,
+    POR MEIO DO PROVIDE DE 'TEMPLATE INHERITANCE'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS É CLARO QUE TODAS ESSAS FEATURES POSSUEM CUSTOS:
+
+
+
+
+
+
+
+
+1) INTRODUZEM ALGUM TIPO DE OVERHEAD (pq PROCESSAMENTO EXTRA É NECESSÁRIO, COMO PARSING E COMPILING)...
+
+    MAS A MAIOR PARTE DAS TEMPLATING ENGINES MANTêM ESSE OVERHEAD BEM MÍNIMO...
+
+
+
+
+
+2) VC TEM QUE APRENDER UMA SINTAXE NOVA,
+    DIFERENTE DA SINTAXE COMUM DO PHP... MAS 
+
+    A MAIOR PARTE DESSAS TEMPLATING ENGINES FORNECE 
+    TUTORIALS E DOCS BONS...
+
+
+
+
+
+
+
+
+
+
+
+--> VC PODE ESCOLHER QUALQUER TEMPLATING ENGINE QUE VC QUISER,
+
+MAS VEREMOS AS 2 MAIS POPULARES,
+
+
+
+
+'TWIG'
+
+
+E 
+
+
+'BLADE'...
+
+
+
+
+
+
+
+
+
+SYMFONY E LARAVEL...
+
+
+
+
+
+
+
+VEREMOS COMO 
+
+ESTA VIEW AQUI VAI FICAR, QUANDO USAMOS LARAVEL BLADE E SYMFONY TWIG...
+
+
+
+
+
+
+
+A VIEW EM QUESTÃO É ESTA:
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Invoice #</th>
+            <th>Amount</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php if (empty($invoices)): ?>
+            <tr>
+                <td colspan="3">No invoices found.</td>
+            </tr>
+        <?php endif ?>
+        <?php foreach ($invoices as $invoice): ?>
+            <tr>
+                <td><?= $invoice['invoice_number'] ?></td>
+                <td>$<?= number_format($invoice['amount'], 2) ?></td>
+                <td class="<?= \App\Enums\InvoiceStatus::tryFrom($invoice['status'])->color()->getClass() ?>">
+                    <?= \App\Enums\InvoiceStatus::tryFrom($invoice['status'])->toString() ?>
+                </td>
+                <?php if ($invoice['dueDate']): ?>
+                    <td><?= date('m/d/Y', strtotime($invoice['dueDate'])) ?></td>
+                    <?php else: ?>
+                        <td>N/A</td>
+                <?php endif ?>
+            </tr>
+        <?php endforeach ?>
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+
+ABRIMOS O 'blade_template.blade.php'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> BLADE TEMPLATES SEMPRE USAM 
+
+
+'.blade.php'...
+
+
+
+
+
+
+
+
+
+
+
+O FORMATO É BEM SIMILAR, 
+
+
+MAS HÁ ALGUMAS DIFERENÇAS E FEATURES ADICIONAIS:
+
+
+
+
+
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Invoice #</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Due Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- THIS IS A BLADE EXAMPLE -->
+        @forelse ($invoices as $invoice)
+            <tr>
+                <td>{{ $invoice['invoice_number'] }}</td>
+                <td>${{ number_format($invoice['amount'], 2) }}</td>
+                <td>"{{ $invoice['status'] }}"</td>
+                <td>
+                    @if ($invoice['dueDate'])
+                        {{ date('m/d/Y', strtotime($invoice['dueDate'])) }}
+                    @else
+                        N/A
+                    @endif
+                    </td>
+            </tr>
+        @empty 
+            <tr>
+                <td colspan="4">No invoices found</td>
+            </tr>
+        @endforelse
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A SINTAXE É SIMILAR, REALMENTE...
+
+
+
+
+
+
+
+
+
+
+
+--> O ESTRANHO É O '@forelse'...
+
+
+
+
+
+
+
+
+-> O FORELSE LOOPA POR DENTRO DAS INVOICES...
+
+
+
+
+
+
+
+
+-> SE NÃO HÁ INVOICE ALGUMA,
+
+    É UTILIZADA 
+
+    AQUELA 'EMPTY CLAUSE',
+
+    que é escrita com 
+
+    '@empty'...
+
+
+
+
+    EX:
+
+
+
+            @empty
+                <tr>
+                    <td colspan="4">No invoices found</td>
+                </tr>
+            @endforelse
+
+
+
+
+
+
+
+
+
+--> COM ISSO, PODEMOS DISPLAYAR 1 MESSAGE DEFAULT,
+SEMPRE QUE O ARRAY DE INVOICES ESTIVER COMO 'EMPTY'...
+
+
+
+
+
+
+
+
+
+
+-> A SINTAXE DE CIMA,
+ESTA:
+
+
+            <td>{{ $invoice['invoice_number'] }}</td>
+                <td>${{ number_format($invoice['amount'], 2) }}</td>
+                <td>"{{ $invoice['status'] }}"</td>
+
+
+
+
+
+
+
+
+
+FAZ PRINT DO INVOICE_NUMBER,
+
+
+AMOUNT E STATUS....
+
+
+
+
+
+
+
+
+
+
+ELA TAMBÉM FAZ ESCAPE DO OUTPUT,
+
+
+TE PROTEGENDO CONTRA 
+
+
+ACCESS VULNERABILITIES (XSS)...
+
+
+
+
+
+
+
+
+
+--> O LARAVEL TAMBÉM TE OFERECE UM MONTE DE DIRECTIVES 
+
+ÚTEIS,
+
+
+
+
+
+
+
+COMO ESTAS AQUI:
+
+
+
+
+
+
+
+
+
+<!-- resources/views/child.blade.php -->
+
+
+
+@extends('layout.app')
+
+
+
+@section('title', 'page Title')
+
+
+@section('sidebar')
+
+    @parent 
+
+
+    <p>This is appended to the master sidebar.</p>
+
+@endsection 
+
+
+
+
+@section('content')
+    <p>This is my body content.</p>
+@endsection
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+você pode:
+
+
+
+
+ 
+1) EXTEND LAYOUTS 
+
+
+2) INCLUDE FILES:
+
+
+
+
+<div>
+    
+    @include('shared.errors')
+
+
+    <form>
+        <!-- Form Contents -->
+    </form>
+
+</div>
+
+
+
+@includeWhen(@boolean, 'view.name', ['status' => 'complete'])
+
+
+@includeUnless(@boolean, 'view.name', ['status' => 'complete'])
+
+
+
+
+
+
+3) ESCREVER IF E SWITCH STATEMENTS...
+
+
+
+@if (count($records) === 1) 
+    I have one record!
+
+@elseif(count($records) > 1)
+    I have multiple records!
+
+@else 
+    I don't have any records!
+
+
+@endif
+
+
+
+
+
+4) USAR CONDITIONAL CLASSES..
+
+
+
+
+
+@php 
+
+    $isActive = false;
+    $hasError = true;
+
+@endphp 
+
+
+
+<span @class(
+    [
+        'p-4',
+        'font-bold' => $isActive,
+        'text-gray-500' => ! $isActive,
+        'bg-red' => $hasError
+    ]
+)></span>
+
+
+span class="p-4 text-gray-500 bg-red"></span>
+
+
+
+
+
+
+5) BUILDAR COMPONENTS...
+
+
+
+
+
+6) PODE ATÉ MESMO RODAR RAW PHP,
+    NO SEU HTML:
+
+
+
+    
+@php 
+
+    $isActive = false;
+    $hasError = true;
+
+@endphp 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O BLADE PODE RODAR RAW PHP NO HTML...
+
+
+    ISSO PQ, AO CONTRÁRIO DO TWIG,
+
+
+    O BLADE NÃO TE RESTRINGE A USAR 
+
+    O PLAIN PHP 
+
+    NOS SEUS TEMPLATES...
+
+
+
+
+
+
+
+
+
+MAS AGORA DEVEMOS VER O MESMO EXAMPLE, MAS USANDO O TWIG...
+
+
+
+
+
+
+
+
+
+
+O EXEMPLO DO TWIG É ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+            <!-- THIS IS A TWIG EXAMPLE -->
+            {% for invoice in invoices %}
+                <tr>
+                    <td>{{ invoice.invoiceNumber }}</td>
+                    <td>${{ invoice.amount|format_currency('USD') }}</td>
+                    <td>"{{ invoice.status }}"</td>
+                    <td>
+                        {{ invoice.dueDate is empty ? 'N/A' : invoice.dueDate|date('m/d/Y') }}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4">No invoices found</td>
+                </tr>
+                {% endfor %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+como vc pode ver,
+
+
+
+
+
+
+'''''TWIG DOES NOT USE 
+    ANY PHP AT ALL...'''
+
+
+
+
+
+
+
+
+
+--> ESTAMOS LOOPANDO POR DENTRO DE NOSSAS INVOICES,
+
+    MAS NÃO ESTAMOS USANDO PHP ALGUM...
+
+
+    A SINTAXE MAIS PARECE COM A DO JAVASCRIPT,
+
+    EM VEZ DO PHP...
+
+
+
+
+
+
+
+
+--> ESTAMOS PRINTANDO A DATA DE FORMA PARECIDA COM O PRINT 
+DA DATA NO BLADE....
+
+
+
+
+
+
+
+
+--> ALÉM DE PODER OUTPUTTAR/PRINTAR 
+A DATA,
+
+
+PODEMOS TAMBÉM FAZER O APPLY DE ALGUNS FILTERS,
+
+
+COM ESTA SINTAXE:
+
+
+
+                    <td>${{ invoice.amount|format_currency('USD') }}</td>
+
+
+
+
+
+
+
+
+
+
+
+-> BASTA USAR O 'pipe',
+
+E DEPOIS O FILTER/FUNCTION QUE VC QUER APLICAR...
+
+
+
+
+
+
+
+
+
+
+'format_currency()',
+
+NESSE CASO,
+É UM 
+
+FILTER FORNECIDO POR 
+
+
+
+UMA EXTENSION...
+
+
+
+
+
+
+
+
+
+
+
+--> O 'date()',
+
+    aqui,
+
+    TAMBÉM É UM FILTER...
+
+
+
+
+
+    HÁ UMA DATE FUNCTION TAMBÉM DISPONÍVEL, NO TWIG,
+
+    MAS ESSE DATE FILTER FAZ O SIMPLES FORMAT DA DATA 
+
+    EM 1 FORMATO ESPECÍFICO....
+
+
+
+
+
+
+
+
+
+
+
+
+-> FINALMENTE,
+SE A DATA ESTÁ 'empty',
+
+NÓS PRINTAMOS 'N/A'... caso contrário,
+
+printamos a data formatada...:
+
+
+
+
+
+{{ invoice.dueDate is empty ? 'N/A' : invoice.dueDate|date('m/d/Y') }}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ASSIM COMO AS DIRECTIVES DO BLADE,
+
+O TWIG TEM 1 MONTE DE USEFUL TAGS,
+FILTERS E FUNCTIONS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> É BEM SIMPLES DE INSTALAR E UTILIZAR O TWIG,
+
+MESMO SEM O FRAMEWORK 'SYMFONY'...
+
+
+
+
+
+
+
+
+
+-> O QUE VAMOS FAZER, AQUI,
+
+É INSTALAR E CONFIGURAR 
+
+O TWIG NO NOSSO APP...
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ VAMOS SUBSTITUIR A LÓGICA CUSTOM DE RENDER DE VIEW,
+
+QUE ESCREVEMOS ASSIM:
+
+
+
+
+
+
+    #[Get('/invoices')]
+    public function index(): View
+    {
+        $invoices = Invoice::query()->where('status', InvoiceStatus::Paid)->get()->toArray();
+
+        return View::make('invoices/index', ['invoices' => $invoices]);
+    }
+
+
+
+
+
+
+
+
+
+PELA LÓGICA DO TWIG...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK...
+
+
+
+
+
+
+
+PARA ISSO, A PRIMEIRA COISA QUE VAMOS FAZER 
+
+
+É CRIAR O ARQUIVO TWIG...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> criamos com o nome 'index.twig'...
+
+
+
+
+
+
+
+
+
+
+
+--> E É CLARO QUE ISSO NÃO VAI FUNCIONAR IMEDIATAMENTE,
+    pq ainda não instalamos o twig...
+
+
+
+
+
+
+
+--> PARA INSTALAR O TWIG,
+
+
+
+PODEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+composer require twig/twig, dentro do nosso docker container 
+
+com php + composer...
+
+
+
+NOS DOCS DO TWIG,
+
+
+
+
+CLICAMOS EM 'TWIG FOR DEVELOPERS'....
+
+
+
+
+
+https://twig.symfony.com/doc/3.x/api.html
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ COPIAMOS O CÓDIGO BOILERPLATE DE INICIALIZAÇÃO DO TWIG,
+
+QUE É ESTE:
+
+
+
+
+
+
+
+
+$loader = new \Twig\Loader\FilesystemLoader('/path/to/templates');
+$twig = new \Twig\Environment($loader, [
+    'cache' => '/path/to/compilation_cache',
+]); 
+
+
+
+
+
+
+
+
+
+
+-> BASICAMENTE, COMO MENCIONADO ALI EM CIMA,
+
+
+
+
+'' Twig uses a central
+ object called the environment (of class \Twig\Environment).
+  Instances of this class are used to store the configuration 
+  and extensions, and are used to load templates. '' 
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+-->  TAMBÉM ESTE TRECHO:
+
+
+
+
+
+
+
+
+
+Most applications create one \Twig\Environment object
+ on application initialization and use that to load templates.
+  In some cases, it might be useful to have multiple environments
+   side by side, with different configurations.
+
+
+
+
+
+
+
+
+
+
+-> OU SEJA,
+
+GERALMENTE OS APPS 
+
+POSSUEM APENAS 1 ÚNICA ENVIRONMENT INSTANCE.... MAS ISSO NÃO É OBRIGATÓRIO...
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+
+
+--> VAMOS INICIALIZAR ISSO DENTRO DA CLASS DE 'App.php',
+
+
+
+E FAZER COM QUE SEJA 1 SINGLE OBJECT...
+
+
+
+
+
+
+
+
+
+
+--> ESCREVEMOS TIPO ASSIM,
+
+
+LÁ NO METHOD DE 'boot()':
+
+
+
+
+
+
+
+    public function __construct(
+        protected Container $container,
+        protected ?Router $router = null,
+        protected array $request = [],
+    ) {}
+
+    public function boot(): static
+    {
+        $dotenv = Dotenv::createImmutable(dirname(__DIR__));
+        $dotenv->load();
+
+        $this->config = new Config($_ENV);
+
+        $this->initDb($this->config->db ?? []);
+
+        // Initialize twig templating engine:
+        $loader = new FilesystemLoader(VIEW_PATH);
+        $twig = new Environment($loader, [
+            'cache' => STORAGE_PATH . '/cache',
+        ]);
+
+        $this->container->bind(PaymentGatewayServiceInterface::class, PaymentGatewayService::class);
+        $this->container->bind(MailerInterface::class, fn() => new CustomMailer($this->config->mailer['dsn']));
+        $this->container->bind(EmailValidationInterface::class, new EmailValidationService($this->config->apiKeys['abstract']));
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+OK... 
+MAS PRECISAMOS TER ESSE ENVIRONMENT OBJECT 
+
+
+de '$twig', esse 'Environment',
+
+
+DISPONÍVEL EM TODOS NOSSOS CONTROLLERS....
+
+
+
+
+
+--> PARA ISSO, PRECISAMOS FAZER BIND,
+    DE ESSE ENVIRONMENT,
+
+    AO CONTAINER DO LARAVEL...
+
+
+
+-> FAZEMOS ISSO PARA QUE 
+O TWIG CONSIGA SER ACESSADO NOS CONSTRUCTORS DOS NOSSOS CONTROLLERS...
+
+
+
+
+
+
+--> FAZEMOS ISSO COM ESTE CÓDIGO:
+
+
+
+
+
+$this->container->bind()...
+
+
+
+
+
+
+
+
+
+
+
+CERTO.... MAS EM VEZ DE UTILIZARMOS '->bind()',
+
+
+USAREMOS 
+
+
+'->singleton()',
+
+
+
+
+ISSO PQ 
+
+
+-_ VAMOS PRECISAR DE APENAS 1 ÚNICO 
+
+
+OBJECT 'Environment'...
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+// Twig must be available in our controllers.
+$this->container->singleton(Environment::class, fn() => $twig);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok... isso feito, lá no controller de 'InvoiceController',
+
+
+FAZEMOS INJECT 
+
+
+DO TWIG environment (que é basicamente o twig),
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Attributes\Get;
+use App\Enums\InvoiceStatus;
+use App\Models\Invoice;
+use App\View;
+use Carbon\Carbon;
+use Symfony\Component\Mailer\MailerInterface;
+use Twig\Environment;
+
+class InvoiceController
+{
+    // Twig must be made available in our controllers, through the laravel container.
+    public function __construct(MailerInterface $mailer, private Environment $twig) {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+ISSO FEITO,
+
+VAMOS SIMPLESMENTE UTILIZAR 
+
+ESSE OBJECT Environment/$twig,
+
+
+PARA 
+
+
+FAZER O RENDER DE NOSSA VIEW,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+    #[Get('/invoices')]
+    public function index(): string
+    {
+        $invoices = Invoice::query()->where('status', InvoiceStatus::Paid)->get()->toArray();
+
+        return $this->twig->render('invoices/index.twig', ['invoices' => $invoices]);  // * With twig templating engine
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+E TROCAMOS O RETURN TYPE PARA 'string',
+
+
+PQ O 
+
+METHOD DE '->render()'
+
+
+DO 
+
+TWIG REALMENTE RETORNA STRINGS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É CLARO QUE PODERÍAMOS TER 1 CLASS DEDICADA 
+AO TWIG,
+
+
+EM VEZ DO INJECT DIRETO DO 'Environment' do twig,
+
+
+como um 
+
+'TwigService' 
+
+ou algo do gênero....
+
+
+
+
+
+
+
+
+
+--> PODEMOS FAZER ISSO PARA DEIXAR MAIS CLARO QUE ESTAMOS 
+    FAZENDO INJECT DE 1 TWIG 
+
+    DENTRO DE NOSSO CONTROLLER...
+
+
+
+
+
+    FAZEMOS ISSO PARA QUE N FIQUE CONFUSO,
+
+    PQ AS PESSOAS PODEM PENSAR QUE ESTAMOS FAZENDO 
+    INJECT DE 1 ENVIRONMENT...
+
+
+
+
+
+
+
+
+
+
+--> SERIA MELHOR CRIAR SUA PRÓPRIA CLASS,
+    AÍ WRAP O ENVIRONMENT COM ESSA CLASS,
+
+    E AÍ 
+
+    BINDAR ESSA CLASS NO SEU CONTAINER...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS NÃO VAMOS FAZER ISSO, AQUI...
+
+
+VAMOS MANTER ISSO COMO 'environment',
+
+E VAMOS APENAS ALIASAR ESSE 'Environment'
+
+como sendo de type 'Twig',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Attributes\Get;
+use App\Enums\InvoiceStatus;
+use App\Models\Invoice;
+use App\View;
+use Carbon\Carbon;
+use Symfony\Component\Mailer\MailerInterface;
+use Twig\Environment as Twig;
+
+class InvoiceController
+{
+    // Twig must be made available in our controllers, through the laravel container.
+    public function __construct(MailerInterface $mailer, private Twig $twig) {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+isso feito,
+
+
+abrimos o browser, e testamos...
+
+
+
+
+
+
+
+
+
+
+
+
+--> FICAMOS COM 1 ERROR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O ERROR É ESTe:
+
+
+
+
+
+
+
+
+'Unknown 'format_currency' filter....''
+
+
+
+
+
+
+
+
+
+--> ISSO ACONTECEU JUSTAMENTE PQ NÃO INSTALAMOS/IMPORTAMOS 
+ESSE FILTER NO NOSSO CÓDIGO,
+
+ESSE FILTER DO TWIG...
+
+
+
+
+
+
+
+
+
+
+--> ALGUNS FILTERS PRECISAM DO INSTALL 
+
+DE EXTENSIONS PARA FUNCIONAREM...
+
+
+
+
+
+
+
+
+--> POR ENQUANTO, VAMOS REMOVER 
+
+    O 'format_currency()',
+
+
+    PARA VER O TWIG FUNCIONANDO COMO ESPERADO..
+
+
+
+
+
+
+
+
+
+
+--> CERTO.... COM ISSO, TUDO FUNCIONOU,
+    O TWIG FUNCIONOU COMO O ESPERADO...
+
+
+
+
+
+
+
+
+
+
+
+--> MAS DIGAMOS QUE QUEREMOS ADICIONAR 1 DOLLAR SIGN ..
+
+
+
+
+
+--> DIGAMOS QUE ESCREVEMOS ASSIM:
+
+
+
+
+
+                    <td>${{ invoice.amount }}</td>
+
+
+
+
+
+
+
+
+
+
+
+-- MAS ISSO NÃO FUNCIONOU...
+
+
+
+
+
+
+-> NÃO FUNCIONOU JUSTAMENTE 
+
+
+
+PQ, QUANDO TWIG TEMPLATES SÃO COMPILADOS EM PHP,
+
+ELES SÃO 
+
+
+ACTUALLY 'CACHED',
+
+TUDO PARA QUE 
+
+
+
+ESSES TEMPLATES NÃO TENHAM QUE 
+SER 
+
+RE-COMPILADOS 'FOR EVERY SINGLE REQUEST THAT REACHES THE SERVER'...
+
+
+
+
+
+
+
+--> ESSE CACHING _ MELHORA A PERFORMANCE,
+    MAS TRAZ  ISSUES COMO ESSA AÍ,
+
+    DE LACK OF UPDATE...
+
+
+
+
+
+
+
+
+
+
+--> QUANDO FAZEMOS DEVELOP 
+DE COISAS, COM O TWIG,
+
+QUEREMOS EVITAR ESSE CACHING AÍ,
+
+QUE PODE SER BOM EM PRODUCTION,
+
+
+MAS QUE 
+
+
+É RUIM PARA DEVELOPMENT,
+
+PQ EM DEVELOPMENT SEMPRE VAMOS QUERER ALTERAR 
+
+O CÓDIGO 
+
+INÚMERAS VEZES...
+
+
+
+
+
+
+
+
+
+
+--> O DIRECTORY QUE SETTAMOS PARA 
+
+DUMPAR O CACHE 
+
+
+É 
+
+'storage>cache'...
+
+
+
+
+
+
+--> ISSO FOI DEFINIDO NESTA LINHA:
+
+
+        $twig = new Environment($loader, [
+            'cache' => STORAGE_PATH . '/cache',
+        ]);
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE DELETARMOS O NOSSO CACHE,
+    A NOSSA CHANGE TERÁ EFEITO,
+
+
+    E VEREMOS O '$' 
+    ANTES DO AMOUNT...
+
+
+
+
+
+
+
+
+
+
+
+--> ok... mas queremos EVITAR ESSE CACHING,
+DURANTE O DEVELOPMENT...
+
+
+
+
+
+
+
+
+
+
+-> PARA EVITAR ISSO, DURANTE O DEVELOPMENT,
+
+
+PRECISAMOS FAZER ALGUMAS COISAS...
+
+
+
+
+
+
+
+AS ALTERNATIVAS SÃO:
+
+
+
+
+
+
+1) ENABLE THE DEBUG MODE (lá no 'new Environment()')
+
+
+
+OU 
+
+
+
+2) SET THE 'auto_reload' to TRUE,
+
+
+
+O QUE VAI FAZER COM QUE 
+
+NOSSOS TEMPLATES SEJAM AUTOMATICAMENTE 
+
+RE-COMPILADOS, SEMPRE QUE O SOURCE CODE FOR ALTERADO...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+     public function boot(): static
+    {
+        $dotenv = Dotenv::createImmutable(dirname(__DIR__));
+        $dotenv->load();
+
+        $this->config = new Config($_ENV);
+
+        $this->initDb($this->config->db ?? []);
+
+        // Initialize twig templating engine:
+        $loader = new FilesystemLoader(VIEW_PATH);
+        $twig = new Environment($loader, [
+            'cache' => STORAGE_PATH . '/cache',
+            'auto_reload' => true,
+        ]);
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... AÍ VOLTAMOS AOS DOCS,
+
+
+TUDO PARA 
+
+
+
+
+
+DESCOBRIRMOS COMO PODEMOS ADICIONAR A EXTENSION DE 
+
+'format_currency'...
+
+
+
+
+
+ 
+ OS DOCS SÃO ESTES:
+
+
+
+
+
+
+ https://twig.symfony.com/doc/3.x/filters/index.html
+
+
+
+
+
+
+
+
+
+
+
+ -> CLICAMOS NA FORMAT_CURRENCY:
+
+
+
+
+ 3.x/filters/format_currency.html
+
+
+
+
+
+
+
+
+
+
+
+
+
+ -> TEMOS INSTRUCTIONS SOBRE COMO INSTALAR...
+
+
+
+
+
+
+ -> PRECISAMOS, NESSE CASO,
+
+ RODAR 
+
+
+
+ composer require twig/intl-extra 
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+ISSO FEITO,
+
+PRECISAMOS 
+
+
+ADICIONAR ESSA EXTENSION AO NOSSO 
+
+
+
+OBJECT DE 'Environment',
+
+
+COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+use Twig\Extra\Intl\IntlExtension;
+
+$twig = new \Twig\Environment(...);
+$twig->addExtension(new IntlExtension());
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+        // Initialize twig templating engine:
+        $loader = new FilesystemLoader(VIEW_PATH);
+        $twig = new Environment($loader, [
+            'cache' => STORAGE_PATH . '/cache',
+            'auto_reload' => true,
+        ]);
+
+        $twig->addExtension(new IntlExtension());
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, INSTALAMOS E IMPORTAMOS ESSA EXTENSION...
+
+
+
+
+
+
+
+
+
+
+AGORA PODEMOS UTILIZÁ-LA 
+
+
+NA NOSSA VIEW/TWIG FILE,
+COM ESTE CÓDIGO:
+
+
+
+
+
+<td>${{ invoice.amount|format_currency('USD') }}</td>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> isso feito, ainda ficamos com outro error,
+
+de 
+
+
+
+
+''Uncaught Error class: 'IntlDateFormatter' not found in ...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS OU NÃO OBTER ESSE ERROR 
+    NO NOSSO CÓDIGO,
+
+
+    TUDO DEPENDE 
+
+    SE 
+
+
+    A EXTENSION DE 
+
+
+    ''Internalization extension''
+
+
+    ESTÁ INSTALADA E ENABLADA OU NÃO...
+
+
+
+
+
+
+
+
+
+
+--> EX:
+
+
+
+https://www.php.net/manual/en/intro.intl.php#:~:text=Internationalization%20extension%20(further%20is%20referred,collation%2C%20locating%20text%20boundaries%20and
+
+
+
+
+
+
+
+
+
+
+
+em alguns cases,
+
+
+
+ESSA EXTENSION JÁ PODE ESTAR BUNDLED E INSTALLED,
+
+
+
+E AÍ VC SIMPLESMENTE PRECISA ENABLÁ-LA...
+
+
+
+
+
+
+
+
+
+EX: 'XAMPP' --> ELE JÁ VEM BUNDLED E INSTALLED,
+                BASTA INSTALAR...
+
+
+
+
+
+
+        -> LÁ NO php.ini,
+        do xampp,
+
+        temos este trecho:
+
+
+
+        ;extension=gmp
+        ;extension=intl
+
+
+
+
+
+
+
+--> BASTA REMOVER ESSA ';',
+
+e aí reiniciar o server...
+
+
+
+
+
+
+
+
+
+
+
+-> MAS SE VC ESTÁ USANDO DOCKER, COMO O PROFESSOR,
+VC TALVEZ PRECISE INSTALAR 
+
+A LIBRARY 
+
+DE 
+
+'ICU',
+
+PARA ENTÃO
+ 
+ ENABLAR ESSA 
+
+
+
+ 'Internalization Extension'...
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, VOLTAMOS AO CÓDIGO,
+
+ABRIMOS A DOCKERFILE,
+
+
+E AÍ 
+COLOCAMOS 1 COMANDO PARA INSTALAR 
+
+
+
+A LIBRARY DE 'ICU',
+
+COM 
+
+
+
+'libicu-dev'...
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+FROM php:8.1-fpm
+
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    zip \
+    vim \
+    unzip  \
+    libicu-dev 
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+RUN docker-php-ext-install pdo pdo_mysql
+
+WORKDIR /var/www
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO,
+
+TAMBÉM 
+PRECISAMOS 
+
+
+RODAR 1 LINHA 
+
+
+PARA CONFIGURAR 
+
+
+A EXTENSION DE 'intl',
+
+
+
+
+
+e também a instalar, 
+
+
+com ESTAS LINHAS:
+
+
+
+
+
+
+
+RUN docker-php-ext configure intl 
+RUN docker-php-ext-install pdo pdo_mysql intl
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+FROM php:8.1-fpm
+
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    zip \
+    vim \
+    unzip  \
+    libicu-dev 
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+RUN docker-php-ext configure intl 
+RUN docker-php-ext-install pdo pdo_mysql intl
+
+WORKDIR /var/www
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO, RODAMOS 'docker-compose up -d --build',
+
+
+para rebuildar os containers..
+
+
+
+
+
+
+
+
+
+
+-> REFRESHAMOS A PAGE,
+
+E AGORA 
+
+O format_currency  
+
+
+
+funciona.... e agora os dollars são adicionados,
+
+tudo graças ao filter de 'format_currency',
+
+adicionado por essas extensions...
