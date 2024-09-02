@@ -1,0 +1,1628 @@
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ DEUBGGING -> MANEIRA DE ENCONTRAR BUGS E PROBLEMAS NO CÓDIGO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AJUDAM A ENCONTRAR PROBLEMAS NO CÓDIGO...
+
+
+
+
+
+
+
+
+
+--> DIFERENTES FERRAMENTAS EXISTEM...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> NO JAVASCRIPT, TEMOS O CONSOLE.LOG...
+
+
+
+
+
+
+
+
+
+
+
+--> EM PHP, TALVEZ UTILIZEMOS 'var_dump()'
+
+e 'echo' 
+
+para encontrar OS LOCAIS ONDE OCORRERAM OS ERRORS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS QUANDO O CÓDIGO FICA MAIS COMPLEXO,
+    TER APENAS 
+
+    CONSOLE.LOGS()
+
+
+    NÃO É O SUFICIENTE...
+
+
+
+
+
+
+
+
+
+
+
+--> É NESSES CASOS 
+
+EM QUE USARÍAMOS 
+
+
+UM DEBUGGER..
+
+
+
+
+
+
+EXISTEM 2 TIPOS DE DEBUGGER:
+
+
+
+
+
+
+
+
+1) STEP DEBUGGER 
+
+
+
+
+2) CONTROL FLOW DEBUGGER...
+
+
+
+
+
+
+
+
+
+
+-> ESSE DEBUGGER VAI IR POR DENTRO DO CODE, STEP-BY-STEP,
+LINE-BY-LINE,
+
+PARA QUE CONSIGAMOS INSPECIONAR 
+
+AS VARIABLES, DATA STRUCTURES E VALUES,
+
+AO LONGO DO CAMINHO...
+
+
+
+
+
+
+
+
+
+
+-> VAMOS ESTUDAR UM DEBUGGER FAMOSO,
+
+CHAMADO DE 'XDEBUG'..
+
+
+
+
+
+
+
+ELE TEM VÁRIAS FEATURES ÚTEIS,
+
+INCLUSIVE O 'STEP-DEBUGGER'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VAMOS SETUPPAR ELE USANDO O DOCKER,
+
+MAS VC PODERIA SETTÁ-LO DE OUTRAS MANEIRAS ,
+
+
+
+SEM USAR O DOKCER...
+
+
+
+
+
+
+
+
+
+--> BASTA LER OS DOCS,
+
+
+
+VER AS SETUP INSTRUCTIONS PARA SEU ENVIRONMENT ESPECÍFICO...
+
+
+
+
+
+
+
+
+
+
+
+
+--> O SITE DO XDEBUG TAMBÉM TEM 1 WIZARD PARA 
+
+    WINDOW USERS,
+
+
+    EM QUE VC 
+
+    COLA 
+
+
+    O 'FULL OUTPUT OF phpinfo()',
+
+
+    e aÍ 
+
+
+
+
+    ELE TE DÁ A FILE ADEQUADA,
+    QUE VC PRECISA PARA INSTALAR O NEGÓCIO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VAMOS INSTALAR O XDEBUG POR MEIO DO DOCKER..
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO,
+
+    INSTALAMOS A EXTENSION DO XDEBUG,
+
+
+    com estes comandos:
+
+
+
+
+
+
+
+
+RUN pecl install xdebug \
+    && docker-php-ext-enable xdebug 
+
+
+ 
+
+
+
+
+
+
+
+
+ TIPO ASSIM:
+
+
+FROM php:8.1-fpm
+
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    zip \
+    vim \
+    unzip  \
+    libicu-dev 
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+RUN docker-php-ext-configure intl 
+RUN docker-php-ext-install pdo pdo_mysql intl
+
+
+RUN pecl install xdebug \
+    && docker-php-ext-enable xdebug 
+
+WORKDIR /var/www
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO,
+
+ANTES DE REBUILDARMOS O CONTAINER,
+
+O PROEFSSOR QUER ADICIONAR 1 SIMPLES 
+
+
+
+var_dump 
+
+NO INVOICECONTROLLER,
+
+PARA VISUALIZAR NOSSAS INVOICES...
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Attributes\Get;
+use App\Enums\InvoiceStatus;
+use App\Models\Invoice;
+use App\View;
+use Carbon\Carbon;
+use Symfony\Component\Mailer\MailerInterface;
+use Twig\Environment as Twig;
+
+class InvoiceController
+{
+    public function __construct(MailerInterface $mailer, private Twig $twig) {}
+
+    #[Get('/invoices')]
+    public function index(): string
+    {
+        $invoices = Invoice::query()
+            ->where('status', InvoiceStatus::Paid)
+            ->get()
+            ->map(
+                fn(Invoice $invoice) => [
+                    'invoice_number' => $invoice->invoice_number,
+                    'amount' => $invoice->amount,
+                    'status' => $invoice->status->toString(),
+                    'dueDate' => $invoice->due_date->toDateTimeString()
+                ]
+            )
+            ->toArray();
+
+        var_dump($invoices);
+
+        return $this->twig->render('invoices/index.twig', ['invoices' => $invoices]);  // * With twig templating engine
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO VAI NOS OUTPUTTAR ESSA LISTA DE INVOICES, quando visitamos 
+a page 
+
+de 
+
+
+localhost:8000/invoices...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO... DEPOIS DISSO,
+
+
+    FAZEMOS O THROW MANUAL DE 1 EXCEPTION NA ROUTE DE 
+
+    '/',
+
+    PARA QUE 
+
+
+
+
+    A PÁGINA DÊ ERROR,
+
+    tipo assim:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Attributes\Get;
+use App\Attributes\Post;
+use App\Attributes\Put;
+use App\Attributes\Route;
+use App\Enums\HttpMethod;
+use App\View;
+
+class HomeController
+{
+    #[Get('/')]
+    #[Route('/home', HttpMethod::Head)]
+    public function index(): View
+    {
+        return throw new \Exception('This is a test');
+        return View::make('index');
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, AO ENTRAR NESSE PATH,
+
+FICAMOS COM ESSA EXCEPTION..
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS O QUE DEVEMOS REPARAR, AQUI,
+
+É A MANEIRA PELA QUAL O VAR_DUMP 
+
+É DISPLAYADO...
+
+
+
+E, TAMBÉM,
+
+A MANEIRA PELA QUAL A EXCEPTION É DISPLAYADA, NO OUTRO CASE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NO CASO,
+ELES SÃO PRINTADOS TIPO ASSIM:
+
+
+
+
+array(2) {
+    [0] => array(4) {
+        ['invoice_number'] => string(1) "1",
+        ...
+    }
+}
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+
+
+
+Fatal Error: 
+
+
+'Uncaught RuntimeException: Test in .... '
+
+
+
+
+
+
+
+
+
+
+VC DEVE REPARAR ISSO, PQ ESSAS MESSAGES DE ERROR/DUMPS 
+VÃO MUDAR,
+
+ASSIM QUE 
+
+O XDEBUG ESTIVER INSTALADO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... AÍ RECONSTRUÍMOS OS CONTAINERS,
+
+COM 
+
+'docker-compose up -d --build'...
+
+
+
+
+
+
+
+
+
+-> AÍ REFRESHAMOS A PAGE...
+
+
+
+
+
+
+
+
+
+
+COM ISSO, O VAR DUMP FICOU COM UMA APARÊNCIA 
+
+
+
+
+__________________________MUITO______________________
+
+
+MELHOR.
+
+
+
+
+
+
+
+
+
+-> AGORA É MT MAIS FÁCIL DE VISUALIZAR
+    AS EXCEPTIONS E 
+
+    OS DUMPS....
+
+
+
+
+
+
+
+
+
+--> PODEMOS VERIFICAR AINDA MAIS QUE O XDEBUG FOI INSTALADO,
+
+BASTA EXECUTAR 
+
+
+'xdebug_info()',
+
+
+
+QUE É UMA FUNCTION PARECIDA COM 'phpinfo()',
+
+MAS QUE 
+
+EXISTE SOMENTE PARA TESTAR SE O 'xdebug'
+
+
+está instalado ou não...
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Attributes\Get;
+use App\Attributes\Post;
+use App\Attributes\Put;
+use App\Attributes\Route;
+use App\Enums\HttpMethod;
+use App\View;
+
+class HomeController
+{
+    #[Get('/')]
+    #[Route('/home', HttpMethod::Head)]
+    public function index(): View
+    {
+        xdebug_info();
+
+        return throw new \Exception('This is a test');
+        return View::make('index');
+    }
+
+    #[Post('/')]
+    public function store() {}
+
+    #[Put('/')]
+    public function update() {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... CONFIRMAMOS QUE O XDEBUG FOI INSTALADO, E ESTÁ FUNCIONANDO...
+
+
+
+
+
+
+
+
+
+
+
+Enabled Features
+(through 'xdebug.mode' setting)
+Feature	Enabled/Disabled	Docs
+Development Helpers	✔ enabled	⊕
+Coverage	✘ disabled	⊕
+GC Stats	✘ disabled	⊕
+Profiler	✘ disabled	⊕
+Step Debugger	✘ disabled	⊕
+Tracing	✘ disabled	⊕
+
+
+
+
+
+
+
+
+
+mas podemos ver que o STEP DEBUGGER 
+
+E AS OUTRAS FEATURES NÃO ESTÃO HABILITADAS...
+
+
+
+
+
+
+
+
+
+-> A ÚNICA COISA QUE ESTÁ ATIVADA É 
+
+'DEVELOPMENT HELPERS'...
+
+
+
+
+
+
+
+
+-> O XDEBUG TEM VÁRIOS MODES,
+
+QUE HABILITAM DIFERENTES COISAS...
+
+
+
+
+
+
+
+
+
+-> O MODO DEFAULT É 
+    O 'DEVELOP MODE',
+
+
+    O QUAL BASICAMENTE 
+
+    OVERWRITTA OS LOOKS 
+
+    DOS VAR_DUMPS 
+
+
+    E ERRORS...
+
+
+
+    ELE TAMBÉM OFERECE UM POUCO DE INFO ADICIONAL E HELPERS...
+
+
+
+
+
+
+
+
+
+
+--> O XDEBUG PODE SER CUSTOMIZADO POR MEIO DE CONFIGURATION SETTINGS...
+
+
+
+
+
+
+
+
+
+--> PARA EDITAR AS SETTINGS DO XDEBUG, VC TEM 2 OPÇÕES:
+
+
+
+
+
+
+
+1) ALTERAR O ARQUIVO 'php.ini' DIRETAMENTE...
+
+
+
+
+
+
+
+2) CRIAR UM ARQUIVO .ini SEPARADO,
+    E AÍ COPIÁ-LO PARA DENTRO DO CONTAINER,
+
+    USANDO O DOCKER...
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR JÁ CRIOU UM ARQUIVO 
+    'xdebug.ini'
+
+
+
+    BÁSICO,
+
+
+    DENTRO DO DIRECTORY DO docker...
+
+
+
+
+
+
+
+
+
+
+ESSE ARQUIVO FICOU COM ESTE FORMATO:
+
+
+
+
+
+
+
+
+
+
+zend_extension=xdebug
+xdebug.mode=develop,debug
+xdebug.start_with_request=yes
+xdebug.discover_client_host=0
+xdebug.client_host=host.docker.internal
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+A PRIMEIRA LINHA,
+
+
+'zend_extension',
+
+É   A QUE ACTUALLY ENABLA O XDEBUG...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> A DEPENDER DO SEU ENVIRONMENT,
+
+VC 'MAY OR MAY NOT NEED THIS',
+
+
+ PQ É POSSÍVEL QUE JÁ TENHA SIDO ENABLED POR ALGUMA OUTRA COISA...
+
+
+
+
+SE VC RECEBER ALGUNS ERRORS COMO 'XDEBUG IS ALREADY ENABLED',
+
+
+VC PODE COMENTAR OU REMOVER ESSA LINE,
+
+
+E ENTÃO PODE TENTAR DE NOVO...
+
+
+
+
+
+
+
+
+-> NÓS VAMOS COMENTAR ESSA LINE PARA FORA,
+    PQ ELA VAI SER ENABLED POR MEIO DAQUELE DOCKER 
+
+    COMMAND DE 
+
+
+    ''
+
+    
+RUN pecl install xdebug \
+    && docker-php-ext-enable xdebug 
+
+    ''
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+JÁ A SEGUNDA LINE,
+
+
+
+'' xdebug.mode=develop,debug '',
+
+
+É ONDE 
+
+
+
+SETTAMOS E ENABLAMOS OS MODES...
+
+
+
+
+
+
+
+
+
+-> COMO VC PODE VER, ESTAMOS HABILITANDO OS MODES 
+
+DE 'develop' e 'debug'...
+
+
+
+
+
+
+'DEBUG' -> É O MODO DE 'STEP-DEBUGGER'...
+
+
+
+
+
+
+-> JÁ A PRÓXIMA LINHA,
+
+
+'' xdebug.start_with_request=yes'',
+
+
+ATIVA O 
+
+
+STEP-DEBUG 
+PARA __ CADA REQUEST...
+
+
+
+
+
+
+
+
+
+POR FIM, AS ÚLTIMAS 2 LINHAS:
+
+
+
+
+''
+
+xdebug.discover_client_host=0
+xdebug.client_host=host.docker.internal
+
+''
+
+
+SÃO RESPONSÁVEIS PELA 
+
+CONNECTION 
+
+COM IDEs,
+
+como o 'PHP STORM'... 
+
+
+
+
+
+
+
+
+
+
+--> ELAS BASICAMENTE PERMITEM QUE O DOCKER SE CONECTE À HOST MACHINE,
+
+COM ESSE CÓDIGO...
+
+
+
+
+
+
+
+
+-> PARA QUE O XDEBUG FUNCIONE COM NOSSO DOCKER SETUP,
+
+É NECESSÁRIO MAIS 1 LINE, LÁ NA DOCKERFILE..
+
+
+
+
+
+--> PRECISAMOS DE 1 COPY 
+
+DO ARQUIVO 'xdebug.ini' 
+
+
+PARA DENTRO 
+
+
+DO DIRECTORY 'PHP_INI_DIR'
+
+CORRETO,
+
+
+
+como sendo o arquivo 
+
+'conf.d'...
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+FROM php:8.1-fpm
+
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    zip \
+    vim \
+    unzip  \
+    libicu-dev 
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+RUN docker-php-ext-configure intl 
+RUN docker-php-ext-install pdo pdo_mysql intl
+
+
+RUN pecl install xdebug \
+    && docker-php-ext-enable xdebug 
+
+
+COPY ./xdebug.ini "${PHP_INI_DIR}/conf.d"
+
+WORKDIR /var/www
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+MAS AINDA PRECISAMOS FAZER MAIS 1 COISA...
+
+
+
+
+
+
+
+
+-> ESSA COISA QUE PRECISAMOS FAZER _ DEPENDE DO NOSSO ENVIRONMENT...
+
+
+
+
+
+
+
+
+
+
+'''IF YOU ARE ON LINUX,
+YOU MIGHT NEED TO __dEFINE__ THE DOCKER INTERNAL HOST...''
+
+
+
+
+
+
+
+
+
+
+
+
+-> ABRIMOS O DOCKER-COMPOSE.YML...
+
+
+
+
+
+
+
+
+--> SE VC ESTÁ RECEBENDO ALGUNS ERRORS ESTRANHOS,
+
+
+
+
+
+'''TRY DEFINING 
+    DOCKER INTERNAL HOST,
+    VIA 'extra_hosts' OPTION,
+    IN DOCKER-COMPOSE.YML'..''
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+services:
+  app:
+    build:
+      context: "."
+      dockerfile: Dockerfile
+    container_name: programwithgio-app
+    restart: always
+    working_dir: /var/www/
+    extra_hosts: 
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ../:/var/www
+
+
+
+
+
+
+
+
+
+
+
+
+
+    CERTO...
+
+
+
+
+
+
+
+
+    COLOQUEI ESSA KEY E VALUE DE 
+
+
+
+    ''    extra_hosts: 
+      - "host.docker.internal:host-gateway"
+
+      ''
+
+
+
+
+
+
+
+
+
+
+
+NO NOSSO CASO,
+
+
+NÓS NÃO PRECISAMOS DISSO PQ ESTAMOS NO WINDOWS,
+
+MAS É BOM TER, MESMO ASSIM...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: "."
+      dockerfile: Dockerfile
+    container_name: programwithgio-app
+    restart: always
+    working_dir: /var/www/
+    extra_hosts: 
+      - "host.docker.internal:host-gateway" # This is needed, in linux file systems...
+    volumes:
+      - ../:/var/www
+  nginx:
+    image: nginx:1.19-alpine
+    container_name: programwithgio-nginx
+    restart: always
+    ports:
+      - "8000:80"
+    volumes:
+      - ../:/var/www
+      - ./nginx:/etc/nginx/conf.d
+  db:
+    container_name: programwithgio-db
+    image: mysql:8.0
+    volumes:
+      - ./storage/mysql:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+  mailhog:
+    container_name: programwithgio-mailhog
+    image: mailhog/mailhog
+    restart: always
+    logging:
+      driver: "none"
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+  cron:
+    container_name: programwithgio-cron
+    build: ./cron
+    volumes:
+      - ../:/var/www
+      - ./log/cron:/var/log/cron
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+UMA ÚLTIMA COISA QUE O PROFESSOR FEZ, POR TRÁS DAS CENAS,
+
+
+
+
+
+
+FOI ADICIONAR o value de 'localhost'
+
+
+
+
+COMO VALUE DA key 'server_name',
+
+LÁ NO ARQUIVO 
+
+
+'nginx.conf'...
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+server {
+    listen 80;
+    index index.php;
+    server_name localhost;
+    error_log  /var/log/nginx/error.log;
+    access_log /var/log/nginx/access.log;
+    error_page 404 /index.php;
+    root /var/www/public;
+    location ~ \.php$ {
+        try_files $uri =404;
+        fastcgi_pass app:9000;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    }
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+        gzip_static on;
+    }
+}
+
+
+
+
+
+
+
+O PROFESSOR FEZ ISSO PQ ESSE KEY-VALUE 
+
+É NECESSÁRIO PARA QUE 
+O 
+
+
+XDEBUG FUNCIONE ADEQUADAMENTE 
+
+
+
+COM IDEs como phpstorm 
+
+
+(
+    tudo para que as INCOMING DEBUG 
+    CONNECTIONS SEJAM RECONHECIDAS...
+)
+
+
+
+
+
+
+
+
+
+
+
+COM TUDO ISSO SETTADO,
+
+DEVEMOS REBUILDAR NOSSOS CONTAINERS E REFRESHAR A PAGE,
+
+PARA VER SE TUDO ESTÁ FUNCIONANDO..
+
+
+
+
+
+
+
+
+-> COM ISSO, AGORA O 'step debugger' ESTARÁ ENABLED...
+
+
+
+
+
+
+
+
+
+ESTÁ ENABLED, SIM, MAS ESTOU COM 1 MESSAGE DE ERROR:
+
+
+
+
+
+
+
+
+
+Diagnostic Log
+Message	Docs
+⚠️	[Step Debug] Creating socket for 'host.docker.internal:9003', poll success, but error: Operation now in progress (29).	⊕
+⚠️	[Step Debug] Creating socket for 'host.docker.internal:9003', connect: Network is unreachable.	⊕
+🛑	[Step Debug] Could not connect to debugging client. Tried: host.docker.internal:9003 (through xdebug.client_host/xdebug.client_port).
+
+
+
+
+
+
+
+
+cada editor tem 1 configuration diferente...
+
+
+
+
+
+o professor usou php storm,
+
+mas eu estou usando vscodium...
+
+
+
+
+
+
+
+
+
+
+-> NO PHPSTORM, BASTA ABRIR SETTINGS, E AÍ ABRIR A PARTE DE 'DEBUG'...
+
+
+
+
+
+
+
+
+-> isso feito, o professor enabla a option de 'break at first line 
+in PHP scripts'...
+
+
+
+-> ISSO BASICAMENTE DEIXA O DEBUG 
+    COMEÇAR A DEBUGGAR NA PRIMEIRA LINE,
+    ASSIM 
+    QUE O REQUEST COMES IN...
+
+
+
+
+
+
+
+    AÍ HÁ A OPTION DE 
+
+
+    'Enable listening for PHP debug connections' --> clicamos nisso,
+    para habilitar o find...
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR DESTACA:
+
+
+''XDEBUG RODA POR DEFAULT NA PORTA 9003'...
+
+
+ISSO DESDE O XDEBUG3..
+
+
+
+
+
+
+-> MAS O XDEBUG2 USAVA 
+A PORTA 9000....
+TROCARAM PARA A 9003 
+
+
+PQ 
+
+ELA CONFLITAVA COM A PORT USADA 
+
+PELO PHP-FPM...
