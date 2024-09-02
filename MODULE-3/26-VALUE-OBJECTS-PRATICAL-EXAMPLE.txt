@@ -1659,7 +1659,7 @@ COM ELES ...
 
 
 
-
+ 
 
 -> NO CASO, HÁ VALIDATION ENVOLVIDA..
 
@@ -1687,10 +1687,7 @@ COM ELES ...
 
 
 -> QUER DIZER QUE ESSA INFO NÃO SERÁ APENAS 
-    SIMPLES VALORES 
-
-
-    SCALAR...
+    SIMPLES SCALAR VALUES
 
 
 
@@ -1912,4 +1909,637 @@ VALUE OBJECT -> 'THEY DON'T HAVE ANY
 
      JUSTAMENTE POR 'value object'
 
+    NÃO TEREM 1 IDENTIFIER ESPECÍFICO...
+
+
+
+
+
+
+
+
+
+
+--> ENTITIES TAMBÉM GERALMENTE POSSUEM 
+    LIFECYCLES....
+
+
+    EX: SE TEMOS UMA 'PACKAGE' COMO 
+        ENTITY, SUAS PROPRIEDADES PODERIAM 
+        MUDAR AO LONGO DO TEMPO,
+
+
+        TIPO ASSIM:
+
+
+        #[Entity]
+        class Package 
+        {
+            
+            #[Id]
+            private int $id;
+
+            #[Column]
+            private int $width;
+
+            #[Column]
+            private int $height;
+
+            #[Column]
+            private int $length;
+
+            #[Column]
+            private int $weight;
+        }
+        
+
+
+
+
+
+
+
+--> PODERÍAMOS TER ESSAS PROPERTIES INICIALMENTE,
+    MAS MAIS PROPERTIES PODERIAM SER ADICIONADAS,
+    DE ACORDO COM AS CARACTERÍSTICAS DA PACKAGE:
+
+
+
+
+
+        #[Entity]
+        class Package 
+        {
+            
+            #[Id]
+            private int $id;
+
+            #[Column]
+            private int $width;
+
+            #[Column]
+            private int $height;
+
+            #[Column]
+            private int $length;
+
+            #[Column]
+            private int $weight;
+
+            // ... more properties;
+
+            // ... more methods
+        }
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS A PACKAGE IDENTITY 
+SEMPRE CONTINUARIA A MESMA, POR CONTA DAQUELE ID...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODERÍAMOS COMPARAR 2 
+    PACKAGES POR EQUALITY (strict comparison),
+
+
+    POR MEIO DE 
+
+    ALGO COMO 
+
+
+    $package1->id === $package2->id ,
+
+
+
+
+    QUE ISSO SEMPRE RETORNARÁ 
+    FALSE, se não forem o mesmo object...
+
+
+
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE PODEMOS TER 2 PACKAGES COM OS MESMOS 
+    VALUES, MAS QUE AINDA SERÃO PACKAGES DIFERENTES...
+
+
+
+
+
+
+
+ex:
+
+
+
+$package1 = new Package();
+
+$package1->width = 4;
+$package1->length = 8;
+$package1->height = 3;
+$package1->weight = 5;
+
+
+
+
+
+$package2 = new Package();
+
+$package2->width = 4;
+$package2->length = 8;
+$package2->height = 3;
+$package2->weight = 5;
+
+
+
+
+
+persist($package1);
+persist($package2);
+
+
+
+
+// Two different packages:
+$package->id !== $package2->id;
+
+
+
+
+
+
+
+
+
+
+
+certo... nesse caso,
+
+
+
+os 2 objects 'package' SÃO 
+
+DIFERENTES, SIM...
+
+
+
+
+
+
+
+MAS VC PODERIA CONSIDERAR, POR OUTRO LADO,
+
+
+QUE A COMBINAÇÃO 
+
+
+
+DE 'width - length - height',
+
+nesse exemplo aí,
+
+
+
+CONSTITUI UM 'VALUE OBJECT',
+
+
+JUSTAMENTE PQ 
+
+
+NÃO IMPORTA SUA IDENTITY, O QUE IMPORTA 
+SÃO OS VALUES (que serão os mesmos 
+entre suas 2 utilizações, nesse exemplo)
+
+
+
+
+
+
+
+
+
+
+
+--> ''THIS TYPE OF OBJECTS,
+    WHERE THE EQUALITY IS BASED 
+    ON ITS _ PROPERTIES' VALUES,
+
+    IS CALLED ''VALUE OBJECTS''....''
+
+
+
+
+
+
+
+
+EXEMPLO DE VALUE OBJECT:
+
+
+
+
+
+class Dim
+{
+    public readonly int $width;
+    public readonly int $height;
+    public readonly int $length;
+}
+
+
+
+
+
+
+
+--> VALUE OBJECTS GERALMENTE REPRESENTAM ALGO:
+
+
+1) QUANTIFIABLE 
+
+
+2) MEASURABLE 
+
+
+3) OR THEY DESCRIBE SOMETHING...
+
+
+
+
+
+
+POR EXEMPLO:
+
+
+-- ADDRESS 
+
+-- EMAIL
+
+-- AMOUNT 
+
+-- DIMENSIONS 
+
+-- AGE 
+
+
+
+TODOS ELES PODERIAM SER MODELADOS 
+
+
+COMO 'VALUE OBJECTS'...
+
+
+
+
+
+
+
+
+AGORA DEVEMOS VOLTAR AO NOSSO EXEMPLO,
+
+E VER COMO PODEMOS MODELAR 
+
+
+NOSSOS ARGUMENTS COMO VALUE OBJECTS...
+
+
+
+
+
+
+
+
+
+
+ATUALMENTE, TEMOS ESTE CÓDigo:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services\Shipping;
+
+class BillableWeightCalculatorService
+{
+    public function calculate(
+        int $width,
+        int $height,
+        int $length,
+        int $weight,
+        int $dimDivisor
+    ): int {
+        // Basic validation, to avoid invalid values:
+        match (true) {
+            $width < 0 || $width > 80 => throw new \InvalidArgumentException('Invalid package width '),
+            $height < 0 || $height > 70 => throw new \InvalidArgumentException('Invalid package height '),
+            $length < 0 || $length > 120 => throw new \InvalidArgumentException('Invalid package length '),
+            $weight < 0 || $weight > 150 => throw new \InvalidArgumentException('Invalid package weight '),
+            $dimDivisor <= 0 => throw new \InvalidArgumentException('Invalid dim divisor '),
+            default => true
+        };
+
+        $dimWeight = (int) round($width * $height * $length / $dimDivisor);
+
+        return max($weight, $dimWeight);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+HÁ UM PUNHADO DE OPTIONS, AQUI...
+
+
+
+
+
+
+
+
+
+
+PODERÍAMOS OU:
+
+
+1) CREATE VALUE OBJECTS 
+FOR EACH INDIVIDUAL ARGUMENT,
+
+
+tipo algo assim:
+
+
+
+
+
+
+
+public function calculate(
+    Width $width,
+    Height $height,
+    Length $length,
+    int $weight,
+    int $dimDivisor
+) {
+
+}
+
+
+
+
+
+
+
+
+
+OU, ALTERNATIVAMENTE,
+PODERÍAMOS AGRUPAR ESSES 3 ARGUMENTS 
+
+
+
+EM 1 VALUE OBJECT SÓ,
+
+CHAMADO DE 'Dimensions'...
+
+
+
+
+
+
+
+
+
+
+--> NESSE EXEMPLO,
+    EM VEZ DE REPRESENTÁ-LOS COMO SEPARATE
+    VALUE OBJECTS,
+
+
+    VAMOS COMBINÁ-LOS EM 1 ÚNICO VALUE OBJECT,
+
+    DE NOME 'Dimensions'...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+public function calculate(
+    Width $width,
+    Height $height,
+    Length $length,
+    int $weight,
+    int $dimDivisor
+) {
     
+}
+
+
+
+
+
+
+
+
+
+
+-> CRIAMOS ESSE VALUE OBJECT DENTRO DO SERVICE 
+
+
+
+DE BillableWeightCalculatorService....
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services\Shipping;
+
+class PackageDimensions
+{
+    public function __construct(
+        private readonly int $width,
+        private readonly int $height,
+        private readonly int $length,
+    ) {}
+}
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS OS VALUE OBJECTS POSSUEM ALGUMAS 
+CARACTERÍSTICAS...
+
+
+
+
+
+
+
+
+
+
+ALGUMAS DELAS SÃO:
+
+
+
+1) THEY MUST BE _ IMMUTABLE_...
+
+
+
+
+--> É POR ISSO QUE DEIXAMOS ESSAS PROPERTIES 
+COMO READONLY...
+
+
+
+
+
+
+
+
+-> A RAZÃO PARA ELES TEREM DE SER 
+    IMMUTABLE É JUSTAMENTE 
+
+    PARA QUE 
+
+    VOCê POSSA 
+
+    ''SHARE VALUE OBJECTS SAFELY''...
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+$dimensions = new PackageDimensions(6, 4, 10);
+
+method_1($dimensions);
+
+method_2($dimensions);
+
+
+// ... more places that use the same dimensions object.
+
+
+
+
+
+
+
+
+
+
+
+--> OS VALUE OBJECTS 
+    SOLUCIONAM UM PROBLEMA 
+
+    CHAMADO DE 
+
+    'ALIASING BOX',
+
+
+
+
+problema em que 
+
+
+''WHERE THE SAME PACKAGE DIMENSIONS OBJECT 
+    IS PASSED AROUND IN MULTIPLE PLACES,
+    AND IN ONE OF THESE PLACES THE PACKAGE 
+    DIMENSIONS OBJECT GETS UPDATED (tipo o value 
+    de width é alterado, por exemplo),
+    THIS WOULD ALSO AFFECT THE OTHER PLACES WHERE 
+    THE DIMENSIONS PACKAGE OBJECT WAS USED''...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+$dimensions (original variable) ---------
+
+$dimensions (in method_1 function) -------
+
+$dimensions (in method_2 function)
