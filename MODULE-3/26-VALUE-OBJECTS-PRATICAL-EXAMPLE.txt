@@ -356,3 +356,1560 @@ class BillableWeightCalculator
         return 241;
     }
 }
+
+
+
+
+ESSE SERVICE CONTÉM 1 ÚNICO METHOD,
+
+'CALCULATE'...
+
+
+
+
+
+
+--> É ESSA A CLASS QUE VAI CALCULATAR 
+O BILLABLEWEIGHT PARA NÓS...
+
+
+
+
+
+
+
+
+
+
+
+--> ELE ACEITA AQUELES 5 PARAMS...
+
+
+
+
+
+
+
+
+
+-> COM ISSO, ELE DEVE RETORNAR O BILLABLEWEIGHT..
+
+
+
+
+
+
+
+
+-> COLOCAMOS O TYPE COMO INT, MAS PODERIA 
+    SER FLOATS OU STRINGS...
+
+
+
+
+
+
+
+
+MAS PARA DEIXAR AS COISAS SIMPLES,
+
+COLOCAMOS O RETURN 
+
+DE INT...
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR CONSIDERA QUE AS UNITS DAS 
+DIMENSIONS SERÃO EM INCHES...
+
+
+
+--> JÁ OS WEIGHT SERÃO EM POUNDS...
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR HAVIA MENCIONADO QUE A BILLABLEWEIGHT SERÁ 
+
+
+
+
+max(billableWeight, weight)....
+
+
+
+
+
+o professor vai escrevendo assim:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services\BillableWeightCalculator;
+
+class BillableWeightCalculator
+{
+    public function calculate(
+        int $width,
+        int $height,
+        int $length,
+        int $weight,
+        int $dimDivisor
+    ): int {
+        
+        $dimWeight = 0;
+
+
+        return max($weight, $dimWeight);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A 'DIMWEIGHT',
+
+DIMENSIONAL WEIGHT,
+
+
+
+LEVA EM CONSIDERAÇÃO:
+
+
+
+
+WIDTH,
+LENGTH,
+HEIGHT 
+
+
+DA PACKAGE...
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE ESCREVEMOS TIPO ASSIM:
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services\BillableWeightCalculator;
+
+class BillableWeightCalculator
+{
+    public function calculate(
+        int $width,
+        int $height,
+        int $length,
+        int $weight,
+        int $dimDivisor
+    ): int {
+        
+        $dimWeight = $width * height * length;
+
+
+        return max($weight, $dimWeight);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NO CASO, ESSE VALUE SERÁ DIVIDIDO POR UM 'dimDivisor'...
+
+
+
+
+
+
+
+
+
+
+
+-> DIMENSION DIVISOR É UM 
+    NUMBER QUE SEMPRE É DETERMINADO 
+
+    POR CADA  CARRIER...
+
+
+
+ 
+
+    FEDEX PODE TER 
+
+    1 DIM DIVISOR DIFERENTE DE USPS, POR EXEMPLO...
+
+
+
+
+
+
+
+
+-> 
+
+<?php declare(strict_types=1);
+
+namespace App\Services\BillableWeightCalculator;
+
+class BillableWeightCalculator
+{
+    public function calculate(
+        int $width,
+        int $height,
+        int $length,
+        int $weight,
+        int $dimDivisor
+    ): int {
+        
+        $dimWeight = $width * height * length / $dimDivisor;
+
+
+        return max($weight, $dimWeight);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> vamos fazer ROUND DO VALUE INTEIRO,
+
+'TO THE NEAREST INTEGER',
+
+
+
+e aí 
+
+VAMOS CASTAR TUDO 
+
+
+
+COMO SENDO 
+
+
+INT... pq o return type é de int,
+
+
+
+TIPO ASSIM:
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services\BillableWeightCalculator;
+
+class BillableWeightCalculator
+{
+    public function calculate(
+        int $width,
+        int $height,
+        int $length,
+        int $weight,
+        int $dimDivisor
+    ): int {
+        
+        $dimWeight = (int) round($width * height * length / $dimDivisor);
+
+
+        return max($weight, $dimWeight);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... TESTAMOS ISSO, PARA VER SE FUNCIONA...
+
+
+
+
+
+
+
+
+eX:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services\BillableWeightCalculator;
+
+class BillableWeightCalculator
+{
+    public function calculate(
+        int $width,
+        int $height,
+        int $length,
+        int $weight,
+        int $dimDivisor
+    ): int {
+        $dimWeight = (int) round($width * $height * $length / $dimDivisor);
+
+        return max($weight, $dimWeight);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+o professor também criou um arquivo 
+
+de 
+
+
+
+'shipping_calculator_example.php',
+
+
+QUE USAREMOS PARA 
+
+
+TESTAR ESSE SERVICE, E PARA DEMONSTRAR O FUNCIONAMENTO 
+
+
+DOS 'VO' (value objects)....
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use App\Services\Shipping\BillableWeightCalculatorService;
+
+$package = [
+    'weight' => 6,
+    'dimensions' => [
+        'width' => 9,
+        'height' => 15,
+        'length' => 7
+    ],
+];
+
+$fedexDimDivisor = 139;
+
+$billableWeight = (new BillableWeightCalculatorService())->calculate(
+    $package['dimensions']['width'],
+    $package['dimensions']['height'],
+    $package['dimensions']['length'],
+    $package['weight'],
+    $fedexDimDivisor
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+MAS ISSO É BEM RUIM...
+
+
+
+
+
+
+
+PQ QUANDO INSTANCIAMOS AQUELE SERVICE,
+
+TEMOS DE PASSAR 1 MONTE DE PARAMETERS, 1 ATRÁS DO OUTRO...
+
+
+
+
+
+
+
+
+
+
+
+
+-> O CÓDIGO FUNCIONA,
+
+MAS 
+
+É FEIO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+''BUT WHAT IS THE ISSUE, HERE?''
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PQ DIABOS NÃO PODEMOS USAR ESSA SERVICE CLASS DESSA FORMA AÍ?
+
+
+
+
+
+
+
+
+
+
+--> EM ALGUNS CASES, ESSE CÓDIGO É PERFECTLY FINE,
+E FUNCIONARIA...
+
+
+
+
+
+
+
+
+
+
+--> ENTRETANTO, EM OUTROS CASES,
+    ESSE CODE _ FALHARIA___...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> POR EXEMPLO,
+
+
+
+''WHAT IF WE 
+    _ PASSED __ 
+    NEGATIVE VALUES'',
+
+
+''OR WHAT IF WE PASSED 0 FOR THE DIM DIVISOR???''
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+ -> PARA TESTAR ISSO, DIGAMOS QUE A WIDTH FOI SETTADA COMO '-9',
+
+
+ tipo assim:
+
+
+
+
+
+
+
+
+
+
+
+
+ <?php declare(strict_types=1);
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use App\Services\Shipping\BillableWeightCalculatorService;
+
+$package = [
+    'weight' => 6,
+    'dimensions' => [
+        'width' => -9,
+        'height' => 15,
+        'length' => 7
+    ],
+];
+
+$fedexDimDivisor = 139;
+
+$billableWeight = (new BillableWeightCalculatorService())->calculate(
+    $package['dimensions']['width'],
+    $package['dimensions']['height'],
+    $package['dimensions']['length'],
+    $package['weight'],
+    $fedexDimDivisor
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AO FAZER ISSO, 
+
+
+ficamos com 
+
+
+'6lb', em vez de '7lb',
+
+
+no print desse method...
+
+
+
+
+
+
+
+
+
+isso aconteceu pq, quando o width, length e height são multiplicados,
+
+o value final fica 
+
+
+
+
+
+um NÚMERO NEGATIVO..
+
+
+
+
+
+
+
+
+--> COMO RESULTADO DISSO,
+
+
+
+
+o 'dimWeight' FICA UM NÚMERO NEGATIVO...
+
+
+
+
+
+
+
+
+
+
+
+E O 'max()' entre um -6 E UM +6 
+
+
+
+
+É UM +6,
+OBVIAMENTE....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS DIGAMOS QUE TEMOS 1 'dimDivisor'
+
+DE 0...
+
+
+
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+<?php declare(strict_types=1);
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use App\Services\Shipping\BillableWeightCalculatorService;
+
+$package = [
+    'weight' => 6,
+    'dimensions' => [
+        'width' => 9,
+        'height' => 15,
+        'length' => 7
+    ],
+];
+
+$fedexDimDivisor = 0;
+
+$billableWeight = (new BillableWeightCalculatorService())->calculate(
+    $package['dimensions']['width'],
+    $package['dimensions']['height'],
+    $package['dimensions']['length'],
+    $package['weight'],
+    $fedexDimDivisor
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AO FAZERMOS ISSO,
+
+
+FICAMOS COM 1 ERROR DE 
+
+
+
+'Uncaught DivisionByZeroError: division by zero in BillableWeightCalculatorService'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+
+VÁRIAS COISAS PODEM DAR ERRADO, AQUI,
+
+
+E NÃO TEMOS NENHUM TIPO DE VALIDATION 
+
+CONTRA ESSES ERROR-CASES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> 'WHAT IF WE ALSO WANTED TO HAVE 
+    SOME KIND OF 'MAXIMUM ALLOWED PACKAGE DIMENSIONS'? ''
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA,
+
+NÃO QUEREMOS ACEITAR 
+
+NUMBERS COMO '9999999'....
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> UMA MANEIRA DE CONSERTAR ISSO, NO CASO,
+
+É TER 1 VALIDATION...
+
+
+
+
+
+
+
+
+''THIS VALIDATION 
+    CAN EXIST 
+
+
+    EITHER INSIDE THE SERVICE CLASS,
+
+    OR INSIDE IT, INSIDE THE VERIFY METHOD''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... O PROFESSOR REVERTE TUDO PARA OS VALUES ADEQUADOS,
+    E AÍ 
+
+
+    DECIDE ADICIONAR VALIDATION NESSE METHOD DE 'calculate()'... 
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+    public function calculate(
+        int $width,
+        int $height,
+        int $length,
+        int $weight,
+        int $dimDivisor
+    ): int {
+        $dimWeight = (int) round($width * $height * $length / $dimDivisor);
+
+        return max($weight, $dimWeight);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NO CASO, O PROFESSOR DECIDE USAR UMA MATCH EXPRESSION,
+
+TUDO PARA 
+
+EVITAR TER UM MONTE DE IF-ELSE BLOCKS...
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS ESCREVER ALGO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services\Shipping;
+
+class BillableWeightCalculatorService
+{
+    public function calculate(
+        int $width,
+        int $height,
+        int $length,
+        int $weight,
+        int $dimDivisor
+    ): int {
+        // Basic validation, to avoid invalid values:
+        match (true) {
+            $width < 0 || $width > 80 => throw new \InvalidArgumentException('Invalid package width '),
+            $height < 0 || $height > 70 => throw new \InvalidArgumentException('Invalid package height '),
+            $length < 0 || $length > 120 => throw new \InvalidArgumentException('Invalid package length '),
+            $weight < 0 || $weight > 150 => throw new \InvalidArgumentException('Invalid package weight '),
+            $dimDivisor <= 0 => throw new \InvalidArgumentException('Invalid dim divisor '),
+            default => true
+        };
+
+        $dimWeight = (int) round($width * $height * $length / $dimDivisor);
+
+        return max($weight, $dimWeight);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+FAZ SENTIDO, É UMA VALIDATION BÁSICA...
+
+
+
+
+
+vamos fazer throw da exception, caso qualquer 1 desses values seja 
+invalid...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--. AÍ TESTAMOS ISSO..
+
+
+
+
+
+
+
+
+
+
+
+SIMPLESMENTE PASSAMOS 1 VALUE NEGATIVE 
+
+PARA O width,
+
+TIPO ASSIM:
+
+
+
+
+$package = [
+    'weight' => 6,
+    'dimensions' => [
+        'width' => 9,
+        'height' => 15,
+        'length' => 7
+    ],
+];
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, FICAMOS COM A EXCEPTION 
+
+DE 
+
+
+'Invalid package width',
+
+
+O QUE QUER DIZER QUE NOSSA VALIDATION FOI UM SUCESSO...
+
+
+
+
+
+
+
+
+
+
+
+--> O MESMO ACONTECE COM LENGTH E HEIGHT..
+
+
+TODOS ELES FAZEM THROW DA EXCEPTION CORRESPONDENTE...
+
+
+
+
+
+
+
+
+
+-> SE DEIXAMOS O DIM DIVISOR COMO '0',
+
+FICAMOS COM 'Invalid dim divisor'..
+
+
+
+
+
+
+
+
+
+QUER DIZER QUE 
+
+
+
+
+ESSA VALIDATION ESTÁ FUNCIONANDO..
+
+
+
+
+
+
+
+
+-> MAS E QUANTO ÀS 'UNITS'?
+
+
+
+
+
+
+
+
+
+--> BEM, O PROFESSOR HAVIA COMENTADO QUE 
+
+    DEVERÍAMOS 
+    CONSIDERAR AS UNITS DE DIMENSIONS COMO SENDO EM 'INCHES',
+
+
+    E AS UNITS DE PESO SEREM EM 'POUNDS'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... MAS DIGAMOS QUE QUEREMOS QUE AS MEDIDAS 
+    SEJAM EM 'METRIC UNITS',
+
+    EM VEZ DE IMPERIAL UNITS...
+
+
+
+
+
+
+
+--> OU SEJA,
+
+    QUEREMOS KILOGRAMS, METERS, ETC....
+
+
+
+
+
+
+
+
+
+-> UMA MANEIRA DE SUPORTAR ISSO 
+    SERIA FAZER 
+
+    O 'ACCEPT' DE 
+    UNITS 
+
+
+    COMO _ OUTRO ARGUMENT,
+
+    DENTRO DA FUNCTION DE 'calculate'...
+
+
+
+
+
+
+
+
+
+--> A OUTRA ALTERNATIVA SERIA 
+
+
+DEFINIR 1 PARAMETER DE '$array',
+
+
+
+
+
+
+
+UM ARRAY QUE CONTERIA:
+
+
+1) AS DIMENSIONS 
+
+2) THE WEIGHT 
+
+3) THE UNIT,
+
+
+ETC...
+
+
+
+
+
+
+
+-> ISSO SERIA OK, EM SITUAÇÕES MAIS SIMPLES,
+
+
+    MAS LOGO FICARIA UMA PORCARIA COM 
+     
+    SITUAÇÕES MAIS COMPLEXAS...
+
+
+
+
+
+
+
+
+
+
+-> QUANDO AS COISAS FICAREM MAIS COMPLEXAS,
+    OS REQUIREMENTS VÃO MUDAR,
+    TUDO VAI MUDAR...
+
+
+
+
+
+
+
+
+
+
+--> 
+O PROFESSOR APONTA QUE 
+
+OS ARGUMENTS 
+
+
+DE 
+
+
+'width', 'height', 'length', 'weight' e 'dimDIVISORF'
+
+
+
+NÃO SÃO MAIS APENAS 'SCALAR VALUES'..
+
+
+
+
+
+
+
+
+
+
+
+-> AGORA, NO CASO, HÁ MAIS COISAS ACONTECENDO 
+COM ELES ...
+
+
+
+
+
+
+
+
+
+
+-> NO CASO, HÁ VALIDATION ENVOLVIDA..
+
+
+
+
+
+
+
+-> PODERIA TER MAIS DE 1 TIPO DE UNIT ENVOLVIDA...
+
+
+
+
+
+-> PODERIA TER 1 FORMATTING ENVOLVIDO, TAMBÉM...
+
+
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE ESSA INFO NÃO SERÁ APENAS 
+    SIMPLES VALORES 
+
+
+    SCALAR...
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE MAIS INFO É NECESSÁRIA, PARA ESSES ARGUMENTS..
+
+
+
+
+
+
+
+
+
+
+
+-> SÃO NESSES CASOS QUE 'VALUE OBJECTS'
+
+PODEM SER ÚTEIS:
+
+
+
+
+
+
+
+
+
+
+
+
+1) ''WHEN THERE IS NEED FOR ADDITIONAL INFORMATION FOR THE PARAMETERS, 
+    AND A SIMPLE SCALAR TYPE IS NO LONGER ENOUGHT''.....
+
+
+
+
+
+ 
+2) ''WHEN YOU NEED TO _GROUP_ MULTIPLE ARGUMENTS 
+    IN A SINGLE TYPE...''
+
+
+
+
+
+
+
+
+
+
+-> AÍ, NESSES CASOS, 
+
+É QUE 
+
+
+'VALUE OBJECTS' 
+
+PODEM SER ÚTEIS...
+
+
+
+
+
+
+
+MAS O QUE SÃO ELES?
+
+
+
+
+
+
+
+
+
+
+DEFINIÇÃO:
+
+
+
+
+
+
+
+''A value object is a SMALL OBJECT THAT 
+
+REPRESENTS __ A SIMPLE ENTITY,
+ WHOSE EQUALITY IS __ NOT BASED ON IDENTITY (e.g two values 
+ are EQUAL when they have the SAME VALUES, not necessarily being 
+ the same object, LOOSE OPERATOR...)
+
+''
+
+
+
+
+
+
+''Examples of value objects are objects 
+    representing an amount of MONEY or a DATE RANGE''...
+
+
+
+
+
+
+
+
+
+
+
+
+AS KEYWORDS AQUI SÃO:
+
+
+
+
+1) EQUALITY 
+
+
+
+2) ENTITY 
+
+
+3) IDENTITY...
+
+
+
+
+
+
+
+
+
+
+
+-> COBRIMOS ENTITIES MAIS CEDO NESSE CURSO,...
+
+
+
+
+
+
+
+
+
+
+
+-> APESAR DE VALUE OBJECTS SOAREM SEMELHANTES 
+
+A ENTITIES,
+
+HÁ UMA DIFERENÇA ESSENCIAL...
+
+
+
+
+
+
+
+
+
+
+
+
+ENTITIES --> SÃO TIPICAMENTE 
+            IDENTIFICADOS
+            por algo como um 'ID'...
+
+
+
+
+
+
+
+
+
+
+
+
+VALUE OBJECT -> 'THEY DON'T HAVE ANY 
+                SPECIFIC IDENTIFIER'...
+
+
+
+
+
+
+
+
+
+
+--> ok... quer dizer que são completamente diferentes..
+
+
+
+
+
+
+-> ENTITIES SÃO IDENTIFICADOS POR IDs...
+
+
+
+
+
+
+
+-> JÁ AS PROPERTIES 
+     DO VALUE OBJECT 
+
+     SÃO SUA 'ACTUAL IDENTIITY',
+
+
+
+     JUSTAMENTE POR 'value object'
+
+    
