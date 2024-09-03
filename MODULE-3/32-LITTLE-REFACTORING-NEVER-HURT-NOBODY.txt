@@ -1,0 +1,2432 @@
+
+
+
+
+
+
+
+
+-> NA ÚLTIMA LIÇÃO, CONSEGUIMOS SETUPPAR 
+
+
+O 
+ORM E DI CONTAINER COM O 
+
+
+
+
+SLIM PHP FRAMEWORK...
+
+
+
+
+
+
+
+
+
+
+
+--> NESSE VIDEO,
+    VAMOS REFATORAR O PUBLIC>INDEX.PHP,
+
+    TUDO PARA QUE 
+
+    ELE NÃO FAÇA TANTAS COISAS...
+
+
+
+
+
+
+
+--> ATUALMENTE, O CÓDIGO DELE ESTÁ ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Controllers\HomeController;
+use App\Controllers\InvoiceController;
+use App\Config;
+use DI\Container as DIContainer;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\ORMSetup;
+use Dotenv\Dotenv;
+use Slim\Factory\AppFactory;
+use Slim\Views\Twig;
+use Slim\Views\TwigMiddleware;
+use Twig\Extra\Intl\IntlExtension;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+define('STORAGE_PATH', __DIR__ . '/../storage');
+define('VIEW_PATH', __DIR__ . '/../views');
+
+var_dump(__DIR__);
+
+$dotenv = Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+// Create Container, using PHP-DI:
+$container = new DIContainer();
+
+// bind Config to container:
+$container->set(Config::class, \DI\create(Config::class)->constructor($_ENV));
+
+// bind EntityManager to container:
+$container->set(EntityManager::class, fn(Config $config) => EntityManager::create(
+    $config->db,
+    ORMSetup::createAttributeMetadataConfiguration([__DIR__, './../app/Entity'])
+));
+
+// Set container to create App with on AppFactory:
+AppFactory::setContainer($container);
+
+$app = AppFactory::create();
+
+$app->get(
+    '/',
+    [HomeController::class, 'index']  // with this, we fire this method/render this 'index' view, upon this route being reached.
+);
+
+$app->get(
+    '/invoices',
+    [InvoiceController::class, 'index']  // with this, we fire this method/render this 'index' view, upon this route being reached.
+);
+
+// Create Twig:
+$twig = Twig::create(VIEW_PATH, ['cache' => STORAGE_PATH . '/cache', 'auto_reload' => true]);
+
+$twig->addExtension(new IntlExtension());
+
+// Add Twig-View Middleware:
+$app->add(TwigMiddleware::create($app, $twig));
+
+$app->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR QUER:
+
+
+
+
+
+
+1) UM CONFIG FILE PARA A ROUTES 
+
+
+
+
+2) UM CONFIG FILE PARA OS CONTAINER BINDINGS ...
+
+
+
+
+
+E ETC...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS A PRIMEIRA COISA QUE O PROFESSOR QUER É OUTSOURCEAR 
+
+
+
+AQUELE CÓDIGO DE LOAD DAS ENV VARIABLES,
+
+
+ESTE AQUI:
+
+
+
+
+
+define('STORAGE_PATH', __DIR__ . '/../storage');
+define('VIEW_PATH', __DIR__ . '/../views');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE CRIAMOS UM NOVO FOLDER, DE NOME 'CONFIGS',
+
+
+E AÍ COLOCAMOS 
+
+
+ESSE CÓDIGO EM 'path_constants.php'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+define('STORAGE_PATH', __DIR__ . '/../storage');
+define('VIEW_PATH', __DIR__ . '/../views');
+
+
+
+
+
+
+
+
+
+
+AÍ FAZEMOS REQUIRE DE ESSA FILE,
+
+LÁ EM 'index.php':
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Controllers\HomeController;
+use App\Controllers\InvoiceController;
+use App\Config;
+use DI\Container as DIContainer;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\ORMSetup;
+use Dotenv\Dotenv;
+use Slim\Factory\AppFactory;
+use Slim\Views\Twig;
+use Slim\Views\TwigMiddleware;
+use Twig\Extra\Intl\IntlExtension;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/configs/path_constants.php';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO,
+
+O PROFESSOR QUER 
+
+ARMAZENAR OS CONTAINER BINDINGS 
+
+
+EM 1 FILE PRÓPRIA DE CONFIGG...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> POR ISSO COPIAMOS ESTE TRECHO:
+
+
+
+// bind Config to container:
+$container->set(Config::class, \DI\create(Config::class)->constructor($_ENV));
+
+// bind EntityManager to container:
+$container->set(EntityManager::class, fn(Config $config) => EntityManager::create(
+    $config->db,
+    ORMSetup::createAttributeMetadataConfiguration([__DIR__, './../app/Entity'])
+));
+
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ CRIAMOS UMA PHP FILE DE NOME 'container_bindings'...
+
+    ESSA FILE  VAI BASICAMENTE RETORNAR UMA LIST DE BINDINGS,
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Config;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\ORMSetup;
+
+use function DI\create;
+
+return [
+    Config::class => create(Config::class)->constructor($_ENV),
+    EntityManager::class => fn(Config $config) => EntityManager::create(
+        $config->db,
+        ORMSetup::createAttributeMetadataConfiguration([__DIR__, './../app/Entity'])
+    ),
+];
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+ENTÃO, COM ISSO, QUEREMOS USAR A 'BUILDER CLASS' 
+
+
+DE CONTAINERS 
+
+DO DI-PHP,
+
+
+
+para criar um container CUSTOMIZADO,
+
+QUE TENHA ESSES BINDINGS AÍ...
+
+
+
+
+
+-> PARA ISSO,
+
+ESCREVEMOS ASSIM:
+
+
+
+
+
+// ! Create Container, using PHP-DI (without custom bindings):
+// $container = new DIContainer();
+
+// * Create Container, using PHP-DI (with custom bindings):
+$containerBuilder = new ContainerBuilder();
+
+$containerBuilder->addDefinitions(__DIR__ . '/configs/container_bindings.php');
+
+
+
+
+
+
+
+
+
+
+
+
+
+NO CASO,
+
+
+
+'containerBuilder->addDefinitions()'
+
+
+É UM METHOD QUE 
+
+
+__EXIGE_ 1 LIST/ARRAY __ DE BINDINGS,
+
+
+
+
+
+
+
+1 LIST DE BINDINGS,
+
+
+OU ENTÃO 
+
+
+
+''1 PATH ATÉ UM ARQUIVO PHP QUE RETORNE UMA LIST DE BINDINGS''...
+
+
+
+
+
+
+
+-> E É EXATAMENTE POR ISSO QUE 
+
+ESCREVEMOS AQUELE
+
+ '/configs/container_bindings.php'; ''
+
+
+
+
+
+
+
+
+
+ CERTO.... ISSO FEITO, PARA OBTERMOS A CONTAINER INSTANCE,
+
+ BASTA CHAMAR O METHOD DE 
+
+
+
+ '$containerBuilder->build()'',
+
+
+ que nos retorna 
+
+A CONTAINER INSTANCE....
+
+
+
+
+
+
+
+
+-> ASSIGNAMOS ISSO A 1 VARIABLE DE '$container',
+
+
+e tudo funciona como antes...
+
+
+
+
+
+
+
+
+
+FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Controllers\HomeController;
+use App\Controllers\InvoiceController;
+use DI\ContainerBuilder;
+use Dotenv\Dotenv;
+use Slim\Factory\AppFactory;
+use Slim\Views\Twig;
+use Slim\Views\TwigMiddleware;
+use Twig\Extra\Intl\IntlExtension;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../configs/path_constants.php';
+
+$dotenv = Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+// ! Create Container, using PHP-DI (without custom bindings):
+// $container = new DIContainer();
+
+// * Create Container, using PHP-DI (with custom bindings):
+$containerBuilder = new ContainerBuilder();
+
+$containerBuilder->addDefinitions(__DIR__ . '/../configs/container_bindings.php');
+
+$container = $containerBuilder->build();
+
+// Set container to create App with on AppFactory:
+AppFactory::setContainer($container);
+
+$app = AppFactory::create();
+
+$app->get(
+    '/',
+    [HomeController::class, 'index']  // with this, we fire this method/render this 'index' view, upon this route being reached.
+);
+
+$app->get(
+    '/invoices',
+    [InvoiceController::class, 'index']  // with this, we fire this method/render this 'index' view, upon this route being reached.
+);
+
+// Create Twig:
+$twig = Twig::create(VIEW_PATH, ['cache' => STORAGE_PATH . '/cache', 'auto_reload' => true]);
+
+$twig->addExtension(new IntlExtension());
+
+// Add Twig-View Middleware:
+$app->add(TwigMiddleware::create($app, $twig));
+
+$app->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... AGORA MAIS REFACTORING...
+
+
+
+
+
+
+
+
+
+
+
+
+-> QUEREMOS  EXTRAIR A 'CONTAINER-BUILDING LOGIC'
+
+
+EM 1 FILE PRÓPRIA...
+
+
+
+
+
+
+ESTAMOS FALANDO DESTAS LINHAS AQUI:
+
+
+
+
+
+
+
+// * Create Container, using PHP-DI (with custom bindings):
+$containerBuilder = new ContainerBuilder();
+
+$containerBuilder->addDefinitions(__DIR__ . '/../configs/container_bindings.php');
+
+$container = $containerBuilder->build();
+
+
+
+
+
+
+
+
+-> CRIAMOS 1 NOVA FILE,
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use DI\ContainerBuilder;
+
+// * Create Container, using PHP-DI (with custom bindings):
+$containerBuilder = new ContainerBuilder();
+
+$containerBuilder->addDefinitions(__DIR__ . '/../configs/container_bindings.php');
+
+return $containerBuilder->build();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ O INDEX.PHP FICA ASSIM, COM O IMPORT:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Controllers\HomeController;
+use App\Controllers\InvoiceController;
+use Dotenv\Dotenv;
+use Slim\Factory\AppFactory;
+use Slim\Views\Twig;
+use Slim\Views\TwigMiddleware;
+use Twig\Extra\Intl\IntlExtension;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../configs/path_constants.php';
+
+$dotenv = Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+// ! Create Container, using PHP-DI (without custom bindings):
+// $container = new DIContainer();
+
+// * Create Container, using PHP-DI (with custom bindings):
+$container = require __DIR__ . '/../configs/container.php';
+
+// Set container to create App with on AppFactory:
+AppFactory::setContainer($container);
+
+$app = AppFactory::create();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, JÁ REFATORAMOS A LÓGICA DE CONTAINER E DEFINITIONS 
+
+
+EM FILES PRÓPRIAS...
+
+
+
+
+
+
+
+-> COM ISSO, DEIXAMOS AS COISAS MAIS ORGANIZADAS...
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE FOREM NECESSÁRIAS OUTRAS BINDINGS NO FUTURO,
+
+PODEMOS COLOCÁ-LAS DENTRO DO ARQUIVO 'container_bindings.php',
+
+
+
+
+QUE ENTÃO É REGISTRADO EM 'container.php'...
+
+
+
+
+
+
+
+
+
+O CÓDIGO FICA BEM MAIS LEGÍVEL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+isso pq a file de container.php agora 
+se encarrega do build da container instance...
+
+
+
+
+
+
+
+
+
+
+--. O CONTAINER TAMBÉM PODE SER COMPILADO,
+
+PARA MAXIMIZAR A PERFORMANCE...
+
+
+
+
+
+
+
+
+
+
+ISSO BASICAMENTE SIGNIFICA 'CACHING',
+
+E É RECOMENDADO PARA PRODUCTION...
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS COMO PODEMOS FAZER CACHE DO CONTAINER?
+
+
+
+
+
+--> ISSO PODE SER FEITO SIMPLESMENTE POR MEIO 
+
+
+
+DO METHOD DE 
+
+
+'$containerBuilder->enableCompilation()'
+
+
+
+
+
+---> COMO PARAMETER, VC PASSA O PATH AO 
+    CACHE DIRECTORY...
+
+
+
+
+
+
+
+
+--> FAREMOS ISSO QUANDO TRABALHARMOS NO NOSSO PROJECT...
+
+
+
+
+
+
+
+
+
+-> A OUTRA COISA QUE O PROFESSOR QUER FAZER É O OUTSOURCE 
+
+
+DA PARTE DE ROUTING, DE SETUP DAS ROUTES...
+
+
+
+
+
+
+ESTA PARTE AQUI:
+
+
+
+
+
+
+
+
+
+
+$app->get(
+    '/',
+    [HomeController::class, 'index']  // with this, we fire this method/render this 'index' view, upon this route being reached.
+);
+
+$app->get(
+    '/invoices',
+    [InvoiceController::class, 'index']  // with this, we fire this method/render this 'index' view, upon this route being reached.
+);
+
+
+
+
+
+
+
+
+
+
+ELE QUER COLOCAR ISSO EM 1 ARQUIVO PHP PRÓPRIO...
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS FAZER UM ARQUIVO 'routes.php'...
+
+
+
+
+
+
+
+
+
+MAS 1 PROBLEMA, AQUI,
+
+
+NESSE ARQUIVO,
+
+É QUE NÃO TEMOS ACESSO À VARIABLE DE '$app'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-. O PROFESSOR NÃO QUER INCLUIR O APP COM UM 'require',
+
+NEM QUER USAR GLOBALS...
+
+
+
+
+
+
+
+
+
+
+--> EM VEZ DISSO, O QUE O PROFESSOR QUER 
+    É, SOMEHOW,
+
+    TER ACESSO A ESSE APP OBJECT,
+
+    E ENTÃO 
+
+    FAZER O REGISTER DAS ROUTES COM ESTE FORMATO:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+$app->get(
+    '/',
+    [HomeController::class, 'index']  // with this, we fire this method/render this 'index' view, upon this route being reached.
+);
+
+$app->get(
+    '/invoices',
+    [InvoiceController::class, 'index']  // with this, we fire this method/render this 'index' view, upon this route being reached.
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> BEM... UMA ALTERNATIVA, AQUI,
+
+SERIA 
+
+TER 1 SIMPLES CLOSURE...
+
+
+
+
+
+
+
+
+NESSA CLOSURE, PODEMOS FAZER ACCEPT DO ARGUMENT DE '$app',
+
+
+COMO 1 OBJECT... ---> AÍ, DENTRO DE ESSA 
+                    CLOSURE,
+
+                    PODEMOS FAZER O REGISTER DE TODAS AS ROUTES...
+
+
+
+
+
+                --> AÍ, NO FINAL, FARÍAMOS O RETURN DE ESSA CLOSURE...
+
+
+
+
+
+-> AÍ CHAMARÍAMOS ESSA FUNCTION, LÁ EM 'index.php',
+
+
+E AÍ PASSARÍAMOS O 
+
+object de '$app',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Controllers\HomeController;
+use App\Controllers\InvoiceController;
+use Slim\App;
+
+// * Using a closure to access the 'app' variable, to then register the routes:
+return function (App $app) {
+    $app->get(
+        '/',
+        [HomeController::class, 'index']  // with this, we fire this method/render this 'index' view, upon this route being reached.
+    );
+
+    $app->get(
+        '/invoices',
+        [InvoiceController::class, 'index']  // with this, we fire this method/render this 'index' view, upon this route being reached.
+    );
+};
+
+
+
+
+
+
+
+
+
+E AÍ,
+ 
+ LÁ NO INDEX.PHP:
+
+
+
+
+
+
+
+
+use Dotenv\Dotenv;
+use Slim\Factory\AppFactory;
+use Slim\Views\Twig;
+use Slim\Views\TwigMiddleware;
+use Twig\Extra\Intl\IntlExtension;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../configs/path_constants.php';
+
+$dotenv = Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+// ! Create Container, using PHP-DI (without custom bindings):
+// $container = new DIContainer();
+
+// * Create Container, using PHP-DI (with custom bindings):
+$container = require __DIR__ . '/../configs/container.php';
+
+AppFactory::setContainer($container);
+
+// * Import the outsourced router:
+$router = require __DIR__ . '/../configs/routes.php';
+
+$app = AppFactory::create();
+
+// * Set the outsourced router, with the routes, on the app:
+$router($app);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+COM ISSO, com o call de '$router()',
+
+
+
+
+ESSA FUNCTION QUE CRIAMOS,
+
+
+
+
+podemos simplesmente passar o '$app',
+
+que então ele vai fazer o register de todas as routes...
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS AINDA PODEMOS MELHORAR O NOSSO CÓDIGO...
+
+
+
+
+
+
+
+
+
+
+
+-> A PARTE DE 'Twig'
+
+TAMBÉM PODE SER OUTSOURCEADA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR QUER ACESSAR O TWIG DIRETAMENTE DOS CONTROLLERS,
+
+E NÃO QUER TÊ-LO 
+
+
+
+SENDO REGISTRADO NO 'public>index.php'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS É CLARO QUE ISSO NÃO VAI FUNCIONAR IMEDIATAMENTE...
+
+
+
+
+
+
+
+
+
+
+-> É PQ A CLASS DE TWIG 
+    TEM ALGUMAS DEPENDENCIES,
+
+    QUE NÃO CONSEGUEM SER RESOLVED...
+
+
+    QUER DIZER QUE O CONTAINER E O AUTOWIRING 
+
+    NÃO FUNCIONA, 
+
+    NESSE CASO....
+
+
+
+
+--> ISSO É SIMPLESMENTE 
+    PQ A CLASS DE 'TWIG', DENTRO DOS CONSTRUCTOR,
+
+
+    TEM ALGUMAS DEPENDENCIES QUE NÃO PODEM SER RESOLVED AUTOMATICAMENTE...
+
+
+    (como '$loader' e '$settings')...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA CONSERTAR ISSO, PODEMOS SIMPLESMENTE FAZER A MESMA COISA QUE 
+FIZEMOS 
+
+COM O ENTITY MANAGER...
+
+
+
+
+
+
+
+
+
+
+
+--> VAMOS ATÉ O ARQUIVO 'container_bindings',
+
+e aí 
+
+REGISTRAMOS O TWIG NO NOSSO CONTAINER,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Config;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\ORMSetup;
+use Slim\Views\Twig;
+
+use function DI\create;
+
+return [
+    Config::class => create(Config::class)->constructor($_ENV),
+    EntityManager::class => fn(Config $config) => EntityManager::create(
+        $config->db,
+        ORMSetup::createAttributeMetadataConfiguration([__DIR__, './../app/Entity'])
+    ),
+    Twig::class => fn() => Twig::create(VIEW_PATH, [
+        'cache' => STORAGE_PATH . '/cache',
+        'auto_reload' => true,
+    ]),
+];
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+TAMBÉM ADICIONAMOS A EXTENSION, TIPO ASSIM:
+
+
+
+
+    Twig::class => function () {
+        $twig = Twig::create(VIEW_PATH, [
+            'cache' => STORAGE_PATH . '/cache',
+            'auto_reload' => true,
+        ]);
+
+        $twig->addExtension(new \Twig\Extra\Intl\IntlExtension());
+
+        return $twig;
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, LÁ EM 'public>index.php',
+
+
+
+PODEMOS SIMPLESMENTE ACESSAR ESSA INSTANCE,
+
+
+
+ATRAVÉS DO CONTAINER...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+$app->add(TwigMiddleware::create($app, $container->get(Twig::class)));  // Twig is obtained from the container.
+
+
+
+
+
+
+
+
+
+BASICAMENTE, FAZEMOS GET DE ESSA CLASS DIRETAMENTE DE NOSSO CONTAINER,
+
+PQ ELE JÁ TERÁ SIDO SETTADO LÁ...
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AS COISAS CONTINUAM FUNCIONANDO NORMALMENTE, MAS COM 1 OUTSOURCING MT MAIOR:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use Dotenv\Dotenv;
+use Slim\Factory\AppFactory;
+use Slim\Views\Twig;
+use Slim\Views\TwigMiddleware;
+use Twig\Extra\Intl\IntlExtension;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../configs/path_constants.php';
+
+$dotenv = Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+// ! Create Container, using PHP-DI (without custom bindings):
+// $container = new DIContainer();
+
+// * Create Container, using PHP-DI (with custom bindings):
+$container = require __DIR__ . '/../configs/container.php';
+
+AppFactory::setContainer($container);
+
+// * Import the outsourced router:
+$router = require __DIR__ . '/../configs/routes.php';
+
+$app = AppFactory::create();
+
+// * Set the outsourced router, with the routes, on the app:
+$router($app);
+
+// Add Twig-View Middleware:
+$app->add(TwigMiddleware::create($app, $container->get(Twig::class)));  // Twig is obtained from the container.
+
+$app->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK...
+
+
+
+
+MAS O PROFESSOR QUER DAR 1 ALTERADA NO CÓDIIGO...
+
+
+
+
+
+
+
+
+
+
+
+
+--> LÁ EM 'container_bindings.php',
+
+
+
+TEMOS ESTE CÓDIGO:
+
+
+
+
+
+    Twig::class => function () {
+        $twig = Twig::create(VIEW_PATH, [
+            'cache' => STORAGE_PATH . '/cache',
+            'auto_reload' => true,
+        ]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+        COM ISSO, ESTAMOS SETTANDO O AUTO_RELOAD COMO SEMPRE SENDO 
+
+        'true'...
+
+
+
+
+
+
+
+    E ISSO É BOM PARA DEVELOPMENT,
+
+
+
+
+    MAS É RUIM PARA PRODUCTION...
+
+
+
+
+
+
+
+
+
+
+
+
+''''INSTEAD,
+    WE WANT TO STORE THAT 
+    IN THE CONFIGURATIONS, SO THAT WE CAN ACCESS IT 
+    FROM THE CONFIG FILE...'''
+
+
+
+
+
+
+
+
+
+
+--> PQ SÓ QUEREMOS AUTO_RELOAD EM DEVELOPMENT...
+
+
+
+
+
+
+
+--> PARA ISSO,
+
+PODEMOS ESCREVER ALGO COMO 
+
+
+
+
+'auto_reload' => !$config->isProduction
+
+
+
+
+
+
+
+OU 
+
+
+"$config->environment === 'development'... " 
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+PODERÍAMOS DEFINIR ISSO EM 1 ENUM,
+
+
+ESSES VALUES DE 'development' 
+
+e 'production',
+
+
+mas, por enquanto, hardcode é fine...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK..
+
+
+
+
+
+PODEMOS ACESSAR O OBJECT DE 'Config'
+
+
+
+por meio do simples inject de 'Config',
+
+
+EXATAMENTE COMO FIZEMOS COM OS OUTROS BINDINGS,
+TIPO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Config;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\ORMSetup;
+use Slim\Views\Twig;
+
+use function DI\create;
+
+return [
+    Config::class => create(Config::class)->constructor($_ENV),
+    EntityManager::class => fn(Config $config) => EntityManager::create(
+        $config->db,
+        ORMSetup::createAttributeMetadataConfiguration([__DIR__, './../app/Entity'])
+    ),
+    Twig::class => function (Config $config) {
+        $twig = Twig::create(VIEW_PATH, [
+            'cache' => STORAGE_PATH . '/cache',
+            'auto_reload' => true,
+        ]);
+
+        $twig->addExtension(new \Twig\Extra\Intl\IntlExtension());
+
+        return $twig;
+    },
+];
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+AÍ ESCREVO ASSIM:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Config;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\ORMSetup;
+use Slim\Views\Twig;
+
+use function DI\create;
+
+return [
+    Config::class => create(Config::class)->constructor($_ENV),
+    EntityManager::class => fn(Config $config) => EntityManager::create(
+        $config->db,
+        ORMSetup::createAttributeMetadataConfiguration([__DIR__, './../app/Entity'])
+    ),
+    Twig::class => function (Config $config) {
+        $twig = Twig::create(VIEW_PATH, [
+            'cache' => STORAGE_PATH . '/cache',
+            'auto_reload' => $config->environment === 'development',
+        ]);
+
+        $twig->addExtension(new \Twig\Extra\Intl\IntlExtension());
+
+        return $twig;
+    },
+];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AGORA SÓ PRECISAMOS ADICIONAR ESSA OPTION DE 'environment'
+
+
+
+NA CLASS DE 
+
+
+'config'...
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+/**
+ * @property-read ?array $db
+ * @property-read ?array $mailer
+ */
+class Config
+{
+    protected array $config = [];
+
+    public function __construct(array $env)
+    {
+        $this->config = [
+            'db' => [
+                'host' => 'db',
+                'user' => $env['DB_USER'],
+                'password' => $env['DB_PASS'],
+                'dbname' => $env['DB_DATABASE'],
+                'driver' => $env['DB_DRIVER'] ?? 'mysql',
+                'charset' => 'utf8',
+                'collation' => 'utf8_unicode_ci',
+                'prefix' => '',
+            ],
+            'mailer' => [
+                'dsn' => $env['MAILER_DSN'] ?? '',
+            ],
+            'apiKeys' => [
+                'emailable' => $env['EMAILABLE_API_KEY'] ?? '',
+                'abstract' => $env['ABSTRACT_API_KEY'] ?? '',
+            ],
+            'environment' => $env['APP_ENVIRONMENT'] ?? 'production'
+        ];
+    }
+
+    public function __get(string $name)
+    {
+        return $this->config[$name] ?? null;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+AÍ,
+
+
+
+LÁ NA .env file,
+
+
+
+COLOCAMOS 
+
+
+
+
+1 VARIABLE 
+
+de 
+
+
+APP_ENVIRONMENT=development
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... RECARREGAMOS A PAGE, E TUDO FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+--> PARA GARANTIR QUE A PARTE DE AUTO_RELOAD ESTÁ FUNCIONANDO,
+
+
+
+    DEVEMOS ALTERAR ALGO EM NOSSA VIEW...
+
+
+
+
+
+    --> COLOCO 'HOME 2',
+
+
+    E AÍ A VIEW ATUALIZA...
+
+
+
+
+
+
+
+    -> SIGNIFICA QUE ESSA CONDIÇÃO DE DEV/PROD 
+    DO AUTO_RELOAD ESTÁ FUNCIONANDO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AS COISAS ESTÃO BEM MAIS LIMPAS..
+
+
+
+
+
+
+
+
+
+-> ISSO PQ EXTRAÍMOS A DEFINIÇÃO E LÓGICA DE CONTAINER 
+EM FILES PRÓPRIAS...
+
+
+
+
+
+
+
+
+-> TAMBÉM DEIXAMOS A ROUTE DEFINITIONS EM 1 FILE PRÓPRIA..
+
+
+
+
+
+
+--> TAMBÉM MOVEMOS AS PATH_CONSTANTS EM 1 CONFIGURATION FILE SEPARADA...
+
+
+
+
+
+
+
+
+
+
+
+-> HÁ MAIS 1 IMPROVEMENT QUE PODEMOS FAZER, AQUI...
+
+
+
+
+
+
+
+
+
+
+
+-> BEM, AQUI ESTAMOS ACESSANDO O DIRECTORY DE 'configs' MÚLTIPLAS VEZES:
+
+
+
+
+require_once __DIR__ . '/../configs/path_constants.php';
+
+$dotenv = Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+// ! Create Container, using PHP-DI (without custom bindings):
+// $container = new DIContainer();
+
+// * Create Container, using PHP-DI (with custom bindings):
+$container = require __DIR__ . '/../configs/container.php';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O QUE PODEMOS FAZER, AQUI, É DEFINIR 
+
+
+
+1 CONSTANT COMO 'CONFIG_PATH',
+
+
+E AÍ EVITAR 
+
+
+
+
+TODA ESSA DUPLICATION DE CÓDIGO...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use Dotenv\Dotenv;
+use Slim\Factory\AppFactory;
+use Slim\Views\Twig;
+use Slim\Views\TwigMiddleware;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../configs/path_constants.php';
+
+$dotenv = Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+// ! Create Container, using PHP-DI (without custom bindings):
+// $container = new DIContainer();
+
+// * Create Container, using PHP-DI (with custom bindings):
+$container = require CONFIG_PATH . '/container.php';
+
+AppFactory::setContainer($container);
+
+// * Import the outsourced router:
+$router = require CONFIG_PATH . '/routes.php';
+
+$app = AppFactory::create();
+
+// * Set the outsourced router, with the routes, on the app:
+$router($app);
+
+// Add Twig-View Middleware:
+$app->add(TwigMiddleware::create($app, $container->get(Twig::class)));  // Twig is obtained from the container.
+
+$app->run();
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NA PRÓXIMA AULA, VAMOS CONTINAUR COM ESSE REFACTOR,
+
+
+
+VAMOS MELHORAR 
+
+
+
+
+AS FILES DE 'cli-config.php'
+
+
+e 
+
+
+'migrations.php'...
+
+
+
+
+
+
+
+
+-> SEU FORMATO ESTÁ ASSIM:
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+require 'vendor/autoload.php';
+
+use Doctrine\Migrations\Configuration\Migration\PhpFile;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Tools\Setup;
+use Doctrine\Migrations\Configuration\EntityManager\ExistingEntityManager;
+use Doctrine\Migrations\DependencyFactory;
+use Dotenv\Dotenv;
+
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+$config = new PhpFile('migrations.php'); // Or use one of the Doctrine\Migrations\Configuration\Configuration\* loaders
+$params = [
+    'host'     => $_ENV['DB_HOST'],
+    'user'     => $_ENV['DB_USER'],
+    'password' => $_ENV['DB_PASS'],
+    'dbname'   => $_ENV['DB_DATABASE'],
+    'driver'   => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
+];
+
+$entityManager = EntityManager::create(
+    $params,
+    Setup::createAttributeMetadataConfiguration([__DIR__ . '/app/Entity'])
+);
+
+return DependencyFactory::fromEntityManager($config, new ExistingEntityManager($entityManager));
+
+
+
+
+
+
+
+
+
+
+
+
+
+E O OUTRO:
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+return [
+    'table_storage' => [
+        'table_name' => 'doctrine_migration_versions',
+        'version_column_name' => 'version',
+        'version_column_length' => 1024,
+        'executed_at_column_name' => 'executed_at',
+        'execution_time_column_name' => 'execution_time',
+    ],
+
+    'migrations_paths' => [
+        'Migrations' => '/migrations',
+    ],
+
+    'all_or_nothing' => true,
+    'transactional' => true,
+    'check_database_platform' => true,
+    'organize_migrations' => 'none',
+    'connection' => null,
+    'em' => null,
+];
+
+
+
+
+
+
+
+
+
+
+
+
+MIGRATIONS.PHP É APENAS UMA CONFIG FILE QUE PODEMOS FACILMENTE 
+
+MOVER PARA O DIRECTORY DE 
+
+'configs'...
+
+
+
+
+JÁ CLI-CONFIG 
+
+
+
+SÓ ESTÁ ALI PQ 
+
+PRECISAMOS DELA PARA RODAR OS COMANDOS DE MIGRATION...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NA PRÓXIMA AULA,
+
+O PROFESSOR 
+
+QUER QUE FIQUEMOS CAPAZES DE 
+
+
+'RUN DOCTRINE COMMANDS',
+
+
+PARA AÍ __ CRIARMOS _ ENTITIES 
+
+
+E RODAR MIGRATIONS,
+
+
+
+TUDO SEM TER DE USAR 
+
+AQUELE COMANDO DE 
+
+
+
+
+''
+ ./vendor/bin/doctrine-migrations
+
+ '' 
+
+
+
+
+
+
+'./vendor/bin/doctrine'...
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+
+O PROFESSOR QUER QUE SEJAMOS CAPAZES DE CRIAR ENTITES E RODAR MIGRATIONS 
+
+COM COMANDOS COMO:
+
+
+
+
+
+
+
+doctrine orm:generate-entities 
+doctrine orm:schema-tool:create 
+doctrine-migrations migrate 
+doctrine-migrations diff 
+doctrine-migrations generate
+
+
+
+
+
+
+
+
+
+
+
+EM LARAVEL,
+VC PODE USAR COISAS COMO 
+
+
+
+
+'php artisan migrate' 
+
+
+PARA FAZER MIGRATE DA DATABASE...
+
+
+
+
+
+
+
+-> VC TAMBÉM PODE USAR 'php artisan make:model',
+
+
+QUE É ALGO QUE CRIA 1 NOVA MODEL CLASS,
+
+E ETC ETC..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR QUER SER CAPAZ  DE FAZER A MESMA COISA,
+
+    MAS COM O DOCTRINE,...
+
+
+
+
+
+
+--> PQ O DOCTRINE JÁ TEM COMANDOS PARA ISSO,
+
+
+COMO 
+
+'myapp migrate
+myapp diff 
+myapp orm:generate-entities'...
+
+
+
+
+
+SÓ TEMOS QUE 
+
+CRIAR 1 SCRIPT EXECUTÁVEL PHP,
+
+QUE SEJA 
+
+CAPAZ DE EXECUTAR ESSES COMMANDS..
+
+
+
+
+
+
+
+-. É ISSO QUE FAERMOS NA PRÓXIMA LESSON....
+
+
+
+
+
+
+
+
+
+-> PQ VAMOS REFATORAR ISSO?
+
+
+
+
+
+
+
+- QUAL A VANTAGEM?
+
+
+
+
+
+
+
+
+
+-> É PQ, NO FUTURO,
+
+VAMOS BUILDAR 1 PROJECT INTEIRO,
+
+E O PROFESSOR QUER NOS PREPARAR...
+
+
+
+
+
+
+
+
+
+
+--> TECNICAMENTE JÁ ESTAMOS CONSTRUINDO AS FOUNDATIONS DO NOSSO 
+PROJECT...
+
+
+
+
+
+
+
