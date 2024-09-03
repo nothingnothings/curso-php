@@ -1,0 +1,1239 @@
+
+
+
+
+
+
+
+
+NA ÚLTIMA AULA,
+
+APLICAMOS ALGUM REFACTORING,
+
+
+E INTRODUZIMOS CONFIG FILES NO NOSSO APP...
+
+
+
+
+
+
+
+
+
+
+
+-> JÁ NESSA AULA,
+
+VAMOS BUILDAR UMA CLI TOOL,
+
+QUE VAI NOS AJUDAR 
+
+
+A RODAR O DOCTRINE ORM E MIGRATION COMMANDS,
+
+ASSIM COMO NOSSOS PRÓPRIOS CUSTOM COMMANDS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> NA VERDADE HÁ UM ÓTIMO GUIDE PARA NOS AJUDAR A GET STARTED,
+
+    LÁ NOS DOCS DO ORM...
+
+
+
+
+
+
+
+
+-> LÁ, 
+
+TEMOS A PARTE DE 'TOOLS':
+
+
+
+
+
+
+
+
+https://www.doctrine-project.org/projects/doctrine-orm/en/3.2/reference/tools.html
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO NOS MOSTRA INSTRUCTIONS SOBRE COMO 
+
+
+'CREATE A DOCTRINE CLI INTERFACE''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+TEMOS 1 SNIPPET DE CÓDIGO,
+
+
+EM QUE 
+
+FAEMOS REQUIRE DE 1 ARQUIVO 'bootstrap.php',
+
+
+
+
+
+PEGAMOS 1 ENTITY MANAGER,
+
+
+
+
+
+AÍ ESPECÍFICAMOS ALGUNS COMMANDS,
+
+
+E AÍ RODAMOS A APPLICATION, PASSANDO O ENTITY MANAGER 
+
+E OS COMMANDS,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+#!/usr/bin/env php
+<?php
+
+use Doctrine\ORM\Tools\Console\ConsoleRunner;
+use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
+
+// replace with path to your own project bootstrap file
+require_once 'bootstrap.php';
+
+// replace with mechanism to retrieve EntityManager in your app
+$entityManager = GetEntityManager();
+
+$commands = [
+    // If you want to add your own custom console commands,
+    // you can do so here.
+];
+
+ConsoleRunner::run(
+    new SingleManagerProvider($entityManager),
+    $commands
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OS DOCS DO DOCTRINE ORM PEDEM QUE 
+
+    COLOQUEMOS 
+
+    ESSE CÓDIGO DENTRO DE 1 ARQUIVO 
+
+
+
+    'bin/doctrine'...
+
+
+
+
+
+
+
+
+
+
+--> MAS NÃO VAMOS FAZER ISSO, 
+
+
+PQ __ VAMOS CRIAR NOSSO PRÓPRIO ARQUIVO EXECUTÁVEL,
+
+QUE SERÁ NOSSO 
+
+
+
+PRÓPRIO CLI APP....
+
+
+
+
+
+
+
+--> OK..
+
+
+
+CRIAMOS 1 NOVO ARQUIVO,
+
+DE nome 
+
+'myapp.php',
+
+
+NO ROOT DE NOSSO PROJETO...
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO, COLAMOS O CÓDIGO COPIADO DOS DOCS DO DOCTRINE ORM:
+
+
+
+
+
+
+
+
+#!/usr/bin/env php
+<?php
+
+use Doctrine\ORM\Tools\Console\ConsoleRunner;
+use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
+
+// replace with path to your own project bootstrap file
+require_once 'bootstrap.php';
+
+// replace with mechanism to retrieve EntityManager in your app
+$entityManager = GetEntityManager();
+
+$commands = [
+    // If you want to add your own custom console commands,
+    // you can do so here.
+];
+
+ConsoleRunner::run(
+    new SingleManagerProvider($entityManager),
+    $commands
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO,
+
+
+
+
+VAMOS ESCREVER AS COISAS ETAPA-POR-ETAPA...
+
+
+
+
+
+
+
+
+
+
+
+--. O PROFESSOR ATUALIZOU ALGUMAS DEPENDENCIES, POR TRÁS DAS CENAS...
+
+
+
+
+
+
+
+
+--> DEVEMOS PEGAR O COMPOSER.JSON 
+
+E RODAR 
+
+
+'composer.update'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...  A PRIMEIRA COISA QUE PRECISAMOS FAZER,
+
+AQUI,
+
+É 
+
+
+OBTER ESSA FILE DE 'bootstrap.php'...
+
+
+
+
+
+
+
+
+
+
+
+--> NÓS NÃO TEMOS ESSA FILE AÍ...
+
+
+
+
+
+
+---> NO NOSSO PROJETO, NO MOMENTO,
+
+ESTAMOS 'KINDOF' 
+
+
+BOOTSTRAPPANDO TUDO 
+
+
+USANDO AQUELE 'public>index.php'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+QUER DIZER QUE NOSSO ENTRYPOINT AO APP É 
+
+ESTE CÓDIGO AQUI:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use Dotenv\Dotenv;
+use Slim\Factory\AppFactory;
+use Slim\Views\Twig;
+use Slim\Views\TwigMiddleware;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../configs/path_constants.php';
+
+$dotenv = Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+// ! Create Container, using PHP-DI (without custom bindings):
+// $container = new DIContainer();
+
+// * Create Container, using PHP-DI (with custom bindings):
+$container = require CONFIG_PATH . '/container.php';
+
+AppFactory::setContainer($container);
+
+// * Import the outsourced router:
+$router = require CONFIG_PATH . '/routes.php';
+
+$app = AppFactory::create();
+
+// * Set the outsourced router, with the routes, on the app:
+$router($app);
+
+// Add Twig-View Middleware:
+$app->add(TwigMiddleware::create($app, $container->get(Twig::class)));  // Twig is obtained from the container.
+
+$app->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> É ISSO QUE FAZ BOOTSTRAP DE NOSSO APP,
+
+
+E É ISSO QUE RODA NOSSO WEBAPP,
+
+
+
+COM ISTO:
+
+
+
+
+
+
+
+$app->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O QUE PODEMOS FAZER, AQUI,
+
+
+
+
+    É 
+
+
+    'EXTRACT SOME OF THE PARTS, FROM HERE,
+
+    THAT ARE RESPONSIBLE FOR BOOTSTRAPPING THE APP''...
+
+
+
+
+
+-> VAMOS REUTILIZAR ESSAS PARTES QUE INICIAM O APP,
+    LÁ NO 'myapp.php'...
+
+
+
+
+
+
+--> AS ÚNICAS PARTES QUE NÃO SÃO NECESSÁRIAS, NAQUELE ARQUIVO,
+    SÃO:
+
+
+
+    1) AS ROUTES 
+
+
+
+    2) este trecho aqui:
+
+
+// * Set the outsourced router, with the routes, on the app:
+$router($app);
+
+// Add Twig-View Middleware:
+$app->add(TwigMiddleware::create($app, $container->get(Twig::class)));  // Twig is obtained from the container.
+
+$app->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TODO O RESTO É NECESSÁRIO, OU SEJA:
+
+
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../configs/path_constants.php';
+
+$dotenv = Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+// * Create Container, using PHP-DI (with custom bindings):
+$container = require CONFIG_PATH . '/container.php';
+
+AppFactory::setContainer($container);
+
+
+$app = AppFactory::create();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS PEGAR TODA ESSA PARTE AÍ,
+
+
+
+
+E AÍ COLOCAR ELA EM 1 ARQUIVO CHAMADO DE 'bootstrap.php'...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use Dotenv\Dotenv;
+use Slim\Factory\AppFactory;
+
+require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/configs/path_constants.php';
+
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+// * Create Container, using PHP-DI (with custom bindings):
+$container = require CONFIG_PATH . '/container.php';
+
+AppFactory::setContainer($container);
+
+$app = AppFactory::create();
+
+return $app;
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESSE BOOTSTRAP VAI SIMPLESMENTE APENAS RETORNAR ESSA INSTANCE DE 'APP'...
+
+
+
+
+
+
+
+
+NESSE ARQUIVO, ESTAMOS, EM ORDEM:
+
+
+
+
+
+
+1) REQUIRING THE AUTOLOADER 
+
+
+2) REQUIRING THE PATH CONSTANTS 
+
+
+
+3) LOADING THE ENVIRONMENT VARIABLES 
+
+
+
+
+4) REQUIRING THE CONTAINER 
+
+
+
+5) SETTING THE CONTAINER TO THE  APP FACTORY 
+
+
+6) CREATING A NEW APP INSTANCE, WITH THE CONTAINER SET TO IT...
+
+
+
+
+
+É POR ISSO QUE O RETURN É 
+
+
+
+'' return $app;''
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> E É POR ISSO QUE O index.php
+
+FICA 
+
+COM 1 VARIABLE DE '$app',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use Slim\Views\Twig;
+use Slim\Views\TwigMiddleware;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../configs/path_constants.php';
+
+// * Import the boostrapped app:
+$app = require __DIR__ . '/../bootstrap.php';
+
+// * Import the outsourced router:
+$router = require CONFIG_PATH . '/routes.php';
+
+// * Set the outsourced router, with the routes, on the app:
+$router($app);
+
+// Add Twig-View Middleware:
+$app->add(TwigMiddleware::create($app, $container->get(Twig::class)));  // Twig is obtained from the container.
+
+$app->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS, NESSE ARQUIVO,
+
+AINDA PRECISAMOS DO CONTAINER,
+
+NA LINHA DE 
+
+
+'' 
+
+
+$app->add(TwigMiddleware::create($app, $container->get(Twig::class)));  // Twig is obtained from the container.
+
+
+
+''
+
+
+
+
+
+
+
+E PODEMOS PEGAR ESSE CONTAINER DA APP INSTANCE,
+
+
+
+PQ, FELIZMENTE,
+
+
+O SLIM PHP JÁ PROVIDENCIA ISSO PARA NÓS...
+
+
+
+
+
+
+
+É POR ISSO QUE PODEMOS ESCREVER UMA VARIABLE DE CONTAINER ASSIM:
+
+
+ 
+
+$container = $app->getContainer();
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use Slim\Views\Twig;
+use Slim\Views\TwigMiddleware;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../configs/path_constants.php';
+
+// * Import the boostrapped app:
+$app = require __DIR__ . '/../bootstrap.php';
+
+// * Get the container from the app variable (thanks to PHP DI, method getContainer()):
+$container = $app->getContainer();
+
+// * Import the outsourced router:
+$router = require CONFIG_PATH . '/routes.php';
+
+// * Set the outsourced router, with the routes, on the app:
+$router($app);
+
+// Add Twig-View Middleware:
+$app->add(TwigMiddleware::create($app, $container->get(Twig::class)));  // Twig is obtained from the container.
+
+$app->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> certo...
+
+
+
+
+
+isso feito,
+
+VAMOS PEGAR ESSAS 2 LINHAS,
+
+
+
+a que IMPORTA O 'BOOTSTRAP.PHP' e deixa em 1 variable APP,
+
+
+e a 
+
+que FAZ GET DO CONTAINER,
+
+
+
+E COLAMOS ELAS LÁ EM 'myapp.php',
+
+
+
+
+JUSTAMENTE PQ 'myapp.php'
+
+
+
+
+VAI PRECISAR BOOTSTRAPPAR O APP TAMBÉM...
+
+
+
+
+EX:
+
+
+
+
+
+$app = require __DIR__ . '/../bootstrap.php';
+$container = $app->getContainer();
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+<?php
+
+use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
+use Doctrine\ORM\Tools\Console\ConsoleRunner;
+
+// replace with path to your own project bootstrap file
+// require_once 'bootstrap.php';
+ 
+$app = require __DIR__ . '/../bootstrap.php';
+$container = $app->getContainer();
+
+// replace with mechanism to retrieve EntityManager in your app
+$entityManager = GetEntityManager();
+
+$commands = [
+    // If you want to add your own custom console commands,
+    // you can do so here.
+];
+
+ConsoleRunner::run(
+    new SingleManagerProvider($entityManager),
+    $commands
+);
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, PODEMOS FACILMENTE OBTER ACESSO AO ENTITYMANAGER,
+
+
+ATRAVÉS DO CONTAINER...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+$entityManager = $container->get(EntityManager::class);
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+<?php
+
+use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
+use Doctrine\ORM\Tools\Console\ConsoleRunner;
+use Doctrine\ORM\EntityManager;
+
+
+$app = require __DIR__ . '/../bootstrap.php';
+$container = $app->getContainer();
+
+$entityManager = $container->get(EntityManager::class);
+
+$commands = [
+    // If you want to add your own custom console commands,
+    // you can do so here.
+];
+
+ConsoleRunner::run(
+    new SingleManagerProvider($entityManager),
+    $commands
+);
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+ATÉ AÍ, TUDO BEM...
+
+
+
+
+
+
+
+
+
+
+PARA VER SE ISSO ESTÁ FUNCIONANDO,
+BASTA ENTRAR NO DOCKER CONTAINER,
+
+
+E RODAR ASSIM:
+
+
+
+
+
+
+
+'''
+
+php myapp.php list
+
+
+
+'''
+
+
+
+
+--> ISSO VAI LISTAR _ TODOS OS COMMANDS DISPONÍVEIS 
+
+    DENTRO DO CONSOLE APP 'myapp'...
+
+
+
+
+
+
+
+
+
+
+
+-_> MAS GANHEI 1 ERROR:
+
+
+
+
+
+
+Fatal error: Uncaught Error: Failed opening required '/var/www/../bootstrap.php' (include_path='.:/usr/local/lib/php') in /var/www/myapp.php on line 10
+
+Error: Failed opening required '/var/www/../bootstrap.php' (include_path='.:/usr/local/lib/php') in /var/www/myapp.php on line 10
+
+Call Stack:
+    0.0005     392472   1. {main}() /var/www/myapp.php:0
+
+
+
+
+
+
+
+
+
+
+CONSERTEI, ERA O PATH ERRADO...
+
+
+
+
+
+
+
+
+
+
+->  COM ISSO, FIQUEI COM ESTE OUTPUT:
+
+
+
+
+
+
+root@7a72084dcf36:/var/www# php myapp.php list
+Doctrine Command Line Interface 2.19.7.0
+
+Usage:
+  command [options] [arguments]
+
+Options:
+  -h, --help            Display help for the given command. When no command is given display help for the list command
+  -q, --quiet           Do not output any message
+  -V, --version         Display this application version
+      --ansi|--no-ansi  Force (or disable --no-ansi) ANSI output
+  -n, --no-interaction  Do not ask any interactive question
+  -v|vv|vvv, --verbose  Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug
+
+Available commands:
+  completion                         Dump the shell completion script
+  help                               Display help for a command
+  list                               List commands
+ dbal
+  dbal:reserved-words                Checks if the current database contains identifiers that are reserved.
+  dbal:run-sql                       Executes arbitrary SQL directly from the command 
+line.
+ orm
+  orm:clear-cache:metadata           Clear all metadata cache of the various cache drivers
+  orm:clear-cache:query              Clear all query cache of the various cache drivers
+  orm:clear-cache:region:collection  Clear a second-level cache collection region     
+  orm:clear-cache:region:entity      Clear a second-level cache entity region
+  orm:clear-cache:region:query       Clear a second-level cache query region
+  orm:clear-cache:result             Clear all result cache of the various cache drivers
+  orm:convert-d1-schema              [orm:convert:d1-schema] Converts Doctrine 1.x schema into a Doctrine 2.x schema
+  orm:convert-mapping                [orm:convert:mapping] Convert mapping information between supported formats
+  orm:ensure-production-settings     Verify that Doctrine is properly configured for a production environment
+  orm:generate-entities              [orm:generate:entities] Generate entity classes and method stubs from your mapping information
+  orm:generate-proxies               [orm:generate:proxies] Generates proxy classes for entity classes
+  orm:generate-repositories          [orm:generate:repositories] Generate repository classes from your mapping information
+  orm:info                           Show basic information about all mapped entities 
+  orm:mapping:describe               Display information about mapped objects
+  orm:run-dql                        Executes arbitrary DQL directly from the command 
+line
+  orm:schema-tool:create             Processes the schema and either create it directly on EntityManager Storage Connection or generate the SQL output
+  orm:schema-tool:drop               Drop the complete database schema of EntityManager Storage Connection or generate the corresponding SQL output
+  orm:schema-tool:update             Executes (or dumps) the SQL needed to update the 
+database schema to match the current mapping metadata
+  orm:validate-schema                Validate the mapping files
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO LISTOU TODOS OS COMMANDS DISPONÍVEIS...
+
+
+
+
+
+
+
+
+
+
+
+--> TEMOS VÁRIOS COMANDOS...
+
+
+
+
+
+
+
+
+
+
+
+-> TEMOS COMANDOS DBAL,
+
+ASSIM COMO COMANDOS ORM...
+
+
+
+
+
+
+
+
+
+-> mas O QUE NÃO ESTÁ APARECENDO, AQUI,
+    SÃO OS COMMANDS DE MIGRATION...
+
+
+
+
+
+
+
+
+
+
+-> ISSO APENAS CONTÉM OS COMMANDS DE DBAL E ORM...
+
+    NÃO CONTÉM
+
+
+    os migration commands...
+
+
+
+
+
+
+
+
+
+
+
+-> SE RODAMOS 
+
+
+
+ './vendor/bin/doctrine-migrations list',
+
+
+
+
+ ENCONTRAMOS OS MIGRATION COMMANDS....
+
+
+
+
+
+ -> MAS MESMO ASSIM, ESSES COMMANDS NÃO ESTÃO APARECENDO 
+
+
+ COM aquele list anterior...
+
+
+
+
+
+--> MAS ISSO NÃO É UM PROBLEMA,
+DIZ O PROFESSOR...
+
+
+
+
+
+
+
+
+-> NÃO É PROBLEMA PQ PODEMOS ADICIONÁ-LOS COMO 
+
+CUSTOM COMMANDS,
+
+NAQUELE TRECHO:
+
+
+
+
+$commands = [
+    // If you want to add your own custom console commands,
+    // you can do so here.
+];
