@@ -1,0 +1,1247 @@
+ 
+
+
+
+
+
+ APRENDEMOS OS BASICS SOBRE O SLIM PHP FRAMEWORK,
+
+ E FIZEMOS ELE FUNCIONAR COM O TWIG TEMPLATING ENGINE...
+
+
+
+
+
+
+
+
+
+
+ --> AGORA VEREMOS COMO FAZER O ORM E DEPENDENCY INJECTION 
+ CONTAINERS FUNCIONAREM COM O SLIM PHP
+
+
+
+
+
+
+
+
+
+
+
+
+
+ -> USAREMOS OS DEPENDENCY INJECTION CONTAINERS DO 
+
+ 'DI' ...
+
+
+
+
+
+
+
+
+ PHP DI...
+
+
+
+
+
+
+
+
+
+
+
+
+
+ -> NOSSO OBJETIVO, AQUI,
+
+
+ É FAZER 
+
+
+A ROUTE DE '/invoices'
+
+FUNCIONAR...
+
+
+
+
+
+
+
+
+
+ESTA ROUTE AQUI:
+
+
+
+
+$app->get(
+    '/invoices',
+    [InvoiceController::class, 'index']  // with this, we fire this method/render this 'index' view, upon this route being reached.
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESSA ROUTE AÍ, COMO VC DEVE SE LEMBRAR,
+
+NÃO ESTÁ FUNCIONANDO...
+
+
+
+
+
+
+
+
+
+
+
+
+-> NÃO ESTÁ FUNCIONANDO JUSTAMENTE 
+
+PQ 
+
+O SERVICE DE 'invoiceService' 
+
+
+NÃO FOI INJETADO... E ELE NÃO FOI INJETADO JUSTAMENTE 
+
+PQ DEIXAMOS DE USAR O CONTAINER DO LARAVEL...
+
+
+
+
+
+
+
+
+
+
+
+--> QUEREMOS, AGORA, USAR 
+
+O CONTAINER DO 'DI',
+
+'PHP DI',
+
+
+COM O NOSSO SLIM FRAMEWORK...
+
+
+
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE ESTAMOS SEM DEPENDENCY INJECTION CONTAINERS,
+
+
+E QUE ESTAMOS SEM AUTOWIRING...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O SLIM SUPORTA 
+
+
+
+PSR-11 COMPATIBLE CONTAINER IMPLEMENTATIONS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+E O PHP DI 
+
+
+É COMPATÍVEL COM 
+
+
+ESSA ESPECÍFICAÇÃO,
+
+
+
+E É POR ISSO QUE VAMOS UTILIZÁ-LO 
+
+NESSA E NAS PRÓXIMAS AULAS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VAMOS ATÉ OS DOCS DO SLIM,
+
+
+
+E AÍ 
+
+
+ ABRIMOS A PAGE DE 'DEPENDENCY CONTAINER':
+
+
+
+
+ https://www.slimframework.com/docs/v3/concepts/di.html
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ --> HÁ UM EXEMPLO COM O PHP DI...
+
+
+
+
+
+
+
+
+
+-> PODEMOS COPIAR ESTE TRECHO AQUI:
+
+
+
+
+
+
+
+// Create Container using PHP-DI
+$container = new Container();
+
+
+// Set container to create App with on AppFactory:
+AppFactory::setContainer($container);
+$app = AppFactory::create();
+
+
+
+
+
+
+
+
+
+
+
+-> COLAMOS ISSO EM public>index.php....
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+// Create Container, using PHP-DI:
+$container = new Container();
+
+// Set container to create App with on AppFactory:
+AppFactory::setContainer($container);
+
+$app = AppFactory::create();
+
+$app->get(
+    '/',
+    [HomeController::class, 'index']  // with this, we fire this method/render this 'index' view, upon this route being reached.
+);
+
+$app->get(
+    '/invoices',
+    [InvoiceController::class, 'index']  // with this, we fire this method/render this 'index' view, upon this route being reached.
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE ISSO AINDA NÃO VAI FUNCIONAR,
+
+PQ AINDA NÃO INSTALAMOS O PHP-DI...
+
+
+
+
+
+
+
+
+
+
+
+
+-> VAMOS ATÉ OS DOCS DO PHP-DI...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA INSTALAR O PHP-DI,
+
+BASTA RODAR ASSIM:
+
+
+
+
+
+
+
+composer require php-di/php-di
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... SÓ TEMOS QUE GARANTIR QUE O CONTAINER É SETTADO ANTES DA CREATION 
+
+DA APP INSTANCE (com  'AppFactory::create()'')..
+
+
+
+
+
+
+
+
+AÍ INSTALAMOS O PHP DI...
+
+
+
+
+
+
+
+
+
+
+FINALIZADA A INSTALLATION,
+
+
+
+
+
+temos que importar 
+
+
+
+A CLASS DE CONTAINER, NO NOSSO INDEX.PHP,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Controllers\HomeController;
+use App\Controllers\InvoiceController;
+use DI\Container as DIContainer;
+use Slim\Factory\AppFactory;
+use Slim\Views\Twig;
+use Slim\Views\TwigMiddleware;
+use Twig\Extra\Intl\IntlExtension;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+define('STORAGE_PATH', __DIR__ . '/../storage');
+define('VIEW_PATH', __DIR__ . '/../views');
+
+// Create Container, using PHP-DI:
+$container = new DIContainer();
+
+// Set container to create App with on AppFactory:
+AppFactory::setContainer($container);
+
+$app = AppFactory::create();
+
+
+
+
+
+
+
+
+
+
+CERTO... ISSO FEITO,
+
+RECARREGAMOS A PAGE,
+E AÍ 
+
+TESTAMOS SE FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, AINDA GANHAMOS 1 ERROR,
+
+MAS AGORA O 
+
+
+ERROR É LEVEMENTE DIFERENTE:
+
+
+
+
+
+
+Fatal error: Uncaught DI\Definition\Exception\InvalidDefinition: Entry "App\Controllers\InvoiceController" cannot be resolved: Entry "App\Services\InvoiceService" cannot be resolved: Entry "Doctrine\ORM\EntityManager" cannot be resolved: Entry "Doctrine\DBAL\Connection" cannot be resolved: Parameter $params of __construct() has no value defined or guessable Full definition: Object ( class = Doctrine\DBAL\Connection lazy = false __construct( $params = #UNDEFINED# $driver = get(Doctrine\DBAL\Driver) $config = (default value) NULL $eventManager = (default value) NULL ) ) Full definition: Object ( class = Doctrine\ORM\EntityManager lazy = false __construct( $conn = get(Doctrine\DBAL\Connection) $config = get(Doctrine\ORM\Configuration) $eventManager = (default value) NULL ) ) Full definition: Object ( class = App\Services\InvoiceService lazy = false __construct( $em = get(Doctrine\ORM\EntityManager) ) ) Full definition: Object ( class = App\Controllers\InvoiceController lazy = false __construct( $invoiceService = get(App\Services\InvoiceService) ) ) in /var/www/vendor/php-di/php-di/src/Definition/Exception/InvalidDefinition.php on line 19
+
+
+
+
+
+
+
+OU SEJA,
+
+
+
+AGORA O ERROR 
+
+É SOBRE O ORM,
+
+
+E NÃO 
+
+MAIS SOBRE O DEPENDENCY INJECTION CONTAINER...
+
+
+
+
+
+
+
+
+
+OK..
+
+
+
+
+
+
+
+
+
+ESSE ERROR DIZ QUE 'THE ENTITY MANAGER CANNOT BE RESOLVED'...
+
+
+
+
+A RAZÃO PARA ISSO É QUE 
+
+
+'ENTITY MANAGER',
+
+
+NO CONSTRUCTOR DELE,
+
+
+
+EXPECTS ALGUMAS COISAS QUE NÃO SÃO PASSADAS COM O AUTOWIRING...
+
+
+
+
+
+
+
+PRECISAMOS BIND/REGISTRAR ISSO 
+
+
+
+DIRETAMENTE NO CONTAINER...
+
+
+
+
+
+
+
+
+
+
+
+
+-> E, PARA FAZER ISSO,
+ 
+ PRECISAMOS JUSTAMENTE 
+
+
+
+ CRIAR NOSSA CLASS DE 'EntityManager',
+
+
+
+ E ENTÃO 
+
+
+
+ REGISTRÁ-LA NO CONTAINER...
+
+
+
+
+
+
+
+
+ -> BASICAMENTE, PRECISAMOS REGISTRAR ESSE ORM,
+
+ NO NOSSO APP....
+
+
+
+
+
+
+
+
+ -> NÓS JÁ TÍNHAMOS FEITO ISSO 
+
+ QUANDO CRIAMOS AQUELA CLASS CUSTOM DE 'App.php',
+
+ QUE FAZIA BOOTSTRAP DE NOSSO APP....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ -> NAQUELA CLASS, O CÓDIGO RESPONSÁVEL 
+ POR ESSE REGISTER 
+
+ ERA ESTE AQUI:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // Entity Manager must be available in our controllers.
+        $this->container->singleton(EntityManager::class, fn() => EntityManager::create(
+            $this->config->db,
+            ORMSetup::createAttributeMetadataConfiguration([__DIR__, './Entity'])
+        ));
+
+
+
+
+
+
+
+
+
+
+--> NESSA PARTE AÍ,
+
+ESTÁVAMOS USANDO O CONTAINER DO LARAVEL...
+
+
+
+
+
+--> ENTRETANTO, AQUI NÃO ESTAMOS USANDO 
+O LARAVEL CONTAINER,
+
+E TAMBÉM NÃO ESTAMOS USANDO ESSA CLASS DE 
+
+
+'App.php'...
+
+
+
+
+
+
+
+
+
+
+--> ISSO SIGNIFICA QUE 
+
+PRECISAMOS COPIAR ISSO AÍ,
+
+
+E ENTÃO 
+
+REGISTRÁ-LO
+
+
+NO CONTAINER PHP DI....
+
+
+
+
+
+
+
+
+
+FAREMOS ISSO COM O METHOD '->set()' 
+
+do container do PHP DI,
+
+
+
+COM ESTE CÓDIGo:
+
+
+
+
+
+
+
+
+// bind EntityManager to container:
+$container->set(EntityManager::class, fn() => EntityManager::create(
+    $this->config->db,
+    ORMSetup::createAttributeMetadataConfiguration([__DIR__, './Entity'])
+));
+
+
+
+
+
+CERTO... MAS AQUELA CLOSURE, fn()=>,
+
+
+QUAISQUER DEPENDENCIES SÃO ACEITAS...
+
+
+> PODEMOS INJETAR DEPENDENCIES DENTRO DA CLOSURE....
+
+
+
+
+
+
+
+-> COMO PODEMOS INJETAR DEPENDENCIES,
+    INJETAMOS A CLASS DE 'CONFIG',
+
+
+    PARA QUE ELA SEJA AUTOMATICAMENTE 'PASSED DOWN'
+
+    PARA NÓS...
+
+
+
+
+ex:
+
+
+
+
+// bind EntityManager to container:
+$container->set(EntityManager::class, fn(Config $config) => EntityManager::create(
+    $config->db,
+    ORMSetup::createAttributeMetadataConfiguration([__DIR__, './Entity'])
+));
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+MAS ANTES DE TESTARMOS TUDO ISSO,
+
+
+DEVEMOS AJUSTAR O PATH DAS ENTITIES, COM ISTO:
+
+
+
+
+// bind EntityManager to container:
+$container->set(EntityManager::class, fn(Config $config) => EntityManager::create(
+    $config->db,
+    ORMSetup::createAttributeMetadataConfiguration([__DIR__, './../app/Entity'])
+));
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+AÍ REFRESHAMOS A PAGE...
+
+
+
+
+
+
+FICAMOS COM OUTRO ERROR...
+
+
+
+
+
+
+
+Fatal error: Uncaught DI\Definition\Exception\InvalidDefinition: Entry "App\Controllers\InvoiceController" cannot be resolved: Entry "App\Services\InvoiceService" cannot be resolved: Entry "App\Config" cannot be resolved: Parameter $env of __construct() has no value defined or guessable Full definition: Object ( class = App\Config lazy = false __construct( $env = #UNDEFINED# ) ) Full definition: Object ( class = App\Services\InvoiceService lazy = false __construct( $em = get(Doctrine\ORM\EntityManager) ) ) Full definition: Object ( class = App\Controllers\InvoiceController lazy = false __construct( $invoiceService = get(App\Services\InvoiceService) ) ) in /var/www/vendor/php-di/php-di/src/Definition/Exception/InvalidDefinition.php on line 19
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É UM ERROR 
+
+
+DE 'CANNOT RESOLVE THE CONFIG CLASS'...
+
+
+
+
+
+
+
+
+
+--> E ISSO FAZ SENTIDO, PQ AINDA NÃO REGISTRAMOS ESSA CONFIG CLASS 
+    NO CONSTRUCTOR...
+
+
+
+
+
+
+-> LÁ NA CLASS DE APP, ANTERIORMENTE,
+
+ESTÁVAMOS SIMPLESMENTE CRIANDO A CONFIG INSTANCE TIPO ASSIM:
+
+
+
+
+$this->config = new Config($_ENV);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PEGAMOS ISSO E BINDAMOS NO CONTAINER DO PHP DI, TIPO ASSIM:
+
+
+
+
+
+// Create Container, using PHP-DI:
+$container = new DIContainer();
+
+// bind Config to container:
+$container->set(Config::class, fn() => new Config($_ENV));
+
+// bind EntityManager to container:
+$container->set(EntityManager::class, fn(Config $config) => EntityManager::create(
+    $config->db,
+    ORMSetup::createAttributeMetadataConfiguration([__DIR__, './../app/Entity'])
+));
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS ISSO AINDA NÃO VAI FUNCIONAR...
+
+
+
+
+
+
+
+
+
+-> NÃO VAI FUNCIONAR PQ A SUPERGLOBAL DE 
+
+'$_ENV'
+
+
+
+NÃO VAI CONTER NOSSAS ENVIRONMENT VARIABLES...
+
+
+
+
+
+
+
+
+-> ISSO É PQ NÃO TEMOS ESTE TRECHO AQUI:
+
+
+        $dotenv = Dotenv::createImmutable(dirname(__DIR__));
+        $dotenv->load();
+
+
+
+
+
+
+
+
+
+--> ISSO AÍ PRECISA SER COPIADO E COLADO 
+
+
+LÁ NO 'public>index.php',
+
+
+
+PQ AGORA VAMOS USAR APENAS esse public>index.php,
+
+E NÃO USAREMOS MAIS O 'App.php'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS FIQUEI COM ESTE ERROR,
+
+DEPOIS:
+
+
+
+
+
+
+
+
+
+ Fatal error: Uncaught PDOException: SQLSTATE[HY000] [1045] Access denied for user ''@'172.18.0.3' (using password: YES) in /var/www/vendor/doctrine/dbal/src/Driver/PDO/MySQL/Driver.php:34 Stack trace: #0 /var/www/vendor/doctrine/dbal/src/Driver/PDO/MySQL/Driver.php(34): PDO->__construct('mysql:host=db;c...', '', 'root', Array) #1 /var/www/vendor/doctrine/dbal/src/Connection.php(378): Doctrine\DBAL\Driver\PDO\MySQL\Driver->connect(Array) #2 /var/www/vendor/doctrine/dbal/src/Connection.php(453): Doctrine\DBAL\Connection->connect() #3 /var/www/vendor/doctrine/dbal/src/Connection.php(411): Doctrine\DBAL\Connection->getDatabasePlatformVersion() #4 /var/www/vendor/doctrine/dbal/src/Connection.php(318): Doctrine\DBAL\Connection->detectDatabasePlatform() #5 /var/www/vendor/doctrine/orm/src/Query.php(817): Doctrine\DBAL\Connection->getDatabasePlatform() #6 /var/www/vendor/doctrine/orm/src/Query.php(261): Doctrine\ORM\Query->getQueryCacheId() #7 /var/www/vendor/doctrine/orm/src/Query.php(288): Doctrine\ORM\Query->parse() #8 /var/www/vendor/doctrine/orm/src/AbstractQuery.php(1212): Doctrine\ORM\Query->_doExecute() #9 /var/www/vendor/doctrine/orm/src/AbstractQuery.php(1166): Doctrine\ORM\AbstractQuery->executeIgnoreQueryCache(NULL, 2) #10 /var/www/vendor/doctrine/orm/src/AbstractQuery.php(913): Doctrine\ORM\AbstractQuery->execute(NULL, 2) #11 /var/www/app/Services/InvoiceService.php(23): Doctrine\ORM\AbstractQuery->getArrayResult() #12 /var/www/app/Controllers/InvoiceController.php(49): App\Services\InvoiceService->getPaidInvoices() #13 /var/www/vendor/slim/slim/Slim/Handlers/Strategies/RequestResponse.php(38): App\Controllers\InvoiceController->index(Object(Slim\Psr7\Request), Object(Slim\Psr7\Response), Array) #14 /var/www/vendor/slim/slim/Slim/Routing/Route.php(363): Slim\Handlers\Strategies\RequestResponse->__invoke(Array, Object(Slim\Psr7\Request), Object(Slim\Psr7\Response), Array) #15 /var/www/vendor/slim/slim/Slim/MiddlewareDispatcher.php(73): Slim\Routing\Route->handle(Object(Slim\Psr7\Request)) #16 /var/www/vendor/slim/slim/Slim/MiddlewareDispatcher.php(73): Slim\MiddlewareDispatcher->handle(Object(Slim\Psr7\Request)) #17 /var/www/vendor/slim/slim/Slim/Routing/Route.php(321): Slim\MiddlewareDispatcher->handle(Object(Slim\Psr7\Request)) #18 /var/www/vendor/slim/slim/Slim/Routing/RouteRunner.php(74): Slim\Routing\Route->run(Object(Slim\Psr7\Request)) #19 /var/www/vendor/slim/twig-view/src/TwigMiddleware.php(115): Slim\Routing\RouteRunner->handle(Object(Slim\Psr7\Request)) #20 /var/www/vendor/slim/slim/Slim/MiddlewareDispatcher.php(129): Slim\Views\TwigMiddleware->process(Object(Slim\Psr7\Request), Object(Slim\Routing\RouteRunner)) #21 /var/www/vendor/slim/slim/Slim/MiddlewareDispatcher.php(73): Psr\Http\Server\RequestHandlerInterface@anonymous->handle(Object(Slim\Psr7\Request)) #22 /var/www/vendor/slim/slim/Slim/App.php(209): Slim\MiddlewareDispatcher->handle(Object(Slim\Psr7\Request)) #23 /var/www/vendor/slim/slim/Slim/App.php(193): Slim\App->handle(Object(Slim\Psr7\Request)) #24 /var/www/public/index.php(58): Slim\App->run() #25 {main} Next Doctrine\DBAL\Driver\PDO\Exception: SQLSTATE[HY000] [1045] Access denied for user ''@'172.18.0.3' (using password: YES) in /var/www/vendor/doctrine/dbal/src/Driver/PDO/Exception.php:28 Stack trace: #0 /var/www/vendor/doctrine/dbal/src/Driver/PDO/MySQL/Driver.php(40): Doctrine\DBAL\Driver\PDO\Exception::new(Object(PDOException)) #1 /var/www/vendor/doctrine/dbal/src/Connection.php(378): Doctrine\DBAL\Driver\PDO\MySQL\Driver->connect(Array) #2 /var/www/vendor/doctrine/dbal/src/Connection.php(453): Doctrine\DBAL\Connection->connect() #3 /var/www/vendor/doctrine/dbal/src/Connection.php(411): Doctrine\DBAL\Connection->getDatabasePlatformVersion() #4 /var/www/vendor/doctrine/dbal/src/Connection.php(318): Doctrine\DBAL\Connection->detectDatabasePlatform() #5 /var/www/vendor/doctrine/orm/src/Query.php(817): Doctrine\DBAL\Connection->getDatabasePlatform() #6 /var/www/vendor/doctrine/orm/src/Query.php(261): Doctrine\ORM\Query->getQueryCacheId() #7 /var/www/vendor/doctrine/orm/src/Query.php(288): Doctrine\ORM\Query->parse() #8 /var/www/vendor/doctrine/orm/src/AbstractQuery.php(1212): Doctrine\ORM\Query->_doExecute() #9 /var/www/vendor/doctrine/orm/src/AbstractQuery.php(1166): Doctrine\ORM\AbstractQuery->executeIgnoreQueryCache(NULL, 2) #10 /var/www/vendor/doctrine/orm/src/AbstractQuery.php(913): Doctrine\ORM\AbstractQuery->execute(NULL, 2) #11 /var/www/app/Services/InvoiceService.php(23): Doctrine\ORM\AbstractQuery->getArrayResult() #12 /var/www/app/Controllers/InvoiceController.php(49): App\Services\InvoiceService->getPaidInvoices() #13 /var/www/vendor/slim/slim/Slim/Handlers/Strategies/RequestResponse.php(38): App\Controllers\InvoiceController->index(Object(Slim\Psr7\Request), Object(Slim\Psr7\Response), Array) #14 /var/www/vendor/slim/slim/Slim/Routing/Route.php(363): Slim\Handlers\Strategies\RequestResponse->__invoke(Array, Object(Slim\Psr7\Request), Object(Slim\Psr7\Response), Array) #15 /var/www/vendor/slim/slim/Slim/MiddlewareDispatcher.php(73): Slim\Routing\Route->handle(Object(Slim\Psr7\Request)) #16 /var/www/vendor/slim/slim/Slim/MiddlewareDispatcher.php(73): Slim\MiddlewareDispatcher->handle(Object(Slim\Psr7\Request)) #17 /var/www/vendor/slim/slim/Slim/Routing/Route.php(321): Slim\MiddlewareDispatcher->handle(Object(Slim\Psr7\Request)) #18 /var/www/vendor/slim/slim/Slim/Routing/RouteRunner.php(74): Slim\Routing\Route->run(Object(Slim\Psr7\Request)) #19 /var/www/vendor/slim/twig-view/src/TwigMiddleware.php(115): Slim\Routing\RouteRunner->handle(Object(Slim\Psr7\Request)) #20 /var/www/vendor/slim/slim/Slim/MiddlewareDispatcher.php(129): Slim\Views\TwigMiddleware->process(Object(Slim\Psr7\Request), Object(Slim\Routing\RouteRunner)) #21 /var/www/vendor/slim/slim/Slim/MiddlewareDispatcher.php(73): Psr\Http\Server\RequestHandlerInterface@anonymous->handle(Object(Slim\Psr7\Request)) #22 /var/www/vendor/slim/slim/Slim/App.php(209): Slim\MiddlewareDispatcher->handle(Object(Slim\Psr7\Request)) #23 /var/www/vendor/slim/slim/Slim/App.php(193): Slim\App->handle(Object(Slim\Psr7\Request)) #24 /var/www/public/index.php(58): Slim\App->run() #25 {main} Next Doctrine\DBAL\Exception\ConnectionException: An exception occurred in the driver: SQLSTATE[HY000] [1045] Access denied for user ''@'172.18.0.3' (using password: YES) in /var/www/vendor/doctrine/dbal/src/Driver/API/MySQL/ExceptionConverter.php on line 101
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ --> É PQ EU NÃO COLOQUEI SENHA E USER ADEQUADOS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+// bind Config to container:
+$container->set(Config::class, \DI\create(Config::class)->constructor($_ENV));
+
+
+
+
+
+^^^ essa é uma maneira mais eficiente de escrever a mesma coisa...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NÃO HÁ NADA DE NOVO, AQUI...  
+
+
+
+
+
+
+
+a única coisa realmente nova é o PHP DI 
+
+ e as features dele...
+
+
+
+
+
+
+
+
+-> FORA ISSO, JÁ COBRIMOS PRATICAMENTE TUDO DESSA FILE:
+
+
+
+
+
+
+1) LOAD DE ENVIRONMENT VARIABLES, COM PHPDOTENV
+
+
+
+
+2) HOW TO REGISTER CLASSES IN THE CONTAINER  (com '$container->set()'')
+
+
+
+
+
+3) COMO SETUPPAR 
+    O ORM (com EntityManager::create)
+
+
+
+
+
+
+
+E ETC...
+
+
+
+
+
+
+
+
+
+A DIFERENÇA, AGORA, É QUE ESTAMOS SIMPLESMENTE USANDO 
+1 THIRD-PARTY CONTAINER IMPLEMENTATION , 'PHP-DI',
+
+COM 1 FRAMEWORK,
+
+O 'SLIM PHP',
+
+
+EM VEZ DE USAR NOSSO CUSTOM 'App.php',
+
+PARA BOOTSTRAPPAR
+ 
+
+ NOSSO APP E CUSTOM ROUTER..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO QUER DIZER, EM OUTRAS 
+    PALAVRAS, QUE PODEMOS NOS LIVRAR DE VÁRIOS ARQUIVOS:
+
+
+
+
+
+
+
+1) App.php 
+
+
+2) Router.php 
+
+
+3) RouterInterface 
+
+
+
+
+
+4) Todos os attributes do Router 
+
+
+
+
+5) Enum classes dos methods http associados..
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+REFRESHAMOS O BROWSER, E TUDO AINDA FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> EU TESTEI AS MIGRATIONS, E FUNCIONOU TBM...
+
+
+
+
+
+
+
+
+-> ok...
+
+
+
+
+
+
+
+
+
+-> MAS O PROFESSOR QUER MELHORAR TUDO ISSO,
+
+NÃO QUER DEIXAR TODO ESSE CÓDIGO DENTRO DE 'index.php'...
+
+
+
+
+
+
+
+
+-> O PROFESSOR QUER TER A PARTE DO CONTAINER,
+
+CONTAINER BINDINGS,
+
+EM 1 CONFIG FILE SEPARADA,
+
+E AÍ SIMPLESMENTE CARREGAR ESSA FILE 
+
+
+DENTRO DO 'index.php'...
+
+
+
+
+
+
+-> O PROFESSOR TAMBÉM QUER FAZER A MESMA COISA COM AS ROUTES:
+
+
+ELE QUER TER 1 DEDICATED CONFIG FILE PARA O REGISTER DAS ROUTES,
+PARA O ROUTING....
+
+
+
+
+
+
+
+-> NO PRÓXIMO VIDEO, FAREMOS ESSE REFACTORING...
