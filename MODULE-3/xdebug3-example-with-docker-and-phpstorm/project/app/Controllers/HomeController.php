@@ -17,7 +17,11 @@ class HomeController
     {
         xdebug_info();
 
-        return throw new \Exception('This is a test');
+        $example_data = 'dasd';
+
+        var_dump($example_data);
+
+        // return throw new \Exception('This is a test');
         return View::make('index');
     }
 

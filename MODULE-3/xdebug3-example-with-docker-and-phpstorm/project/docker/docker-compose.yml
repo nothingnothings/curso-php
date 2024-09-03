@@ -9,7 +9,7 @@ services:
     restart: always
     working_dir: /var/www/
     extra_hosts: 
-      - "host.docker.internal:host-gateway" # This is needed, in linux file systems...
+      - host.docker.internal:host-gateway # This is needed, in linux file systems...
     volumes:
       - ../:/var/www
   nginx:
