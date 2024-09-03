@@ -1,0 +1,2459 @@
+
+
+
+
+
+
+
+
+
+ESTÁ QUASE NA HORA DE TRABALHAR NO FINAL PROJECT DESSA SÉRIE..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS ANTES DE ANALISARMOS ESSE PROJECT,
+
+    O PROFESSOR QUER NOS MOSTRAR ALGUMAS COISAS,
+
+    PARA GARANTIR QUE ESTAMOS PREPARADOS...
+
+
+
+
+
+
+
+
+
+--> NESSA AULA,
+
+VAMOS APRENDER 
+
+OS BASICS SOBRE O SLIM PHP FRAMEWORK... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK, MAS PQ DIABOS O PROFESSOR ESCOLHEU O SLIM PHP FRAMEWORK,
+EM VEZ DE ALGO COMO O LARAVEL OU O SYMFONY,
+
+OU 1 CUSTOM PHP FRAMEWORK?
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> HÁ ALGUMAS RAZÕES,
+    MAS ANTES DE MAIS NADA,
+
+
+    O PROFESSOR QUER NOS EXPLICAR O QUE É O SLIM FRAMEWORK, E COMO ELE FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+JÁ DE CARA,
+
+
+
+O SLIM DIZ QUE 
+
+É 
+
+UM 'MICRO FRAMEWORK' para php...
+
+
+
+
+
+
+
+
+
+
+
+
+-> EMBAIXO DISSO,
+
+TEMOS 
+
+1 SNIPPET OF CODE PARECIDO 
+
+
+COM TUDO AQUILO QUE ESTUDAMOS AO LONGO DA SÉRIE:
+
+
+
+
+
+https://www.slimframework.com/
+
+
+
+
+
+
+
+
+<?php
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Slim\Factory\AppFactory;
+
+require __DIR__ . '/../vendor/autoload.php';
+
+$app = AppFactory::create();
+
+$app->get('/hello/{name}', function (Request $request, Response $response, array $args) {
+    $name = $args['name'];
+    $response->getBody()->write("Hello, $name");
+    return $response;
+});
+
+$app->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+$app = AppFactory::create();
+
+
+
+
+
+
+
+
+É SOME KIND OF APP OBJECT... 
+
+
+
+
+
+
+
+
+
+
+-> AÍ TEMOS O REGISTER DAS ROUTES, COM ISTO:
+
+
+
+
+
+$app->get('/hello/{name}', function (Request $request, Response $response, array $args) {
+    $name = $args['name'];
+    $response->getBody()->write("Hello, $name");
+    return $response;
+});
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO, ESTAMOS RODANDO O APP:
+
+
+
+
+
+$app->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ABRIMOS OS DOCS, PARA VER ALGUMAS DAS FEATURES OFERECIDAS PELO 
+SLIM PHP...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS A PARTE IMPORTANTE É ESTA:
+
+
+
+
+
+
+
+
+
+
+What’s the point?
+Slim is an ideal tool to create APIs that consume, 
+repurpose, or publish data. 
+
+Slim is also a great tool for rapid prototyping. 
+Heck, you can even build full-featured web applications with user interfaces.
+ More importantly, Slim is super fast and has very little code.
+
+At its core, Slim is a dispatcher that receives an HTTP request, 
+invokes an appropriate callback routine, and returns an HTTP response. That’s it.
+
+You don’t always need a kitchen-sink solution like Symfony or Laravel. 
+These are great tools, for sure. But they are often overkill. 
+Instead, Slim provides only a minimal set of tools that do what you need and nothing else.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... QUER DIZER QUE É ÓTIMO PARA O PROTOTYPING...
+
+
+
+
+
+
+
+
+
+--> O SLIM NÃO É UM BATTERIES-INCLUDED 
+FRAMEWORK COMO LARAVEL E SYMFONY...
+
+
+
+
+
+
+
+
+
+
+
+--> ELE É UM MICROFRAMEWORK,,
+
+QUE TEM A CAPACIDADE DE 
+
+'ROUTE REQUESTS'
+
+
+E 
+
+'SEND BACK RESPONSES'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VC PODE, É CLARO,
+    ADICIONAR E INSTALAR MAIS COMPONENTS,
+
+
+    MAS ELE É UM ÓTIMO STARTING POINT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> É BEM PARECIDO COM A NOSSA CURRENT CODEBASE...
+
+
+
+
+
+
+
+
+
+--> TEMOS  UM FRONT CONTROLLER,
+
+    COMO 'index.php',
+
+
+    EM QUE TODOS OS REQUESTS GO THROUGH,
+
+    E EM QUE 
+    TUDO 
+
+    É 
+
+    'BOOTSTRAPPED'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É UM MICROFRAMEWORK,
+
+E TEM 1 ESTRUTURA PARECIDA COM A QUE USAMOS ATÉ AGORA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TEM MAIS FEATURES...
+
+
+
+
+
+
+
+
+-> WELL TESTED AND MAINTAINED FRAMEWORK...
+
+
+
+
+
+
+
+--> FLEXIBLE...
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR PREFERE USAR 
+    FRAMEWORKS/TOOLS COM COMUNIDADES,
+
+    E EM QUE PODEMOS GOOGLAR SEMPRE QUE NECESSÁRIO...
+
+
+
+
+
+
+
+-> NÃO É UM FRAMEWORK 'COMPLETO' E 'EXAGERADO'
+    COMO LARAVEL E SYMFONY..
+
+
+
+
+
+
+--> FOI PROJETADO PARA FUNCIONAR BEM COM OUTROS 
+    PHP COMPONENTS...
+
+
+
+    ISSO QUER DIZER QUE 
+    VC PODE USAR APENAS AS COISAS QUE VC QUER, PARA SEU APP,
+
+    E ENTÃO ADICIONAR MAIS COISAS,
+    ASSIM QUE 
+
+    AS NECESSIDADES SURGEM....
+
+
+
+
+
+
+
+
+
+
+--> O SLIM É PARECIDO COM NOSSO APP POR CONTA DE:
+
+
+
+
+
+1) ROUTING 
+
+
+2) FRONT CONTROLLER 
+
+
+3) APP
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE O PROFESSOR 
+    NÃO MOSTROU DE CARA O LARAVEL OU SYMFONY...
+
+
+
+
+
+
+
+
+-> PQ AÍ ELE TERIA DE ENSINAR O FRAMEWORK INTEIRO E AS FEATURES...
+
+
+
+
+
+
+
+
+
+
+
+--> ASSIM, PODEMOS ADICIONAR APENAS OS COMPONENTS REALMENTE 
+    NECESSÁRIOS AO PROJECT,
+
+
+    COMO:
+
+    1) DOCTRINE 
+
+
+    2) TWIG 
+
+
+    3) SYMFONY COMPONENTS..
+
+
+
+
+
+
+
+
+
+-> A BOA NOTÍCIA É QUE JÁ COBRIMOS QUASE TUDO ISSO AO LONGO DO CURSO...
+
+
+
+
+
+
+
+
+
+
+-> ABRIMOS A PARTE DE LIFECYCLE,
+PARA ENTENDERMOS MELHOR O QUE ACONTECE, SEMPRE QUE 1 REQUEST CHEGA NO SERVER...
+
+
+
+
+
+
+
+Application Life Cycle
+1. Instantiation
+First, you instantiate the Slim\App class.
+ This is the Slim application object. During instantiation, Slim registers default
+  services for each application dependency.
+
+
+
+
+
+
+
+
+2. Route Definitions
+Second, you define routes using the application
+ instance’s get(), post(), put(), delete(), patch(), head(), and options() routing methods.
+  These instance methods register a route with the application’s Router object. 
+  Each routing method returns the Route instance so you can immediately 
+  invoke the Route instance’s methods to add middleware or assign a name.
+
+
+
+
+
+
+
+
+
+
+3. Application Runner
+Third, you invoke the application instance’s run() method. This method starts the following process:
+
+A. Enter Middleware Stack
+The run() method begins to inwardly traverse the application’s middleware stack. This is a concentric structure of middleware layers that receive (and optionally manipulate) the Environment, Request, and Response objects before (and after) the Slim application runs. The Slim application is the innermost layer of the concentric middleware structure. Each middleware layer is invoked inwardly beginning from the outermost layer.
+
+B. Run Application
+After the run() method reaches the innermost middleware layer, it invokes the application instance and dispatches the current HTTP request to the appropriate application route object. If a route matches the HTTP method and URI, the route’s middleware and callable are invoked. If a matching route is not found, the Not Found or Not Allowed handler is invoked.
+
+C. Exit Middleware Stack
+After the application dispatch process completes, each middleware layer reclaims control outwardly, beginning from the innermost layer.
+
+D. Send HTTP Response
+After the outermost middleware layer cedes control, the application instance prepares, serializes, and returns the HTTP response. The HTTP response headers are set with PHP’s native header() method, and the HTTP response body is output to the current output buffer.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo... é algo bem básico...
+
+
+
+
+
+
+
+
+
+
+-> O METHOD DE RUN VAI POR DENTRO DE:
+
+
+
+
+
+
+
+Middleware  ---> APP ----> Middleware 
+(Before)                    (After)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OS MIDDLEWARES REGISTRADOS _ POR ÚLTIMO_ 
+    SÃO OS PRIMEIROS A SEREM EXECUTADOS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O SLIM SUPORTA INTERFACES PSR-7 NOS 
+
+OBJECTS DE REQUEST E RESPONSE,
+
+
+E ATÉ MESMO 
+
+
+PROVIDENCIA IMPLEMENTAÇÕES PRÓPRIAS..
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AINDA ASSIM, 
+    TEMOS A OPÇÃO DE USAR QUALQUER 
+    IMPLEMENTATION COMPATÍVEL 
+
+    COM PSR-7,
+    SE QUISERMOS...
+
+
+
+
+
+
+
+
+
+
+--> MAS VAMOS USAR A IMPLEMENTATION PROVIDENCIADA PELO 
+    SLIM FRAMEWORK, NESSE VIDEO..
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VAMOS VER COMO FAZER O SLIM FRAMEWORK FUNCIONAR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NA PAGE DE INSTALLATION,
+
+
+TEMOS ESTAS ETAPAS:
+
+
+https://www.slimframework.com/docs/v4/start/installation.html
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> rodamos 
+
+
+composer require slim/slim:"4.*"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO FEITO,
+PRECISAMOS INSTALAR 1 IMPLEMENTATION DE PSR7...
+
+
+
+
+certo...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PRECISAMOS DE ESSA IMPLEMENTATION..
+
+
+
+
+
+
+
+
+--> PODEMOS USAR QUALQUER IMPLEMENTATION DE PSR7,
+
+OU USAR A PROVIDENCIADA PELO slim...
+
+
+
+TIPO ASSIM:
+
+
+
+
+composer require slim/psr7
+
+
+
+
+
+
+
+
+
+
+
+
+--> FINALMENTE,
+
+TEMOS A PARTE DE SETUP DO SLIM..
+
+
+
+
+
+-> É ESTA PARTE AQUI:
+
+
+
+
+
+
+
+<?php
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Slim\Factory\AppFactory;
+
+require __DIR__ . '/../vendor/autoload.php';
+
+$app = AppFactory::create();
+
+$app->get('/', function (Request $request, Response $response, $args) {
+    $response->getBody()->write("Hello world!");
+    return $response;
+});
+
+$app->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COLAMOS ISSO LÁ NO public>index.php,
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use Illuminate\Container\Container as Container;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Slim\Factory\AppFactory;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+define('STORAGE_PATH', __DIR__ . '/../storage');
+define('VIEW_PATH', __DIR__ . '/../views');
+
+$container = new Container();
+
+$app = AppFactory::create();
+
+$app->get('/', function (Request $request, Response $response, $args) {
+    $response->getBody()->write('Hello world!');
+    return $response;
+});
+
+$app->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO, ABRIMOS O BROWSER,
+
+
+e isso funciona... 
+
+
+
+
+
+ENCONTRAMOS 'HELLO WORLD' PRINTADO, 
+
+
+NA ROUTE DE '/'...
+
+
+
+
+
+
+
+
+
+
+
+
+-> FOI BEM FÁCIL FAZER O slim funcionar...
+
+
+
+
+
+
+
+
+-> MAS AGORA FAREMOS ELE FUNCIONAR
+
+
+    COM NOSSAS CURRENT DEPENDENCIES,
+
+    COMO TWIG E DOCTRINE...
+
+
+
+
+
+
+
+--> PQ VAMOS PRECISAR DE ESSAS DEPENDENCIES NO PROJECT 
+EM QUE VAMOS TRABALHAR...
+
+
+
+
+
+
+
+
+
+
+-> A PRIMEIRA COISA QUE PRECISAMOS FAZER 
+
+É 
+ABRIR O COMPOSER.JSON 
+
+E REMOVER ALGUMAS DAS DEPENDENCIES
+
+DESNECESSÁRIAS..
+
+
+
+
+
+
+
+
+--> NÃO PRECISAMOS DE:
+
+
+
+
+
+1) psr/container 
+
+
+2) symfony/mailer...
+
+
+
+
+
+
+
+--> MANTEMOS O DOCTRINE DBAL E ORM..
+
+
+
+
+
+
+-> NÃO PRECISAMOS DO CONTAINER DO LARAVEL...
+
+
+
+
+
+
+-> MAS VAMOS MANTER O TWIG...
+
+
+
+
+
+
+
+
+
+DELETAMOS O COMPOSER.LOCK,
+
+
+E AÍ RODAMOS COMPOSER INSTALL...
+
+
+
+
+
+EX:
+
+
+
+
+
+{
+  "require": {
+    "ext-pdo": "*",
+    "vlucas/phpdotenv": "^5.3",
+    "psr/container": "^2.0",
+    "doctrine/dbal": "^3.3",
+    "doctrine/orm": "^2.11",
+    "symfony/cache": "^6.0",
+    "doctrine/migrations": "^3.4",
+    "guzzlehttp/guzzle": "^7.9",
+    "twig/twig": "^3.12",
+    "twig/intl-extra": "^3.12",
+    "slim/slim": "4.*",
+    "slim/psr7": "^1.7",
+    "psr/http-message": "^2.0",
+    "symfony/polyfill-php80": "^1.29"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
+  "config": {
+    "optimize-autoloader": true
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.5"
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+AGORA VAMOS 
+
+
+
+FAZER O TWIG FUNCIONAR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> TEMOS INSTRUCTIONS DE COMO FAZER O TWIG FUNCIONAR COM O 
+SLIM FRAMEWORK:
+
+
+
+https://www.slimframework.com/docs/v3/features/templates.html#the-slimtwig-view-component
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> EXISTE 1 COMPONENT DE 'twig-view',
+
+
+OFERECIDO PELO SLIM PHP FRAMEWORK...
+
+
+
+
+
+
+
+
+--> ISSO NOS AJUDA A
+    RENDER E USE 
+    TWIG TEMPLATES DENTRO DE NOSSO APP...
+
+
+
+
+
+
+    --> É COMO 1 WRAPPER AO REDOR DO TWIG 
+        ENVIRONMENT OBJECT,
+
+        QUE TORNA SEU INTEGRATE AO SLIM PHP 
+        MAIS FÁCIL...
+
+
+
+
+
+
+-> BASTA RODAR 
+
+
+
+'composer require slim/twig-view'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AÍ PROSSEGUIMOS COM OS DOCS...
+
+
+
+
+
+
+
+
+
+
+
+-> OS DOCS MOSTRAM ISTO:
+
+
+
+
+
+
+
+
+
+
+
+
+-> BASICAMENTE,
+ 
+ TEMOS ESTE CÓDIGO, EM QUE CRIAMOS 1 TWIG OBJECT 
+
+ E ENTÃO 
+
+
+ O ADICIONAMOS, COMO MIDDLEWARE,
+
+ AO NOSSO APP...
+
+
+
+ TIPO ASSIM:
+
+
+
+
+
+$twig = Twig::create('path/to/templates', ['cache' => false]);
+
+
+
+$app->add(TwigMiddleware::create($app, $twig));
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+$container = new Container();
+
+$app = AppFactory::create();
+
+$app->get('/', function (Request $request, Response $response, $args) {
+    $response->getBody()->write('Hello world!');
+    return $response;
+});
+
+// Create Twig:
+$twig = Twig::create('path/to/templates', ['cache' => false]);
+
+// Add Twig-View Middleware:
+$app->add(TwigMiddleware::create($app, $twig));
+
+$app->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... DEPOIS DISSO, TEMOS QUE AJUSTAR O PATH E AS SETTINGS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---> JÁ TÍNHAMOS ISSO 
+
+    SETTADO NAQUELA CLASS 'APP' custom...
+
+
+
+
+
+-> BASTA ABRIR A CLASS DE APP,
+
+
+E LÁ TÍNHAMOS ISTO:
+
+
+
+
+
+
+
+        // Initialize twig templating engine:
+        $loader = new FilesystemLoader(VIEW_PATH);
+        $twig = new Environment($loader, [
+            'cache' => STORAGE_PATH . '/cache',
+            'auto_reload' => true,
+        ]);
+
+        $twig->addExtension(new IntlExtension());
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok...
+
+
+
+
+
+--> QUEREMOS REPLICAR ISSO,
+
+BASICAMENTE..
+
+
+
+
+
+
+
+
+
+
+-> BASTA ESCREVER TIPO ASSIM:
+
+
+
+
+ 
+
+
+
+
+
+ // Create Twig:
+$twig = Twig::create(VIEW_PATH, ['cache' => STORAGE_PATH . '/cache', 'auto_reload' => true]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...  FAZ SENTIDO...
+
+
+
+
+ESSE Twig::create faz basicamente a mesma coisa que 
+
+fazíamos antes,
+
+
+
+
+mas com algumas coisinhas a mais,
+
+para que funcione adequadamente com o twig framework...
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO...
+
+
+
+
+MAS UMA OUTRA COISA QUE TÍNHAMOS FEITO,
+
+COM O TWIG,
+FOI O ADD DAQUELA EXTENSION 
+
+
+DE 'IntlExtension()',
+
+
+JUSTAMENTE PARA FAZER FILTERS COMO 'format_currency()'
+
+FUNCIONAREM, LÁ NAS NOSSAS VIEWS...
+
+
+
+
+
+
+
+
+FIZEMOS ISSO COM ESTE CÓDIGO, ANTERIORMENTE:
+
+
+
+        $twig->addExtension(new IntlExtension());
+
+
+
+
+
+
+
+
+
+
+
+
+-> PRECISAMOS ADICIONAR ISSO AO TWIG OBJECT TAMBÉM,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+// Create Twig:
+$twig = Twig::create(VIEW_PATH, ['cache' => STORAGE_PATH . '/cache', 'auto_reload' => true]);
+
+$twig->addExtension(new IntlExtension());
+
+// Add Twig-View Middleware:
+$app->add(TwigMiddleware::create($app, $twig));
+
+$app->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS COMO PODEMOS USAR ESSE TWIG,
+PARA RENDERIZAR VIEWS?
+
+
+
+
+
+
+
+
+-> PARA ISSO, TEMOS DE EDITAR O REGISTER DA ROUTE DE '->get()'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NO MOMENTO,
+
+ELE ESTÁ ASSIM:
+
+
+
+
+
+
+
+
+$app->get('/', function (Request $request, Response $response, $args) {
+    $response->getBody()->write('Hello world!');
+    return $response;
+});
+
+
+
+
+
+
+
+
+
+
+
+
+NO CASO,
+
+PRECISAMOS PEGAR 
+
+
+
+E CRIAR 1 TWIG OBJECT/VIEW,
+
+
+A PARTIR DO REQUEST,
+
+
+E AÍ RETORNAR 
+
+'$view->render()'..
+
+
+TIPO ASSIM:
+
+
+
+
+$app->get('/', function (Request $request, Response $response, $args) {
+    $view = Twig::fromRequest($request);
+
+
+    return $view->render();
+}); 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK...
+
+
+
+
+RETORNAMOS O VIEW OBJECT, DO REQUEST...
+
+
+
+
+
+
+-> MAS ESSE METHOD DE 'render()' exige alguns parameters:
+
+
+
+
+
+
+1) a 'PSR7 RESPONSE INTERFACE'... --> basta passar '$response'...
+
+
+
+
+
+2) DEPOIS DISSO, PRECISAMOS DO ACTUAL _ TEMPLATE/VIEW 
+    A SER RENDERIZADA, QUE, NESSE CASO (de '/'),
+
+
+    SERÁ 'index.twig':
+
+
+
+
+3) O TERCEIRO PARAMETER SERÁ/SERIA 
+    ADDITIONAL DATA, SE TIVÉSSEMOS ALGUMAS (alguma variable a ser passada,
+    dentro da nossa view, por meio da templating engine)
+
+
+
+
+
+
+
+$app->get('/', function (Request $request, Response $response, $args) {
+    $view = Twig::fromRequest($request);
+
+
+    return $view->render($response, 'index.twig');
+}); 
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+$app->get('/', function (Request $request, Response $response, $args) {
+    $view = Twig::fromRequest($request);
+
+    return $view->render($response, 'index.twig');
+});
+
+
+
+
+
+
+
+ok... DEPOIS DISSO, VOLTAMOS AO BROWSER E REFRESHAMOS a page...
+
+
+
+
+
+
+
+
+
+
+
+
+CÓDIGO COMPLETO:
+
+
+
+
+
+
+
+
+
+
+
+$container = new Container();
+
+$app = AppFactory::create();
+
+$app->get('/', function (Request $request, Response $response, $args) {
+    // We use this to render a view, from our views folder.
+    $view = Twig::fromRequest($request);
+
+    return $view->render($response, 'index.twig');  // * 1st parameter is the response psr7 object/interface, second is the actual view to be rendered, and the 3rd (optional) is the DATA to be passed into the view, if you need any.
+});
+
+// Create Twig:
+$twig = Twig::create(VIEW_PATH, ['cache' => STORAGE_PATH . '/cache', 'auto_reload' => true]);
+
+$twig->addExtension(new IntlExtension());
+
+// Add Twig-View Middleware:
+$app->add(TwigMiddleware::create($app, $twig));
+
+$app->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS É CLARO QUE NÓS __ PROVAVELMENTE NÃO QUEREMOS REGISTRAR ROUTES 
+DESSA MANEIRA AÍ...
+
+
+
+
+
+
+
+
+
+
+-> ISSO PQ NÃO QUEREMOS TER DE ESPECIFICAR TODOS OS CALLBACKS E TER 
+
+TODA ESSA LÓGICA CONTROLLER-SPECIFIC 
+
+DIRETAMENTE NA DEFINIÇÃO/REGISTER DE NOSSAS ROUTES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ALÉM DE SUPORTAR CALLBACKS,
+
+O SLIM SUPORTA TAMBÉM CONTROLLERS_...
+
+
+
+
+------> É POR ISSO QUE VAMOS OUTSOURCEAR ESSE CÓDIGO,
+
+
+FAZER COM QUE ELE SEJA DISPARADO POR MEIO DE 1 CONTROLLER,
+
+
+
+EVITAR SEU EXECUTE DIRETO NESSE CALLBACK...
+
+
+
+
+
+
+
+
+
+
+
+
+--> TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+$app->get('/', 
+
+
+[HomeController::class, 'methodName']
+);
+
+
+
+
+
+
+
+
+
+
+
+
+NO CASO, COLOCAMOS o method name como sendo 'index',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+$app->get('/', 
+
+
+[HomeController::class, 'index']
+);
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+$app->get(
+    '/',
+    [HomeController::class, 'index'] // with this, we fire this method/render this 'index' view, upon this route being reached.
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... 
+
+
+
+
+
+AÍ ABRIMOS AQUELE CÓDIGO DE 'HOMECONTROLLER',
+
+EM QUE ESTÁVAMOS USANDO  A VELHA IMPLEMENTATION DE NOSSO ROUTER....
+
+
+
+
+
+
+
+
+
+
+
+
+O CÓDIGO ESTAVA/ESTÁ ASSIM:
+
+
+
+
+
+// ! Without slim framework + twig (only twig + a custom router implementation)
+// class HomeController
+// {
+//     public function __construct(private Twig $twig) {}
+
+//     #[Get('/')]
+//     #[Route('/home', HttpMethod::Head)]
+//     public function index()
+//     {
+//         return $this->twig->render('index.twig');
+//     }
+
+//     #[Post('/')]
+//     public function store() {}
+
+//     #[Put('/')]
+//     public function update() {}
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+--> VAMOS ALTERAR ISSO, PQ AGORA 
+
+    ESTAMOS USANDO O SLIM FRAMEWORK 
+
+    COM O TWIG...
+
+
+
+
+
+
+
+
+
+não vamos mais fazer o inject do twig, como dependency,
+
+pq não estamos mais usando o container do laravel...
+
+
+
+
+
+
+
+
+
+
+AGORA ESTAMOS USANDO O TWIG COMPONENT DO SLIM FRAMEWORK...
+
+
+
+
+
+
+
+
+
+
+
+-> E, COM ESSE SLIM FRAMEWORK,
+
+TODOS OS CONTROLLER METHODS 
+
+
+
+
+'''ACCEPT
+    PSR7 REQUEST AND RESPONSE INTERFACE 
+    OBJECTS'''...
+
+
+
+
+
+
+
+--> É JUSTAMENTE POR ISSO QUE PODEMOS ESCREVER ASSIM, lá em index():
+
+
+
+
+
+
+
+
+// * With slim framework + twig component (slim's twig component)
+class HomeController
+{
+    public function index(Request $request, Response $response)
+    {
+        return $this->twig->render('index.twig');
+    }
+
+    public function store() {}
+
+    public function update() {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+ok...
+
+
+
+
+
+
+
+
+ISSO FEITO,
+
+FAREMOS A MESMA COISA QUE FIZEMOS ANTES,
+
+
+
+O CÓDIGO DE 
+
+
+''
+
+return $view->render($response, 'index.twig');
+
+
+''
+
+
+
+
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+// * With slim framework + twig component (slim's twig component)
+class HomeController
+{
+    public function index(Psr7Request $request, Response $response)
+    {
+        return Twig::fromRequest($request)->render($response, 'index.twig');
+    }
+
+    public function store() {}
+
+    public function update() {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... E ISSO FUNCIONA....
+
+
+
+
+
+
+
+
+AGORA FAREMOS A MESMA COISA PARA O INVOICE CONTROLLER...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+$app->get(
+    '/',
+    [HomeController::class, 'index']  // with this, we fire this method/render this 'index' view, upon this route being reached.
+);
+
+$app->get(
+    '/invoices',
+    [InvoiceController::class, 'index']  // with this, we fire this method/render this 'index' view, upon this route being reached.
+);
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AÍ EDITAMOS ESSE METHOD,
+
+LÁ NO INVOICES CONTROLLER...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+// * With slim framework + twig component (slim's twig component)
+class InvoiceController
+{
+    public function index(Request $request, Response $response, $args): Response
+    {
+        return Twig::fromRequest($request)->render($response, 'invoices/index.twig', ['invoices' => $invoices]);
+    }
+
+    public function create() {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... AÍ ABRIMOS 
+
+
+localhost:8000/invoices,
+
+
+
+
+
+
+E FICAMOS COM 1 EXCEPTION...
+
+
+
+
+
+
+
+
+
+
+--> O ERROR FOI ESTE:
+
+
+
+
+
+
+l error: Uncaught TypeError: App\Controllers\InvoiceController::__construct(): Argument #1 ($invoiceService) must be of type App\Services\InvoiceService, null given, called in /var/www/vendor/slim/slim/Slim/CallableResolver.php on line 146 and defined in /var/www/app/Controllers/InvoiceController.php on line 45
+
+
+
+
+
+
+
+
+
+
+diz que o primeiro argument DO CONSTRUCTOR DEVE __ SER __ DE 
+
+'InvoiceService',
+
+
+
+MAS UM ARGUMENT DE 'null'
+
+
+
+
+FOI INSERIDO...
+
+
+
+
+
+
+
+
+
+-> ISSO SIMPLESMENTE QUER DIZER QUE 
+
+A DEPENDENCY INJECTION,
+
+NO NOSSO APP (com o container do laravel, que JÁ REMOVEMOS),
+
+NÃO ESTÁ FUNCIONANDO...
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO ACONTECEU PQ ESTAMOS SEM  CONTAINER,
+
+SEM AUTO-WIRING,
+
+
+QUE ERA O QUE TÍNHAMOS COM 
+
+A NOSSA IMPLEMENTATION DO CONTAINER/CONTAINER DO LARAVEL....
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> BEM, MAS O SLIM FRAMEWORK SUPORTA IMPLEMENTAÇÕES 
+
+DE CONTAINER PSR11...
+
+
+
+
+
+
+-> PODEMOS USAR QUAISQUER IMPLEMENTAÇÕES COMPATÍVEIS COM O PSR11..
+
+
+
+
+
+
+
+
+-> BEM... PHP DI 
+
+É UMA DESSAS LIBRARIES, 
+
+
+
+PQ ELE IMPLEMENTA O PSR11,
+
+E OFERECE MTAS FEATURES
+
+
+
+DOS DEPENDENCY INJECTION CONTAINERS,
+
+INCLUSIVE O AUTO-WIRING...
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE NA PRÓXIMA AULA 
+
+VAMOS SETUPPAR TUDO ISSO,
+
+
+E AÍ VAMOS SETUPPAR DOCTRINE ORM E MIGRATIONS...
+
+
+
+
+
+
+
+
+--> ISSO PQ 
+
+O __ INVOICESERVICE TAMBÉM PRECISA DO DOCTRINE ORM 
+FUNCIONANDO ADEQUADAMENTE,
+
+POR CONTA DESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+
+    public function getPaidInvoices(): array
+    {
+        return $this
+            ->em
+            ->createQueryBuilder()
+            ->select('i')
+            ->from(Invoice::class, 'i')
+            ->where('i.status = :status')
+            ->setParameter('status', InvoiceStatus::Paid)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+VEREMOS ISSO TUDO NA PRÓXIMA AULA...
+
+
+
+
+
+
+
