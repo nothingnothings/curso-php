@@ -1,0 +1,1764 @@
+
+
+
+
+
+
+
+
+
+
+AGORA QUEREMOS COLOCAR NOSSO APP NA WEB...
+
+
+
+
+
+
+
+
+
+
+
+
+-> VAMOS DEPLOYAR NOSSO APP EM PRODUCTION..
+
+
+
+
+
+
+
+
+
+
+--> VAMOS DEPLOYAR 1 VANILLA PHP APP 
+
+
+
+AO CLOUDWAYS...
+
+
+
+
+
+
+
+
+
+
+
+
+CLOUDWAYS -> MANAGED HOSTING PROVIDER...
+
+
+
+
+
+
+
+
+
+
+
+-> DEIXA O DEPLOY DE SEUS APPS BEM MAIS FÁCIL...
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR TEVE DE ESCOLHER ENTRE:
+
+
+
+
+
+
+
+1) SHARED HOSTING 
+
+
+
+
+2) VPS
+
+
+
+
+
+
+
+
+
+
+
+-> ELE TINHA QUE ESCOLHER QUAL TIPO DE HOSTING PROVIDER IA USAR 
+   PARA ESSE TIPO DE DEPLOY...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR NÃO USA SHARED HOSTING PARA OS APPS 
+    PHP DELE...
+
+
+
+
+
+
+
+
+--> E CONFIGURAR O VPS 
+    E PROVISION FROM SCRATCH,
+    PARA GARANTIR QUE TUDO FICASSE SMOOTH,
+
+    IA DEMORAR MT TEMPO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE O PROFESSOR DECIDIU  
+    COLABORAR COM O CLOUDWAYS,
+
+
+    PQ ELE TIRA A COMPLEXIDADE, E DEIXA AS COISAS BEM MAIS FÁCIL..
+
+
+
+
+
+
+
+
+    -> FAST, SIMPLE AND RELIABLE...
+
+
+
+
+
+
+
+
+
+
+    -> AO CONTRÁRIO DE SHARED HOSTING,
+        SERVERS LANÇADOS COM CLOUDWAYS 
+        POSSUEM 
+
+        DEDICATED RESOURCES,
+
+        O QUE QUER DIZER BOA PERFORMANCE PARA SEU APP...
+
+
+
+
+
+
+
+
+
+
+
+
+--> NÓS CONSTRUÍMOS 1 APP SIMPLES AO LONGO DESTA SÉRIE..
+
+
+
+
+
+
+
+
+
+
+ELE TEM:
+
+
+1) SIMPLE ROUTING (cUSTOM ROUTER)
+
+
+2) DOCTRINE ORM/ELOQUENT
+
+
+3) MIGRATIONS 
+
+
+
+4) LARAVEL'S CONTAINER 
+
+
+
+5) SYMFONY'S TWIG 
+
+
+
+6) ETC...
+
+
+
+
+
+
+
+-> É POR ISSO QUE QUEREMOS DEPLOYAR ESSE APP..
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR AJUSTOU  
+    UM POUCO O CÓDIGO DO APP,
+
+    PARA QUE O DEPLOY SEJA MAIS SIMPLES...
+
+
+
+
+
+
+
+-> O PROFESSOR RECOMENDA QUE 
+    UTILIZEMOS O CÓDIGO DO REPOSITÓRIO...
+
+
+
+
+
+
+
+
+
+--> SÓ TEMOS QUE RODAR O DOCKER-COMPOSE UP -D --BUILD,
+
+para rebuildar o container...
+
+
+
+
+
+
+
+
+
+-> TEMOS QUE CRIAR 1 CONTA DO CLOUDWAYS...
+
+
+
+
+
+
+
+
+-> O site te obriga a contatar a equipe e pagar..
+
+
+
+
+
+
+
+
+
+-> TEMOS ALGUNS PRESETS...
+
+
+
+
+
+
+
+
+--> PHP CUSTOM APP...
+
+
+
+
+
+
+
+
+
+-> SELECIONAMOS ISSO...
+
+
+
+
+
+
+
+
+-> COLOCAMOS O NOME DE NOSSO APP,
+    O NOME DO MANAGED SERVER, O PROJECT...
+
+
+
+
+
+
+
+
+
+
+
+    -> AÍ ESCOLHEMOS A HOSTING 
+        PLATFORFM..
+
+
+
+
+
+
+    -> TEMOS:
+
+
+    1) DIGITAL OCEAN 
+
+
+    2) VULTR 
+
+
+    3) LINODE 
+
+
+
+    4) AWS 
+
+
+    5) GCP
+     
+
+
+
+
+
+    
+
+
+    -> NÃO INTERESSA QUAL VC ESCOLHER..
+
+
+
+    -> TUDO DEPENDE DA SUA BUDGET...
+
+
+
+
+
+
+
+
+
+-> O DIGITAL OCEAN É A OPÇÃO MAIS BARATA....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK..
+
+
+
+
+
+AÍ TEMOS A PAGE DE SERVER MANAGEMENT...
+
+
+
+
+
+
+
+TEMOS AS SECTIONS:
+
+
+
+
+1) MASTER CREDENTIALS 
+
+
+
+--> SSTP E SSH ACCESS DETAILS PARA TODOS OS APPS NESSE SERVER 
+
+
+
+
+
+2) MONITORING 
+
+
+
+
+-> PODEMOS VER OS RESOURCES DO SERVER,
+
+
+    - USED RAM 
+
+    - CPU USAGE 
+
+    - DISK USAGE 
+
+
+
+
+
+
+
+
+3) MANAGE SERVICES 
+
+
+--> MOSTRA OS SERVICES USADOS PELO APP E PELO SERVER...
+
+
+
+
+--> AQUI PERCEBEMOS OS SERVICES:
+
+
+        -- APACHE 
+
+
+        -- MEMCACHED 
+
+
+        -- MYSQL 
+
+        -- NGINX 
+
+
+
+        -- PHP FPM 
+
+
+
+
+
+
+
+
+
+
+
+--> MEMCACHED E VARNISH SÃO OS CACHE LAYERS... SÃO MANAGED PELO CLOUDWAYS...
+
+
+
+
+
+
+
+
+4) SETTINGS E PACKAGES --> TEMOS MEMORY LIMITS, UPLOAD SIZE, EXECUTION LIMIT, ETC...
+
+
+
+--> 300 PARA EXECUTION LIMIT É MEIO LONGO DEMAIS... NENHUM SCRIPT DEVE RODAR POR 300 SEGUNDOS,
+    DEIXAMOS COMO 30 SEGUNDOS...
+
+
+
+
+
+
+
+-> UPLOAD SIZE É MELHOR COMO 25MB
+
+
+
+
+
+
+
+
+
+
+-> DISPLAY ERROR -> NO... PQ ESTAMOS EM PRODUCTION...
+
+
+
+
+
+
+
+
+
+
+-> ERROR REPORTING --> DEIXAMOS COMO PRODUCTION ENVIRONMENT...
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAX INPUT VARIABLES --> A QUANTIDADE DE VARIABLES QUE PODEM SER PASSED 
+                            NAS VARIABLES DE $_GET, $_POST E $_COOKIES SUPERGLOBALS...
+
+
+
+
+
+
+
+
+
+
+-> EM PACKAGES, DETERMINAMOS QUAL VERSAO DO PHP, MYSQL E ETC QUEREMOS USAR...
+
+
+
+
+
+
+---> PHP VERSION SERÁ 8.0...
+
+
+
+
+
+
+-> USAREMOS MYSQL....
+
+
+
+
+
+
+
+
+
+-> PHP 8.1 NÃO É SUPORTADO PELO CLOUDWAYS...
+
+
+
+
+-> POR ISSO O PROFESSOR TIROU OS ENUMS...
+
+
+
+
+
+
+
+
+
+
+
+-> UPDATAMOS A VERSION DO MYSQL..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+->  NÓS NÃO USAMOS 'ELASTICSEARCH',
+
+
+
+E O PROFESSOR AINDA NÃO NOS ENSINOU O REDIS..
+
+
+
+
+
+
+
+
+
+
+
+-> QUERO APRENDER SOBRE 'SUPERVISORD' E 'REDIS'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OPTIMIZATION 
+
+
+
+--> DISK CLEANUP... 
+
+
+-> deixamos ativado...
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAINTENANCE -> PODEMOS SETTAR OS DIAS DE MAINTENANCE MAIS APROPRIADOS PARA NOSSO APP...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+5) SECURITY:
+
+
+
+
+
+-> O PROFESSOR ACHA QUE É UMA DAS SECTIONS MAIS 
+    IMPORTANTES...
+
+
+
+
+
+
+
+--> A PRIMEIRA OPTION PERMITE TODOS 
+    OS IP ADDRESSES, EXCETO AQUELES BLOQUEADOS PELO 
+    CLOUDWAYS SECURITY TEAM...
+
+
+---> O PROFESSOR PREFERE A SEGUNDA,
+    QUE BLOQUEIA TODOS OS IP ADDRESSES,
+
+    EXCETO OS IPS NA WHITELIST...
+
+
+
+
+
+
+
+
+
+--> AÍ O PROFESSOR COLOCA O IP DELE NA LIST....
+
+
+
+
+
+
+
+--> TAMBÉM COLOCA O IP DELE NO MYSQL...
+
+
+
+
+
+
+
+
+-> COM ISSO, APENAS OS IPS NA ALLOW-LIST SÃO 
+
+ALLOWED O FTP E SSH NO SERVER...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+6) VERTICAL SCALING 
+
+
+
+
+
+-> AQUI É ONDE VC PODE SCALE UP O SERVER SIZE,
+
+SEMPRE QUE VC PRECISAR...
+
+
+
+
+
+
+
+
+
+7) BACKUP SETTITNGS 
+
+
+
+
+
+
+
+8) SMTP --> TE DEIXA    
+                SETUPPAR/CONFIGURAR ESSE SERVICE,
+
+                PARA CONFIGURAR O EMAIL DELIVERY 
+
+                SERVICE, NO SEU APP... PARA TER OUTBOUND EMAILS..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+
+        VAMOS ATÉ MASTER CREDENTIALS,
+
+        E AÍ FAZEMOS SSH PARA DENTRO DO SERVER,
+
+
+        TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+ssh master_mzbasasdas@174.138.33.113 
+
+
+
+
+
+
+ISSO É NO TERMINAL...
+
+
+
+
+
+
+AÍ COLAMOS O PASSWORD...
+
+
+
+
+
+
+
+
+
+
+DIGITAMOS 'LS',
+
+PARA VER TODOS OS APPS NESSE SERVER...
+
+
+
+
+
+
+
+
+
+
+
+
+
+cd applications 
+
+
+
+
+
+ls 
+
+
+
+
+
+
+
+--> ENCONTRAMOS APENAS 1 ÚNICO DIRECTORY, COM 1 ÚNICO NAME...
+
+
+
+
+
+das221casdfz
+
+
+
+
+
+
+
+
+
+
+
+
+-> COMO TEMOS APENAS 1 SERVER,
+
+
+É CLARO QUE ESSE É NOSSO APP....
+
+
+
+
+
+escrevemos 
+
+
+
+cd das221casdfz
+
+
+
+
+ls 
+
+
+
+
+
+
+
+-> E ENTÃO ENCONTRAMOS A ESTRUTURA DE FOLDERS FAMILIAR:
+
+
+
+
+
+
+
+
+
+conf   logs   private_html   public_html   ssl  tmp 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PUBLIC_HTML É O QUE VAI CONTER 
+
+
+NOSSO APP...
+
+
+
+
+
+cd public_html 
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ ENCONTRAMOS O 'index.php'
+
+
+GERADO PELO CLOUDWAYS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> VAMOS REMOVER ESSE ARQUIVO,
+
+PQ VAMOS FAZER DEPLOY DE NOSSO PRÓPRIO APP...
+
+
+
+
+
+
+
+
+
+
+
+rodamos rm index.php...
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA DEPLOYAR NOSSO APP,
+
+
+PRECISAMOS IR ATÉ UMA PAGE QUE NOS DEIXA DEPLOYAR NOSSOS APPS.
+
+
+
+
+
+
+
+
+
+clicamos em 'applications'...
+
+
+
+
+
+
+-> AÍ PODEMOS MANAGEAR NOSSOS APPS..
+
+
+
+
+
+
+
+
+--> APP MANAGEMENT PAGE...
+
+
+
+
+
+
+
+
+-> É COMPOSTA DE MÚLTIPLAS SECTIONS:
+
+
+
+
+
+
+
+
+1) ACCESS DETAILS 
+
+
+
+2) STAGING MANAGEMENT 
+
+
+
+3) MONITORING  --> ANALYTICS E LOGS... MT ÚTEIS...
+
+--> TAMBÉM 'SLOW PAGEs'...
+
+
+-> também slow queries...
+
+
+4) DOMAIN MANAGEMENT 
+
+
+
+5) CRON JOB MANAGEMENT 
+
+
+6) SSL CERTIFICATE 
+
+
+
+7) BACKUP AND RESTORE 
+
+
+
+8) DEPLOYMENT VIA GIT 
+
+
+
+
+9) APPLICATION SETTINGS 
+
+
+
+
+
+-> ENCONTRAMOS O RANDOM FOLDER NAME,
+
+
+-> WEBROOT
+
+
+-> DEFAULT EMAIL SENDER...
+
+
+
+
+--> TROCAMOS O WEBROOT PARA 'public_html/public', pq é 
+    NESSE LOCAL QUE NOSSO 'public>index.php'
+
+    está localizado...
+
+
+
+
+
+
+
+
+10) CLOUDFLARE...
+
+
+
+
+
+
+
+
+
+
+
+
+-> VAMOS FAZER DEPLOYMENT VIA GIT...
+
+
+
+
+
+
+
+-> CLICAMOS 'GENERATE SSH KEY'...
+
+
+
+
+
+
+--> AÍ COPIAMOS A KEY
+    E AÍ A ADICIONAMOS AO NOSSO REPOSITORY...
+
+
+
+
+
+
+
+
+
+-> PRECISAMOS IR NO REPO,
+
+AÍ VAMOS EM 'DEPLOY KEYS',
+
+
+CRIAMOS UMA NOVA KEY,
+
+DE NOME 
+
+'Cloudways',
+
+
+AÍ COLAMOS A 
+KEY.
+
+COM FORMATO 
+
+
+
+ssh-rsa 
+sadashjkahjkhdajkslhjklas,
+
+
+
+aí salvamos,
+
+deixamos como 'read-access'...
+
+
+
+
+
+
+
+
+-> AÍ PRECISAMOS DO GIT REMOTE ADDRESS...
+
+
+
+
+
+
+
+
+-> VAMOS LÁ NO REPOSITORY, AÍ CLICAMOS EM 'CODE',
+
+E AÍ COPIAMOS A PARTE DE 'SSH'...
+
+
+
+
+
+
+
+
+
+-> AÍ O REPO SERÁ AUTHENTICATED,
+E TEREMOS ACESSO A TODOS OS NOSSOS BRANCHES...
+
+
+
+
+
+
+
+--> O PROFESSOR ESCOLHE O BRANCH EM QUE ELE TEM AS FILES...
+
+
+
+
+
+
+
+-> ELE PEGA O CÓDIGO DA AULA 3.27-PHP-8.0...
+
+
+
+
+
+
+
+
+
+
+--> NO DEPLOYMENT PATH,
+
+ESCOLHEMOS 'public/html'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ASSIM QUE O DEPLOYMENT ACABA, PODEMOS CHECAR OS LOGS,
+
+PARA VERIFICAR SE FOI SUCCESSFUL...
+
+
+
+
+
+
+
+
+
+
+-> EM 'ACCESS DETAILS',
+
+PODEMOS ABRIR O APP URL,
+
+PARA VER SE TUDO ESTÁ FUNCIONANDO..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS ESTAMOS RECEBENDO UM ERROR DE STATUS 500,
+
+    NESSA PAGE...
+
+
+
+
+
+
+
+
+
+
+
+--> CHECAMOS O ERROR LOG...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ENCONTRAMOS ERROR DE 
+
+
+
+'AUTOLOAD'...
+
+
+
+
+
+
+
+-> ABRIMOS O PUBLIC>INDEX.PHP,
+
+
+
+E AÍ 
+
+
+
+ENCONTRAMOS QUE 
+
+
+ESTA LINE DEU ERRO:
+
+
+
+
+
+
+
+
+
+require_once __DIR__ './../vendor/autoload.php';
+
+
+
+
+
+
+
+
+-> E ISSO FAZ SENTIDO,
+
+
+PQ ISSO VEM DO DIRECTORY DE 'vendor'...
+
+
+
+
+
+
+
+
+
+
+--> E O DEFAULT DEPLOY DIRECTORY 
+NÃO CONTÉM 
+
+'vendor'...
+
+
+
+
+
+
+-> O REPOSITORY DO GITHUB NÃO CONTÉM ESSA PASTA...
+
+
+
+
+
+
+
+
+
+
+-. TEMOS QUE RODAR composer install,
+
+    dentro de nosso project,
+
+
+    para instalar essas dependencies...
+
+
+
+
+
+
+
+
+DENTRO 
+
+
+DO NOSSO APP,
+
+LÁ NO TERMINAL,
+
+
+RODAMOS 
+
+
+'ls':
+
+
+
+
+
+
+
+
+
+
+
+AÍ PERCEBEMOS QUE TUDO ESTÁ DENTRO DALI...
+
+
+
+
+
+
+
+
+
+-> AÍ RODAMOS 'composer install'...
+
+
+
+
+
+
+
+
+
+-> ISSO VAI INSTALAR TODAS AS DEPENDENCIES,...
+
+
+
+
+--> DEPOIS DISSO,
+PRECISAMOS DE UMA '.env' file,
+
+PARA ARMAZENAR TODAS NOSSAS CREDENTIALS....
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO,
+
+escrevemos 
+
+'vim .env',
+
+
+E AÍ 
+
+
+
+VAMOS PREENCHENDO 
+COM NOSSAS CREDENTIALS:
+
+
+
+
+
+
+
+DB_HOST=
+DB_USER=
+DB_PASS=
+DB_DATABASE=
+
+
+
+
+
+
+
+
+
+
+
+PREENCHEMOS COM TODAS AS CREDENTIALS,
+SEM PROBLEMAS....
+
+
+
+
+AS CREDENTIALS SERÃO EXTRAÍDAS DO PRÓPRIO CLOUDWAYS,
+
+
+
+
+LÁ EM 'access details'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O DB_HOST SERÁ '127.0.0.1'...
+
+
+
+
+
+
+
+
+
+
+CERTO..
+
+
+
+
+
+
+
+
+ISSO FEITO, RODAMOS AS MIGRATIONS, PARA GARANTIR QUE 
+
+AS TABLES NECESSÁRIAS FIQUEM CRIADAS...
+
+
+
+
+
+
+
+
+--> BASTA RODAR ASSIM:
+
+
+
+
+
+
+'./vendor/bin/doctrine-migrations migrate' 
+
+
+
+
+
+
+
+
+CERTO... ISSO RODOU E FUNCIONOU...
+
+
+
+
+
+
+
+
+
+
+----> AÍ VOLTAMOS A NOSSA PAGE,
+
+RECARREGAMOS, E TUDO FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AS ROUTES DE '/' E '/INVOICES' estão funcionando...
+
+
+
+
+
+
+
+
+-_> QEUR DIZER QUE NOSSO APP ESTÁ LIVE, E TUDO ESTÁ FUNCIONANDO 
+
+    COMO ESPERADO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> um detalhe que o professor aponta:
+
+
+
+
+''I HAD TO ADD THE .HTDACCESS FILE,
+
+WITHIN THE PUBLIC DIRECTORY''.
+
+
+
+
+
+
+
+
+-> É UM ARQUIVO COM ESTE FORMATO:
+
+
+
+
+
+
+
+RewriteEngine On 
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [QSA, L]
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR ESCREVEU ISSO PARA GARANTIR QUE TODOS 
+OS COMANDOS VÃO PARA DENTRO DO 'public->index.php'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+OUTRO PROBLEMA É QUE TIVEMOS DE RODAR 
+
+'composer install' 
+
+
+
+e 
+
+
+
+AS MIGRATIONS 
+
+
+
+MANUALMENTE...
+
+
+
+
+
+
+
+
+
+E TEREMOS DE FAZER ISSO __ TODA VEZ QUE OCORRER 1 UPDATE...
+
+
+
+
+
+
+
+
+---> WE ALSO HAVE TO PULL THE CHANGES MANUALLY...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE SEMPRE QUE FIZERMOS ALGUM UPDATE,
+
+
+TEMOS QUE IR ATÉ A PARTE DE 'DEPLOYMENT VIA GIT',
+
+
+E AÍ CLICAR EM 'PULL'...
+
+
+
+
+
+
+
+
+
+
+
+--> É CLARO QUE EXISTEM MANEIRAS DE
+    AUTOMATIZAR ISSO,
+
+    USANDO GITHUB ACTIONS,
+
+
+    MAS É FINNICKY...
+
+
+
+    
