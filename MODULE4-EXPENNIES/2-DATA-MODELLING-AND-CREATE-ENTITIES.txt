@@ -1,0 +1,2781 @@
+
+
+
+
+
+
+
+
+
+NA ÚLTIMA AULA,
+
+SETUPPAMOS O PROJECT EXPENNIES 
+
+LOCALMENTE,
+
+
+E REVISAMOS O SOURCE CODE DO BACKEND 
+
+E FRONTEND...
+
+
+
+
+
+
+HOJE VEREMOS DATA MODELING,
+
+
+
+PQ VAMOS
+
+CRIAR AS STARTING ENTITIES,
+
+ASSIM COMO AS SUAS RELATIONSHIPS...
+
+
+
+
+
+
+
+
+--> PARA NOS AJUDAR, O PROFESSOR VAI USAR 1 APP 
+
+ONLINE,
+CHAMADO DE 'DRAW SQL',
+
+
+PARA NOS AJUDAR 
+
+
+A 
+
+
+DRAW DIAGRAMS....
+
+
+
+
+
+--> SE TEMOS 15 OU MENOS TABLES,
+
+
+ELE FUNCIONA DE GRAÇA...
+
+
+
+
+
+
+
+-> OK...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR APONTA:
+
+
+
+
+
+
+
+
+
+1) NOSSO APP É SOBRE 
+    TRACKING EXPENSES E INCOME...
+
+
+
+
+
+
+
+
+
+-> POR ISSO, SABEMOS QUE VAMOS TER:
+
+
+1) TRANSACTIONS TABLE
+
+
+
+
+
+
+
+-> QUEREMOS SER CAPAZES DE CATEGORIZAR ESSAS TRANSACTIONS,
+    POR ISSO PRECISAMOS DE OUTRA TABLE, PARA ISSO...
+
+
+
+
+
+2) CATEGORIES TABLE...
+
+
+
+
+
+
+
+--> NÓS TAMBÉM QUEREMOS SER CAPAZES DE UPLOADAR 
+    RECEIPTS ÀS TRANSACTIONS, SEMPRE QUE 
+
+    AS TRANSACTIONS SÃO CRIADAS...
+
+
+
+
+
+
+3) RECEIPTS TABLE 
+
+
+
+
+
+
+
+
+-_> PRECISAMOS DE UMA USER TABLES,
+
+PQ QUEREMOS TER USER AUTHENTICATION...
+
+
+
+
+
+
+
+
+4) USERS TABLE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TALVEZ PRECISEMOS DE MAIS TABLES NO FUTURO,
+
+MAS ESSAS SÃO O BARE MINIMUM...
+
+
+
+
+
+
+
+
+-> OK...
+
+
+
+
+
+
+
+
+--> O PROFESSOR AINDA NÃO CONSTRUIU ESSE PROJECT,
+    ESTÁ PRODUZINDO AOS POUCOS O PROJECT...
+
+
+
+
+
+
+
+
+
+
+
+--> OK... AGORA VAMOS PREENCHER AS COLUMNS COM AS TABLES..
+
+
+
+
+
+
+
+
+
+
+
+
+TRANSACTIONS:
+
+--> ID 
+
+-> DESCRIPTION, PARA CADA TRANSACTION -> varchar 
+
+-> TRANSACTION DATE--> datetime 
+
+-> AMOUNT -> decimal 
+
+
+-> CREATED_AT -> DATETIME 
+
+-> UPDATED_AT -> DATETIME 
+
+
+
+
+
+
+-> O AMOUNT SERÁ DECIMAL NO DATABASE-SIDE,
+
+MAS NO PHP-SIDE VAMOS FAZER DE FORMA DIFERENTE,
+
+PROVAVELMENTE 
+
+USAREMOS STRINGS OU ALGO ASSIM..
+
+
+
+-> E PROVAVELMENTE USAREMOS 
+ALGUMA PACKAGE, 
+
+COMO 'BCMath' 
+
+
+E 'MONEY-PHP'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS É CLARO QUE O MANAGE DE MONEY EXIGE 
+
+1 LESSON PRÓPRIA,
+ 
+
+ POR ISSO VAMOS DEIXAR ISSO PARA DEPOIS..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ TEMOS AS CATEGORIES:
+
+
+
+
+
+
+
+
+
+
+
+CATEGORIES:
+
+
+-> ID 
+
+
+-> NAME -> varchar
+
+
+-> CREATED_AT -> DATETIME 
+
+
+--> UPDATED_AT -> DATETIME 
+
+
+
+
+
+
+
+
+
+RECEIPTS 
+
+
+--> ID 
+
+--> FILE_NAME -- varchar 
+
+--> CREATED_AT -- datetime
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROF NÃO SABE A MANEIRA PELA QUAL VAMOS ARMAZENÁ-LOS...
+
+PROVAVELMENTE SERÁ 
+S3...
+
+
+
+
+
+
+
+
+
+
+
+
+PARA USERS:
+
+
+
+
+
+
+
+
+
+
+
+USERS 
+
+
+--> id 
+
+--> EMAIL --> varchar 
+
+--> PASSWORD --> varchar 
+
+--> name --> varchar 
+
+--> CREATED_AT --> datetime 
+
+--> updated_At --> datetime...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA AS RELATIONS...
+
+
+
+
+
+
+
+
+
+
+
+--> SABEMOS QUE TODAS AS TRANSACTIONS DEVERÃO SER
+
+'CATEGORIZED'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> POR CONTA DISSO, SABEMOS QUE CADA 
+
+TRANSACTION DEVE PERTENCER A 1 CATEGORY...
+
+
+
+
+
+
+
+
+--> CERTO... MAS 1 ÚNICA CATEGORY, OU MÚLTIPLAS CATEGORIES?
+
+
+
+
+
+
+
+
+
+
+
+--> COMO AS TRANSACTIONS VAO PERTENCER 
+
+ÀS CATEGORIES,
+
+PRECISAMOS COLOCAR 
+
+
+
+1 COLUMN DE 'category_id',
+
+
+LÁ 
+
+EM 'transactions':
+
+
+
+
+
+TRANSACTIONS:
+
+--> ID 
+
+-> DESCRIPTION, PARA CADA TRANSACTION -> varchar 
+
+-> TRANSACTION DATE--> datetime 
+
+-> AMOUNT -> decimal 
+
+-> CREATED_AT -> DATETIME 
+
+-> UPDATED_AT -> DATETIME 
+
+-> CATEGORY_ID -> INT
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO..
+
+
+
+
+
+
+
+-> PARA CRIAR A RELATION ENTRE AS DUAS NO DRAWSQL,
+
+BASTA DESENHAR 1 LINE 
+
+
+
+ENTRE O 'category_id' 
+
+
+e o 'id' na table de categories...
+
+
+
+
+
+
+
+
+
+
+-> AÍ DEIXAMOS A RELATION DE 'ONE-TO-MANY'...
+
+
+
+
+
+
+
+
+
+
+--> SABEMOS QUE 'MANY TRANSACTIONS BELONG 
+TO A SINGLE CATEGORY'...
+
+
+
+
+
+
+
+-> ENQUANTO QUE 1 CATEGORY PODE TER MÚLTIPLAS 
+TRANSACTIONS...
+
+
+
+
+
+
+
+
+
+POR ISSO É 
+
+'MANY-TO-ONE'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+A SINGLE CATEGORY HAS MANY TRANSACTIONS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NÓS TAMBÉM QUEREMOS CONECTAR 
+
+AS TRANSACTIONS A TABLE DE USERS,
+
+POR ISSO PRECISAMOS DE UMA COLUMN DE NOME 'USER_ID',
+
+
+PQ 
+CADA TRANSACTION SÓ PODE PERTENCER A 1 SINGLE USER...
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+TRANSACTIONS:
+
+--> ID 
+
+-> DESCRIPTION, PARA CADA TRANSACTION -> varchar 
+
+-> TRANSACTION DATE--> datetime 
+
+-> AMOUNT -> decimal 
+
+-> CREATED_AT -> DATETIME 
+
+-> UPDATED_AT -> DATETIME 
+
+-> CATEGORY_ID -> INT
+
+-> USER_ID -> INT
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+A RELATION ENTRE USERS E TRANSACTIONS,
+
+NOVAMENTE,
+
+SERÁ 
+
+
+
+'MANY-TO-ONE'...
+
+
+
+
+
+
+
+
+
+ISSO PQ __MANY TRANSACTIONS PODEM
+SER ASSIGNADAS A 1 MESMO USER...
+
+
+
+
+
+
+
+
+
+
+
+
+-> 1 MESMO USER PODE TER MÚLTIPLAS TRANSACTIONS...
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO,
+
+
+PRECISAMOS TAMBÉM CONECTAR AS CATEGORIES AOS 
+
+USERS...
+
+
+
+
+
+
+
+
+
+-> ISSO PQ __ AS CATEGORIES PRECISAM SER
+
+
+CRIADAS POR ALGUÉM.... E ESSE ALGUÉM SERÁ 
+
+OS USERS....
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE, EM 'TCATEGORIES',
+
+
+
+
+CRIAMOS UMA COLUMN DE 'user_id':
+
+
+
+
+
+ 
+
+
+CATEGORIES:
+
+
+-> ID 
+
+
+-> NAME -> varchar
+
+
+-> CREATED_AT -> DATETIME 
+
+
+--> UPDATED_AT -> DATETIME
+
+
+--> USER_ID --> int 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ONE-TO-MANY,
+
+
+
+
+PQ 1 MESMO USER PODE TER 
+
+MÚLTIPLAS CATEGORIES...
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... A RELATIONSHIP FINAL
+
+
+
+É ENTRE 
+
+
+
+RECEIPTS E TRANSACTIONS..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PQ 
+
+
+''A TRANSACTION CAN HAVE MANY RECEIPTS UPLOADED 
+TO IT'',
+
+
+
+
+mas 
+
+
+
+''RECEIPTS CAN ONLY BELONG TO A SINGLE TRANSACTION''...
+
+
+
+
+
+
+
+
+
+
+--> POR ISSO É 
+
+
+
+
+
+ONE-TO-MANY,
+
+TRANSACTION-TO-RECEIPTS....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE COLOCAMOS 'transaction_Id'
+
+
+NA TABLE DE RECEIPTS,
+TIPO ASSIM:
+
+
+
+
+
+
+
+RECEIPTS 
+
+
+--> ID 
+
+--> FILE_NAME -- varchar 
+
+--> CREATED_AT -- datetime
+
+--> TRANSACTION_ID -- int 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+AGORA TUDO ESTÁ CONECTADO...
+
+
+
+
+
+
+
+TEMOS 4 RELATIONSHIPS,
+
+PORTANTO...
+
+
+
+
+
+
+
+
+
+
+--> nosso schema 
+
+
+está simples,
+
+mas apenas por enquanto....
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VAMOS CONTINUAR COM ISSO, POR ENQUANTO...
+
+
+
+
+MUDAREMOS AS COISAS AO LONGO DO TEMPO...
+
+
+
+
+
+
+
+
+ABRIMOS O CODE EDITOR, 
+
+E COMEÇAMOS A CRIAR AS ENTITIES..
+
+
+
+
+
+
+
+
+
+
+-> VAMOS COMEÇAR PELA ENTITY DE USER...
+
+
+
+
+
+
+
+--> VAMOS ATÉ APP>ENTITIES
+
+
+
+
+
+
+
+
+CRIAMOS UMA NOVA FILE, DE NOME 'User.php'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA CRIAR UMA ENTITY,
+
+BASTA ESCREVER A CLASS E ENTÃO IR UTILIZANDO ATTRIBUTES,
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+
+
+#[ORM\Entity, ORM\Table(name: "users")]
+class User
+{
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue()]
+    #[ORM\Column(type: "integer")]
+    private $id;
+
+
+    #[ORM\Column(type: "string")]
+    private $name;
+
+    #[ORM\Column(type: "string")]
+    private $email;
+
+    #[ORM\Column(type: "string")]
+    private $password;
+
+    #[ORM\Column(type: "datetime")]
+    private $created_at;
+
+    #[ORM\Column(type: "datetime")]
+    private $updated_at;
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name): self
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(string $email): self
+    {
+        $this->email = $email;
+
+        return $this;
+    }
+
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->created_at;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $created_at): self
+    {
+        $this->created_at = $created_at;
+
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updated_at;
+    }
+
+    public function setUpdatedAt(\DateTimeInterface $updated_at): self
+    {
+        $this->updated_at = $updated_at;
+
+        return $this;
+    }
+}
+
+
+
+
+
+
+
+
+
+CERTO.... 
+
+
+A ÚNICA PERGUNTA É SE DEIXAMOS OU NÃO AQUELES 
+
+GETTER E SETTER METHODS NA CLASS...
+
+
+
+
+
+
+
+MAS SERIA BOM ALGUNS AJUSTES,
+
+
+
+NAS PROPERTIES DE '$created_at' (deixar como '$createdAt')...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+
+
+#[ORM\Entity, ORM\Table(name: "users")]
+class User
+{
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue()]
+    #[ORM\Column(type: "integer", options: ["unsigned" => true])]
+    private $id;
+
+
+    #[ORM\Column(type: "string")]
+    private $name;
+
+    #[ORM\Column(type: "string")]
+    private $email;
+
+    #[ORM\Column(type: "string")]
+    private $password;
+
+    #[ORM\Column(name: "created_at", type: "datetime")]
+    private $createdAt;
+
+    #[ORM\Column(name: "updated_at", type: "datetime")]
+    private $updatedAt;
+
+
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name): self
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(string $email): self
+    {
+        $this->email = $email;
+
+        return $this;
+    }
+
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeInterface $updatedAt): self
+    {
+        $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... FAZEMOS A MESMA COISA COM A ENTITY DE 
+
+'TRANSACTION',
+
+tipo ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Entity, ORM\Table(name: "transactions")]
+class Transaction
+{
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue()]
+    #[ORM\Column(type: "integer", options: ["unsigned" => true])]
+    private $id;
+
+    #[ORM\Column(type: "string")]
+    private $name;
+
+    #[ORM\Column(type: "string")]
+    private $description;
+
+    #[ORM\Column(type: "integer")]
+    private $amount;
+
+    #[ORM\Column(type: "string")]
+    private $currency;
+
+    #[ORM\Column(name: "created_at", type: "datetime")]
+    private $createdAt;
+
+    #[ORM\Column(name: "updated_at", type: "datetime")]
+    private $updatedAt;
+
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: "transactions")]
+    #[ORM\JoinColumn(nullable: false)]
+    private $user;
+
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name): self
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(string $description): self
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function getAmount(): ?int
+    {
+        return $this->amount;
+    }
+
+    public function setAmount(int $amount): self
+    {
+        $this->amount = $amount;
+
+        return $this;
+    }
+
+    public function getCurrency(): ?string
+    {
+        return $this->currency;
+    }
+
+    public function setCurrency(string $currency): self
+    {
+        $this->currency = $currency;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeInterface $updatedAt): self
+    {
+        $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok... mas nem tudo está correto, nessa entity...
+
+
+
+
+
+
+
+
+
+
+FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Entity;
+
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Entity, ORM\Table(name: "transactions")]
+class Transaction
+{
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue()]
+    #[ORM\Column(type: "integer", options: ["unsigned" => true])]
+    private int $id;
+
+    #[ORM\Column(type: "string")]
+    private string $description;
+
+    #[ORM\Column(type: Types::DECIMAL, precision: 13, scale: 3)]
+    private float $amount;
+
+    #[ORM\Column(type: "datetime")]
+    private \DateTime $date;
+
+    #[ORM\Column(name: "created_at", type: "datetime")]
+    private \DateTime $createdAt;
+
+    #[ORM\Column(name: "updated_at", type: "datetime")]
+    private \DateTime $updatedAt;
+
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: "transactions")]
+    #[ORM\JoinColumn(nullable: false)]
+    private $user;
+
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(string $description): self
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function getAmount(): ?float
+    {
+        return $this->amount;
+    }
+
+    public function setAmount(int $amount): self
+    {
+        $this->amount = $amount;
+
+        return $this;
+    }
+
+    public function getDate(): ?\DateTimeInterface
+    {
+        return $this->date;
+    }
+
+    public function setDate(\DateTimeInterface $date): self
+    {
+        $this->date = $date;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeInterface $updatedAt): self
+    {
+        $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO....
+
+
+
+
+
+AGORA DEVEMOS CRIAR AS ENTITIES DE 'CATEGORIES' 
+
+
+E 
+
+'RECEIPTS'...
+
+
+
+
+
+
+
+
+
+CATEGORY:
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\OneToMany;
+
+#[ORM\Entity, ORM\Table(name: "categories")]
+class Category
+{
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue()]
+    #[ORM\Column(type: "integer", options: ["unsigned" => true])]
+    private int $id;
+
+    #[ORM\Column(type: "string")]
+    private string $name;
+
+    #[ORM\Column(type: "datetime", name: "created_at")]
+    private \DateTime $createdAt;
+
+    #[ORM\Column(type: "datetime", name: "updated_at")]
+    private \DateTime $updatedAt;
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name): self
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeInterface $updatedAt): self
+    {
+        $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Entity, ORM\Table(name: "receipts")]
+class Receipt
+{
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue()]
+    #[ORM\Column(type: "integer", options: ["unsigned" => true])]
+    private int $id;
+
+    #[ORM\Column(type: "string", name: "file_name")]
+    private string $fileName;
+
+    #[ORM\Column(name: "created_at", type: "datetime")]
+    private \DateTime $createdAt;
+
+    #[ORM\Column(name: "updated_at", type: "datetime")]
+    private \DateTime $updatedAt;
+
+    #[ORM\ManyToOne(targetEntity: Transaction::class, inversedBy: "receipt")]
+    #[ORM\JoinColumn(nullable: false)]
+    private $transaction;
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getFileName(): ?string
+    {
+        return $this->fileName;
+    }
+
+    public function setFileName(string $fileName): self
+    {
+        $this->fileName = $fileName;
+
+        return $this;
+    }
+
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeInterface $updatedAt): self
+    {
+        $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    public function getTransaction(): ?Transaction
+    {
+        return $this->transaction;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+CERTO... CRIEI OS 2...
+
+
+
+
+
+
+
+
+
+
+--> CRIEI AS PROPERTIES...
+
+
+
+
+
+
+
+
+E JÁ SETTEI AS RELATIONSHIPS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR ENTÃO CRIA AS RELATIONSHIPS...
+
+
+
+
+
+
+
+
+
+
+-> EX:
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Entity;
+
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Entity, ORM\Table(name: "transactions")]
+class Transaction
+{
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue()]
+    #[ORM\Column(type: "integer", options: ["unsigned" => true])]
+    private int $id;
+
+    #[ORM\Column(type: "string")]
+    private string $description;
+
+    #[ORM\Column(type: Types::DECIMAL, precision: 13, scale: 3)]
+    private float $amount;
+
+    #[ORM\Column(type: "datetime")]
+    private \DateTime $date;
+
+    #[ORM\Column(name: "created_at", type: "datetime")]
+    private \DateTime $createdAt;
+
+    #[ORM\Column(name: "updated_at", type: "datetime")]
+    private \DateTime $updatedAt;
+
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: "transactions")]
+    #[ORM\JoinColumn(nullable: false)]
+    private User $user;
+
+    #[ORM\ManyToOne(targetEntity: Category::class, inversedBy: "transactions")]
+    #[ORM\JoinColumn(nullable: false)]
+    private Category $category;
+
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(string $description): self
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function getAmount(): ?float
+    {
+        return $this->amount;
+    }
+
+    public function setAmount(int $amount): self
+    {
+        $this->amount = $amount;
+
+        return $this;
+    }
+
+    public function getDate(): ?\DateTimeInterface
+    {
+        return $this->date;
+    }
+
+    public function setDate(\DateTimeInterface $date): self
+    {
+        $this->date = $date;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeInterface $updatedAt): self
+    {
+        $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+MAS A OUTRA RELATION QUE PRECISAMOS SETTAR,
+
+AQUI,
+
+
+
+
+É A INVERSE RELATION DO RECEIPT...
+
+
+
+
+
+
+
+
+--> PQ SABEMOS QUE O RECEIPT É O OWNING SIDE...
+
+
+
+
+
+
+
+-> POR ISSO VAMOS NO RECEIPT,
+
+E ESCREVEMOS ASSIM;
+
+
+
+
+
+
+    #[ORM\ManyToOne(targetEntity: Transaction::class, inversedBy: "receipts")]
+    #[ORM\JoinColumn(nullable: false)]
+    private $transaction;
+
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA SÓ FALTOU IR ATÉ 'transaction' 
+
+
+
+e criar 1 property de TYPE 'Collection',
+
+
+
+DE '$receipts'...
+
+
+
+----> VAI CONTER TODOS OS RECEIPTS DE 1 GIVEN 
+
+TRANSACTION...
+
+
+
+ESCREVEMOS TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Entity;
+
+use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Entity, ORM\Table(name: "transactions")]
+class Transaction
+{
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue()]
+    #[ORM\Column(type: "integer", options: ["unsigned" => true])]
+    private int $id;
+
+    #[ORM\Column(type: "string")]
+    private string $description;
+
+    #[ORM\Column(type: Types::DECIMAL, precision: 13, scale: 3)]
+    private float $amount;
+
+    #[ORM\Column(type: "datetime")]
+    private \DateTime $date;
+
+    #[ORM\Column(name: "created_at", type: "datetime")]
+    private \DateTime $createdAt;
+
+    #[ORM\Column(name: "updated_at", type: "datetime")]
+    private \DateTime $updatedAt;
+
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: "transactions")]
+    #[ORM\JoinColumn(nullable: false)]
+    private User $user;
+
+    #[ORM\ManyToOne(targetEntity: Category::class, inversedBy: "transactions")]
+    #[ORM\JoinColumn(nullable: false)]
+    private Category $category;
+
+    #[ORM\OneToMany(targetEntity: Receipt::class, mappedBy: "transaction")]
+    private Collection $receipts;
+
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(string $description): self
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function getAmount(): ?float
+    {
+        return $this->amount;
+    }
+
+    public function setAmount(int $amount): self
+    {
+        $this->amount = $amount;
+
+        return $this;
+    }
+
+    public function getDate(): ?\DateTimeInterface
+    {
+        return $this->date;
+    }
+
+    public function setDate(\DateTimeInterface $date): self
+    {
+        $this->date = $date;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeInterface $updatedAt): self
+    {
+        $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function getCategory(): ?Category
+    {
+        return $this->category;
+    }
+
+    public function getReceipts(): Collection
+    {
+        return $this->receipts;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+
+ENTÃO, ADICIONAMOS ALGO NO CONSTRUCTOR 
+
+
+DE 'Transaction.php',
+
+
+JUSTAMENTE PQ 
+
+
+
+A PROPRIEDADE DE 'receipts' 
+
+
+TEM QUE 
+
+SER INICIALIZADA, COMO 1 EMPTY ARRAY,
+
+
+SEMPRE QUE 
+
+1 NOVA TRANSACTION FOR CRIADA...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+#[ORM\Entity, ORM\Table(name: "transactions")]
+class Transaction
+{
+
+    public function __construct() {
+        $this->receipts = new ArrayCollection();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+quando lemos 
+
+
+'private Collection $receipts',
+
+
+
+isso é simplesmente uma 
+
+
+INTERFACE QUE 
+
+
+
+'ArrayCollection' implementa...
+
+
+
+
+
+
+
+
+
+O USER, TAMBÉM, FICOU ASSIM:
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Entity;
+
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
+
+
+#[ORM\Entity, ORM\Table(name: "users")]
+class User
+{
+
+    public function __construct() {
+        $this->transactions = new ArrayCollection();
+        $this->categories = new ArrayCollection();
+    }
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue()]
+    #[ORM\Column(type: "integer", options: ["unsigned" => true])]
+    private int $id;
+
+
+    #[ORM\Column(type: "string")]
+    private string $name;
+
+    #[ORM\Column(type: "string")]
+    private string $email;
+
+    #[ORM\Column(type: "string")]
+    private string $password;
+
+    #[ORM\Column(name: "created_at", type: "datetime")]
+    private \DateTime $createdAt;
+
+    #[ORM\Column(name: "updated_at", type: "datetime")]
+    private \DateTime $updatedAt;
+
+    #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: "user")]
+    private Collection $transactions;
+
+    #[ORM\OneToMany(targetEntity: Category::class, mappedBy: "user")]
+    private Collection $categories;
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name): self
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(string $email): self
+    {
+        $this->email = $email;
+
+        return $this;
+    }
+
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeInterface $updatedAt): self
+    {
+        $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    public function getTransactions(): Collection
+    {
+        return $this->transactions;
+    }
+
+    public function getCategories(): Collection
+    {
+        return $this->categories;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+OK... AGORA QUE TEMOS TODAS AS RELATIONSHIPS 
+
+SETTADAS,
+
+PRECISAMOS DE ALGUNS GETTER E SETTER METHODS...
+
+
+
+
+
+
+
+
+
+--> EU JÁ ESCREVI TODOS ELES...
+
+
+
+
+
+--> Quase todos estão ok,
+
+menos alguns setters...
+
+
+
+
+
+
+
+
+
+QUEREMOS ADICIONAR 1 NOVO METHOD EM 'User',
+
+
+
+um de nome 'addCategory'...
+
+
+
+
+
+--> ELE VAI VINCULAR 1 NOVA CATEGORY AO NOSSO USER....
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+    public function addCategory(Category $category): User
+    {
+
+        $this->categories->add($category);
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E FAREMOS 1 MESMO METHOD, PARA O ADD DE 1 TRANSACTION:
+
+
+
+
+
+
+
+
+
+
+
+public function addTransaction(Transaction $transaction): User
+    {
+        $this->transactions->add($transaction);
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+
+AGORA VAMOS NA CLASS DE 'TRANSACTIONS'...
+
+
+
+
+
+
+
+
+
+
+-> QUEREMOS SER CAPAZES 
+
+
+
+
+DE 'ADD THE CURRRENT TRANSACTION TO THE GIVEN 
+USER ENTITY'...
+
+
+
+
+
+
+ESCREVEMOS TIPO ASSIM:
+
+
+
+
+
+
+    public function setUser(User $user): Transaction
+    {
+        $user->addTransaction($this);
+
+        $this->user = $user;
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> e, então queremos fazer a mesma coisa com o method de 
+
+'setCategory()'....
+
+
+EX;
+
+
+
+
+
+
+
+    public function setCategory(Category $category): Transaction
+    {
+     
+        $category->addTransaction($this);
+
+        $this->category = $category;
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+POR FIM,
+
+CRIAMOS 1 METHOD DE 'addReceipts':
+
+
+
+
+
+
+
+
+    public function addReceipt(Receipt $receipt): Transaction
+    {
+
+        $this->receipts->add($receipt);
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+OK... ISSO FEITO, VAMOS ATÉ 'CAtegory.php',
+
+
+
+
+
+
+EM QUE CRIAMOS OS GETTERS E SETTERS,
+TAMBÉM...
+
+
+
+
+
+
+
+
+MAS AÍ VAMOS MUDAR A PARTE DE 'setUser',
+
+escrevendo assim:
+
+
+
+
+
+
+
+    public function setUser(User $user): Category
+    {
+        $user->addCategory($this);
+
+        $this->user = $user;
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+fazemos a mesma coisa com o method de 'addTransaction()':
+
+
+
+
+
+
+
+
+
+
+    public function addTransaction(Transaction $transaction): Category
+    {
+        $this->transactions->add($transaction);
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+
+ok... o último é o receipt...
+
+
+
+
+
+
+
+
+
+
+ASSIM:
+
+
+
+
+
+
+
+    public function setTransaction(Transaction $transaction): Receipt
+    {
+
+        $transaction->addReceipt($this);
+
+        $this->transaction = $transaction;
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+
+
+ACABAMOS...
+
+VAMOS TESTAR TUDO ISSO NAS PRÓXIMAS AULAS...
+
+
+
+
+
+
+
+
+
+
+
+--> É POSSÍVEL QUE O PROFESSOR TENHA ERRADO ALGUMAS COISAS...
+
+
+
+
+
+
+
+
+
+MAS AINDA PRECISAMOS 
+
+RODAR O comando de 'diff'
+
+
+com os nossos comandos de migrate,
+
+para criar as migrations,
+
+e então rodar as migrations 
+
+que vão 
+
+criar essas tables...
+
