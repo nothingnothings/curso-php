@@ -1,0 +1,431 @@
+
+
+
+
+
+
+QUASE ACABAMOS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AINDA TEMOS QUE VER ALGUNS TÓPICOS...
+
+
+
+
+
+
+
+
+
+-> MAS ELES DEVERÃO SER ESTUDADOS 
+
+EM 1 COURSE PROJECT...
+
+
+
+
+
+
+
+
+
+
+--> JÁ VIMOS OS BASICS, INTERMEDIATE E ADVANCED PHP...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESTUDAMOS:
+
+
+
+
+
+1) BASIC:
+
+
+ SYNTAX 
+ OPERATORS 
+ TYPES 
+ CONTROL STRUCTURES 
+ FUNCTIONS 
+
+
+
+
+2) INTERMEDIATE 
+
+    OOP 
+    PSR 
+    NAMESPACES 
+    COMPOSER 
+    PDO E MYSQL
+
+
+
+
+3) ADVANCED 
+
+    MVC 
+    TESTING 
+    DI CONTAINER 
+    ORM 
+    TEMPLATES 
+
+
+
+
+
+
+
+
+
+
+
+
+-> VAMOS TER A QUARTA SECTION, DEDICADA AO PROJECT...
+
+
+
+
+
+
+
+
+
+
+SECTION 'P'
+
+
+
+
+
+
+P.1,
+
+P.2,
+
+P.3,
+
+
+ETC...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK, MAS QUAL SERÁ NOSSO APP?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O APP 
+
+SERÁ 
+
+
+
+
+
+''A SIMPLE, VERY-LIGHT EXPENSE TRACKER APP''..
+
+
+
+
+
+
+
+
+
+-> NÃO VAI TER TODAS AS FEATURES QUE 
+    EXPENSE TRACKERS/BUDGET 
+
+    APPS NO MERCADO POSSUEM,
+
+
+
+    MAS 
+
+    TERÃO 
+
+    ENOUGH STUFF 
+
+    PARA PRATICAR ALGUMAS DAS SKILLS QUE APRENDEMOS 
+    DURANTE 
+
+    O CURSO...
+
+
+
+
+
+
+
+
+
+
+--> O NOME SERÁ EXPENNIES...
+
+
+
+
+
+
+
+-> TERÁ 1 LOGO E 
+    1 DOMAIN...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSE PROJECT É UM BOM STARTER POINT PARA CONTINUAR 
+
+A ADICIONAR MAIS FEATURES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> agora falaremos sobre algumas das features do app:
+
+
+
+
+
+
+
+
+
+
+
+
+
+1) USER AUTHENTICATION 
+    (pq quase todo app precisa de login/registration e features de password reset)
+
+    --> PROVAVELMENTE TAMBÉM EMAIL VERIFICATION 
+
+    --> TAMBÉM 2-FACTOR AUTHENTICATION...
+
+
+
+
+
+
+2) COM ISSO, COBRIREMOS ALGUNS SECURITY-RELATED TOPICS, COMO:
+
+    A) CSRF 
+
+    B) PASSWORD HASHING 
+
+    C) RATE LIMITING 
+
+
+
+
+3) TRANSACTION MANAGEMENT 
+
+    --> É O CORE DO PROJECT 
+
+
+    --> CRUD DE TRANSACTIONS 
+
+
+    --> CATEGORIZE DE TRANSACTIONS 
+
+
+    --> CAPACIDADE DE 'IMPORT TRANSACTIONS', A PARTIR DE ARQUIVOS CSV...
+
+
+    --> VEREMOS ALGUNS TÓPICOS EXTRAS,
+
+    COMO 'REMOTE FILE STORAGE' USANDO S3, ETC, PARA ARMAZENAR 
+    RECEIPTS E FILES...
+
+
+
+
+
+4) TEREMOS ALGUM SIMPLE DASHBOARD,
+    EM QUE MOSTRAREMOS STATISTICS CARDS PARA:
+
+    -- TOTAL INCOME CARD 
+
+    -- TOTAL EXPENSE CARD 
+
+    -- TOTAL NET CARD... 
+
+
+
+
+    ---> ISSO NOS PERMITIRÁ 
+    PRATICAR COISAS COMO 
+
+    CACHING (MEMCACHED/REDIS)...
+
+
+
+
+
+
+
+
+
+
+
+
+--> A TECH QUE USAREMOS:
+
+
+
+
+
+
+
+1) BACKEND 
+
+        --> PHP 
+            -> USAREMOS O FRAMEWORK SLIMPHP COMO STARTING POINT,
+                    PARA HANDLAR O ROUTING E REQUEST-RESPONSE MIDDLEWARE STUFF...
+
+
+
+
+        --> JÁ TEMOS O SETUP DO SLIM PHP...
+
+
+        --> USAREMOS MYSQL, DOCTRINE ORM E MIGRATIONS 
+
+
+        --> USAREMOS SYMFONY COMPONENTS...
+
+
+        --> PHP DI...
+
+
+
+
+
+
+
+ISSO TUDO VAI 'GET US STARTED'...
+
+
+
+
+
+2) FRONTEND 
+
+    --> O PROFESSOR É RUIM COM DESIGN...
+        NÃO TEREMOS UI BOA... 
+
+    --> USAREMOS BOOTSTRAP E TWIG PARA OS TEMPLATES...
+
+
+    --> NÃO ESCREVEREMOS HTML/CSS/JS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PROJECT REPO É 'EXPENNIES'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> HÁ VÁRIAS MANEIRAS DE IMPLEMENTAR E FAZER AS COISAS...
+
+
+
+
+
+
+PLAY 
+
+BREAK 
+
+FIX 
+
+LEARN
