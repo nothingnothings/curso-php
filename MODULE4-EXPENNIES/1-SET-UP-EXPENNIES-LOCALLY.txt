@@ -1,0 +1,3468 @@
+
+
+
+
+
+
+
+
+
+
+
+NA ÚLTIMA AULA,
+
+
+FIZEMOS 1 OVERVIEW DO PROJECT...
+
+
+
+
+
+
+
+
+
+
+--> NESSE VIDEO, SETTAREMOS O DEV ENVIRONMENT, LOCALMENTE,
+PARA O PROJECT...
+
+
+
+
+
+
+
+
+-> TAMBÉM VEREMOS ALGUMAS CHANGES 
+    NA NOSSA CODEBASE...
+
+
+
+
+
+
+
+
+
+-> NÃO VAMOS START FROM SCRATCH,
+
+    PQ JÁ ESCREVEMOS 
+
+    A BASE FOUNDATION NOS VÍDEOS ANTERIORES...
+
+
+
+
+
+
+
+--> O PROFESSOR FEZ ALGUMAS CHANGES,
+    E ADICIONOU 
+
+    frontend files...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS USAR QUALQUER IDE...
+
+
+
+
+
+
+
+
+-> O professor fez alguns ajustes no project...
+
+
+
+
+
+
+
+
+
+
+-> TEMOS PUBLIC>INDEX.PHP --> esse é o entrypoint do app...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+$app    = require __DIR__ . '/../bootstrap.php';
+$router = require CONFIG_PATH . '/routes/web.php';
+
+$router($app);
+
+$app->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+ELE SIMPLESMENTE FAZ BOOTSTRAP DO APP E ROUTING,
+
+E AÍ RODA O APP...
+
+
+
+
+
+
+
+
+
+JÁ O 'bootstrap.php':
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+use Dotenv\Dotenv;
+use Slim\Factory\AppFactory;
+
+require __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/configs/path_constants.php';
+
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+$container      = require CONFIG_PATH . '/container/container.php';
+$addMiddlewares = require CONFIG_PATH . '/middleware.php';
+
+AppFactory::setContainer($container);
+
+$app = AppFactory::create();
+
+$addMiddlewares($app);
+
+return $app;
+ 
+
+
+
+
+
+
+
+
+
+
+
+--> ELE:
+
+
+1) LOADS ALL THE NECESSARY THINGS 
+
+
+2) REGISTRA AS COISAS, COMO OS MIDDLEWARES E O CONTAINER
+
+
+
+3) RETORNA O APP...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR MELHOROU 
+
+A ORGANIZAÇÃO DO FOLDER DE 'configs',
+
+
+
+PQ AGORA HÁ SUBFOLDERS para 
+
+'commands'
+
+'container'
+
+
+e 
+
+'routes'..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR TAMBÉM ADICIONOU UMA 
+
+
+CONFIG FILE DE NOME 'middlewares.php',
+
+
+COM ESTE CÓDIGO:
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+use App\Config;
+use Slim\App;
+use Slim\Views\Twig;
+use Slim\Views\TwigMiddleware;
+
+return function (App $app) {
+    $container = $app->getContainer();
+    $config    = $container->get(Config::class);
+
+    // Twig
+    $app->add(TwigMiddleware::create($app, $container->get(Twig::class)));
+
+    // Logger
+    $app->addErrorMiddleware(
+        (bool) $config->get('display_error_details'),
+        (bool) $config->get('log_errors'),
+        (bool) $config->get('log_error_details')
+    );
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSE ARQUIVO BASICAMENTE RETORNA UMA CLOSURE
+
+que então registra o Twig com nosso app,
+
+e também 
+
+
+
+faz register de um logger de errors...
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+
+
+    $app->addErrorMiddleware(
+        (bool) $config->get('display_error_details'),
+        (bool) $config->get('log_errors'),
+        (bool) $config->get('log_error_details')
+    );
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESSE ERROR MIDDLEWARE...
+
+
+
+
+
+
+
+
+--> É O DEFAULT ERROR MIDDLEWARE DO SLIM FRAMEWORK,
+    QUE FAZ 1 BASIC ERROR HANDLING E LOGGING...
+
+
+
+
+
+
+--> ''WE ARE GETTING THE CONFIGURATION OPTIONS 
+    FROM THE CONFIG CLASS AND FROM THE ENVIRONMENT FILE'....
+
+
+
+
+
+
+
+
+    o config de 'app.php':
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+use App\Enum\AppEnvironment;
+
+$appEnv = $_ENV['APP_ENV'] ?? AppEnvironment::Production->value;
+
+return [
+    'app_name'              => $_ENV['APP_NAME'],
+    'app_version'           => $_ENV['APP_VERSION'] ?? '1.0',
+    'app_environment'       => $appEnv,
+    'display_error_details' => (bool) ($_ENV['APP_DEBUG'] ?? 0),
+    'log_errors'            => true,
+    'log_error_details'     => true,
+    'doctrine'              => [
+        'dev_mode'   => AppEnvironment::isDevelopment($appEnv),
+        'cache_dir'  => STORAGE_PATH . '/cache/doctrine',
+        'entity_dir' => [APP_PATH . '/Entity'],
+        'connection' => [
+            'driver'   => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
+            'host'     => $_ENV['DB_HOST'] ?? 'localhost',
+            'port'     => $_ENV['DB_PORT'] ?? 3306,
+            'dbname'   => $_ENV['DB_NAME'],
+            'user'     => $_ENV['DB_USER'],
+            'password' => $_ENV['DB_PASS'],
+        ],
+    ],
+];
+
+
+
+
+
+
+
+
+
+COM ISTO:
+
+
+
+
+        (bool) $config->get('display_error_details'),
+        (bool) $config->get('log_errors'),
+        (bool) $config->get('log_error_details')
+
+
+
+
+
+
+
+
+
+
+-> estamos comunicando se 
+
+
+''ERRORS SHOULD BE DISPLAYED'' 
+
+
+
+se devem ser incluídos details ou não, etc...
+
+
+
+
+
+
+
+
+
+
+MAIS TARDE PODEMOS COBRIR ALGUMAS ERROR LOGGER PACKAGES,
+
+
+COMO O 'MONOLOGUE', PACKAGES 'PSR-3' LOGGER...
+
+
+
+
+
+--> MAS, POR ENQUANTO, FICAREMOS COM ESSA DEFAULT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VOCÊ TAMBÉM DEVE TER REPARADO 
+
+
+
+esse novo method call de '$config->get()'...
+
+
+
+
+
+
+
+-> NAS LESSONS ANTERIORES,
+
+
+ESTÁVAMOS ACESSANDO OS VALUES DE CONFIG DE MANEIRA DIFERENTE,
+
+
+COM ESTA SINTAXE:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+/**
+ * @property-read ?array $db
+ * @property-read ?array $mailer
+ */
+class Config
+{
+    protected array $config = [];
+
+    public function __construct(array $env)
+    {
+        $this->config = [
+            'db' => [
+                'host' => 'db',
+                'user' => $env['DB_USER'],
+                'password' => $env['DB_PASS'],
+                'dbname' => $env['DB_DATABASE'],
+                'driver' => $env['DB_DRIVER'] ?? 'mysql',
+                'charset' => 'utf8',
+                'collation' => 'utf8_unicode_ci',
+                'prefix' => '',
+            ],
+            'mailer' => [
+                'dsn' => $env['MAILER_DSN'] ?? '',
+            ],
+            'apiKeys' => [
+                'emailable' => $env['EMAILABLE_API_KEY'] ?? '',
+                'abstract' => $env['ABSTRACT_API_KEY'] ?? '',
+            ],
+            'environment' => $env['APP_ENVIRONMENT'] ?? 'production'
+        ];
+    }
+
+    public function __get(string $name)
+    {
+        return $this->config[$name] ?? null;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> NESSA SINTAXE ANTIGA,
+
+    NÓS 
+
+    ESTÁVAMOS ACESSANDO AS CONFIGURATION OPTIONS 
+
+    POR MEIO 
+
+    DO 'MAGIC GETTER METHOD' (__get),
+
+
+
+    COMO PROPERTIES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS NÃO ESTAMOS MAIS FAZENDO ISSO,
+    AGORA ESTAMOS RETRIEVANDO ESSAS OPTIONS POR MEIO 
+
+    DO METHOD de '->get()',
+
+    nessa class de 'Config',
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+class Config
+{
+    public function __construct(private readonly array $config)
+    {
+    }
+
+    public function get(string $name, mixed $default = null): mixed
+    {
+        $path  = explode('.', $name);
+        $value = $this->config[array_shift($path)] ?? null;
+
+        if ($value === null) {
+            return $default;
+        }
+
+        foreach ($path as $key) {
+            if (! isset($value[$key])) {
+                return $default;
+            }
+
+            $value = $value[$key];
+        }
+
+        return $value;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR BASICAMENTE FEZ 1 REWORK 
+DA 
+
+CLASS DE 'config',
+
+
+TUDO PARA QUE CONSIGAMOS USAR A DOT NOTATION 
+
+PARA ACESSAR TODAS AS CONFIG OPTIONS (mas pq, exatamente?)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE, SE INSPECIONAMOS A CLASS DE 'Config',
+TEMOS:
+
+
+
+
+    public function __construct(private readonly array $config)
+    {
+    }
+
+
+
+    public function get(string $name, mixed $default = null): mixed
+    {
+        $path  = explode('.', $name);
+        $value = $this->config[array_shift($path)] ?? null;
+
+        if ($value === null) {
+            return $default;
+        }
+
+        foreach ($path as $key) {
+            if (! isset($value[$key])) {
+                return $default;
+            }
+
+            $value = $value[$key];
+        }
+
+        return $value;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> BASICAMENTE, NÓS ACEITAMOS 1 ARRAY, '$config',
+
+como parameter...
+
+
+
+
+
+
+
+
+-> E, ENTÃO, 
+    O METHOD DE 'get()'
+
+
+    SIMPLESMENTE SPLITTA 
+
+
+    A REQUEST STRING,
+
+    considerando o '.' ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> isso foi feito assim devido a este arquivo:
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+use App\Enum\AppEnvironment;
+
+$appEnv = $_ENV['APP_ENV'] ?? AppEnvironment::Production->value;
+
+return [
+    'app_name'              => $_ENV['APP_NAME'],
+    'app_version'           => $_ENV['APP_VERSION'] ?? '1.0',
+    'app_environment'       => $appEnv,
+    'display_error_details' => (bool) ($_ENV['APP_DEBUG'] ?? 0),
+    'log_errors'            => true,
+    'log_error_details'     => true,
+    'doctrine'              => [
+        'dev_mode'   => AppEnvironment::isDevelopment($appEnv),
+        'cache_dir'  => STORAGE_PATH . '/cache/doctrine',
+        'entity_dir' => [APP_PATH . '/Entity'],
+        'connection' => [
+            'driver'   => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
+            'host'     => $_ENV['DB_HOST'] ?? 'localhost',
+            'port'     => $_ENV['DB_PORT'] ?? 3306,
+            'dbname'   => $_ENV['DB_NAME'],
+            'user'     => $_ENV['DB_USER'],
+            'password' => $_ENV['DB_PASS'],
+        ],
+    ],
+];
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO ISSO É UM _ _ASSOCIATIVE ARRAY,
+
+
+
+PARA__ QUE _ VC CONSIGA ACESSAR KEYS NESTEADAS DEEP NELE,
+
+
+
+
+vc ___PRECISA__ DA DOT NOTATION...
+
+
+
+
+
+
+
+
+
+por exemplo, se vc quer acessar 
+
+
+a key 'driver',
+
+
+VC TERIA DE ESCREVER 
+
+
+
+'doctrine.connection.driver'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> POR EXEMPLO, SE QUISÉSSEMOS ACESSAR ESSA OPTION, NO NOSSO CONFIG,
+
+
+PODERÍAMOS ESCREVER ASSIM:
+
+
+
+
+'''
+
+$config->get('doctrine.connection.driver');
+
+
+'''
+
+
+
+
+
+
+E ISSO, REALMENTE, NOS DARIA O VALUE DE 
+
+
+'''
+
+
+            'driver'   => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
+
+
+
+''''
+
+
+
+
+
+
+
+
+
+
+
+
+EXATAMENTE COMO FOI FEITO AQUI, POR EXEMPLO:
+
+
+
+
+
+
+        (bool) $config->get('display_error_details'),
+        (bool) $config->get('log_errors'),
+        (bool) $config->get('log_error_details')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR TAMBÉM ADICIONOU ALGUNS UNIT TESTS PARA ESSA CLASS DE CONFIG...
+
+
+
+
+
+
+ELES SÃO ESTES:
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+namespace Tests\Unit;
+
+use App\Config;
+use PHPUnit\Framework\TestCase;
+
+class ConfigTest extends TestCase
+{
+    /** @test */
+    public function it_is_able_to_get_nested_settings(): void
+    {
+        $config = [
+            'doctrine' => [
+                'connection' => [
+                    'user' => 'root'
+                ]
+            ]
+        ];
+
+        $config = new Config($config);
+
+        $this->assertEquals('root', $config->get('doctrine.connection.user'));
+        $this->assertEquals(['user' => 'root'], $config->get('doctrine.connection'));
+    }
+
+    /** @test */
+    public function it_gets_the_default_value_when_setting_is_not_found(): void
+    {
+        $config = [
+            'doctrine' => [
+                'connection' => [
+                    'user' => 'root'
+                ]
+            ]
+        ];
+
+        $config = new Config($config);
+
+        $this->assertEquals('pdo_mysql', $config->get('doctrine.connection.driver', 'pdo_mysql'));
+        $this->assertEquals('bar', $config->get('foo', 'bar'));
+        $this->assertEquals('baz', $config->get('foo.bar', 'baz'));
+    }
+
+    /** @test */
+    public function it_returns_null_by_default_when_setting_is_not_found(): void
+    {
+        $config = [
+            'doctrine' => [
+                'connection' => [
+                    'user' => 'root'
+                ]
+            ]
+        ];
+
+        $config = new Config($config);
+
+        $this->assertNull($config->get('doctrine.connection.driver'));
+        $this->assertNull($config->get('foo.bar'));
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> TESTING É TIME-CONSUMING,
+
+
+POR ISSO O PROFESSOR NÃO VAI FAZER ISSO DURANTE OS VÍDEOS...
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR VAI PEDIR QUE ESCREVEMOS TESTS COMO EXERCISE, DURANTE AS LESSONS...
+
+
+
+
+
+
+
+
+
+
+
+AGORA PARA as classes de 'container.php' 
+
+
+e 
+
+'container_bindings.php':
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+use DI\ContainerBuilder;
+
+$containerBuilder = new ContainerBuilder();
+
+$containerBuilder->addDefinitions(__DIR__ . '/container_bindings.php');
+
+return $containerBuilder->build();
+
+
+
+
+
+
+
+
+
+--> O CÓDIGO DE 'container.php' continua o mesmo, portanto...
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS o arquivo 'container_bindings.php'
+
+
+CONTÉM SLIGHT CHANGES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PRINCÍPIO BÁSICO CONTINUA O MESMO, MAS FICOU MAIS COMPLEXO:
+
+
+
+
+
+
+
+Config::class => create(Config::class)->constructor(require CONFIG_PATH . '/app.php'),
+
+
+
+
+
+
+
+
+
+
+
+-> COMO VC PODE VER, ESTAMOS PASSANDO o 'app.php' config file para dentro do constructor de 'Config'...
+
+
+
+
+
+
+
+-> aqui:
+
+    EntityManager::class => fn(Config $config) => EntityManager::create(
+        $config->get('doctrine.connection'),
+        ORMSetup::createAttributeMetadataConfiguration(
+            $config->get('doctrine.entity_dir'),
+            $config->get('doctrine.dev_mode')
+        )
+    ),
+
+
+
+
+
+
+Estamos usando aquele method de '->get()',
+
+no config,
+
+para obter acesso a esses values dentro do associative array...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAIS PARA BAIXO,
+
+
+    ESTAMOS SETUPPANDO/BINDANDO O 'TWIG':
+
+
+
+
+
+    
+
+    Twig::class => function (Config $config, ContainerInterface $container) {
+        $twig = Twig::create(VIEW_PATH, [
+            'cache' => STORAGE_PATH . '/cache/templates',
+            'auto_reload' => AppEnvironment::isDevelopment($config->get('app_environment')),
+        ]);
+
+        $twig->addExtension(new IntlExtension());
+        $twig->addExtension(new EntryFilesTwigExtension($container));
+        $twig->addExtension(new AssetExtension($container->get('webpack_encore.packages')));
+
+        return $twig;
+    }, 
+
+
+
+
+
+
+
+
+-> ESTAMOS:
+
+
+1) CHECANDO SE O ENIVRONMENT É DEVELOPMENT...
+
+
+    FAZEMOS ISSO COM A ENUM CLASS DE 'AppEnvironment'...
+
+
+
+
+
+
+    por sua vez, essa enum class é assim:
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+namespace App\Enum;
+
+enum AppEnvironment: string
+{
+    case Development = 'development';
+    case Production  = 'production';
+
+    public static function isProduction(string $appEnvironment): bool
+    {
+        return self::tryFrom($appEnvironment) === self::Production;
+    }
+
+    public static function isDevelopment(string $appEnvironment): bool
+    {
+        return self::tryFrom($appEnvironment) === self::Development;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+ou seja,
+
+fazemos 
+
+
+
+''             'auto_reload' => AppEnvironment::isDevelopment($config->get('app_environment')), ''
+
+
+
+
+
+para evitar ter de HARDCODAR isso...
+
+
+
+
+
+
+
+
+
+
+além disso,
+
+
+
+TEMOS ALGUMAS EXTENSIONS EXTRAS, AQUI,
+
+COMO 
+
+
+
+
+''
+
+
+        $twig->addExtension(new IntlExtension());
+        $twig->addExtension(new EntryFilesTwigExtension($container));
+        $twig->addExtension(new AssetExtension($container->get('webpack_encore.packages')));
+
+
+
+''
+
+
+
+
+'EntryFilesTwigExtension''
+
+
+e 
+
+
+
+
+''AssetExtension''...
+
+
+
+
+
+
+
+
+TEMOS TAMBÉM ALGUMAS ENTRIES ADICIONAIS, ABAIXO:
+
+
+
+
+
+
+
+
+
+
+
+    /** The following two bindings are needed for EntryFilesTwigExtension & AssetExtension to work for Twig */
+    'webpack_encore.packages' => fn() => new Packages(
+        new Package(new JsonManifestVersionStrategy(BUILD_PATH . '/manifest.json'))
+    ),
+    'webpack_encore.tag_renderer' => fn(ContainerInterface $container) => new TagRenderer(
+        new EntrypointLookup(BUILD_PATH . '/entrypoints.json'),
+        $container->get('webpack_encore.packages')
+    ),
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSAS SÃO 2 ENTRIES ADICIONAIS NO CONTAINER,
+
+NECESSÁRIAS PARA QUE 
+
+'EntryFilesTwigExtension'
+
+
+e 
+
+'AssetExtension' 
+
+funcionem com o 'Twig'...
+
+
+
+
+
+
+
+
+
+--> ESSAS  2 EXTENSIONS 
+
+SÃO NECESSÁRIAS 
+
+PARA FAZER FUNCIONAR O FRONTEND STACK...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA VAMOS DISCUTIR SOBRE O FRONTEND...
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR NÃO QUER FALAR MT SOBRE O FRONTEND...
+
+
+
+
+
+
+
+
+-> O PROFESSOR TAMBÉM NÃO QUERIA TER DE CARREGAR 
+COISAS COMO BOOTSTRAP 
+
+E OUTRAS DEPENDENCIES 
+
+DE SUAS CDNs..
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE O PROFESSOR DECIDIU USAR 
+
+NODE, NPM E WEBPACK...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE VC ESTÁ USANDO DOCKER,
+
+
+     A DOCKERFILE DO PROFESSOR VAI 
+
+
+     INSTALAR 
+
+
+    O NODE E NPM PARA NÓS... 
+
+
+
+
+    POR MEIO DESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+
+FROM php:8.1-fpm
+
+ARG USER
+ARG USER_ID
+ARG GROUP_ID
+
+WORKDIR /var/www
+
+RUN apt-get update && apt-get install -y \
+    git \
+    zip \
+    unzip \
+    curl \
+    vim \
+    libicu-dev
+
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash \
+    && apt-get install nodejs -y
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+RUN docker-php-ext-configure intl
+RUN docker-php-ext-install pdo pdo_mysql intl
+
+RUN pecl install xdebug \
+    && docker-php-ext-enable xdebug
+
+COPY xdebug.ini "${PHP_INI_DIR}/conf.d"
+
+RUN groupadd --force -g $GROUP_ID $USER
+RUN useradd -ms /bin/bash --no-user-group -g $GROUP_ID -u 1337 $USER
+RUN usermod -u $USER_ID $USER
+
+USER $USER
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+no caso,
+
+
+aquela linha:
+
+
+
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash \
+    && apt-get install nodejs -y
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO... ISSO INSTALA O NODE E NPM PARA NÓS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR VAI ENSINAR  TUDO SOBRE O FRONTEND...
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR DECIDIU USAR O WEBPACK E NPM 
+
+    PQ DEIXA AS COISAS MAIS FÁCEIS PARA O SETUP POSTERIOR...
+
+
+
+
+
+
+
+
+
+
+--> TEMOS O 'package.json',
+
+QUE CONTÉM NOSSAS FRONTEND DEPENDENCIES...
+
+
+
+
+
+
+
+
+
+
+--> A COISA REALMENTE IMPORTANTE,
+    NESSE PACKAGE.JSOn,
+
+
+
+    É ESTA PARTE AQUI:
+
+
+
+
+
+
+
+
+  "devDependencies": {
+    "@popperjs/core": "^2.11.6",
+    "@symfony/webpack-encore": "^4.0.0",
+    "bootstrap": "^5.2.1",
+    "file-loader": "^6.2.0",
+    "sass": "^1.54.9",
+    "sass-loader": "^13.0.2",
+    "webpack-notifier": "^1.15.0"
+  }
+
+
+
+
+
+
+
+
+
+
+ESSE TRECHO DE 
+
+
+''
+
+
+    "@symfony/webpack-encore": "^4.0.0",
+
+
+
+''
+
+
+
+
+
+
+-> ESSA PACKAGE AÍ É IMPORTANTE...
+
+
+
+
+
+
+
+
+
+
+
+
+''''
+
+CONFIGURING AND SETTING UP 
+WEBPACK IN ITS RAW FORM CAN BE 
+CHALLENGING AND TIME-CONSUMING...
+
+
+
+'''
+
+
+
+
+
+
+
+
+
+'''
+
+SYMFONY HAS A COMPONENT 
+THAT MAKES IT SIMPLER 
+TO INTEGRATE WEBPACK 
+INTO YOUR APPS,
+AND PROVIDES  A SIMPLE TO USE 
+API
+
+
+'''
+
+
+
+
+--> ELE BASICAMENTE 
+    WRAPPA 
+
+    O WEBPACK E FAZ O TRABALHO COM JAVASCRIPT 
+
+    E CSS BUNDLING E PRE-PROCESSING FICAR BEM MAIS FÁCIL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+WEBPACK --> É UM MODULE BUNDLER...
+
+
+
+            ELE TORNA 
+            O LOAD E BUNDLE DE ASSETS 
+            BEM MAIS EFICIENTE...
+
+
+
+
+
+
+
+
+-> QUANDO VC CONSTRÓI 
+1 WEBSITE,
+
+VC PROVAVELMENTE VAI USAR ALGUMAS FRONTEND LIBRARIES...
+
+
+
+
+
+
+
+
+
+-> ISSO SIGNIFICA QUE VC TERÁ 
+    DE CARREGAR SEUS ARQUIVOS JS E CSS,
+
+    ALÉM DE SEUS PRÓPRIOS ARQUIVOS 
+    CSS E JAVASCRIPT...
+
+
+
+
+
+
+
+
+
+-> VC TALVEZ TENHA ALGUMAS IMAGES,
+    E CARREGAR TODAS ESSAS FILES PODE SER TIME-CONSUMING,
+    PARA BROWSERS..
+
+
+
+
+
+
+--> TAMBÉM HÁ A FEATURE DE LAZY LOADING... TUDO ISSO 
+É PROVIDENCIADO 
+
+PELO WEBPACK...
+
+
+
+
+
+
+
+-> O WEBPACK FAZ SHRINK DAS FILES TAMBÉM,
+    O QUE DEIXA O LOAD 
+    MAIS EFICIENTE...
+
+
+
+
+
+
+
+--> O WEBPACK É BASICAMENTE UMA BUILD TOOL...
+
+
+
+
+
+
+
+
+
+--> E O 'SYMFONY WEBPACK ENCORE' 
+
+
+
+
+
+
+SIMPLESMENTE DEIXA O TRABALHO COM WEBPACK BEM MAIS SIMPLES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> TEMOS O CÓDIGO DE 
+
+
+'webpack.config.js':
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const Encore = require("@symfony/webpack-encore")
+
+// Manually configure the runtime environment if not already configured yet by the "encore" command.
+// It's useful when you use tools that rely on webpack.config.js file.
+if (! Encore.isRuntimeEnvironmentConfigured()) {
+    Encore.configureRuntimeEnvironment(process.env.NODE_ENV || "dev")
+}
+
+Encore
+    // directory where compiled assets will be stored
+    .setOutputPath("public/build/")
+
+    // public path used by the web server to access the output path
+    .setPublicPath("/build")
+
+    /*
+     * ENTRY CONFIG
+     *
+     * Each entry will result in one JavaScript file (e.g. app.js)
+     * and one CSS file (e.g. app.css) if your JavaScript imports CSS.
+     */
+    .addEntry("app", "./resources/js/app.js")
+    .addEntry("dashboard", "./resources/js/dashboard.js")
+
+    // When enabled, Webpack "splits" your files into smaller pieces for greater optimization.
+    .splitEntryChunks()
+
+    // will require an extra script tag for runtime.js
+    // but, you probably want this, unless you're building a single-page app
+    .enableSingleRuntimeChunk()
+
+    /*
+     * FEATURE CONFIG
+     *
+     * Enable & configure other features below. For a full
+     * list of features, see:
+     * https://symfony.com/doc/current/frontend.html#adding-more-features
+     */
+    .cleanupOutputBeforeBuild()
+    .enableBuildNotifications()
+    .enableSourceMaps(! Encore.isProduction())
+
+    // enables hashed filenames (e.g. app.abc123.css)
+    .enableVersioning()
+
+    .configureBabel((config) => {
+        config.plugins.push("@babel/plugin-proposal-class-properties")
+    })
+
+    // enables @babel/preset-env polyfills
+    .configureBabelPresetEnv((config) => {
+        config.useBuiltIns = "usage"
+        config.corejs      = 3
+    })
+
+    .copyFiles({
+        from: "./resources/images",
+        to: "images/[path][name].[hash:8].[ext]",
+        pattern: /\.(png|jpg|jpeg|gif)$/
+    })
+
+    // enables Sass/SCSS support
+    .enableSassLoader()
+
+module.exports = Encore.getWebpackConfig()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESSE CÓDIGO FOI BASICAMENTE 
+COPIADO 
+
+DOS DOCS 
+
+
+
+DO SYMFONY ENCORE...
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR SÓ ALTEROU A PARTE DA ENTRY,
+
+
+QUE ELE COLOCOU COMO 
+
+sendo estes:
+
+
+
+
+
+    /*
+     * ENTRY CONFIG
+     *
+     * Each entry will result in one JavaScript file (e.g. app.js)
+     * and one CSS file (e.g. app.css) if your JavaScript imports CSS.
+     */
+    .addEntry("app", "./resources/js/app.js")
+    .addEntry("dashboard", "./resources/js/dashboard.js")
+
+
+
+
+
+
+
+
+-> ESSAS SÃO AS FILES QUE VAMOS QUERER BUILD....
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+
+
+
+
+-> JAVASCRIPT CSS E IMAGES 
+    SÃO ARMAZENADOS NO FOLDER DE 'resources'...
+
+
+
+
+
+
+TEMOS OS FOLDERS:
+
+
+
+
+1) css 
+
+2) images 
+
+3) js 
+
+4) views
+
+
+
+
+
+
+
+
+
+
+-> SE ABRIMOS O APP.js,
+
+
+TEMOS APENAS ESTE CÓDIGO:
+
+
+
+
+import "../css/app.scss"
+
+require('bootstrap')
+
+
+
+
+
+
+
+
+
+
+ 
+ELE IMPORTA O ARQUIVO SASS,
+
+
+para ter os styles,
+
+
+e aí 
+
+
+faz o require de 'bootstrap'..
+
+
+
+
+
+
+
+
+
+
+'SASS' --> SYNTATICALLY AWESOME STYLE SHEETS..
+
+
+
+
+
+
+
+
+-> O WEBPACK 
+
+    É CAPAZ DE USAR SASS LOADERS,
+
+    PARA CARREGAR SASS FILES 
+
+    E CONVERTER EM CSS FILES, DURANTE O BUILD PROCESS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OS ARQUIVOS .scss 
+
+
+são apenas arquivos .css 
+comuns,
+
+mas com algumas features adicionais,
+
+
+como nesting 
+
+
+
+
+
+E DECLARE DE VARIABLES, ETC...
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+
+$primary: #018EFC;
+
+@import "~bootstrap/scss/bootstrap";
+
+* {
+  font-family: 'Roboto', sans-serif !important;
+}
+
+body {
+  background-color: #e7ebee;
+}
+
+.nav-link {
+  color: #9aa0a9;
+
+  &.active {
+    background-color: inherit !important;
+    color: #57585A !important;
+  }
+
+  &:hover, &:focus {
+    color: #57585A !important;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+-> 'dashboard.js'
+
+ESTÁ ATUALMENTE VAZIO,
+
+
+MAS MAIS TARDE VAMOS PREENCHÊ-LO..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS VOLTANDO AO 'webpack.config.js':
+
+
+
+
+
+
+
+
+
+ESTAMOS BUNDLANDO TUDO, considerando estes entry files:
+
+
+
+
+
+    /*
+     * ENTRY CONFIG
+     *
+     * Each entry will result in one JavaScript file (e.g. app.js)
+     * and one CSS file (e.g. app.css) if your JavaScript imports CSS.
+     */
+    .addEntry("app", "./resources/js/app.js")
+    .addEntry("dashboard", "./resources/js/dashboard.js")
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ ESTAMOS OUTPUTTANDO ISSO EM 
+
+'public/build/app.js':
+
+
+
+Encore
+    // directory where compiled assets will be stored
+    .setOutputPath("public/build/")
+
+    // public path used by the web server to access the output path
+    .setPublicPath("/build")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''IT ALSO OUTPUTS THE NECESSARY CSS FILES,
+    BECAUSE WE ARE IMPORTING THE CSS FILES 
+    FROM WITHIN THE .JS''''..
+
+
+
+
+
+
+
+--> É POR ISSO QUE ELE VAI SPITTAR  2 FILES EM 
+
+'public/build'...
+
+
+ELE VAI SPITTAR 
+
+
+app.js 
+
+e 
+
+app.css...
+
+
+
+
+
+
+
+
+
+O MESMO APLICA-SE PARA O DASHBOARD:
+
+
+
+
+dashboard.js 
+
+e 
+
+dashboard.css 
+
+
+
+
+
+
+
+
+
+
+-> CERTO...
+
+
+
+
+
+
+AÍ TEMOS ALGUMAS OUTRAS FEATURES,
+
+OUTRAS FUNCTIONS de optimization:
+
+
+
+
+
+
+
+   /*
+     * FEATURE CONFIG
+     *
+     * Enable & configure other features below. For a full
+     * list of features, see:
+     * https://symfony.com/doc/current/frontend.html#adding-more-features
+     */
+    .cleanupOutputBeforeBuild()
+    .enableBuildNotifications()
+    .enableSourceMaps(! Encore.isProduction())
+
+    // enables hashed filenames (e.g. app.abc123.css)
+    .enableVersioning()
+
+    .configureBabel((config) => {
+        config.plugins.push("@babel/plugin-proposal-class-properties")
+    })
+
+    // enables @babel/preset-env polyfills
+    .configureBabelPresetEnv((config) => {
+        config.useBuiltIns = "usage"
+        config.corejs      = 3
+    })
+
+    .copyFiles({
+        from: "./resources/images",
+        to: "images/[path][name].[hash:8].[ext]",
+        pattern: /\.(png|jpg|jpeg|gif)$/
+    })
+
+    // enables Sass/SCSS support
+    .enableSassLoader()
+
+
+
+
+
+
+
+
+
+
+
+---> ENABLAMOS VERSIONING,
+
+e etc...
+
+
+
+
+
+
+
+
+
+-> TAMBÉM COPIAMOS AS IMAGES 
+
+
+DO FOLDER DE 'images'
+
+para 
+
+
+
+
+
+
+o directory de 
+
+'public/build/images'....
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO TUDO É UM OVERVIEW DO FRONTEND...
+
+
+
+
+
+
+
+
+
+
+
+
+--> FRONTEND SERÁ PROVIDENCIADO DURANTE ESTE PROJETO,
+
+APENAS PRECISAMOS NOS PREOCUPAR COM O PHP...
+
+
+
+
+
+
+
+--> OK..
+
+
+
+
+
+
+AGORA DEVEMOS ABRIR O ARQUIVO DE 
+'layout.twig',
+
+
+PARA EXAMINARMOS SUA COMPOSIÇÃO:
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-100">
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %}Expennies{% endblock %}</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
+        {% block stylesheets %}
+            {{ encore_entry_link_tags('app') }}
+        {% endblock %}
+
+        {% block javascripts %}
+            {{ encore_entry_script_tags('app') }}
+        {% endblock %}
+    </head>
+    <body>
+        <div class="container">
+            <header class="d-flex flex-wrap justify-content-center py-3 mb-4">
+                <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
+                    <img src="{{ asset('build/images/logo.png') }}" width="64" height="64" alt="Expennies Logo" />
+                    <span class="fs-1 fw-bold">Ex<span class="text-primary">pennies</span></span>
+                </a>
+
+                <ul class="nav nav-pills align-items-center">
+                    <li class="nav-item"><a href="#" class="nav-link fw-bold fs-5 active" aria-current="page">Overview</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link fw-bold fs-5" aria-current="page">Transactions</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link fw-bold fs-5" aria-current="page">Categories</a></li>
+                </ul>
+            </header>
+        </div>
+        <div class="container">
+            {% block content %}{% endblock %}
+        </div>
+    </body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+É UMA ESTRUTURA BÁSICA...
+
+
+
+
+
+
+
+
+ESTA PARTE É INTERESSANTE:
+
+
+
+
+
+
+
+
+
+
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
+        {% block stylesheets %}
+            {{ encore_entry_link_tags('app') }}
+        {% endblock %}
+
+        {% block javascripts %}
+            {{ encore_entry_script_tags('app') }}
+        {% endblock %}
+
+
+
+
+
+
+
+
+
+
+PARECE UM ENTRYPOINT PARA INSERIR O JS E O CSS...
+
+
+
+
+ESTA TAMBÉM:
+
+
+
+
+
+
+
+
+
+
+            <header class="d-flex flex-wrap justify-content-center py-3 mb-4">
+                <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
+                    <img src="{{ asset('build/images/logo.png') }}" width="64" height="64" alt="Expennies Logo" />
+                    <span class="fs-1 fw-bold">Ex<span class="text-primary">pennies</span></span>
+                </a>
+
+                <ul class="nav nav-pills align-items-center">
+                    <li class="nav-item"><a href="#" class="nav-link fw-bold fs-5 active" aria-current="page">Overview</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link fw-bold fs-5" aria-current="page">Transactions</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link fw-bold fs-5" aria-current="page">Categories</a></li>
+                </ul>
+            </header>
+
+
+
+
+
+
+
+
+
+    --> É UM ENTRYPOINT PARA INSERIR UMA IMAGE,
+
+    UM RESOURCE/asset..
+
+
+
+
+
+
+
+
+
+AS FUNCTIONS SÃO:
+
+
+
+encore_entry_link_tags()
+
+encore_entry_script_tags()
+
+
+e 
+
+
+
+asset()
+
+
+
+
+
+
+
+
+
+-> 'encoreXXXX()'
+
+
+
+É UMA FUNCTION QUE FAZ 
+
+
+_ LOAD DAS 
+
+FILES NECESSÁRIAS JS E CSS AO NOSSO APP...
+
+
+
+
+
+
+
+
+--> O 'APP' que temos, aqui,
+
+é o mesmo que foi escrito aqui:
+
+
+
+
+
+    .addEntry("app", "./resources/js/app.js")
+
+
+
+
+
+
+
+
+
+
+--> ok... esse era o LAYOUT.TWIG...
+
+
+
+
+
+
+
+
+
+--> MAS SE ABRIMOS O 'dashboard.twig':
+
+
+
+
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('dashboard') }}
+{% endblock %}
+
+
+
+
+
+
+
+
+--> ISSO SIGNIFICA QUE ELE ESTÁ __ PRIMEIRAMENTE _ IMPORTANDO 
+
+O CSS DO 'PARENT',
+
+
+que, no caso,
+
+
+
+é 'app.scss'...
+
+
+
+
+
+depois disso, ele está 
+
+
+
+importando/chamando a file própria,
+
+
+com 
+
+
+
+''    {{ encore_entry_link_tags('dashboard') }} ''
+
+
+
+
+
+
+
+
+
+
+
+
+{{ parent() }}: This is used to call the content
+ of the stylesheets block from the parent template. This ensures
+  that any stylesheets defined in the parent template are included in the
+   current template as well.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+MAS PARA QUE ESSAS FUNCTIONS FUNCIONEM,
+
+O PROFESSOR PRECISA FAZER ALGUNS AJUSTES,
+
+
+
+E PRECISA FAZER O INSTALL DE ALGUNS PACKAGES ADICIONAIS,
+
+
+
+
+ISSO PQ 
+
+
+_ NÃO ESTAMOS USANDO O SYMFONY FRAMEWORK,
+
+E SIM 
+
+ESTAMOS USANDO 
+
+O SLIM FRAMEWORK,
+
+
+
+SEM O SYMFONY FRAMEWORK EM SI...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE ABRIMOS O 'composer.json' 
+
+E SCROLLAMOS PARA BAIXO,
+
+
+ENCONTRAMOS ISTO:
+
+
+
+
+
+
+    "require": {
+        "ext-pdo": "*",
+        "doctrine/dbal": "^3.4",
+        "doctrine/migrations": "^3.5",
+        "doctrine/orm": "^2.13",
+        "php-di/php-di": "^6.4",
+        "slim/psr7": "^1.5",
+        "slim/slim": "^4.10",
+        "slim/twig-view": "^3.3",
+        "symfony/cache": "^6.1",
+        "symfony/console": "^6.1",
+        "symfony/twig-bridge": "^6.1",
+        "symfony/webpack-encore-bundle": "^1.15",
+        "twig/intl-extra": "^3.4",
+        "twig/twig": "^3.4",
+        "vlucas/phpdotenv": "^5.4"
+    },
+
+
+
+
+
+
+
+
+
+
+
+NO CASO,
+
+ENCONTRAMOS 
+
+
+
+
+''
+
+"symfony/twig-bridge": "^6.1",
+
+
+
+''
+
+
+e 
+
+
+
+
+
+''
+
+
+"symfony/webpack-encore-bundle": "^1.15",
+
+
+
+''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O TWIG-BRIDGE BASICAMENTE PROVIDENCIA 
+
+    ALGUMAS FUNCTIONS E EXTENSIONS
+
+
+    QUE FUNCIONAM COM ALGUNS OUTROS 
+
+    SYMFONY COMPONENTS (como o 'ASSET' component,
+    que providencia a function de 'asset()' )
+
+
+
+
+
+
+
+
+
+--> TANTO 'asset()' como 'encoreXXXX()' functions 
+    se encarregam do VERSIONING,
+
+    e do LOAD DAS PROPER, UP-TO-DATE,
+    VERSIONS DOS ARQUIVOS CSS, JS E IMAGE...
+
+
+
+
+
+
+
+
+
+
+
+-> É EXATAMENTE POR ISSO QUE, 
+    NOS CONTAINER_BINDINGS,
+
+
+    estamos adicionando 
+
+    esses 2 como extensions,
+    com este código aqui:
+
+
+
+
+
+
+
+$twig->addExtension(new IntlExtension());
+$twig->addExtension(new EntryFilesTwigExtension($container));
+$twig->addExtension(new AssetExtension($container->get('webpack_encore.packages')));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS É CLARO QUE ESSAS DEPENDENCY 
+    CLASSES POSSUEM ALGUMAS DEPENDENCIES PRÓPRIAS, dentro de si,
+
+    que NÃO PODEM SER 'RESOLVED ON THEIR OWN'...
+
+
+
+--> ISSO ACONTECE, AQUI, JUSTAMENTE PQ 
+    NÃO ESTAMOS USANDO 
+
+    O SYMFONY FRAMEWORK, OU OS SYMFONY BUNDLES, OU O 
+    SYMFONY CONTAINER E SUAS CONFIGURATIONS...
+
+
+
+
+
+-> COMO ESTAMOS USANDO O SLIM PHP,
+
+    É POR ESSA RAZÃO QUE TIVEMOS 
+    DE ADICIONAR AQUELAS 2 ENTRIES NO CONTAINER,
+
+
+    ESTAS AQUI:
+
+
+
+
+        /** The following two bindings are needed for EntryFilesTwigExtension & AssetExtension to work for Twig */
+    'webpack_encore.packages' => fn() => new Packages(
+        new Package(new JsonManifestVersionStrategy(BUILD_PATH . '/manifest.json'))
+    ),
+    'webpack_encore.tag_renderer' => fn(ContainerInterface $container) => new TagRenderer(
+        new EntrypointLookup(BUILD_PATH . '/entrypoints.json'),
+        $container->get('webpack_encore.packages')
+    ),
+
+
+
+
+
+
+
+
+--> ELAS SÃO NECESSÁRIAS PARA FAZER AQUELAS EXTENSIONS,
+
+'encoreXXX()'
+
+
+e 
+
+'asset()',
+
+
+FUNCIONAREM... 
+
+
+
+
+
+
+
+
+-> ESSAS EXTENSIONS USAM AS FILES 'manifest.json' 
+
+e 
+
+'entrypoints.json',
+
+
+
+
+
+
+
+que são GERADAS 
+
+PELO 'encore'
+
+DURANTE O PROCESSO DE BUILD... --> ESSAS FILES, POR SUA VEZ,
+                                        SÃO SIMPLES 
+                                        CONFIG FILES 
+                                        QUE BASICAMENTE 
+                                        CONTÉM 
+
+                                        1 MAP 
+
+                                        PARA OS NOMES 
+                                        DAS VERSIONS FINAIS 
+
+                                        DOS ARQUIVOS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... AGORA VAMOS:
+
+
+
+
+
+
+1) BUILD OUR CONTAINERS 
+
+
+
+
+2) RUN COMPOSER INSTALL 
+
+
+
+3) BUILD THE FRONTEND,
+
+
+PARA TESTAR TUDO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ANTES DE MAIS NADA, PRECISAMOS CRIAR A .env file...
+
+
+
+
+
+
+copiamos o .env.example,
+
+
+e aí 
+
+
+VAMOS ESCREVENDO ASSIM:
+
+
+
+
+
+
+
+
+
+APP_NAME=Expennies
+APP_VERSION=1.0
+APP_DEBUG=1
+APP_ENV=development
+DB_HOST=db
+DB_USER=root
+DB_PASS=root
+DB_NAME=expennies
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO,
+
+ABRIMOS O DOCKER, NO FOLDER DE 'docker',
+
+e aí 
+
+
+rodamos 
+
+docker-compose up -d --build,
+
+para construir esse container...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+AÍ NOS CONECTAMOS À DATABASE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CRIAMOS 1 NOVA DATABASE, DE NOME 'expennies'...
+
+
+
+
+
+
+
+
+
+
+
+-> depois disso,
+
+
+
+entramos no container e rodamos nossas migrations...
+
+
+
+
+
+
+
+
+
+-> NÃO TEMOS NENHUM ARQUIVO MIGRATIONS,
+
+MAS QUEREMOS CRIAR A TABLE DE MIGRATIONS,
+
+PARA VER 
+SE ESTÃO FUNCIONANDO ESSES COMMANDS...
+
+
+
+
+
+
+
+
+
+
+
+--> antes disso, rodamos 'composer install'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ RODAMOS AS MIGRATIONS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> DEPOIS DISSO,
+
+PRECISAMOS RODAR OS COMANDOS NPM,
+
+PARA INSTALAR NOSSAS COISAS DO FRONTEND...
+
+
+
+
+
+
+-> BASTA ABRIR A PASTA ONDE ESTÁ O PACKAGE.JSON,
+
+e rodar npm install...
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR APONTA QUE HÁ 3 COMMANDS 
+
+QUE PODEMOS USAR:
+
+
+
+
+
+'npm run dev' 
+
+'npm run build'...
+
+
+
+
+
+
+
+npm run watch --> builda e watcha pelas changes... quando vc faz 1 change,
+                ele automaticamente rebuilda, para que vc n tenha que 
+                rebuildar a cada change...
+
+
+
+
+
+
+
+
+
+
+
+
+PS D:\PROJETO20-PHP-FROM-THE-GROUND-UP\MODULE4-EXPENNIES\1-set-up-expennies\expennies\docker>
+
+docker exec -it expennies-app bash 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok... rodei o composer install...
+
+
+
+
+
+
+depois rodamos npm run dev, para buildar as files para dev...
+
+
+
+
+
+
+
+
+
+
+AGORA, COM TUDO ISSO PRONTO,
+
+BASTA abrir o site,
+
+com 'localhost:8000'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... FUNCIONOU..
+
+
+
+
+
+
+
+
+
+-> A UI É APENAS 1 ESQUELETO,
+
+
+QUE VAMOS PREENCHER AO LONGO DAS LESSONS...
+
+
+
+
+
+
+MAS ESSA É A IDEIA...
+
+
+
+
+
+
+
+
+-> TEREMOS ALGUNS CHARTS...
+
+
+
+
+
+
+
+-> AÍ LATEST TRANSACTIONS...
+
+
+
+
+
+
+
+
+-> LÁ EMBAIXO,
+
+ALGUMAS TOP CATEGORIES, ETC...
+
+
+
+
+
+
+
+
+
+
+
+-> PAGES PARA MANAGEAR AS TRANSACTIONS E CATEGORIES, ETC...
+
+
+
+
+
+-> O PROFESSOR PENSOU NISSO....
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR VAI BUILDAR ESSE PROJECT CONOSCO...
+
+
+
+
+
+
+
+
+
+
+-> NA PRÓXIMA AULA,
+
+FAREMOS ALGUM DATA MODELLING E CRIAREMOS ALGUMAS ENTITIES...
