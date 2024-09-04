@@ -11,7 +11,7 @@ return [
     Config::class => create(Config::class)->constructor($_ENV),
     EntityManager::class => fn(Config $config) => EntityManager::create(
         $config->db,
-        ORMSetup::createAttributeMetadataConfiguration([__DIR__, './../app/Entity'])
+        ORMSetup::createAttributeMetadataConfiguration([__DIR__ . '/../app/Entity'])
     ),
     Twig::class => function (Config $config) {
         $twig = Twig::create(VIEW_PATH, [

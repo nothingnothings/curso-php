@@ -1237,3 +1237,1912 @@ $commands = [
     // If you want to add your own custom console commands,
     // you can do so here.
 ];
+
+
+
+
+
+
+
+
+
+
+-> CERTO....
+
+
+
+
+
+
+
+
+-> AGORA DEVEMOS INSPECIONAR RAPIDAMENTE O METHOD DE 
+
+'ConsoleRunner',
+
+PARA VER O QUE ELE FAZ:
+
+
+
+
+
+
+<?php
+
+use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
+use Doctrine\ORM\Tools\Console\ConsoleRunner;
+use Doctrine\ORM\EntityManager;
+
+// replace with path to your own project bootstrap file
+// require_once 'bootstrap.php';
+
+$app = require __DIR__ . '/bootstrap.php';
+$container = $app->getContainer();
+
+// replace with mechanism to retrieve EntityManager in your app
+// $entityManager = GetEntityManager();
+
+$entityManager = $container->get(EntityManager::class);
+
+$commands = [
+    // If you want to add your own custom console commands,
+    // you can do so here.
+];
+
+ConsoleRunner::run(
+    new SingleManagerProvider($entityManager),
+    $commands
+);
+
+
+
+
+
+
+
+
+
+
+
+
+Ex:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * Handles running the Console Tools inside Symfony Console context.
+ */
+final class ConsoleRunner
+{
+    /**
+     * Create a Symfony Console HelperSet
+     */
+    public static function createHelperSet(EntityManagerInterface $entityManager): HelperSet
+    {
+        $helpers = ['em' => new EntityManagerHelper($entityManager)];
+
+        if (class_exists(DBALConsole\Helper\ConnectionHelper::class)) {
+            $helpers['db'] = new DBALConsole\Helper\ConnectionHelper($entityManager->getConnection());
+        }
+
+        return new HelperSet($helpers);
+    }
+
+    /**
+     * Runs console with the given helper set.
+     *
+     * @param HelperSet|EntityManagerProvider $helperSetOrProvider
+     * @param SymfonyCommand[]                $commands
+     */
+    public static function run($helperSetOrProvider, array $commands = []): void
+    {
+        $cli = self::createApplication($helperSetOrProvider, $commands);
+        $cli->run();
+    }
+
+    /**
+     * Creates a console application with the given helperset and
+     * optional commands.
+     *
+     * @param HelperSet|EntityManagerProvider $helperSetOrProvider
+     * @param SymfonyCommand[]                $commands
+     *
+     * @throws OutOfBoundsException
+     */
+    public static function createApplication($helperSetOrProvider, array $commands = []): Application
+    {
+        $version = InstalledVersions::getVersion('doctrine/orm');
+        assert($version !== null);
+
+        $cli = new Application('Doctrine Command Line Interface', $version);
+        $cli->setCatchExceptions(true);
+
+        if ($helperSetOrProvider instanceof HelperSet) {
+            $cli->setHelperSet($helperSetOrProvider);
+
+            $helperSetOrProvider = new HelperSetManagerProvider($helperSetOrProvider);
+        }
+
+        self::addCommands($cli, $helperSetOrProvider);
+        $cli->addCommands($commands);
+
+        return $cli;
+    }
+
+    public static function addCommands(Application $cli, ?EntityManagerProvider $entityManagerProvider = null): void
+    {
+        if ($entityManagerProvider === null) {
+            $entityManagerProvider = new HelperSetManagerProvider($cli->getHelperSet());
+        }
+
+        $connectionProvider = new ConnectionFromManagerProvider($entityManagerProvider);
+
+        if (class_exists(DBALConsole\Command\ImportCommand::class)) {
+            $cli->add(new DBALConsole\Command\ImportCommand());
+        }
+
+        $cli->addCommands(
+            [
+                // DBAL Commands
+                new DBALConsole\Command\ReservedWordsCommand($connectionProvider),
+                new DBALConsole\Command\RunSqlCommand($connectionProvider),
+
+                // ORM Commands
+                new Command\ClearCache\CollectionRegionCommand($entityManagerProvider),
+                new Command\ClearCache\EntityRegionCommand($entityManagerProvider),
+                new Command\ClearCache\MetadataCommand($entityManagerProvider),
+                new Command\ClearCache\QueryCommand($entityManagerProvider),
+                new Command\ClearCache\QueryRegionCommand($entityManagerProvider),
+                new Command\ClearCache\ResultCommand($entityManagerProvider),
+                new Command\SchemaTool\CreateCommand($entityManagerProvider),
+                new Command\SchemaTool\UpdateCommand($entityManagerProvider),
+                new Command\SchemaTool\DropCommand($entityManagerProvider),
+                new Command\EnsureProductionSettingsCommand($entityManagerProvider),
+                new Command\ConvertDoctrine1SchemaCommand(),
+                new Command\GenerateRepositoriesCommand($entityManagerProvider),
+                new Command\GenerateEntitiesCommand($entityManagerProvider),
+                new Command\GenerateProxiesCommand($entityManagerProvider),
+                new Command\ConvertMappingCommand($entityManagerProvider),
+                new Command\RunDqlCommand($entityManagerProvider),
+                new Command\ValidateSchemaCommand($entityManagerProvider),
+                new Command\InfoCommand($entityManagerProvider),
+                new Command\MappingDescribeCommand($entityManagerProvider),
+            ]
+        );
+    }
+
+    public static function printCliConfigTemplate(): void
+    {
+        echo <<<'HELP'
+You are missing a "cli-config.php" or "config/cli-config.php" file in your
+project, which is required to get the Doctrine Console working. You can use the
+following sample as a template:
+
+<?php
+use Doctrine\ORM\Tools\Console\ConsoleRunner;
+
+// replace with file to your own project bootstrap
+require_once 'bootstrap.php';
+
+// replace with mechanism to retrieve EntityManager in your app
+$entityManager = GetEntityManager();
+
+return ConsoleRunner::createHelperSet($entityManager);
+
+HELP;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> COMO VC PODE PERCEBER,
+
+ELE ESTÁ CRIANDO UMA INSTANCE DE 'application',
+
+
+com 
+
+
+''        
+
+
+$cli = self::createApplication($helperSetOrProvider, $commands);
+
+
+',
+
+
+e então 
+
+
+está RODANDO ESSA INSTANCE,
+
+
+COM '->RUN()':
+
+
+
+
+
+
+
+
+    public static function run($helperSetOrProvider, array $commands = []): void
+    {
+        $cli = self::createApplication($helperSetOrProvider, $commands);
+        $cli->run();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSE METHOD de 'createApplication()',
+
+POR SUA VEZ:
+
+
+
+
+    public static function createApplication($helperSetOrProvider, array $commands = []): Application
+    {
+        $version = InstalledVersions::getVersion('doctrine/orm');
+        assert($version !== null);
+
+        $cli = new Application('Doctrine Command Line Interface', $version);
+        $cli->setCatchExceptions(true);
+
+        if ($helperSetOrProvider instanceof HelperSet) {
+            $cli->setHelperSet($helperSetOrProvider);
+
+            $helperSetOrProvider = new HelperSetManagerProvider($helperSetOrProvider);
+        }
+
+        self::addCommands($cli, $helperSetOrProvider);
+        $cli->addCommands($commands);
+
+        return $cli;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ELE BASICAMENTE CRIA 1 APP,
+
+E AÍ ADICIONA OS COMMANDS,
+
+COM 'self::addCommands'...
+
+
+
+
+
+TAMBÉM COM '$cli->addCommands()"
+
+
+
+
+
+
+
+ELE BASICAMENTE ADICIONA OS COMMANDS QUE TÍNHAMOS PASSADO COMO ARGUMENTS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> certo...
+
+
+
+
+
+
+
+
+e os default commands são registrados em 'addCommands'
+
+também,
+
+tipo assim:
+
+
+
+
+
+
+
+
+    public static function addCommands(Application $cli, ?EntityManagerProvider $entityManagerProvider = null): void
+    {
+        if ($entityManagerProvider === null) {
+            $entityManagerProvider = new HelperSetManagerProvider($cli->getHelperSet());
+        }
+
+        $connectionProvider = new ConnectionFromManagerProvider($entityManagerProvider);
+
+        if (class_exists(DBALConsole\Command\ImportCommand::class)) {
+            $cli->add(new DBALConsole\Command\ImportCommand());
+        }
+
+        $cli->addCommands(
+            [
+                // DBAL Commands
+                new DBALConsole\Command\ReservedWordsCommand($connectionProvider),
+                new DBALConsole\Command\RunSqlCommand($connectionProvider),
+
+                // ORM Commands
+                new Command\ClearCache\CollectionRegionCommand($entityManagerProvider),
+                new Command\ClearCache\EntityRegionCommand($entityManagerProvider),
+                new Command\ClearCache\MetadataCommand($entityManagerProvider),
+                new Command\ClearCache\QueryCommand($entityManagerProvider),
+                new Command\ClearCache\QueryRegionCommand($entityManagerProvider),
+                new Command\ClearCache\ResultCommand($entityManagerProvider),
+                new Command\SchemaTool\CreateCommand($entityManagerProvider),
+                new Command\SchemaTool\UpdateCommand($entityManagerProvider),
+                new Command\SchemaTool\DropCommand($entityManagerProvider),
+                new Command\EnsureProductionSettingsCommand($entityManagerProvider),
+                new Command\ConvertDoctrine1SchemaCommand(),
+                new Command\GenerateRepositoriesCommand($entityManagerProvider),
+                new Command\GenerateEntitiesCommand($entityManagerProvider),
+                new Command\GenerateProxiesCommand($entityManagerProvider),
+                new Command\ConvertMappingCommand($entityManagerProvider),
+                new Command\RunDqlCommand($entityManagerProvider),
+                new Command\ValidateSchemaCommand($entityManagerProvider),
+                new Command\InfoCommand($entityManagerProvider),
+                new Command\MappingDescribeCommand($entityManagerProvider),
+            ]
+        );
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE VER,
+
+ESSE METHOD 
+
+
+JÁ 
+
+
+
+TEM,
+
+COMO DEFAULT COMMANDS,
+
+
+
+
+OS 
+
+
+
+COMMANDS:
+
+
+
+1) DE DBAL:
+
+
+
+                // DBAL Commands
+                new DBALConsole\Command\ReservedWordsCommand($connectionProvider),
+                new DBALConsole\Command\RunSqlCommand($connectionProvider),
+
+
+
+
+
+
+
+
+
+2) DE 'ORM':
+
+
+
+
+
+          // ORM Commands
+                new Command\ClearCache\CollectionRegionCommand($entityManagerProvider),
+                new Command\ClearCache\EntityRegionCommand($entityManagerProvider),
+                new Command\ClearCache\MetadataCommand($entityManagerProvider),
+                new Command\ClearCache\QueryCommand($entityManagerProvider),
+                new Command\ClearCache\QueryRegionCommand($entityManagerProvider),
+                new Command\ClearCache\ResultCommand($entityManagerProvider),
+                new Command\SchemaTool\CreateCommand($entityManagerProvider),
+                new Command\SchemaTool\UpdateCommand($entityManagerProvider),
+                new Command\SchemaTool\DropCommand($entityManagerProvider),
+                new Command\EnsureProductionSettingsCommand($entityManagerProvider),
+                new Command\ConvertDoctrine1SchemaCommand(),
+                new Command\GenerateRepositoriesCommand($entityManagerProvider),
+                new Command\GenerateEntitiesCommand($entityManagerProvider),
+                new Command\GenerateProxiesCommand($entityManagerProvider),
+                new Command\ConvertMappingCommand($entityManagerProvider),
+                new Command\RunDqlCommand($entityManagerProvider),
+                new Command\ValidateSchemaCommand($entityManagerProvider),
+                new Command\InfoCommand($entityManagerProvider),
+                new Command\MappingDescribeCommand($entityManagerProvider),
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO, MAS ELE NÃO TEM NADA 
+
+DE COMMANDS RELACIONADOS A MIGRATIONS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESSE 'ConsoleRunner'
+
+
+É DO NAMESPACE DE ''ORM'', CERTO...?
+
+
+
+
+
+
+
+
+
+
+-> MAS SE PROCURARMOS POR 'ConsoleRunner',
+
+
+VEREMOS QUE EXISTEM, NA VERDADE,
+
+
+
+3 CONSOLE RUNNERS DIFERENTES...
+
+
+
+
+
+ELES SÃO:
+
+
+
+1) O CONSOLE RUNNER DE ORM 
+
+
+2) O CONSOLE RUNNER DE 'DBAL' 
+
+
+
+3) O CONSOLE RUNNER DE  MIGRATIONS...
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+
+EXISTE, SIM, ESSE CONSOLE RUNNER DE 
+
+'MIGRATIONS'..
+
+
+
+
+
+
+
+
+
+
+-> O CONSOLE RUNNER DE DBAL 
+NÃO NOS INTERESSA,
+PQ JÁ ESTAMOS USANDO O  DE 'ORM',
+
+QUE BASICAMENTE O CONTÉM..
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS O DE MIGRATIONS NOS INTERESSA,
+
+    PQ __ ELE_ __ CONTÉM 
+
+    OS COMMANDS __ 
+    NECESSÁRIOS PARA RODAR MIGRATIONS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> 
+
+
+
+NO CONSOLE RUNNER DE MIGRATIONS, TEMOS ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+    public static function addCommands(Application $cli, ?DependencyFactory $dependencyFactory = null): void
+    {
+        $cli->addCommands([
+            new CurrentCommand($dependencyFactory),
+            new DumpSchemaCommand($dependencyFactory),
+            new ExecuteCommand($dependencyFactory),
+            new GenerateCommand($dependencyFactory),
+            new LatestCommand($dependencyFactory),
+            new MigrateCommand($dependencyFactory),
+            new RollupCommand($dependencyFactory),
+            new StatusCommand($dependencyFactory),
+            new VersionCommand($dependencyFactory),
+            new UpToDateCommand($dependencyFactory),
+            new SyncMetadataCommand($dependencyFactory),
+            new ListCommand($dependencyFactory),
+        ]);
+
+        if ($dependencyFactory === null || ! $dependencyFactory->hasSchemaProvider()) {
+            return;
+        }
+
+        $cli->add(new DiffCommand($dependencyFactory));
+    }
+
+
+
+
+
+
+
+
+
+
+
+O QUE PODEMOS FAZER, AQUI,
+
+
+É SIMPLESMENTE COPIAR ESSE CÓDIGO TODO,
+
+
+ESSA PARTE DE 
+
+
+
+
+'''
+
+
+            new CurrentCommand($dependencyFactory),
+            new DumpSchemaCommand($dependencyFactory),
+            new ExecuteCommand($dependencyFactory),
+            new GenerateCommand($dependencyFactory),
+            new LatestCommand($dependencyFactory),
+            new MigrateCommand($dependencyFactory),
+            new RollupCommand($dependencyFactory),
+            new StatusCommand($dependencyFactory),
+            new VersionCommand($dependencyFactory),
+            new UpToDateCommand($dependencyFactory),
+            new SyncMetadataCommand($dependencyFactory),
+            new ListCommand($dependencyFactory),
+
+
+
+
+''',
+
+
+
+E AÍ COLAR ESSE TRECHO TODO DENTRO 
+
+DO ARRAY DE 'commands',
+
+
+
+lá em 'myapp.php',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+$commands = [
+    // If you want to add your own custom console commands,
+    // you can do so here.
+    // * These are all commands taken from the Migrations Console Runner.
+    new CurrentCommand($dependencyFactory),
+    new DumpSchemaCommand($dependencyFactory),
+    new ExecuteCommand($dependencyFactory),
+    new GenerateCommand($dependencyFactory),
+    new LatestCommand($dependencyFactory),
+    new MigrateCommand($dependencyFactory),
+    new RollupCommand($dependencyFactory),
+    new StatusCommand($dependencyFactory),
+    new VersionCommand($dependencyFactory),
+    new UpToDateCommand($dependencyFactory),
+    new SyncMetadataCommand($dependencyFactory),
+    new ListCommand($dependencyFactory),
+    new DiffCommand($dependencyFactory),
+];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS COMO PODEMOS GANHAR ACESSO A ESSA VARIABLE DE 
+
+
+'$dependencyFactory'?
+
+
+
+
+
+
+
+--> O PROFESSOR APONTA QUE ISSO É BEM FÁCIL,
+
+
+    PQ, SE LEMBRARMOS BEM,
+
+
+    JÁ FIZEMOS ISSO NA AULA DE MIGRATIONS,
+
+
+    NO ARQUIVO DE 'cli-config.phbp'...
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSE ARQUIVO DE 'cli-config.php'
+
+
+JÁ FAZ O RETURN DA DEPENDENCYFACTORY,
+
+
+COMO OBSERVAMOS AQUI:
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+require 'vendor/autoload.php';
+
+use Doctrine\Migrations\Configuration\Migration\PhpFile;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Tools\Setup;
+use Doctrine\Migrations\Configuration\EntityManager\ExistingEntityManager;
+use Doctrine\Migrations\DependencyFactory;
+use Dotenv\Dotenv;
+
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+$config = new PhpFile('migrations.php'); // Or use one of the Doctrine\Migrations\Configuration\Configuration\* loaders
+$params = [
+    'host'     => $_ENV['DB_HOST'],
+    'user'     => $_ENV['DB_USER'],
+    'password' => $_ENV['DB_PASS'],
+    'dbname'   => $_ENV['DB_DATABASE'],
+    'driver'   => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
+];
+
+$entityManager = EntityManager::create(
+    $params,
+    Setup::createAttributeMetadataConfiguration([__DIR__ . '/app/Entity'])
+);
+
+return DependencyFactory::fromEntityManager($config, new ExistingEntityManager($entityManager));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> BEM, MAS NÓS ACTUALLY NÃO PRECISAMOS 
+    MAIS DE ESSE ARQUIVO 'cli-config.php'...
+
+
+
+    ISSO É PQ NÃO VAMOS MAIS  
+    RODAR OS COMANDOS DE DOCTRINE MIGRATIONS 
+    DIRETAMENTE DO DIRECTORY DE 'VENDOR', COMO ANTES...
+
+
+
+
+
+
+
+ 
+
+-> É POR ISSO QUE VAMOS CRIAR ESSA DEPENDENCYFACTORY
+    LÁ EM 'myapp.php',
+
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+$dependencyFactory = DependencyFactory::fromEntityManager($config, new ExistingEntityManager($entityManager));
+
+
+
+
+
+
+
+-> MAS PRECISAMOS DA CONFIG FILE,
+
+POR ISSO COPIAMOS E COLAMOS ESTA LINHA:
+
+
+
+$config = new PhpFile('migrations.php');
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+$entityManager = $container->get(EntityManager::class);
+
+$config = new PhpFile('migrations.php');
+
+$dependencyFactory = DependencyFactory::fromEntityManager($config, new ExistingEntityManager($entityManager));
+
+$commands = [
+    // If you want to add your own custom console commands,
+    // you can do so here.
+    // * These are all commands taken from the Migrations Console Runner.
+    new CurrentCommand($dependencyFactory),
+    new DumpSchemaCommand($dependencyFactory),
+    new ExecuteCommand($dependencyFactory),
+    new GenerateCommand($dependencyFactory),
+    new LatestCommand($dependencyFactory),
+    new MigrateCommand($dependencyFactory),
+    new RollupCommand($dependencyFactory),
+    new StatusCommand($dependencyFactory),
+    new VersionCommand($dependencyFactory),
+    new UpToDateCommand($dependencyFactory),
+    new SyncMetadataCommand($dependencyFactory),
+    new ListCommand($dependencyFactory),
+    new DiffCommand($dependencyFactory),
+];
+
+
+
+
+
+
+
+
+
+
+
+
+MAS NÓS TAMBÉM MOVEMOS O 'migrations.php',
+
+esse arquivo de config,
+
+para dentro do folder de 'configs',
+
+e então trocamos o path,
+
+nesse mesmo código de 'myapp.php',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+use Doctrine\Migrations\Configuration\EntityManager\ExistingEntityManager;
+use Doctrine\Migrations\Configuration\Migration\PhpFile;
+use Doctrine\Migrations\Tools\Console\Command\CurrentCommand;
+use Doctrine\Migrations\Tools\Console\Command\DiffCommand;
+use Doctrine\Migrations\Tools\Console\Command\DumpSchemaCommand;
+use Doctrine\Migrations\Tools\Console\Command\ExecuteCommand;
+use Doctrine\Migrations\Tools\Console\Command\GenerateCommand;
+use Doctrine\Migrations\Tools\Console\Command\LatestCommand;
+use Doctrine\Migrations\Tools\Console\Command\ListCommand;
+use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
+use Doctrine\Migrations\Tools\Console\Command\RollupCommand;
+use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
+use Doctrine\Migrations\Tools\Console\Command\SyncMetadataCommand;
+use Doctrine\Migrations\Tools\Console\Command\UpToDateCommand;
+use Doctrine\Migrations\Tools\Console\Command\VersionCommand;
+use Doctrine\Migrations\DependencyFactory;
+use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
+use Doctrine\ORM\Tools\Console\ConsoleRunner;
+use Doctrine\ORM\EntityManager;
+
+// replace with path to your own project bootstrap file
+// require_once 'bootstrap.php';
+
+$app = require __DIR__ . '/bootstrap.php';
+$container = $app->getContainer();
+
+// replace with mechanism to retrieve EntityManager in your app
+// $entityManager = GetEntityManager();
+
+$entityManager = $container->get(EntityManager::class);
+
+$config = new PhpFile(CONFIG_PATH . '/migrations.php');
+
+$dependencyFactory = DependencyFactory::fromEntityManager($config, new ExistingEntityManager($entityManager));
+
+$commands = [
+    // If you want to add your own custom console commands,
+    // you can do so here.
+    // * These are all commands taken from the Migrations Console Runner.
+    new CurrentCommand($dependencyFactory),
+    new DumpSchemaCommand($dependencyFactory),
+    new ExecuteCommand($dependencyFactory),
+    new GenerateCommand($dependencyFactory),
+    new LatestCommand($dependencyFactory),
+    new MigrateCommand($dependencyFactory),
+    new RollupCommand($dependencyFactory),
+    new StatusCommand($dependencyFactory),
+    new VersionCommand($dependencyFactory),
+    new UpToDateCommand($dependencyFactory),
+    new SyncMetadataCommand($dependencyFactory),
+    new ListCommand($dependencyFactory),
+    new DiffCommand($dependencyFactory),
+];
+
+ConsoleRunner::run(
+    new SingleManagerProvider($entityManager),
+    $commands
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> COM ISSO, NOSSOS COMMANDS DE MIGRATION FINALMENTE APARECEM NO TERMINAL,
+
+QUANDO DIGITAMOS 
+
+
+
+
+
+php myapp.php list 
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+Available commands:
+  completion                         Dump the shell completion script
+  help                               Display help for a command
+  list                               List commands
+ dbal
+  dbal:reserved-words                Checks if the current database contains identifiers that are reserved.
+  dbal:run-sql                       Executes arbitrary SQL directly from the command line.
+ migrations
+  migrations:current                 [current] Outputs the current version       
+  migrations:diff                    [diff] Generate a migration by comparing your current database to your mapping information.
+  migrations:dump-schema             [dump-schema] Dump the schema for your database to a migration.
+  migrations:execute                 [execute] Execute one or more migration versions up or down manually.
+  migrations:generate                [generate] Generate a blank migration class.  migrations:latest                  [latest] Outputs the latest version
+  migrations:list                    [list-migrations] Display a list of all available migrations and their status.
+  migrations:migrate                 [migrate] Execute a migration to a specified version or the latest available version.
+  migrations:rollup                  [rollup] Rollup migrations by deleting all tracked versions and insert the one version that exists.
+  migrations:status                  [status] View the status of a set of migrations.
+  migrations:sync-metadata-storage   [sync-metadata-storage] Ensures that the metadata storage is at the latest version.
+  migrations:up-to-date              [up-to-date] Tells you if your schema is up-to-date.
+  migrations:version                 [version] Manually add and delete migration 
+versions from the version table.
+ orm
+  orm:clear-cache:metadata           Clear all metadata cache of the various cache drivers
+  orm:clear-cache:query              Clear all query cache of the various cache drivers
+  orm:clear-cache:region:collection  Clear a second-level cache collection region  orm:clear-cache:region:entity      Clear a second-level cache entity region    
+  orm:clear-cache:region:query       Clear a second-level cache query region     
+  orm:clear-cache:result             Clear all result cache of the various cache 
+drivers
+  orm:convert-d1-schema              [orm:convert:d1-schema] Converts Doctrine 1.x schema into a Doctrine 2.x schema
+  orm:convert-mapping                [orm:convert:mapping] Convert mapping information between supported formats
+  orm:ensure-production-settings     Verify that Doctrine is properly configured 
+for a production environment
+  orm:generate-entities              [orm:generate:entities] Generate entity classes and method stubs from your mapping information
+  orm:generate-proxies               [orm:generate:proxies] Generates proxy classes for entity classes
+  orm:generate-repositories          [orm:generate:repositories] Generate repository classes from your mapping information
+  orm:info                           Show basic information about all mapped entities
+  orm:mapping:describe               Display information about mapped objects    
+  orm:run-dql                        Executes arbitrary DQL directly from the command line
+  orm:schema-tool:create             Processes the schema and either create it directly on EntityManager Storage Connection or generate the SQL output
+  orm:schema-tool:drop               Drop the complete database schema of EntityManager Storage Connection or generate the corresponding SQL output
+  orm:schema-tool:update             Executes (or dumps) the SQL needed to update the database schema to match the current mapping metadata
+  orm:validate-schema                Validate the mapping files
+root@7a72084dcf36:/var/www# 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO.. AGORA DEVEMOS RODAR ALGUNS DE ESSES MIGRATION COMMANDS,
+
+PARA GARANTIR QUE ESTÃO FUNCIONANDO...
+
+
+
+
+
+
+
+
+
+
+
+
+PROFESSOR RODA 
+
+
+
+php myapp.php migrations:status
+
+
+
+
+
+
+
+
+
+
+
+
+
+EU ESTAVA RECEBENDO ESTE ERROR:
+
+
+
+
+
+  Cannot load migrations from "/migrations" because it is not a valid directory 
+
+
+
+
+
+
+
+
+
+
+
+  MAS ELE ESTAVA ACONTECENDO DEVIDO A ESTE CÓDIGO, DO ARQUIVO 'migrations.php',
+
+
+  de configuração:
+
+
+
+
+<?php declare(strict_types=1);
+
+return [
+    'table_storage' => [
+        'table_name' => 'doctrine_migration_versions',
+        'version_column_name' => 'version',
+        'version_column_length' => 1024,
+        'executed_at_column_name' => 'executed_at',
+        'execution_time_column_name' => 'execution_time',
+    ],
+    'migrations_paths' => [
+        'Migrations' => '../migrations', // esta linha estava causando o error.
+    ],
+    'all_or_nothing' => true,
+    'transactional' => true,
+    'check_database_platform' => true,
+    'organize_migrations' => 'none',
+    'connection' => null,
+    'em' => null,
+];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+RODEI ESTE COMANDO:
+
+
+
+
+
+
+
+
+
+root@7a72084dcf36:/var/www# php myapp.php migrations:up-to-date
+
+
+ [OK] Up-to-date! No migrations to execute.
+
+
+root@7a72084dcf36:/var/www#
+
+
+
+
+
+
+
+
+
+
+-> SIGNIFICA QUE ESSES COMMANDS ESTÃO FUNCIONANDO...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+root@7a72084dcf36:/var/www# php myapp.php migrations:status
++----------------------+----------------------+------------------------------------------------------------------------+
+| Configuration
+                                      |
++----------------------+----------------------+------------------------------------------------------------------------+
+| Storage              | Type                 | Doctrine\Migrations\Metadata\Storage\TableMetadataStorageConfiguration |
+|                      | Table Name           | doctrine_migration_versions      
+                                      |
+|                      | Column Name          | version
+                                      |
+|----------------------------------------------------------------------------------------------------------------------|
+| Database             | Driver               | Doctrine\DBAL\Driver\PDO\MySQL\Driver                                  |
+|                      | Name                 | home_db
+                                      |
+|----------------------------------------------------------------------------------------------------------------------|
+| Versions             | Previous             | Migrations\Version20220404205112 
+                                      |
+|                      | Current              | Migrations\Version20220404205403 
+                                      |
+|                      | Next                 | Already at latest version        
+                                      |
+|                      | Latest               | Migrations\Version20220404205403 
+                                      |
+|----------------------------------------------------------------------------------------------------------------------|
+| Migrations           | Executed             | 2
+                                      |
+|                      | Executed Unavailable | 0
+                                      |
+|                      | Available            | 2
+                                      |
+|                      | New                  | 0
+                                      |
+|----------------------------------------------------------------------------------------------------------------------|
+| Migration Namespaces | Migrations           | /var/www/migrations
+                                      |
++----------------------+----------------------+------------------------------------------------------------------------+
+root@7a72084dcf36:/var/www#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR ENTÃO RODA 'migrate first',
+
+para fazer rollback para A PRIMEIRA MIGRATION...
+
+
+
+
+
+
+
+
+
+
+
+Ex:
+
+
+
+
+
+
+
+
+
+
+
+root@7a72084dcf36:/var/www# php myapp.php migrate          
+
+ WARNING! You are about to execute a migration in database "home_db" that could result in schema changes and data loss. Are you sure you wish to continue? (yes/no) [yes]:
+ > y
+
+
+ [OK] Already at the latest version ("Migrations\Version20220404205403")
+
+
+root@7a72084dcf36:/var/www# php myapp.php migrate first
+
+ WARNING! You are about to execute a migration in database "home_db" that could result in schema changes and data loss. Are you sure you wish to continue? (yes/no) [yes]:
+ > y
+
+[notice] Migrating down to 0
+[notice] finished in 97.7ms, used 12M memory, 2 migrations executed, 5 sql queries
+
+ [OK] Successfully migrated to version: 0
+
+
+
+root@7a72084dcf36:/var/www#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+SIGNIFICA QUE 
+
+
+FUNCIONOU...
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR ENTÃO RODA O COMMAND DE 'php myapp.php diff',
+
+
+PARA VER SE ESTÁ FUNCIONANDO...
+
+
+
+
+
+
+
+
+
+TENTEI RODAR ESTE CÓDIGO:
+
+
+
+
+
+root@7a72084dcf36:/var/www# php myapp.php diff
+
+
+
+
+
+
+
+
+
+ [WARNING] You have 2 available migrations to execute.
+
+
+ Are you sure you wish to continue? (yes/no) [yes]:
+ > y
+
+
+
+
+
+
+
+
+MAS FIQUEI COM ESTE ERROR:
+
+
+
+
+In MappingException.php line 50:
+                                                                                 
+  File mapping drivers must have a valid directory path, however the given pat   
+  h [./../app/Entity] seems to be incorrect!                                     
+                                                                                 
+
+migrations:diff [--configuration CONFIGURATION] [--em EM] [--conn CONN] [--namespace NAMESPACE] [--filter-expression FILTER-EXPRESSION] [--formatted] [--line-length LINE-LENGTH] [--check-database-platform [CHECK-DATABASE-PLATFORM]] [--allow-empty-diff] [--from-empty-schema]
+
+root@7a72084dcf36:/var/www#
+
+
+
+
+
+
+
+
+
+
+CONSERTEI.. FICOU TIPO ASSIM:
+
+
+    EntityManager::class => fn(Config $config) => EntityManager::create(
+        $config->db,
+        ORMSetup::createAttributeMetadataConfiguration([__DIR__ . '/../app/Entity'])
+    ),
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PARA TESTAR O DIFF, O PROFESSOR ALTERA O DATA TYPE 
+
+
+DA COLUMN DE 'amount',
+
+LÁ EM 'invoice.php',,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Entity;
+
+use App\Enums\InvoiceStatus;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Event\LifecycleEventArgs;
+use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\GeneratedValue;
+use Doctrine\ORM\Mapping\HasLifecycleCallbacks;
+use Doctrine\ORM\Mapping\Id;
+use Doctrine\ORM\Mapping\OneToMany;
+use Doctrine\ORM\Mapping\PrePersist;
+use Doctrine\ORM\Mapping\Table;
+
+#[Entity]
+#[Table('invoices')]
+#[HasLifecycleCallbacks]
+class Invoice
+{
+    #[Id]
+    #[Column, GeneratedValue]
+    private int $id;
+
+    #[Column(type: Types::BIGINT, precision: 10, scale: 2)]
+    private float $amount;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok... aí rodamos 'diff',
+
+PARA GERAR OS ARQUIVOS MIGRATION NECESSÁRIOS...
+
+
+
+
+
+
+
+
+
+ISSO FEITO, RODAMOS 
+
+
+'php myapp.php migrate',
+
+para aplicar essa e outras changes...
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS E QUANTO A CUSTOM COMMANDS?
+
+
+
+
+
+
+
+VC TALVEZ QUEIRA ADICIONAR SEUS PRÓPRIOS CUSTOM COMMANDS...
+
+É JUSTAMENTE POR ISSO QUE CRIAMOS NOSSO PRÓPRIO 'myapp.php'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+---> PARA ESCREVERMOS NOSSOS PRÓPRIOS CUSTOM COMMANDS,
+
+    PRECISAMOS ENTENDER UM POUCO SOBRE 
+
+
+    O 
+
+
+
+    ''SYMFONY CONSOLE COMPONENT''...
+
+
+
+
+
+
+
+
+
+
+-> ABRIMOS OS DOCS DO SYMFONY CONSOLE COMPONENT..
+
+
+
+
+
+
+
+
+
+
+
+-> ELE É USADO PARA 'CREATE COMMAND-LINE COMMANDS/INTERFACES'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA INSTALAR ISSO AÍ,
+RODAMOS
+
+
+
+'composer require symfony/console'...
+
+
+
+
+
+
+
+
+
+
+AÍ VOLTAMOS AOS DOCS,
+
+ONDE TEMOS 1 
+EXEMPLO 
+
+DE COMO 
+PODEMOS 
+
+_ SET UP E RUN 
+
+
+SYMFONY CONSOLE APPS...
+
+
+
+
+
+
+
+
+
+-> O CÓDIGO É ASSIM:
+
+
+
+
+
+
+
+#!/usr/bin/env php
+<?php
+// application.php
+
+require __DIR__.'/vendor/autoload.php';
+
+use Symfony\Component\Console\Application;
+
+$application = new Application();
+
+// ... register commands
+
+$application->run();
+
+
+
+
+
+
+
+
+
+
+
+
+-> ELE CRIA 1 NOVA APPLICATION INSTANCE,
+
+AÍ 
+
+
+REGISTRAMOS 
+
+OS COMMANDS,
+
+
+USANDO O METHOD DE '->add()'...
+
+
+
+
+
+
+
+
+
+--> AÍ, NO FINAL, SIMPLESMENTE FAZEMOS RUN DO APP...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, COM ESSE CÓDIGO AÍ,
+
+
+
+VAMOS SUBSTITUIR O 'ConsoleRunner'
+que estamos usando no momento...
+
+
+
+
+
+
+
+
+TROCAMOS ESTE CÓDIGO:
+
+
+
+
+ConsoleRunner::run(
+    new SingleManagerProvider($entityManager),
+    $commands
+);
+
+
+
+
+
+
+
+
+POR ESTE:
+
+
+
+
+
+
+
+$application = new Application();
+
+
+
+
+$application->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+ESSES 2 CÓDIGOS FAZEM PRATICAMENTE A MESMA COISA...
+
+
+
+
+
+
+
+
+MAS QUEREMOS USAR ESSE DO SYMFONY, É MELHOR...

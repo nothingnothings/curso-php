@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types = 1);
+<?php declare(strict_types=1);
 
 namespace App\Entity;
 
@@ -27,7 +25,7 @@ class Invoice
     #[Column, GeneratedValue]
     private int $id;
 
-    #[Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+    #[Column(type: Types::BIGINT, precision: 10, scale: 2)]
     private float $amount;
 
     #[Column(name: 'invoice_number')]
