@@ -1,0 +1,67 @@
+<?php
+
+use Doctrine\Migrations\Configuration\EntityManager\ExistingEntityManager;
+use Doctrine\Migrations\Configuration\Migration\PhpFile;
+use Doctrine\Migrations\DependencyFactory;
+use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
+use Doctrine\ORM\Tools\Console\ConsoleRunner;
+use Doctrine\ORM\EntityManager;
+use Symfony\Component\Console\Application;
+
+// replace with path to your own project bootstrap file
+// require_once 'bootstrap.php';
+
+$app = require __DIR__ . '/bootstrap.php';
+$container = $app->getContainer();
+
+// replace with mechanism to retrieve EntityManager in your app
+// $entityManager = GetEntityManager();
+
+$entityManager = $container->get(EntityManager::class);
+
+$config = new PhpFile('./configs/migrations.php');
+
+$dependencyFactory = DependencyFactory::fromEntityManager($config, new ExistingEntityManager($entityManager));
+
+// $commands = [
+//     // If you want to add your own custom console commands,
+//     // you can do so here.
+//     // * These are all commands taken from the Migrations Console Runner.
+//     new CurrentCommand($dependencyFactory),
+//     new DumpSchemaCommand($dependencyFactory),
+//     new ExecuteCommand($dependencyFactory),
+//     new GenerateCommand($dependencyFactory),
+//     new LatestCommand($dependencyFactory),
+//     new MigrateCommand($dependencyFactory),
+//     new RollupCommand($dependencyFactory),
+//     new StatusCommand($dependencyFactory),
+//     new VersionCommand($dependencyFactory),
+//     new UpToDateCommand($dependencyFactory),
+//     new SyncMetadataCommand($dependencyFactory),
+//     new ListCommand($dependencyFactory),
+//     new DiffCommand($dependencyFactory),
+//     // new YourCommand()
+//     $container->get(YourCommand::class),
+// ];
+
+$migrationCommands = require CONFIG_PATH . '/migration_commands.php';
+$customCommands = require CONFIG_PATH . '/custom_commands.php';
+
+$commands = [
+    ...$migrationCommands($dependencyFactory),
+    ...array_map(fn($customCommand) => $container->get($customCommand), $customCommands),
+];
+
+// ! Replaced by Symfony's ConsoleRunner
+// ConsoleRunner::run(
+//     new SingleManagerProvider($entityManager),
+//     $commands
+// );
+
+$application = new Application('Your App Name', '1.0');
+
+ConsoleRunner::addCommands($application, new SingleManagerProvider($entityManager));
+
+$application->addCommands($commands);
+
+$application->run();

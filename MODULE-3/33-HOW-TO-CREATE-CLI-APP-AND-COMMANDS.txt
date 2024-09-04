@@ -3146,3 +3146,1796 @@ ESSES 2 CÓDIGOS FAZEM PRATICAMENTE A MESMA COISA...
 
 
 MAS QUEREMOS USAR ESSE DO SYMFONY, É MELHOR...
+
+
+
+
+
+
+
+
+
+--> OS 2 SÃO COMPATÍVEIS JUSTAMENTE PQ O 'createApplication' 
+
+RETORNA UM 'SYMFONY APPLICATION OBJECT'...
+
+
+
+
+
+
+
+
+
+
+
+--> É MELHOR MISTURAR ESSES CLI 
+
+PQ ISSO TE DÁ MAIOR CONTROLE SOBRE O VERSIONING,
+
+E SOBRE A APPLICATION INSTANCE...
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR ESCREVE ASSIM:
+
+
+
+
+
+
+
+
+
+<?php
+
+use Doctrine\Migrations\Configuration\EntityManager\ExistingEntityManager;
+use Doctrine\Migrations\Configuration\Migration\PhpFile;
+use Doctrine\Migrations\Tools\Console\Command\CurrentCommand;
+use Doctrine\Migrations\Tools\Console\Command\DiffCommand;
+use Doctrine\Migrations\Tools\Console\Command\DumpSchemaCommand;
+use Doctrine\Migrations\Tools\Console\Command\ExecuteCommand;
+use Doctrine\Migrations\Tools\Console\Command\GenerateCommand;
+use Doctrine\Migrations\Tools\Console\Command\LatestCommand;
+use Doctrine\Migrations\Tools\Console\Command\ListCommand;
+use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
+use Doctrine\Migrations\Tools\Console\Command\RollupCommand;
+use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
+use Doctrine\Migrations\Tools\Console\Command\SyncMetadataCommand;
+use Doctrine\Migrations\Tools\Console\Command\UpToDateCommand;
+use Doctrine\Migrations\Tools\Console\Command\VersionCommand;
+use Doctrine\Migrations\DependencyFactory;
+use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
+use Doctrine\ORM\Tools\Console\ConsoleRunner;
+use Doctrine\ORM\EntityManager;
+use Symfony\Component\Console\Application;
+
+// replace with path to your own project bootstrap file
+// require_once 'bootstrap.php';
+
+$app = require __DIR__ . '/bootstrap.php';
+$container = $app->getContainer();
+
+// replace with mechanism to retrieve EntityManager in your app
+// $entityManager = GetEntityManager();
+
+$entityManager = $container->get(EntityManager::class);
+
+$config = new PhpFile('./configs/migrations.php');
+
+$dependencyFactory = DependencyFactory::fromEntityManager($config, new ExistingEntityManager($entityManager));
+
+$commands = [
+    // If you want to add your own custom console commands,
+    // you can do so here.
+    // * These are all commands taken from the Migrations Console Runner.
+    new CurrentCommand($dependencyFactory),
+    new DumpSchemaCommand($dependencyFactory),
+    new ExecuteCommand($dependencyFactory),
+    new GenerateCommand($dependencyFactory),
+    new LatestCommand($dependencyFactory),
+    new MigrateCommand($dependencyFactory),
+    new RollupCommand($dependencyFactory),
+    new StatusCommand($dependencyFactory),
+    new VersionCommand($dependencyFactory),
+    new UpToDateCommand($dependencyFactory),
+    new SyncMetadataCommand($dependencyFactory),
+    new ListCommand($dependencyFactory),
+    new DiffCommand($dependencyFactory),
+];
+
+// ! Replaced by Symfony's ConsoleRunner
+// ConsoleRunner::run(
+//     new SingleManagerProvider($entityManager),
+//     $commands
+// );
+
+$application = new Application('Your App Name', '1.0');
+
+$application->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COLOCAMOS O NOME DE NOSSO APP ALI,
+
+e isso poderá ser extraído 
+
+
+
+por meio das env files,
+
+se quisermos...
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... 
+
+
+
+
+--> MAS AINDA PRECISAMOS DO TRECHO DE 'addCommands',
+
+POR ISSO ESCREVEMOS ASSIM:
+
+
+
+
+
+
+$commands = [
+    // If you want to add your own custom console commands,
+    // you can do so here.
+    // * These are all commands taken from the Migrations Console Runner.
+    new CurrentCommand($dependencyFactory),
+    new DumpSchemaCommand($dependencyFactory),
+    new ExecuteCommand($dependencyFactory),
+    new GenerateCommand($dependencyFactory),
+    new LatestCommand($dependencyFactory),
+    new MigrateCommand($dependencyFactory),
+    new RollupCommand($dependencyFactory),
+    new StatusCommand($dependencyFactory),
+    new VersionCommand($dependencyFactory),
+    new UpToDateCommand($dependencyFactory),
+    new SyncMetadataCommand($dependencyFactory),
+    new ListCommand($dependencyFactory),
+    new DiffCommand($dependencyFactory),
+];
+
+// ! Replaced by Symfony's ConsoleRunner
+// ConsoleRunner::run(
+//     new SingleManagerProvider($entityManager),
+//     $commands
+// );
+
+$application = new Application('Your App Name', '1.0');
+
+ConsoleRunner::addCommands($application);
+
+$application->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> '''COMO NÃO ESTAMOS USANDO
+        HELPERSET,
+
+        O SEGUNDO PARAMETER DE 'addCommands',
+
+        VAMOS SIMPLESMENTE PASSAR O ENTITYMANAGER EM SI..'''
+
+
+
+
+
+
+
+
+--> por isso vamos só passar o 'SingleManagerProvider',
+
+como object....
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+ConsoleRunner::addCommands($application, new SingleManagerProvider($entityManager));
+
+
+
+
+
+
+
+
+
+
+
+POR FIM,
+
+
+USAMOS 'addCommands'
+
+
+PARA ADICIONAR NOSSOS COMMANDS...
+
+
+
+
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+$application = new Application('Your App Name', '1.0');
+
+ConsoleRunner::addCommands($application, new SingleManagerProvider($entityManager));
+
+$application->addCommands($commands);
+
+$application->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO, PODEMOS NOS LIVRAR DO 'cli-config',
+
+pq 
+
+ele não será mais necessário...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS É CLARO QUE FIZEMOS TUDO ISSO PQ 
+
+
+QUEREMOS __ SER CAPAZES DE CRIAR NOSSOS PRÓPRIOS COMMANDS,
+
+
+NO CLI DO SYMFONY...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> mas como podemos fazer isso?
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ADICIONAR CUSTOM COMMANDS,
+    O PROFESSOR CRIA 1 NOVO FOLDER DENTRO DE 'app',
+
+
+    DE NOME 
+
+    'Commands'...
+
+
+
+
+
+
+
+-> DENTRO DESSA PASTA,
+
+ELE CRIA 
+
+
+
+1 ARQUIVO CHAMADO 'yourCommand'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESCREVEMOS TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Commands;
+
+class YourCommand {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... 
+    MAS COMO É O FORMATO DE TODOS ESSES COMMANDS?
+
+
+
+
+
+
+
+
+
+
+
+--> BASTA ABRIR 1 DOS COMMANDS DA LISTA DE COMMANDS, LÁ EM 'myapp.php'...
+
+
+
+
+
+
+
+
+
+
+
+TEMOS ISTO:
+
+
+
+
+
+
+
+abstract class DoctrineCommand extends Command
+{
+    /** @var StyleInterface */
+    protected $io;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    se abrimos a class de 'Command',
+
+
+    TEMOS ISTO:
+
+
+
+
+
+class Command
+{
+    // see https://tldp.org/LDP/abs/html/exitcodes.html
+    public const SUCCESS = 0;
+    public const FAILURE = 1;
+    public const INVALID = 2;
+
+    /**
+     * @var string|null The default command name
+     *
+     * @deprecated since Symfony 6.1, use the AsCommand attribute instead
+     */
+    protected static $defaultName;
+
+
+
+
+
+
+
+
+....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE EXAMINAMOS OS IMPORTS,
+
+
+TEMOS ISTO:
+
+
+
+
+use Symfony\Component\Console\Command\Command;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PRECISAMOS FAZER EXTEND DE ESSE COMMAND, PARA CRIAR 1 CUSTOM COMMAND...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> NA PARTE DE 'console commands' 
+
+do symfony,
+temos isto:
+
+
+
+
+
+
+https://symfony.com/doc/current/console.html#creating-a-command
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> BASTA ESCREVER ALGO COMO:
+
+
+
+
+
+
+
+
+
+
+
+class CreateUserCommand extends Command 
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> DEVEMOS FAZER EXTEND DA CLASS  DE 'Command'...
+
+
+
+
+AÍ TEMOS ISTO:
+
+
+
+
+
+
+// the name of the command is what users type after "php bin/console"
+#[AsCommand(name: 'app:create-user')]
+class CreateUserCommand extends Command
+{
+
+
+
+
+
+
+
+
+
+
+    -> NÓS DEFINIMOS ESSE NAME AÍ,
+
+    NO ATTRIBUTE,
+
+
+
+    E AÍ 
+
+
+
+
+    DEPOIS DISSO 
+
+    TEMOS O METHOD DE 'execute':
+
+
+
+
+
+// the name of the command is what users type after "php bin/console"
+#[AsCommand(name: 'app:create-user')]
+class CreateUserCommand extends Command
+{
+
+
+  protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        // ... put here the code to create the user
+
+        // this method must return an integer number with the "exit status code"
+        // of the command. You can also use these constants to make code more readable
+
+        // return this if there was no problem running the command
+        // (it's equivalent to returning int(0))
+        return Command::SUCCESS;
+
+        // or return this if some error happened during the execution
+        // (it's equivalent to returning int(1))
+        // return Command::FAILURE;
+
+        // or return this to indicate incorrect command usage; e.g. invalid options
+        // or missing arguments (it's equivalent to returning int(2))
+        // return Command::INVALID
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+E ESSE METHOD PRECISA RETORNAR 1 INTEGER....
+
+
+
+
+
+ESSE INTEGER SERÁ SUCCESS, FAILURE OU INVALID ENUMS...
+
+
+
+
+
+
+SÃO EQUIVALENTES A 0 1 E 2....
+
+
+
+
+
+
+
+
+
+
+
+
+
+VAMOS ESCREVENDO TIPO ASSIM:
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Commands;
+
+use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+
+#[AsCommand(name: 'app:your-command')]
+class YourCommand extends Command
+{
+    protected static $defaultName = 'app:your-command';
+    protected static $defaultDescription = "Your command's description";
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        return Command::SUCCESS;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA TESTAR, PODEMOS SIMPLESMENTE COLOCAR 1 execute da lógica de 
+
+
+
+
+'$output->write('Hello World', true);',
+
+
+
+PARA QUE ISSO APAREÇA NO CONSOLE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ASSIM:
+
+
+
+
+root@7a72084dcf36:/var/www# php myapp.php app:your-command
+Hello World
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO PÔDE SER EXECUTADO...
+
+
+
+
+
+
+
+
+
+
+
+--> SE RODAMOS 
+
+
+
+php myapp.php list,
+
+
+
+
+PODEMOS 
+
+
+VER 
+
+
+
+O NOSSO COMMAND NA LIST,
+
+TIPO ASSIM:
+
+
+
+
+Available commands:
+  completion                         Dump the shell completion script
+  help                               Display help for a command
+  list                               List commands
+ app
+  app:your-command
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+SIGNIFICA QUE ESTÁ FUNCIONANDO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> É CLARO QUE PODEMOS FAZER 1 POUCO DE REFACTORING, NO CÓDIGO DE 'myapp.php'...
+
+
+
+
+
+
+
+
+
+
+-> ELE ATUALMENTE ESTÁ ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+use App\Commands\YourCommand;
+use Doctrine\Migrations\Configuration\EntityManager\ExistingEntityManager;
+use Doctrine\Migrations\Configuration\Migration\PhpFile;
+use Doctrine\Migrations\Tools\Console\Command\CurrentCommand;
+use Doctrine\Migrations\Tools\Console\Command\DiffCommand;
+use Doctrine\Migrations\Tools\Console\Command\DumpSchemaCommand;
+use Doctrine\Migrations\Tools\Console\Command\ExecuteCommand;
+use Doctrine\Migrations\Tools\Console\Command\GenerateCommand;
+use Doctrine\Migrations\Tools\Console\Command\LatestCommand;
+use Doctrine\Migrations\Tools\Console\Command\ListCommand;
+use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
+use Doctrine\Migrations\Tools\Console\Command\RollupCommand;
+use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
+use Doctrine\Migrations\Tools\Console\Command\SyncMetadataCommand;
+use Doctrine\Migrations\Tools\Console\Command\UpToDateCommand;
+use Doctrine\Migrations\Tools\Console\Command\VersionCommand;
+use Doctrine\Migrations\DependencyFactory;
+use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
+use Doctrine\ORM\Tools\Console\ConsoleRunner;
+use Doctrine\ORM\EntityManager;
+use Symfony\Component\Console\Application;
+
+// replace with path to your own project bootstrap file
+// require_once 'bootstrap.php';
+
+$app = require __DIR__ . '/bootstrap.php';
+$container = $app->getContainer();
+
+// replace with mechanism to retrieve EntityManager in your app
+// $entityManager = GetEntityManager();
+
+$entityManager = $container->get(EntityManager::class);
+
+$config = new PhpFile('./configs/migrations.php');
+
+$dependencyFactory = DependencyFactory::fromEntityManager($config, new ExistingEntityManager($entityManager));
+
+$commands = [
+    // If you want to add your own custom console commands,
+    // you can do so here.
+    // * These are all commands taken from the Migrations Console Runner.
+    new CurrentCommand($dependencyFactory),
+    new DumpSchemaCommand($dependencyFactory),
+    new ExecuteCommand($dependencyFactory),
+    new GenerateCommand($dependencyFactory),
+    new LatestCommand($dependencyFactory),
+    new MigrateCommand($dependencyFactory),
+    new RollupCommand($dependencyFactory),
+    new StatusCommand($dependencyFactory),
+    new VersionCommand($dependencyFactory),
+    new UpToDateCommand($dependencyFactory),
+    new SyncMetadataCommand($dependencyFactory),
+    new ListCommand($dependencyFactory),
+    new DiffCommand($dependencyFactory),
+    new YourCommand()
+];
+
+// ! Replaced by Symfony's ConsoleRunner
+// ConsoleRunner::run(
+//     new SingleManagerProvider($entityManager),
+//     $commands
+// );
+
+$application = new Application('Your App Name', '1.0');
+
+ConsoleRunner::addCommands($application, new SingleManagerProvider($entityManager));
+
+$application->addCommands($commands);
+
+$application->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESTAMOS FAZENDO MTAS COISAS AO MESMO TEMPO,
+NESSA FILE...
+
+
+
+
+
+
+
+
+
+
+-> 'we are
+    registering these migration commands 
+    and mixing them with our own custom commands''...
+
+
+
+
+
+
+
+
+
+
+
+-> NÓS TALVEZ TAMBÉM GOSTARÍAMOS 
+    DE USAR DEPENDENCY INJECTION 
+
+    DENTRO DE NOSSOS COMMANDS EM SI,
+
+
+
+
+
+POR ISSO PODEMOS DEFINIR 1 CONSTRUCTOR 
+
+
+NO NOSSO 'MyCommand',
+
+
+PARA QUE CONSIGAMOS PASSAR PARAMETERS A ELE,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Commands;
+
+use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+
+#[AsCommand(name: 'app:your-command')]
+class YourCommand extends Command
+{
+    protected static $defaultName = 'app:your-command';
+    protected static $defaultDescription = "Your command's description";
+
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        $output->write('Hello World', true);
+
+        return Command::SUCCESS;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+isso feito, basta injetarmos alguma dependency, dentro de esse constructor...
+
+
+
+
+
+
+
+-> podemos colocar 
+    uma dependency de 'InvoiceService',
+
+    por exemplo...
+
+
+
+EX:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Commands;
+
+use App\Services\InvoiceService;
+use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+
+#[AsCommand(name: 'app:your-command')]
+class YourCommand extends Command
+{
+    protected static $defaultName = 'app:your-command';
+    protected static $defaultDescription = "Your command's description";
+
+    public function __construct(private readonly InvoiceService $invoiceService)
+    {
+        parent::__construct();
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        $output->write('Hello World', true);
+
+        $output->write('Paid Invoices:' . count($this->invoiceService->getPaidInvoices()), true);
+
+        return Command::SUCCESS;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS ISSO VAI FALHAR,
+
+
+ISSO PQ NÃO PASSAMOS NENHUM ARGUMENTO AO 'YourCommand', lá na lista:
+
+
+
+
+
+
+$commands = [
+    // If you want to add your own custom console commands,
+    // you can do so here.
+    // * These are all commands taken from the Migrations Console Runner.
+    new CurrentCommand($dependencyFactory),
+    new DumpSchemaCommand($dependencyFactory),
+    new ExecuteCommand($dependencyFactory),
+    new GenerateCommand($dependencyFactory),
+    new LatestCommand($dependencyFactory),
+    new MigrateCommand($dependencyFactory),
+    new RollupCommand($dependencyFactory),
+    new StatusCommand($dependencyFactory),
+    new VersionCommand($dependencyFactory),
+    new UpToDateCommand($dependencyFactory),
+    new SyncMetadataCommand($dependencyFactory),
+    new ListCommand($dependencyFactory),
+    new DiffCommand($dependencyFactory),
+    new YourCommand()
+];
+
+
+
+
+
+
+
+
+
+
+
+--> PARA FAZER ISSO FUNCIONAR, PODEMOS USAR O CONTAINER PARA PEGAR A INSTANCE 
+    de 'YourCommand',
+
+    tipo assim:
+
+
+
+
+
+
+
+
+$commands = [
+    // If you want to add your own custom console commands,
+    // you can do so here.
+    // * These are all commands taken from the Migrations Console Runner.
+    new CurrentCommand($dependencyFactory),
+    new DumpSchemaCommand($dependencyFactory),
+    new ExecuteCommand($dependencyFactory),
+    new GenerateCommand($dependencyFactory),
+    new LatestCommand($dependencyFactory),
+    new MigrateCommand($dependencyFactory),
+    new RollupCommand($dependencyFactory),
+    new StatusCommand($dependencyFactory),
+    new VersionCommand($dependencyFactory),
+    new UpToDateCommand($dependencyFactory),
+    new SyncMetadataCommand($dependencyFactory),
+    new ListCommand($dependencyFactory),
+    new DiffCommand($dependencyFactory),
+    // new YourCommand()
+    $container->get(YourCommand::class),
+];
+
+
+
+
+
+
+
+
+
+
+
+aí tudo funciona como o esperado...
+
+
+
+
+
+
+
+
+
+
+o comando executa, tudo certo...
+
+
+
+
+EX:
+
+
+
+
+
+
+
+root@7a72084dcf36:/var/www# php myapp.php app:your-command
+Hello World
+Paid Invoices:0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> mas podemos deixar tudo isso melhor,
+    podemos outsourcear esses commands 
+
+
+    em suas próprias config files...
+
+
+
+
+
+
+
+
+
+-> PODEMOS TER:
+
+
+1) A MIGRATIONS CONFIG FILE 
+
+
+
+2) CUSTOM COMMANDS CONFIG FILE...
+
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE VAMOS CRIAR OUTRAS FILES EM 'configs' (folder),
+
+
+
+ DE NOMES
+
+
+
+ 'migration_commands.php'...
+
+
+
+
+
+e 
+
+
+
+'custom_commands.php'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO, MAS AQUI TEMOS 1 PROBLEMA:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use Doctrine\Migrations\Tools\Console\Command\CurrentCommand;
+use Doctrine\Migrations\Tools\Console\Command\DiffCommand;
+use Doctrine\Migrations\Tools\Console\Command\DumpSchemaCommand;
+use Doctrine\Migrations\Tools\Console\Command\ExecuteCommand;
+use Doctrine\Migrations\Tools\Console\Command\GenerateCommand;
+use Doctrine\Migrations\Tools\Console\Command\LatestCommand;
+use Doctrine\Migrations\Tools\Console\Command\ListCommand;
+use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
+use Doctrine\Migrations\Tools\Console\Command\RollupCommand;
+use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
+use Doctrine\Migrations\Tools\Console\Command\SyncMetadataCommand;
+use Doctrine\Migrations\Tools\Console\Command\UpToDateCommand;
+use Doctrine\Migrations\Tools\Console\Command\VersionCommand;
+
+return [
+    'commands' => [
+        // If you want to add your own custom console commands,
+        // you can do so here.
+        // * These are all commands taken from the Migrations Console Runner.
+        new CurrentCommand($dependencyFactory),
+        new DumpSchemaCommand($dependencyFactory),
+        new ExecuteCommand($dependencyFactory),
+        new GenerateCommand($dependencyFactory),
+        new LatestCommand($dependencyFactory),
+        new MigrateCommand($dependencyFactory),
+        new RollupCommand($dependencyFactory),
+        new StatusCommand($dependencyFactory),
+        new VersionCommand($dependencyFactory),
+        new UpToDateCommand($dependencyFactory),
+        new SyncMetadataCommand($dependencyFactory),
+        new ListCommand($dependencyFactory),
+        new DiffCommand($dependencyFactory),
+    ],
+];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TODOS ESSES COMMANDS EXIGEM 'dependencyFactory'...
+
+
+
+
+
+
+
+
+
+--> mas não temos acesso a isso...
+
+
+
+--> é por isso que usamos 1 closure,
+    para acessar
+
+    esse parameter do lado de fora...
+
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use Doctrine\Migrations\Tools\Console\Command\CurrentCommand;
+use Doctrine\Migrations\Tools\Console\Command\DiffCommand;
+use Doctrine\Migrations\Tools\Console\Command\DumpSchemaCommand;
+use Doctrine\Migrations\Tools\Console\Command\ExecuteCommand;
+use Doctrine\Migrations\Tools\Console\Command\GenerateCommand;
+use Doctrine\Migrations\Tools\Console\Command\LatestCommand;
+use Doctrine\Migrations\Tools\Console\Command\ListCommand;
+use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
+use Doctrine\Migrations\Tools\Console\Command\RollupCommand;
+use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
+use Doctrine\Migrations\Tools\Console\Command\SyncMetadataCommand;
+use Doctrine\Migrations\Tools\Console\Command\UpToDateCommand;
+use Doctrine\Migrations\Tools\Console\Command\VersionCommand;
+use Doctrine\Migrations\DependencyFactory;
+
+
+// * We use a closure, so we get access to the '$dependencyFactory'.
+return fn(DependencyFactory $dependencyFactory) => [
+    new CurrentCommand($dependencyFactory),
+    new DumpSchemaCommand($dependencyFactory),
+    new ExecuteCommand($dependencyFactory),
+    new GenerateCommand($dependencyFactory),
+    new LatestCommand($dependencyFactory),
+    new MigrateCommand($dependencyFactory),
+    new RollupCommand($dependencyFactory),
+    new StatusCommand($dependencyFactory),
+    new VersionCommand($dependencyFactory),
+    new UpToDateCommand($dependencyFactory),
+    new SyncMetadataCommand($dependencyFactory),
+    new ListCommand($dependencyFactory),
+    new DiffCommand($dependencyFactory),
+];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ, LÁ EM 'myapp.php',
+
+
+ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+$app = require __DIR__ . '/bootstrap.php';
+$container = $app->getContainer();
+
+// replace with mechanism to retrieve EntityManager in your app
+// $entityManager = GetEntityManager();
+
+$entityManager = $container->get(EntityManager::class);
+
+$config = new PhpFile('./configs/migrations.php');
+
+$dependencyFactory = DependencyFactory::fromEntityManager($config, new ExistingEntityManager($entityManager));
+
+$migrationCommands = require __DIR__ . '/configs/migration_commands.php';
+
+$commands = [
+    ...$migrationCommands($dependencyFactory),
+];
+
+$application = new Application('Your App Name', '1.0');
+
+ConsoleRunner::addCommands($application, new SingleManagerProvider($entityManager));
+
+$application->addCommands($commands);
+
+$application->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+AGORA DEVEMOS CRIAR 1 CONFIG FILE PARA OS 
+
+CUSTOM COMMANDS...
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ALGO ASSIM, MEIO GAMBIARRA:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+use Doctrine\Migrations\Configuration\EntityManager\ExistingEntityManager;
+use Doctrine\Migrations\Configuration\Migration\PhpFile;
+use Doctrine\Migrations\DependencyFactory;
+use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
+use Doctrine\ORM\Tools\Console\ConsoleRunner;
+use Doctrine\ORM\EntityManager;
+use Symfony\Component\Console\Application;
+
+
+$app = require __DIR__ . '/bootstrap.php';
+$container = $app->getContainer();
+
+$entityManager = $container->get(EntityManager::class);
+
+$config = new PhpFile('./configs/migrations.php');
+
+$dependencyFactory = DependencyFactory::fromEntityManager($config, new ExistingEntityManager($entityManager));
+
+
+
+$migrationCommands = require __DIR__ . '/configs/migration_commands.php';
+$customCommands = require __DIR__ . '/configs/custom_commands.php';
+
+$commands = [
+    ...$migrationCommands($dependencyFactory),
+    array_map(fn($class) => $container->get($class), $customCommands),
+];
+
+
+$application = new Application('Your App Name', '1.0');
+
+ConsoleRunner::addCommands($application, new SingleManagerProvider($entityManager));
+
+$application->addCommands($commands);
+
+$application->run();
+
+
+
+
+
+
+
+
+
+
+MAS GANHEI 1 ERROR... TENHO QUE DEBUGGAR
+
+
+
+
+
+
+
+--> CONSERTEI, ERA SÓ TIRAR MEU ITEM DO ARRAY, TIPO ASSIM (SPREAD OPERATOR):
+
+
+
+
+
+
+
+
+
+
+
+
+
+$commands = [
+    ...$migrationCommands($dependencyFactory),
+    ...array_map(fn($customCommand) => $container->get($customCommand), $customCommands),
+];
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS O PROFESSOR QUER MELHORAR ISSO AINDA MAIS UM POUCO....
+
+
+
+
+
+--> ELE QUER RODAR ESSES COMANDOS SEM TER ESSA EXTENSION DE '.php'...
+
+
+
+
+
+
+
+
+--> isso pq QUEREMOS SER CAPAZES DE EXECUTAR ASSIM:
+
+
+
+
+php myapp list 
+
+
+
+
+
+
+
+
+
+
+---> PARA CONSEGUIR ISSO, BASTA 
+REMOVER O '.php' de nosso arquivo 
+
+'myapp.php'...
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... FUNCIONOU...
+
+
+
+AGORA VAMOS VER O PROJECT....
