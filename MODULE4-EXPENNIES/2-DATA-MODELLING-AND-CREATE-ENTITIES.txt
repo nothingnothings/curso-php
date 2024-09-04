@@ -2779,3 +2779,55 @@ que vão
 
 criar essas tables...
 
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+FUNCIONOU...
+
+
+
+
+
+
+
+--> O PRÓXIMO PASSO É FAZER O AUTH FUNCIONAR...
+
+
+
+
+
+
+
+---> ISSO PQ PRECISAMOS DA USER ENTITY..
+
+
+
+--> SEM O USER, NÃO PODEMOS TER CATEGORIES,
+ E NÃO PODEMOS TER TRANSACTIONS....
+
+
+
+
+
+
+
+
+ --> NA PRÓXIMA AULA VEREMOS AUTH SYSTEM,
+
+ PARA VER COMO PODEMOS AUTENTICAR O USER...
+
