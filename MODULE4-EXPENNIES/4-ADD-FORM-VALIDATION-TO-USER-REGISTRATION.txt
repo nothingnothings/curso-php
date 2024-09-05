@@ -1,0 +1,3309 @@
+
+
+
+
+
+
+
+
+
+
+NO ÚLTIMO VIDEO,
+
+
+SETTAMOS:
+
+
+
+
+
+
+1) BASIC USER REGISTRATION 
+
+
+
+2) PASSWORD HASHING 
+
+
+
+
+
+
+
+
+
+-> FOMOS CAPAZES DE CRIAR A USER ACCOUNT...
+
+
+
+
+
+
+
+
+
+
+
+
+-> AGORA DEVEMOS TER BASIC USER VALIDATION,
+
+PARA INFORMAR O USER DE QUE 
+
+
+ALGUNS FIELDS QUE ELE INPUTTOU PODEM ESTAR INVALID...
+
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS OU:
+
+
+
+1) BUILD THE VALIDATION COMPONENT FROM SCRATCH 
+
+
+
+
+2) USE A WELL-MAINTAINED VALIDATION LIBRARY...
+
+
+    --> COMO A VALIDATION PACKAGE DO SYMFONY...
+
+
+ 
+
+
+    --> MAS ELE TEM VÁRIAS FEATURES QUE NÃO USAMOS,
+    NO MOMENTO.... ELE TAMBÉM EXIGE MAIS SETUP 
+        DO QUE OUTRAS PACKAGES...
+
+
+
+
+
+
+
+-> UMA OUTRA PACKAGE QUE FOI SUGERIDA FOI 
+'VALITRON'...
+
+
+
+
+
+
+
+--> O PROFESSOR DECIDIU QUE USAREMOS VALITRON NESSE CURSO...
+
+
+
+
+
+
+
+-> É DE SIMPLES UTILIZAÇÃO,
+
+    E TEM  AS FEATURES 
+
+
+    NECESSÁRIAS 
+    PARA O NOSSO USE-CASE ESPECÍFICO....
+
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE O PROFESSOR ESCREVE 
+
+
+
+
+'composer require valitron'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> A USAGE É ASSIM:
+
+
+
+
+
+
+$v = new Valitron\Validator(array('name' => 'Chester Tester'));
+
+$v->rule('required', 'name');
+
+if($v->validate()) {
+    echo 'Yay! We are all good!';
+} else {
+
+    // Errors 
+    print_r($v->errors());
+}
+
+
+
+
+
+
+
+
+
+
+
+
+-> NÓS BASICAMENTE CRIAMOS 1 INSTANCE DO 'Validator',
+
+e
+ aí 
+
+
+
+ VAMOS DEFININDO AS RULES 
+
+
+
+ COM 
+
+
+
+
+'$v->rule()'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESSE METHOD DE '->rule()'
+
+
+vai adicionando cada rule...
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ, ISSO FEITO,
+
+    NÓS EXECUTAMOS 
+
+
+    '$v->validate()',
+
+    PARA CHECAR SE TODAS AS RULES FORAM 
+
+    SEGUIDAS/CUMPRIDAS...
+
+
+
+
+
+
+
+
+
+-> SE ALGUMA RULE NÃO FOR CUMPRIDA,
+
+    entramos no else block,
+
+
+
+    e aí podemos handlar da maneira que quisermos...
+
+
+
+
+
+
+
+
+
+-> ELE PODE VALIDATE OS 
+    VALUES CONTIDOS NO SUPERGLOBAL 
+
+    '$_POST',
+
+
+    por isso é ideal para nosso use case...
+
+
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+$v = new Valitron\Validator($_POST);
+
+
+
+$v->rule('required', ['name, 'email']);
+
+$v->rule('email', 'email');
+
+if($v->validate()) {
+    echo 'Yay! We are all good!';
+} else {
+
+    // Errors 
+    print_r($v->errors());
+}
+
+
+
+
+
+
+
+
+
+
+
+
+COPIAMOS TUDO ISSO E VAMOS ATÉ O AUTH CONTROLLER...
+
+
+
+
+
+AÍ COLAMOS EM REGISTER, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    public function register(Request $request, Response $response): Response
+    {
+
+       $data = $request->getParsedBody();
+
+
+       [
+       'name' => $name, 
+       'email' => $email, 
+       'password' => $password, 
+       'confirmPassword' => $confirmPassword
+        ] = $data;
+
+       if ($password !== $confirmPassword) {
+           return $this->twig->render($response, 'auth/register.twig');
+       }
+
+
+       $v = new Valitron\Validator($_POST);
+
+       $v->rule('required', ['name', 'email']);
+       $v->rule('email', 'email');
+       
+       if($v->validate()) {
+           echo 'Yay! We are all good!';
+       } else {
+           print_r($v->errors());
+       }
+       
+       exit;
+
+
+       $user = new User();
+
+       $user->setName($name);
+       $user->setEmail($email);
+       $user->setHashedPassword($password);
+    //    $user->setCreatedAt(new \DateTime()); // This is now set by the 'onPrePersist' method, of the lifecycle callbacks..
+    //    $user->setUpdatedAt(new \DateTime());
+
+       
+       $this->entityManager->persist($user);
+       $this->entityManager->flush();
+       
+       var_dump($data, 'THE DATA');
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR ADICIONA UM 'exit' statement 
+
+no meio,
+
+justamente para que a parte de 'user creation'
+
+não seja actually executada...
+
+
+
+
+
+
+
+
+
+
+OK... MAS, EM 'Validator()',
+
+
+NÃO VAMOS PASSAR '$_POST',
+
+
+e sim passaremos '$data'...
+
+
+
+
+
+
+       $v = new Valitron\Validator($data);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... MAS AINDA TEMOS QUE ADICIONAR MAIS ALGUNS 
+FIELDS..
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+       $v = new Valitron\Validator($data);
+
+       $v->rule('required', ['name', 'email', 'password', 'confirmPassword']);
+       $v->rule('email', 'email');
+       
+       if($v->validate()) {
+           echo 'Yay! We are all good!';
+       } else {
+           print_r($v->errors());
+       }
+       
+       exit;
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+ESTAMOS VALIDANDO ESSES 4 FIELDS,
+
+E AÍ ESTAMOS VALIDATING QUE 'email' é realmente 1 email...
+
+
+
+
+
+
+
+
+--> TAMBÉM PRECISAMOS VALIDATE QUE 
+
+'password'
+
+
+REALMENTE É IGUAL A 'confirmPassword'...
+
+
+
+
+
+
+
+
+
+
+
+--> PRECISAMOS DE UMA OUTRA RULE, PARA ISSO..
+
+
+
+
+
+
+
+
+
+A CONSTRAINT É 'equals':
+
+
+
+
+
+
+
+
+
+
+equals --> field must match another field (email/password confirmation)...
+
+
+
+
+
+
+
+
+ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+       [
+       'name' => $name, 
+       'email' => $email, 
+       'password' => $password, 
+       'confirmPassword' => $confirmPassword
+        ] = $data;
+
+       if ($password !== $confirmPassword) {
+           return $this->twig->render($response, 'auth/register.twig');
+       } 
+
+       $v = new Valitron\Validator($data);
+
+       $v->rule('required', ['name', 'email', 'password', 'confirmPassword']);
+       $v->rule('email', 'email');
+       $v->rule('equals', 'confirmPassword', 'password');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PRECISAMOS DE MAIS 1 VALIDATION...
+
+
+
+
+
+
+
+
+
+
+
+
+-> PRECISAMOS CONFIRMAR QUE O USER 
+
+    JÁ NÃO EXISTE NO SISTEMA...
+
+
+    QUE 1 USER COM ESSE email
+    
+
+
+    NÃO EXISTA 
+
+
+    NA DATABASE....
+
+
+
+
+
+
+
+
+
+
+
+-> NÃO EXISTE 1 CONSTRAINT 
+
+    PARA ESSA VALIDATION...
+
+
+
+
+
+
+
+
+-> TEMOS QUE ADICIONAR 1 CUSTOM VALIDATION RULE...
+
+
+
+
+
+
+
+
+
+
+-> 'custom callbacks'...
+
+
+
+
+
+
+
+
+-> CUSTOM VALIDATION RULES:
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS ADICIONÁ-LA:
+
+
+1) GLOBALMENTE 
+
+OU 
+
+2) LOCALMENTE, POR VALIDATOR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> BASTA ESCREVER TIPO ASSIM:
+
+
+
+
+
+
+
+$v->rule(
+    function($field, $value, $params, $fields) {
+        return true;
+    }, 'email'
+)->message("...")
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... QUEREMOS CHECAR O FIELD DE 'email',
+
+por isso o segundo parameter é 'email'...
+
+
+
+
+
+
+
+
+
+-> EM 'message', colocamos a message que deverá aparecer quando a validation falhar...
+
+
+
+
+
+
+
+
+-> ESCREVEMOS TIPO 
+
+
+message('User with the given email address already exists.');
+
+
+
+
+
+
+
+EX:
+
+
+
+$v->rule(
+    function($field, $value, $params, $fields) {
+        return true;
+    }, 'email'
+)->message("User with the given email address already exists.")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... ENTÃO, DENTRO DO BODY DO CALLBACK,
+
+CHECAMOS SE EXISTEM QUAISQUER RECORDS,
+
+
+NA NOSSA DATABASE,
+
+COM O GIVEN EMAIL ADDRESS...
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, VAMOS PRECISAR DE UM METHOD LÁ 
+    Na 'User' entity,
+
+
+    que seja algo como 
+
+    'getUsersByEmail',
+
+    ou algo do gênero...
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+                $this->entityManager->getRepository(User::class)->count();
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, USAMOS O 
+
+
+'entityManager'
+
+
+para conseguir usar 
+
+
+
+
+o method de 'getRepository',
+
+
+PARA ENTÃO 
+
+CHECAR 
+
+
+SE AQUELA ENTRY EXISTE OU NÃO... PARA CHECAR ISSO,
+
+PODEMOS USAR '->count()',
+
+que vai retornar 0 ou 1...
+
+
+
+
+
+
+
+
+
+-> EM '->count()',
+PASSAMOS O CRITÉRIO...
+
+
+O CRITÉRIO, NO CASO,
+
+
+SERÁ 
+
+
+
+'email' => $value...
+
+
+
+EX:
+
+
+
+
+       $v->rule(
+            function($field, $value, $params, $fields) use ($email) {
+                $this->entityManager->getRepository(User::class)->count(['email' => $value]);
+            }, 'email'
+        )->message("User with the given email address already exists.");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    SE O VALUE FOR DE '1',
+
+
+
+    QUEREMOS FAZER COM QUE A 'message' dispare, e aconteça o erro....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PARA ISSO, FAZEMOS RETURN DE '!valueInteiro',
+
+
+
+
+
+''SO THAT IT FAILS > 0,
+
+BUT PASSES ON 0''..
+.
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+       $v = new Valitron\Validator($data);
+
+       $v->rule('required', ['name', 'email', 'password', 'confirmPassword']);
+       $v->rule('email', 'email');
+       $v->rule('equals', 'confirmPassword', 'password');
+
+       
+       $v->rule(
+            function($field, $value, $params, $fields) use ($email) {
+      
+                $numberOfUsers = $this->entityManager->getRepository(User::class)->count(['email' => $value]);
+
+                return !$numberOfUsers; // will return 'true' if the number is 0 (no users found), and 'false' if the number is 1 (fail-case, when a user already exists with the email).
+            }, 'email'
+        )->message("User with the given email address already exists.");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK.... AÍ VOLTAMOS AO BROWSER,
+
+
+
+E SUBMITTAMOS A MESSAGE...
+
+
+
+
+
+
+
+
+
+
+
+-> ENVIAMOS A FORM,
+E CONSEGUIMOS SUCCESS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS O PROFESSOR QUER ALTERAR A MESSAGE DE VALIDATION FAILED 
+
+DE 
+
+'confirmPassword is required'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PRECISAMOS USAR O '->message()' 
+
+
+
+ou 
+
+'->label()'
+
+
+
+
+
+
+
+
+
+
+'LABEL' é usado para vincular ao field que vc está verificando..
+
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+       $v->rule('equals', 'confirmPassword', 'password')->label('Confirm Password')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O CÓDIGO FOI FICANDO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+    public function register(Request $request, Response $response): Response
+    {
+
+       $data = $request->getParsedBody();
+
+
+       [
+       'name' => $name, 
+       'email' => $email, 
+       'password' => $password, 
+       'confirmPassword' => $confirmPassword
+        ] = $data;
+
+       if ($password !== $confirmPassword) {
+           return $this->twig->render($response, 'auth/register.twig');
+       } 
+
+       $v = new Validator($data);
+
+       $v->rule('required', ['name', 'email', 'password', 'confirmPassword']);
+       $v->rule('email', 'email');
+       $v->rule('equals', 'confirmPassword', 'password')->label('Confirm Password');
+
+       $v->rule(
+            function($field, $value, $params, $fields) use ($email) {
+      
+                $numberOfUsers = $this->entityManager->getRepository(User::class)->count(['email' => $value]);
+
+                return !$numberOfUsers; // will return 'true' if the number is 0 (no users found), and 'false' if the number is 1 (fail-case, when a user already exists with the email).
+            }, 'email'
+        )->message("User with the given email address already exists.");
+
+
+       if($v->validate()) {
+           echo 'Yay! We are all good!';
+       } else {
+           print_r($v->errors());
+       }
+       
+       exit;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+BEM.... AGORA PRECISAMOS QUE ESSES ERRORS APAREÇAM NO FRONTEND,
+
+EM UMA FORMA MAIS BONITA...
+
+
+
+
+
+
+
+
+
+
+
+-> QUEREMOS REDIRECIONAR O USER À PAGE DE REGISTER,
+
+E MOSTRAR ESSAS IMAGES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS A PRIMEIRA ETAPA QUE O PROFESSOR QUER FAZER,
+ANTES DE 
+
+COMEÇAR ESSA PARTE,
+
+
+
+É 
+
+
+
+
+FAZER TIPO 1 THROW DE 1 EXCEPTION..
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO É PQ ELE ACREDITA QUE 
+
+FAZER O THROW DE 1 EXCEPTION,
+
+QUANDO OCORRER ESSAS FALHAS DE VALIDATION,
+
+
+É UMA MANEIRA MAIS APROPRIADA 
+
+DE 
+
+
+HANDLAR ISSO TUDO...
+
+
+
+
+
+
+
+
+
+
+
+
+-> ALGO COMO 
+
+
+''
+
+       if($v->validate()) {
+           echo 'Yay! We are all good!';
+       } else {
+           throw new ValidationException();
+       }
+       
+
+
+
+''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VAMOS CRIAR ESSA CUSTOM EXCEPTION,
+
+E PASSAR OS ERRORS COMO ARGUMENT,
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Exception;
+
+class ValidationException extends \RuntimeException
+{
+    /**
+     * Undocumented function
+     *
+     * @param [type] $errors
+     */
+    public function __construct(
+        public readonly array $errors,
+        string $message = 'Validation Error(s)',
+        int $code = 0,
+        ?\Throwable $previous = null,
+    ) {
+        parent::__construct($message, $code, $previous);
+    }
+}
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+AÍ UTILIZAMOS ESSA EXCEPTION, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+       if($v->validate()) {
+           echo 'Yay! We are all good!';
+       } else {
+           throw new ValidationException($v->errors());
+       }
+       
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA QUANDO TEMOS 1 PROBLEMA DE VALIDATION,
+
+FICAMOS COM 'ValidationException'...
+
+
+
+
+
+
+
+Ex:
+
+
+
+
+
+
+
+
+
+Slim Application Error
+The application could not run because of the following error:
+
+Details
+Type: App\Exception\ValidationException
+Code: 422
+Message: Validation Error(s)
+File: /var/www/app/Controllers/AuthController.php
+Line: 70
+Trace
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... FICAMOS COM 1 STATUS CODE DE 422,
+
+E ESSE ERROR...
+
+
+
+
+
+
+
+
+
+
+
+-> AINDA PRECISAMOS BUILDAR 1 CUSTOM ERROR HANDLER 
+
+OU ALGO DO GÊNERO,
+
+
+
+PARA CAPTURAR A EXCEPTION E HANDLAR 
+
+
+A RESPONSE APROPRIADAMENTE....
+
+
+
+
+
+
+
+
+AINDA NÃO FAREMOS ISSO NESSA LESSON,
+
+
+BUILDAR UM CUSTOM ERROR HANDLER... PQ É MEIO COMPLEXO DEMAIS...
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO PQ, SE BUILDARMOS ESSE ERROR HANDLER AGORA,
+
+
+DEVEREMOS ESCOLHER O ERROR LOGGER,
+
+ERROR PAGE RENDERING, ETC...
+
+
+
+
+
+-> O PROFESSOR NÃO QUER NOS OVERWHELM COM ISSO, POR ENQUANTO...
+
+
+
+
+
+O PROFESSOR ACHA QUE 1 VIDEO SEPARADO, SOBRE ERROR HANDLING, LOGGING 
+E PAGE RENDERING (404, 500, etc) É NECESSÁRIO...
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE, POR ENQUANTO, VAMOS BUILDAR O ERROR HANDLING 
+PARA VALIDATION EXCEPTIONS USANDO 
+CUSTOM MIDDLEWARE,
+
+EM VEZ DE 1 CUSTOM ERROR HANDLER...
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE CRIAMOS UM NOVO FOLDER, CHAMADO DE 'Middleware',
+
+E AÍ 
+
+
+
+CRIAMOS UM NOVO 
+
+
+MIDDLEWARE, DE NOME 'ValidationExceptionMiddleware'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMEÇAMOS CMO ISTO:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Exception\ValidationException;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class ValidationExceptionMiddleware implements MiddlewareInterface
+{
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        try {
+            return $handler->handle($request);
+        } catch (ValidationException $e) {
+            return $this->render($e->getMessage(), $e->getCode(), $request);
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS É CLARO QUE O SLIM FRAMEWORK 
+
+
+
+
+tem middlewares 
+
+
+diferentes...
+
+
+
+
+eles implementam a psr7 interface de middlewares....
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR QUER IMPLEMENTAR USANDO A INTERFACE DE 
+
+
+
+
+''
+
+Psr\Http\Server\MiddlewareInterface
+
+''
+
+
+
+
+
+
+
+
+
+AÍ COMEÇAMOS ASSIM:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Exception\ValidationException;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class ValidationExceptionMiddleware implements MiddlewareInterface
+{
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        $response = $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+PODEMOS WRAPPAR ESSE CALL DE '$handler->handle()'
+
+
+COM UM TRY-CATCH...
+
+
+
+
+
+
+
+
+
+ISSO PQ,
+
+
+QUANDO ELE ESTÁ HANDLANDO 1 REQUEST,
+
+ELE PODE 
+
+
+FAZER O THROW DE 1 EXCEPTION,
+
+POR CONTA 
+
+
+
+
+DESTA PARTE AQUI:
+
+
+
+
+       if($v->validate()) {
+           echo 'Yay! We are all good!';
+       } else {
+           throw new ValidationException($v->errors());
+       }
+       
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É POR ISSO QUE ESCREVEMOS ASSIM:
+
+
+
+
+
+        try {
+            $response = $handler->handle($request);
+        } catch (ValidationException $e) {
+           ...
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, QUEREMOS FAZER CATCH APENAS DE VALIDATION ERRORS...
+
+SE O ERROR NÃO SE ENQUADRAR EM ERRORS DE TIPO 'ValidationException',
+
+queremos que ele seja handlado em outro lugar...
+
+
+
+
+
+
+
+
+
+
+PARA ISSO, ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+        try {
+            return $handler->handle($request);
+        } catch (ValidationException $e) {
+            $response = 
+        }
+
+
+
+
+
+
+
+
+
+
+
+--> QUEREMOS CRIAR UMA NOVA, CUSTOM RESPONSE,
+
+SEMPRE QUE ENTRARMOS NESSE CATCH BLOCK...
+
+
+
+
+
+
+
+-> PARA CRIAR 1 NOVA RESPONSE,
+
+1 NOVO RESPONSE OBJECT,
+
+
+PRECISAMOS TER ACESSO 
+
+à 
+
+
+'ResponseFactoryInterface'...
+
+
+
+
+
+
+
+
+
+--> PODEMOS FAZER ISSO COM A AJUDA DE NOSSO CONTAINER,
+
+BASTA ESCREVER ISSO NO CONSTRUCTOR,
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+class ValidationExceptionMiddleware implements MiddlewareInterface
+{
+    public function __construct(private ResponseFactory $responseFactory) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        try {
+            return $handler->handle($request);
+        } catch (ValidationException $e) {
+            $response = $this->responseFactory->createResponse(422);
+            $response->getBody()->write(json_encode($e->errors));
+            return $response;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+talvez seja isso....
+
+
+
+
+
+MAS O PROFESSOR NÃO USOU o 'getBody()'...
+
+
+
+
+
+
+
+
+
+
+-> ELE TAMBÉM USOU 
+
+
+'return $response->withHeader('location', '/register');',
+
+
+
+
+PARA COLOCAR ESSE HEADER DE REDIRECT AÍ,
+
+QUE VAI REDIRECIONAR O USER À PAGE DE '/register'...
+
+
+
+
+
+EX:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Exception\ValidationException;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Slim\Psr7\Factory\ResponseFactory;
+
+class ValidationExceptionMiddleware implements MiddlewareInterface
+{
+    public function __construct(private ResponseFactory $responseFactory) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        try {
+            return $handler->handle($request);
+        } catch (ValidationException $e) {
+            $response = $this->responseFactory->createResponse(422);
+
+            return $response->withHeader('Location', '/register');  // This will redirect the user to the 'register' page.
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS O PROFESSOR EXPLICA QUE ISSO TUDO NÃO VAI FUNCIONAR POR SI SÓ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO É PQ NOSSO DI CONTAINER 
+    NÃO VAI SABER COMO FAZER 'RESOLVE'
+
+
+    DA CLASS DE 
+
+
+
+    'ResponseFactoryInterface'...
+
+
+
+    VAMOS PRECISAR BINDAR ISSO, LÁ EM 'container_bindings.php'...
+
+
+
+
+
+
+
+
+
+
+
+
+TALVEZ COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+
+
+return [
+    Config::class => create(Config::class)->constructor(require CONFIG_PATH . '/app.php'),
+    EntityManager::class => fn(Config $config) => EntityManager::create(
+        $config->get('doctrine.connection'),
+        ORMSetup::createAttributeMetadataConfiguration(
+            $config->get('doctrine.entity_dir'),
+            $config->get('doctrine.dev_mode')
+        )
+    ),
+    Twig::class => function (Config $config, ContainerInterface $container) {
+        $twig = Twig::create(VIEW_PATH, [
+            'cache' => STORAGE_PATH . '/cache/templates',
+            'auto_reload' => AppEnvironment::isDevelopment($config->get('app_environment')),
+        ]);
+
+        $twig->addExtension(new IntlExtension());
+        $twig->addExtension(new EntryFilesTwigExtension($container));
+        $twig->addExtension(new AssetExtension($container->get('webpack_encore.packages')));
+
+        return $twig;
+    },
+    // Binds the ResponseFactoryInterface:
+    'psr7.response_factory' => fn(ContainerInterface $container) => $container->get('response_factory'),
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA, ESTA KEY:
+
+
+
+
+
+    // Binds the ResponseFactoryInterface:
+'psr7.response_factory' => fn(ContainerInterface $container) => $container->get('response_factory'),
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> A 'RESPONSE FACTORY' 
+    É OBTIDA 
+
+    LÁ DO SLIM APP 
+
+
+    OBJECT...
+
+
+
+
+
+
+
+-> se vamos até 'bootstrap.php'
+
+
+
+E 
+
+
+digitarmos 
+
+'$app',
+
+
+
+PERCEBEMOS QUE 
+
+PODEMOS 
+
+
+
+escrever 
+
+'$app->getResponseFactory();'
+
+
+
+
+
+
+
+
+-> ISSO PODE SER EXTRAÍDO DO APP OBJECT, SIM...
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS O PROBLEMA, AQUI,
+
+
+É QUE __ NÃO TEMOS ACESSO A ESSA INSTANCE DE
+ 
+
+
+ '$app'
+
+
+ LÁ 
+
+
+
+
+
+NAS BINDINGS DE NOSSO CONTAINER...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> LÁ NAS BINDINGS DO CONTAINER,
+
+
+
+
+O PROFESSOR EXPLICA QUE 
+
+
+''WE NEED TO HAVE ACCESS TO THE APP INSTANCE,
+    SO WE CAN INJECT IT, SO WE CAN GET THE RESPONSE FACTORY''...
+
+
+
+
+
+
+
+
+
+--> TUDO PARA TER ALGO COMO ISTO:
+
+
+
+
+
+
+\Psr\Http\Message\ResponseFactoryInterface::class => fn(\Slim\App $app) => $app->getResponseFactory();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS O PROBLEMA, AQUI,
+
+É 
+QUE _ NÃO TEMOS ACESSO A ESSA INSTANCE DE 'app',
+
+lá no nosso container...
+
+
+
+
+
+
+
+
+COMO PODEMOS SOLUCIONAR ISSO?
+
+
+
+
+
+
+''WE CAN MOVE THE APP __ CREATION LOGIC,
+    MAKE IT SO THAT __ IT IS HANDLED BY 
+    THE CONTAINER BINDING FILE...''
+
+
+
+
+
+''THIS WAY, WE CAN INJECT THE APP INSTANCE 
+AS A DEPENDENCY, IN CONSTRUCTORS, WHENEVER WE NEED'' 
+
+
+(meio hacky)...
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE ESCREVEMOS TIPO ASSIM,
+
+LÁ EM 'container_bindings.php':
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+
+
+use function DI\create;
+
+return [
+    // A little bit hacky...
+    App::class => function (Container $container) {
+        AppFactory::setContainer($container);
+
+        $app = AppFactory::create();
+
+        return $app;
+    },
+
+
+
+    Config::class => create(Config::class)->constructor(require CONFIG_PATH . '/app.php'),
+    EntityManager::class => fn(Config $config) => EntityManager::create(
+        $config->get('doctrine.connection'),
+        ORMSetup::createAttributeMetadataConfiguration(
+            $config->get('doctrine.entity_dir'),
+            $config->get('doctrine.dev_mode')
+        )
+    ),
+    Twig::class => function (Config $config, ContainerInterface $container) {
+        $twig = Twig::create(VIEW_PATH, [
+            'cache' => STORAGE_PATH . '/cache/templates',
+            'auto_reload' => AppEnvironment::isDevelopment($config->get('app_environment')),
+        ]);
+
+        $twig->addExtension(new IntlExtension());
+        $twig->addExtension(new EntryFilesTwigExtension($container));
+        $twig->addExtension(new AssetExtension($container->get('webpack_encore.packages')));
+
+        return $twig;
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS IR ALÉM, AQUI... 
+
+
+
+
+
+--> PODEMOS MOVER TAMBÉM A PARTE DE 'MIDDLEWARE AND ROUTING'
+
+
+PARA DENTRO DA PARTE DE CREATION DO APP...
+
+
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA,
+
+ESTAS LINHAS,
+
+LÁ DENTRO DE 'bootstrap.php':
+
+
+
+
+
+$addMiddlewares = require CONFIG_PATH . '/middleware.php';
+
+
+$addMiddlewares($app);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+- vamos pegar essas linhas, e colocar lá no 'container_bindings.php':
+
+
+
+
+
+
+
+
+
+return [
+    // A little bit hacky...
+    App::class => function (Container $container) {
+        AppFactory::setContainer($container);
+
+        $addMiddlewares = require CONFIG_PATH . '/middleware.php';
+
+        $app = AppFactory::create();
+
+        $addMiddlewares($app);
+
+        return $app;
+    },
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO,
+
+AINDA PRECISAMOS PEGAR O ROUTING EM SI,
+
+
+
+QUE ESTÁ EM 'public>index.php'...
+
+
+
+
+
+
+
+É ESTE TRECHO AQUI:
+
+
+
+$router = require CONFIG_PATH . '/routes/web.php';
+$router($app);
+
+
+
+
+
+
+
+
+
+
+
+
+
+COLAMOS LÁ TAMBÉM:
+
+
+
+
+
+
+
+return [
+    // A little bit hacky...
+    App::class => function (Container $container) {
+        AppFactory::setContainer($container);
+
+        // Import router and middlewares
+        $router = require CONFIG_PATH . '/routes/web.php';
+        $addMiddlewares = require CONFIG_PATH . '/middleware.php';
+
+        // Create app instance
+        $app = AppFactory::create();
+
+        // Register routes and middlewares to app
+        $router($app);
+        $addMiddlewares($app);
+
+        // Return app itself
+        return $app;
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA PRECISAMOS AJUSTAR 
+
+
+O 'bootstrap.php'
+
+
+
+e 
+
+
+'public>index.php',
+
+
+PQ AGORA NÃO ESTAMOS MAIS CRIANDO O APP LÁ...
+
+
+
+
+
+
+
+
+
+
+-> VAMOS CRIAR O APP USANDO O CONTAINER, BASICAMENTE...
+
+
+
+
+
+
+
+--> FIZEMOS TUDO ISSO APENAS/SÓ PARA QUE 
+    SEJA POSSÍVEL 
+    FAZER INJECT DO APP, COMO DEPENDENCY,
+
+    NOS CONSTRUCTORS DAS CLASSES DE NOSSO APP...
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS REFORMATAR ESSAS 2 FILES ASSIM:
+
+
+
+
+
+(bootstrap.php):
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\App;
+use Dotenv\Dotenv;
+use Slim\Factory\AppFactory;
+
+require __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/configs/path_constants.php';
+
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+$container = require CONFIG_PATH . '/container/container.php';
+
+return $container->get(App::class);  // This will return the 'App' instance itself, taken from the container.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(public>index.php):
+
+
+
+
+ <?php declare(strict_types=1);
+
+
+$app = require __DIR__ . '/../bootstrap.php';
+
+$app->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+MAS O PROFESSOR ESCREVEU 1 POUCO DIFERENTE, TIPO ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\App;
+use Dotenv\Dotenv;
+use Slim\Factory\AppFactory;
+
+require __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/configs/path_constants.php';
+
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+$container = require CONFIG_PATH . '/container/container.php';
+
+return $container;  // This will return the Container itself. We can, then, get the App instance from the container, in public>index.php.
+
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\App;
+
+// $app    = require __DIR__ . '/../bootstrap.php';
+// $router = require CONFIG_PATH . '/routes/web.php';
+
+// $router($app);
+
+$container = require __DIR__ . '/../bootstrap.php';
+
+$app = $container->get(App::class);
+
+$app->run();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE O CLI APP TEM QUE SER ALTERADO...
+
+
+
+
+
+
+
+TEM QUE SER ALTERADO 
+
+
+
+PQ MUDOU ESSA MANEIRA DE RODAR O APP,
+
+E ELE DEPENDE DO APP PARA RODAR AS COISAS..
+
+
+
+
+
+
+
+
+POR ISSO QUE ABRIMOS O 'expennies', onde temos este trecho:
+
+
+
+
+
+
+$app       = require 'bootstrap.php';
+$container = $app->getContainer();
+$config    = $container->get(Config::class);
+
+
+
+
+
+
+
+
+
+
+
+
+- TEMOS QUE TROCAR ISSO...
+
+
+
+
+
+
+
+
+--> AGORA SERÁ ASSIM:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Config;
+use Doctrine\Migrations\Configuration\EntityManager\ExistingEntityManager;
+use Doctrine\Migrations\Configuration\Migration\PhpFile;
+use Doctrine\Migrations\DependencyFactory;
+use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
+use Doctrine\ORM\Tools\Console\ConsoleRunner;
+use Doctrine\ORM\EntityManager;
+use Slim\App;
+use Symfony\Component\Console\Application;
+
+// $app       = require 'bootstrap.php';
+// $container = $app->getContainer();
+// $config    = $container->get(Config::class);
+
+$container = require 'bootstrap.php';
+$app = $container->get(App::class);
+$config = $container->get(Config::class);
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ TESTAMOS TUDO ISSO, PARA VER SE TUDO ESTÁ FUNCIONANDO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AINDA ESTAMOS OBTENDO OS VALIDATION ERRORS,
+
+SINAL DE QUE AS COISAS ESTÃO FUNCIONANDO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> entaõ rodamos alguns comandos CLI,
+
+para garantir que não quebramos nada do código....
+
+
+
+
+
+
+
+
+
+CERTO... FUNCIONOU...
+
+
+
+
+
+
+
+
+php expennies migrations:status 
+
+
+php expennies list 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok... agora voltamos ao 'ValidationExceptionMiddleware'..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+''AGORA SOMOS CAPAZES  
+    DE CREATE O RESPONSE OBJECT,
+
+    PARA ENVIAR 1 RESPONSE CUSTOMIZADA EM CASOS DE ERROR..
+    
+    TUDO ISSO PQ 
+
+    AGORA 
+
+
+    A 'ResponseFactoryInterface'
+
+    TEM 1 BINDING ADEQUADA, DENTRO DO NOSSO container_bindings.php...''
+
+
+
+
+
+''E A APP INSTANCE TAMBÉM TEM 
+    AS BINDINGS ADEQUADAS,
+
+    E É POR ISSO QUE 
+    ESTA PARTE 
+
+    VAI FUNCIONAR:
+
+
+
+
+
+    ResponseFactoryInterface::class => fn(App $app) => $app->getResponseFactory(),
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ENTÃO, EM 
+
+
+'ValidationExceptionMiddleware',
+
+
+
+
+ESCREVEMOS ASSIM, NO CATCH BLOCK:
+
+
+
+
+
+
+
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        try {
+            return $handler->handle($request);
+        } catch (ValidationException $e) {
+            $response = $this->responseFactory->createResponse(422);
+
+            var_dump($e->errors());
+
+            return $response->withHeader('Location', '/register');  // This will redirect the user to the 'register' page.
+        }
+    }
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ ADICIONAMOS ESSE 'ValidationExceptionMiddleware'
+
+
+AO NOSSO APP,
+
+
+LÁ 
+
+em 'middleware.php':
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Config;
+use Slim\Views\Twig;
+use Slim\Views\TwigMiddleware;
+use Slim\App;
+
+return function (App $app) {
+    $container = $app->getContainer();
+    $config = $container->get(Config::class);
+
+    // Twig
+    $app->add(TwigMiddleware::create($app, $container->get(Twig::class)));
+
+    // Custom Validation Exception Middleware:
+    $app->add(\App\Middleware\ValidationExceptionMiddleware::class);
+
+    // Logger
+    $app->addErrorMiddleware(
+        (bool) $config->get('display_error_details'),
+        (bool) $config->get('log_errors'),
+        (bool) $config->get('log_error_details')
+    );
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ VOLTAMOS AO BROWSER, RECARREGAMOS A PAGE...
+
+
+
+
+
+
+-> AÍ, COMO RESULTADO DISSO,
+
+
+EM VEZ DA EXCEPTION,
+
+
+ESTAMOS OUTPUTTANDO OS ERRORS... ISSO SIGNIFICA QUE 
+
+ESTAMOS 'CATCHING' A VALIDATION EXCEPTION ADEQUADAMENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ESTÁ FUNCIONANDO...
+
+
+QUER DIZER QUE ESTAMOS CAPTURANDO 
+
+
+ESSA VALIDATION EXCEPTION...
+
+
+
+
+
+
+
+REMOVEMOS ESSE 'var_dump',
+
+
+
+
+
+
+E DEIXAMOS AQUELE CÓDIGO QUE FAZ O REDIRECT,
+TIPO ASSIM:
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Exception\ValidationException;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Slim\Psr7\Factory\ResponseFactory;
+
+class ValidationExceptionMiddleware implements MiddlewareInterface
+{
+    public function __construct(private ResponseFactory $responseFactory) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        try {
+            return $handler->handle($request);
+        } catch (ValidationException $e) {
+            $response = $this->responseFactory->createResponse();
+
+            // var_dump($e->errors());
+
+            return $response->withHeader('Location', '/register');  // This will redirect the user to the 'register' page.
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+NÃO FICAMOS COM NENHUM DISPLAY DE ERROR PQ 
+
+
+AINDA NÃO TEMOS ESSA MECANICA...
+
+
+QUEREMOS SER CAPAZES DE 
+
+
+DISPLAYAR ERRORS, DEBAIXO DOS FORM FIELDS,
+
+
+EM CASO DE VALIDATION ERRORS...
+
+
+
+
+
+
+
+
+
+
+
+
+-> 1 COISA QUE O PROFESSOR QUER CONSERTAR É ESTE TRECHO:
+
+
+
+
+
+'''
+
+            return $response->withHeader('Location', '/register');  // This will redirect the user to the 'register' page.
+
+
+''
+
+
+
+
+AQUI ESTAMOS 
+
+
+SETTANDO A URL DE REDIRECIONAMENTO 
+
+DE FORMA HARDCODADA,
+
+
+COMO '/register'..
+
+
+
+
+
+
+
+
+-> MAS E SE QUISERMOS REDIRECIONAR PARA OUTRA URL?
+
+
+
+
+
+
+
+
+-> SERIA MELHOR USAR O SERVER PARAMETER 
+
+
+
+'httpReferer',
+
+PARA 
+
+PEGAR SEMPRE O URL ANTERIOR AO REQUEST..
+
+
+
+
+
+
+
+
+
+
+
+-> TIPO ASSIM:
+
+
+
+
+
+$referer = $request->getServerParams()['HTTP_REFERER'];
+
+
+
+
+
+
+
+
+
+
+Ex:
+
+
+
+
+
+
+
+
+
+
+
+class ValidationExceptionMiddleware implements MiddlewareInterface
+{
+    public function __construct(private ResponseFactory $responseFactory) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        try {
+            return $handler->handle($request);
+        } catch (ValidationException $e) {
+            $response = $this->responseFactory->createResponse();
+
+            // var_dump($e->errors());
+
+            $referer = $request->getServerParams()['HTTP_REFERER'];  // * gets the 'Referer' header, which contains the URL of the page that the user was trying to access.
+
+            return $response->withHeader('Location', $referer);  // This will redirect the user back to the 'register' page (the page that the user was trying to access, to be more precise)...
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA, PARA SERMOS CAPAZES DE ACESSAR OS ERRORS NO FRONTEND,
+
+DEPOIS 
+
+
+DO USER SER REDIRECTED,
+
+PRECISAMOS 
+
+
+
+SER CAPAZES DE 
+
+
+'PUSH' OU 'FLASH' 
+
+OS ERRORS NA SESSION 
+
+DO USER,
+
+PARA QUE 
+
+
+
+ESSES ERRORS FIQUEM DISPONÍVEIS NO PRÓXIMO REQUEST...
+
+
+
+
+
+
+
+
+
+
+-> VEREMOS COMO FAZER ISSO NA PRÓXIMA AULA...
+
+
+VER COMO PODEMOS 'FLASH' 
+
+
+ERRORS NA PAGE,
+
+E FAZER ELES APARECEREM NOS TEMPLATES (parecido com EJS)...

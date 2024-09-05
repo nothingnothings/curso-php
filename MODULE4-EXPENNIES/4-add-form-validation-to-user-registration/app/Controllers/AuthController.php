@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Entity\User;
+use App\Exception\ValidationException;
 use Doctrine\ORM\EntityManager;
 use Psr\Http\Message\ResponseInterface as Response;
 use Slim\Psr7\Request as Request;
 use Slim\Views\Twig;
+use Valitron\Validator;
 
 class AuthController
 {
@@ -32,7 +34,6 @@ class AuthController
     }
 
 
-
     public function register(Request $request, Response $response): Response
     {
 
@@ -46,20 +47,27 @@ class AuthController
        'confirmPassword' => $confirmPassword
         ] = $data;
 
-       if ($password !== $confirmPassword) {
-           return $this->twig->render($response, 'auth/register.twig');
-       }
 
+       $v = new Validator($data);
 
-       $v = new Valitron\Validator($_POST);
-
-       $v->rule('required', ['name', 'email']);
+       $v->rule('required', ['name', 'email', 'password', 'confirmPassword']);
        $v->rule('email', 'email');
-       
+       $v->rule('equals', 'confirmPassword', 'password')->label('Confirm Password');
+
+       $v->rule(
+            function($field, $value, $params, $fields) use ($email) {
+      
+                $numberOfUsers = $this->entityManager->getRepository(User::class)->count(['email' => $value]);
+
+                return !$numberOfUsers; // will return 'true' if the number is 0 (no users found), and 'false' if the number is 1 (fail-case, when a user already exists with the email).
+            }, 'email'
+        )->message("User with the given email address already exists.");
+
+
        if($v->validate()) {
            echo 'Yay! We are all good!';
        } else {
-           print_r($v->errors());
+           throw new ValidationException($v->errors());
        }
        
        exit;
