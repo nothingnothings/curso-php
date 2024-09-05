@@ -4,8 +4,6 @@ use App\Enum\AppEnvironment;
 
 $appEnv = $_ENV['APP_ENV'] ?? AppEnvironment::Production->value;
 
-echo APP_PATH . '/Entity';
-
 return [
     'app_name' => $_ENV['APP_NAME'],
     'app_version' => $_ENV['APP_VERSION'] ?? '1.0',
