@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace App\Entity;
 
@@ -8,10 +6,9 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity, ORM\Table(name: "categories")]
+#[ORM\Entity, ORM\Table(name: 'categories')]
 class Category
 {
-
     public function __construct()
     {
         $this->transactions = new ArrayCollection();
@@ -19,22 +16,22 @@ class Category
 
     #[ORM\Id]
     #[ORM\GeneratedValue()]
-    #[ORM\Column(type: "integer", options: ["unsigned" => true])]
+    #[ORM\Column(type: 'integer', options: ['unsigned' => true])]
     private int $id;
 
-    #[ORM\Column(type: "string")]
+    #[ORM\Column(type: 'string')]
     private string $name;
 
-    #[ORM\Column(type: "datetime", name: "created_at")]
+    #[ORM\Column(type: 'datetime', name: 'created_at')]
     private \DateTime $createdAt;
 
-    #[ORM\Column(type: "datetime", name: "updated_at")]
+    #[ORM\Column(type: 'datetime', name: 'updated_at')]
     private \DateTime $updatedAt;
 
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: "categories")]
-    private ?int $user;
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'categories')]
+    private ?User $user;
 
-    #[ORM\OneToMany(targetEntity: Transaction::class, inversedBy: "categories")]
+    #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'categories')]
     private Collection $transactions;
 
     public function getId(): ?int
