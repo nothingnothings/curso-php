@@ -16,6 +16,11 @@ class HomeController
 
     public function index(Request $request, Response $response): Response
     {
+        // User is the User entity object, so we can use its methods...
+        $user = $request->getAttribute('user');
+        var_dump($user?->getId());
+        var_dump($user?->getName());
+
         return $this->twig->render($response, 'dashboard.twig');
     }
 }

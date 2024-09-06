@@ -1,6 +1,10 @@
 <?php declare(strict_types=1);
 
+use App\Contracts\AuthInterface;
+use App\Contracts\UserProviderServiceInterface;
 use App\Enum\AppEnvironment;
+use App\Services\UserProviderService;
+use App\Auth;
 use App\Config;
 use DI\Container as DIContainer;
 use Doctrine\ORM\EntityManager;
@@ -40,6 +44,8 @@ return [
         // Return app itself
         return $app;
     },
+    AuthInterface::class => fn(ContainerInterface $container) => $container->get(Auth::class),
+    UserProviderServiceInterface::class => fn(ContainerInterface $container) => $container->get(UserProviderService::class),
     Config::class => create(Config::class)->constructor(require CONFIG_PATH . '/app.php'),
     EntityManager::class => fn(Config $config) => EntityManager::create(
         $config->get('doctrine.connection'),

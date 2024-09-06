@@ -9,6 +9,9 @@ return function (App $app) {
     $container = $app->getContainer();
     $config = $container->get(Config::class);
 
+    // User Authentication Middleware:
+    $app->add(\App\Middleware\AuthenticateUserMiddleware::class);
+
     // Twig
     $app->add(TwigMiddleware::create($app, $container->get(Twig::class)));
 

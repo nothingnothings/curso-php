@@ -1,0 +1,3692 @@
+
+
+
+
+
+
+
+
+
+
+NO ÚLTIMO VIDEO,
+
+
+
+VIMOS COMO FAZER FUNCIONAR UMA 
+
+
+
+
+
+
+SESSION-BASED AUTH BÁSICA...
+
+
+
+
+
+
+
+
+
+
+--> FALAMOS TAMBÉM 1 POUCO SOBRE TÓPICOS RELACIONADOS A SEGURANÇA,
+
+
+COMO 
+
+'SESSION FIXATION' 
+
+
+E 
+
+'SESSION HIJACKING'...
+
+
+
+
+
+
+
+
+
+-> NESSE VIDEO, VEREMOS:
+
+
+1) HOW TO GET THE CURRENTLY LOGGED-IN USER ENTITY 
+
+
+
+2) HOW TO PERSIST THAT ENTITY THROUGHOUT THE REQUEST,
+    so that we ARE ABLE TO ACCESS THE 
+    CURRENTLY LOGGED-IN USER OBJECT, ANYWHERE ELSE 
+    FROM WITHIN OUR CODE...
+
+
+
+
+
+
+
+
+
+
+
+
+-> ATÉ AGORA, TUDO QUE CONSEGUIMOS 
+    FOI ARMAZENAR O USERID NA SESSION...
+
+
+
+
+
+
+
+
+
+
+
+-> UMA MANEIRA DE FAZER AS COISAS, NO CASO,
+
+SERIA 
+
+''GET THE USERID FROM THE QUERY, THEN 
+    TRY TO FIND THE USER WITH THAT ID,
+
+    ON THE DATABASE, EVERY TIME WE NEED IT''...
+
+
+
+
+
+
+
+
+
+
+-> MAS ESSA NÃO É UMA BOA SOLUTION,
+    PQ NÃO QUEREMOS TER DE RODAR QUERIES SEMPRE QUE 
+
+    QUISERMOS O AUTHENTICATED USER ENTITY, 
+
+    AO LONGO DO REQUEST...
+
+
+
+
+
+
+-> É POR ISSO QUE, EM VEZ DISSO,
+   DEVEMOS CRIAR 1 MIDDLEWARE QUE 
+
+   VAI 
+
+   'HANDLE THE USER AUTHENTICATION',
+
+
+   TUDO POR MEIO DO LOOK-UP DO USER,
+
+   POR MEIO DO USERID DO SESSION... AÍ, COM ISSO,
+
+
+   AQUELA USER ENTITY, DAQUELE GIVEN USER,
+   SERÁ ATTACHEADA AO REQUEST,
+
+
+   TUDO PARA QUE 
+
+
+    CONSIGAMOS ACESSAR ESSA USER ENTITY NOS 
+
+    NOSSOS CONTROLLER METHODS... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, CRIAMOS 1 NOVO MIDDLEWARE,
+
+
+DE NOME 
+
+
+'AuthenticateUserMiddleware'..
+
+
+
+
+
+
+
+
+COMEÇAMOS COM ISTO:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class AuthenticateUserMiddleware implements MiddlewareInterface
+{
+    public function __construct(private ResponseFactoryInterface $responseFactory) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE O AUTHENTICATE MIDDLEWARE PODE SER PARECIDO 
+
+COM O 'AUTHMIDDLEWARE', EM QUESTÃO DE NAMING...
+
+
+
+
+
+
+
+-> MAS A FUNÇÃO DO 'AUTHMIDDLEWARE', O SEU PROPÓSITO,
+
+
+É APENAS DE BLOQUEAR O ACESSO DE PESSOAS NÃO AUTENTICADAS,
+
+AGIR COMO ROUTE GUARDS...
+
+
+
+
+
+
+
+
+
+
+
+
+JÁ ESSE AuthenticateUserMiddleware,
+
+
+QUE CRIAMOS AGORA,
+
+
+DEVE 
+
+
+
+''SIMPLY AUTHENTICATE
+    THE __ USER__ FROM __ THE SESSION,
+    BASED ON THE USERID THAT WAS SAVED ON THE SESSION''...
+
+
+
+
+
+
+
+--> EM OUTRAS PALAVRAS, ESSE MIDDLEWARE DEVE:
+
+
+1) FIND THE USER BY THAT USERID 
+
+
+2) MAKE THAT USER ACESSIBLE ALL ALONG THE REQUEST....
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO QUER DIZER, EM OUTRAS PALAVRAS, QUE 
+
+PRECISAMOS __ DE ACESSO __ AO ENTITY MANAGER,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Doctrine\ORM\EntityManager;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class AuthenticateUserMiddleware implements MiddlewareInterface
+{
+    public function __construct(private ResponseFactoryInterface $responseFactory, private EntityManager $entityManager) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, O ENTITY MANAGER É INJETADO 
+
+
+DENTRO DO CONSTRUCTOR..
+
+
+
+
+
+
+-> AÍ, NO METHOD DE 'process',
+
+VAMOS USAR A CLASS DE 'User',
+
+
+
+PARA PROCURAR O USER POR ESSE ID AÍ...
+
+
+
+
+
+
+
+
+
+--> MAS, ANTES DISSO,
+
+TEMOS QUE CHECAR SE O USER REALMENTE ESTÁ 'LOGGED IN'...
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE O PROFESSOR ESCREVE ASSIM:
+
+
+
+
+
+        if (!empty($_SESSION['user'])) {
+
+            $user = $this->entityManager->getRepository(User::class)->find()
+        }
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+        if (!empty($_SESSION['user'])) {
+            $user = $this->entityManager->getRepository(User::class)->find($_SESSION['user']);
+
+            return $handler->handle($request);
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO.... E, AGORA QUE TEMOS ESSA ENTITY,
+
+
+PODEMOS ADICIONAR ESSE USER AO REQUEST INTEIRO,
+
+
+COM 1 CÓDIGO COMO ESTE:
+
+
+
+
+
+
+
+        if (!empty($_SESSION['user'])) {
+            $user = $this->entityManager->getRepository(User::class)->find($_SESSION['user']);
+
+            $request = $request->withAttribute('user', $user);
+
+            return $handler->handle($request);
+        }
+
+
+
+
+
+
+
+
+
+
+
+COM ESSE METHOD, de 'withAttribute()',
+
+
+CONSEGUIMOS 
+
+
+
+VINCULAR ESSA USER ENTITY AO 
+
+REQUEST OBJECT...
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS, AQUI, VC DEVE REPARAR QUE 
+
+
+
+O 'request' e 'response' objects 
+
+
+SÃO __ VALUE OBJECTS...
+
+
+
+
+
+
+
+
+
+ISSO QUER DIZER, EM OUTRAS PALAVRAS,
+
+QUE 
+
+
+
+
+ESSE CALL DE '->withAttribute()'
+
+
+NÃO VAI ACTUALLY MODIFICAR 
+
+
+
+O REQUEST OBJECT... E, SIM, VAI 
+
+
+SIMPLESMENTE CRIAR 1 NOVO REQUEST OBJECT...
+
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE, PARA QUE '$request->withAttribute('user', $user);'
+FUNCIONE,
+
+
+PRECISAMOS _ ASSIGNAR ISSO A 1 VARIABLE DE '$request'... QUE FOI 
+O QUE FIZ...
+
+
+
+
+
+
+-> POR FIM, CONTINUAMOS O PROCESS DO REQUEST,
+
+
+
+com 'return $handler->handle($request);'
+
+
+
+
+
+EX:
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Entity\User;
+use Doctrine\ORM\EntityManager;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class AuthenticateUserMiddleware implements MiddlewareInterface
+{
+    public function __construct(private ResponseFactoryInterface $responseFactory, private EntityManager $entityManager) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        // * If the user is logged in, we can get the user from the database, its entity, and then attach it to the request.
+        if (!empty($_SESSION['user'])) {
+            $user = $this->entityManager->getRepository(User::class)->find($_SESSION['user']);
+
+            $request = $request->withAttribute('user', $user);
+        }
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+AGORA BASTA ADICIONAR ESSE MIDDLEWARE A NOSSA LISTA DE MIDDLEWARES, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Config;
+use Slim\Views\Twig;
+use Slim\Views\TwigMiddleware;
+use Slim\App;
+
+return function (App $app) {
+    $container = $app->getContainer();
+    $config = $container->get(Config::class);
+
+    // User Authentication Middleware:
+    $app->add(\App\Middleware\AuthenticateUserMiddleware::class);
+
+    // Twig
+    $app->add(TwigMiddleware::create($app, $container->get(Twig::class)));
+
+    // Custom Validation Exception Middleware:
+    $app->add(\App\Middleware\ValidationExceptionMiddleware::class);
+
+    // Custom Validation Errors Middleware:
+    $app->add(\App\Middleware\ValidationErrorsMiddleware::class);
+
+    // Custom Old Form Data Middleware:
+    $app->add(\App\Middleware\OldFormDataMiddleware::class);
+
+    // Session Middleware:
+    $app->add(\App\Middleware\StartSessionsMiddleware::class);
+
+    // Logger
+    $app->addErrorMiddleware(
+        (bool) $config->get('display_error_details'),
+        (bool) $config->get('log_errors'),
+        (bool) $config->get('log_error_details')
+    );
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AGORA, PARA TESTAR SE ISSO FUNCIONA,
+
+
+
+''WE CAN DUMP THE USERID, FROM THE HOME CONTROLLER,
+
+BY ACCESSING THE USER ENTITY....'
+
+
+
+
+
+
+
+
+
+
+-> VAMOS NO HOMECONTROLLER...
+
+
+
+Ex:
+
+
+
+    public function index(Request $request, Response $response): Response
+    {
+        return $this->twig->render($response, 'dashboard.twig');
+    }
+
+
+
+
+
+
+
+
+-> COMO NÓS INJETAMOS ESSA ENTITY NO REQUEST,
+
+
+ESSA VARIABLE DE '$request'
+
+
+DEVE TÊ-LA...
+
+
+
+
+
+
+
+-> BASTA ESCREVER TIPO:
+
+
+$user = $request->getAttribute('user');
+
+
+var_dump($user->getId());
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+namespace App\Controllers;
+
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Message\ResponseInterface as Response;
+use Slim\Views\Twig;
+
+class HomeController
+{
+    public function __construct(private readonly Twig $twig)
+    {
+    }
+
+    public function index(Request $request, Response $response): Response
+    {
+        // User is the User entity object, so we can use its methods...
+        $user = $request->getAttribute('user');
+        var_dump($user->getId());
+
+        return $this->twig->render($response, 'dashboard.twig');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+COMO ESSE USER PODE SER NULL,
+
+
+
+COLOCAMOS UM OPERATOR DE '?',
+
+NULLSAFE, PARA ESSE CASE...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+namespace App\Controllers;
+
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Message\ResponseInterface as Response;
+use Slim\Views\Twig;
+
+class HomeController
+{
+    public function __construct(private readonly Twig $twig)
+    {
+    }
+
+    public function index(Request $request, Response $response): Response
+    {
+        // User is the User entity object, so we can use its methods...
+        $user = $request->getAttribute('user');
+        var_dump($user?->getId());
+
+        return $this->twig->render($response, 'dashboard.twig');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, NOSSO USER ID REALMENTE É PRINTADO NA PAGE, O QUE QUER DIZER QUE 
+FUNCIONOU..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AGORA, EM VEZ DE PRINTAR O ID,
+
+PRINTAR 'getName'...
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+namespace App\Controllers;
+
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Message\ResponseInterface as Response;
+use Slim\Views\Twig;
+
+class HomeController
+{
+    public function __construct(private readonly Twig $twig)
+    {
+    }
+
+    public function index(Request $request, Response $response): Response
+    {
+        // User is the User entity object, so we can use its methods...
+        $user = $request->getAttribute('user');
+        var_dump($user?->getId());
+        var_dump($user?->getName());
+
+        return $this->twig->render($response, 'dashboard.twig');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR TAMBÉM ADICIONOU 1 ELEMENTO NOVO NA PAGE,
+
+UM ICON DE USER...
+
+
+
+
+
+
+--> SE CLICAMOS NELE, ELE MOSTRA A ACTION DE 'LOGOUT',
+
+
+MAS ELA AINDA NÃO FUNCIONA...
+
+
+
+
+
+
+
+
+-> VOLTAMOS AO MIDDLEWARE DE 'AuthenticateUserMiddleware',
+
+
+
+e entaõ fazemos algumas melhorias...
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR NÃO GOSTA DA APARENCIA ATUAL DESSE MIDDLEWARE:
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Entity\User;
+use Doctrine\ORM\EntityManager;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class AuthenticateUserMiddleware implements MiddlewareInterface
+{
+    public function __construct(private ResponseFactoryInterface $responseFactory, private EntityManager $entityManager) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        // * If the user is logged in, we can get the user from the database, its entity, and then attach it to the request.
+        if (!empty($_SESSION['user'])) {
+            $user = $this->entityManager->getRepository(User::class)->find($_SESSION['user']);
+
+            $request = $request->withAttribute('user', $user);
+        }
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PARECE SUJO..
+
+
+
+
+
+
+
+
+
+--> SUJO PQ:
+
+
+1) ESTAMOS ACESSANDO O ENTITY MANAGER DIRETAMENTE NO NOSSO MIDDLEWARE...
+
+
+
+2) ESTAMOS DEPENDENDO DA USER ENTITY, ETC...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NO CASO, EM VEZ DE USAR O ENTITYMANAGER DIRETAMENTE,
+
+
+COM ESTA LINHA:
+
+            $user = $this->entityManager->getRepository(User::class)->find($_SESSION['user']);
+
+
+
+
+DEVEMOS 
+ABSTRAIR ESSA PARTE PARA LONGE,
+
+
+COM O USO DE ALGUMA CLASS DE NOME 'AuthInterface' 
+ou algo assim...
+
+
+
+
+
+
+
+
+-> COM ISSO, PODEREMOS/PODEMOS SUBSTITUIR 
+
+
+O 
+
+
+'
+
+
+    public function __construct(private EntityManager $entityManager) {}
+
+
+
+'
+
+
+
+
+ESSE ENTITYMANAGER,
+
+POR ALGUMA OUTRA COISA,
+
+
+
+
+COMO UMA 'AuthInterface'..
+
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ, COM ISSO, PODEREMOS FAZER GET DO AUTHENTICATED USER
+
+
+COM 1 CALL COMO 
+
+ESTE:
+
+
+
+
+
+
+        if (!empty($_SESSION['user'])) {
+            
+            $user = $this->auth->user();
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+-> COM ISSO, VAMOS FAZER COM QUE ESSE METHOD AÍ 
+
+
+'GETS THE AUTHENTICATED USER,
+
+FROM THE WHATEVER CLASS THAT 
+IMPLEMENTS THAT AUTHINTERFACE'....
+
+
+
+
+
+
+
+-> A MANEIRA MAIS CLEAN DE ESCREVER ISSO, NO CASO,
+
+SERIA TIPO ASSIM:
+
+
+
+
+class AuthenticateUserMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly AuthInterface $auth) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        if (!empty($_SESSION['user'])) {
+            $request = $request->withAttribute('user', $this->auth->user());
+        }
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+-> NÓS NEM MESMO PRECISAMOS FAZER CHECK PELA SESSION,
+
+
+PQ 
+
+JÁ 
+TEREMOS ESSA LÓGICA DENTRO DO METHOD DE '->user()',
+
+dentro 
+
+dessa AuthInterface....
+
+
+
+
+
+FICA TIPO ASSIM:
+
+
+
+
+
+class AuthenticateUserMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly AuthInterface $auth) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+            $request = $request->withAttribute('user', $this->auth->user());
+
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E, ENTÃO, PARA CONCLUIR:
+
+
+
+
+
+
+
+class AuthenticateUserMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly AuthInterface $auth) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        return $handler->handle($request->withAttribute('user', $this->auth->user()));
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+OK... É POR ISSO QUE PRECISAMOS CRIAR ESSA AUTHINTERFACE...
+
+
+
+
+
+
+
+
+
+
+
+
+> O PROFESSOR CRIA 1 PASTA,
+
+
+DE 'Contracts',
+
+
+
+EM QUE TEREMOS NOSSAS INTERFACES...
+
+
+
+
+
+
+
+
+-> ESCREVEMOS TIPO ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Contracts;
+
+use App\Entity\User;
+
+interface AuthInterface
+{
+    public function user(): ?User;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+--> ELA TERÁ, PELO MENOS,
+
+ESSE METHOD,
+
+DE 'user()'...
+
+
+
+
+
+
+
+
+
+--> E ELE VAI RETORNAR 1 USER ENTITY...
+
+
+
+
+
+
+
+
+->  MAS O PROFESSOR N QUER TIPAR O RETURN COMO APENAS 'User',
+
+PQ ISSO É MT ESPECÍFICO...
+
+
+
+
+
+
+--> É POR ISSO QUE, EM VEZ DISSO,
+
+
+O PROFESSOR QUER USAR OUTRA INTERFACE,
+
+
+UMA INTERFACE 
+
+
+
+QUE 
+
+'MARKS/MAKES USER AUTHENTICABLE'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE CRIAMOS UMA NOVA INTERFACE, DE NOME 
+'UserInterface'...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Contracts;
+
+use App\Entity\User;
+
+interface AuthInterface
+{
+    public function user(): ?UserInterface;
+}
+
+
+
+
+
+
+
+
+
+
+
+deixamos '?'
+PQ ESSE RETURN PODE SER NULLABLE,
+
+
+
+PQ ELE PODE àS VEZES SER NULL...
+
+
+
+
+
+
+
+
+
+ISSO FEITO, ESCREVEMOS A INTERFACE DE 'UserInterface',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Contracts;
+
+use App\Entity\Category;
+use App\Entity\User;
+use Doctrine\Common\Collections\Collection;
+use Transaction;
+
+interface UserInterface
+{
+    public function getId(): ?int;
+
+    public function getName(): ?string;
+
+    public function setName(string $name): self;
+
+    public function getEmail(): ?string;
+
+    public function setEmail(string $email): self;
+
+    public function getPassword(): ?string;
+
+    public function setHashedPassword($password): void;  // This is the eloquent implementation, replacing  DBAL implementation
+
+    public function getCreatedAt(): ?\DateTimeInterface;
+
+    public function setCreatedAt(\DateTimeInterface $createdAt): self;
+
+    public function getTransactions(): Collection;
+
+    public function getCategories(): Collection;
+
+    public function addCategory(Category $category): User;
+
+    public function addTransaction(Transaction $transaction): User;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO, IMPLEMENTAMOS ESSA INTERFACE LÁ NA NOSSA ENTITY DE 'User',
+
+TIPO ASSIM:
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Entity;
+
+use App\Contracts\UserInterface;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Event\LifecycleEventArgs;
+use Doctrine\ORM\Mapping\HasLifecycleCallbacks;
+use Doctrine\ORM\Mapping\PrePersist;
+use Doctrine\ORM\Mapping\PreUpdate;
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Entity, ORM\Table(name: 'users')]
+#[HasLifecycleCallbacks]  // Needed to make the 'onPrePersist' method work.
+class User implements UserInterface
+{
+    public function __construct()
+    {
+        $this->transactions = new ArrayCollection();
+        $this->categories = new ArrayCollection();
+    }
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue()]
+    #[ORM\Column(type: 'integer', options: ['unsigned' => true])]
+    private int $id;
+
+    #[ORM\Column(type: 'string')]
+    private string $name;
+
+    #[ORM\Column(type: 'string')]
+    private string $email;
+
+    #[ORM\Column(type: 'string')]
+    private string $password;
+
+    #[ORM\Column(name: 'created_at', type: 'datetime')]
+    private \DateTime $createdAt;
+
+    #[ORM\Column(name: 'updated_at', type: 'datetime')]
+    private \DateTime $updatedAt;
+
+    #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'user')]
+    private Collection $transactions;
+
+    #[ORM\OneToMany(targetEntity: Category::class, mappedBy: 'user')]
+    private Collection $categories;
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name): self
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(string $email): self
+    {
+        $this->email = $email;
+
+        return $this;
+    }
+
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+    public function setHashedPassword($password): void
+    {
+        // 'cost' is the salting rounds (12 is a good amount).
+        $this->password = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    #[PrePersist, PreUpdate]
+    public function onPrePersist(LifecycleEventArgs $args)
+    {
+        if (!isset($this->createdAt)) {
+            $this->createdAt = new \DateTime();
+        }
+
+        $this->updatedAt = new \DateTime();
+    }
+
+    public function getTransactions(): Collection
+    {
+        return $this->transactions;
+    }
+
+    public function getCategories(): Collection
+    {
+        return $this->categories;
+    }
+
+    public function addCategory(Category $category): User
+    {
+        $this->categories->add($category);
+
+        return $this;
+    }
+
+    public function addTransaction(Transaction $transaction): User
+    {
+        $this->transactions->add($transaction);
+
+        return $this;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+QUE METHODS IMPLEMENTAREMOS, NESSA USERINTERFACE?
+
+
+
+
+
+
+
+
+
+
+-> getId
+
+
+
+
+
+-> getPassword...
+
+
+
+
+
+
+-> ESSES SÃO OS 2 METHODS TOTALMENTE NECESSÁRIOS, POR ENQUANTO....
+
+
+
+
+
+
+POR ISSO ESCREVEMOS ASSIM:
+
+
+
+    public function getId(): ?int;
+
+    public function getPassword(): ?string;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS JÁ TEMOS ESSES 2 METHODS IMPLEMENTADOS,
+
+POR ISSO NÃO PRECISAMOS MAIS MEXER NISSO...
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS AGORA PRECISAMOS CRIAR 1 CLASS QUE IMPLEMENTE 
+
+
+
+A INTERFACE DE 
+
+'AuthInterface' que criamos agora...
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS CRIAR UMA CLASS DE 'Auth',
+
+DENTRO 
+
+
+
+DO DIRECTORY DE 'app',
+
+ 
+
+ chmada de 
+
+
+ 'Auth.php'...
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS ESCREVER TIPO ASSIM:
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use App\Contracts\AuthInterface;
+use App\Contracts\UserInterface;
+use App\Entity\User;
+use Doctrine\ORM\EntityManager;
+
+class Auth implements AuthInterface
+{
+    public function __construct(private readonly EntityManager $entityManager) {}
+
+    public function user(): ?UserInterface
+    {
+        if (!empty($_SESSION['user'])) {
+            return $this->entityManager->getRepository(User::class)->find($_SESSION['user']);
+        }
+
+        return null;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO VAI INJETAR O ENTITYMANAGER,
+
+E AÍ 
+
+
+
+VAI TER ESSE METHOD DE 'user()',
+
+QUE VAI NOS RETORNAR O USER NECESSÁRIO,
+
+COM A MESMA LÓGICA DE ANTES...
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, PODEMOS DEIXAR AQUELE CÓDIGO DE 'AuthenticateUserMiddleware'
+
+
+como estava antes,
+
+tipo assim:
+
+
+
+
+
+class AuthenticateUserMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly AuthInterface $auth) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        return $handler->handle($request->withAttribute('user', $this->auth->user()));
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+isso vai localizar o user, a partir do id...
+
+
+
+
+
+é exatamente o que estávamos fazendo antes,
+
+
+mas agora nessa class aqui..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS TAMBÉM VAMOS QUERER 'KEEP TRACK' 
+
+DA INSTANCE DO USER, DENTRO DESSA CLASS,
+
+
+por isso 
+
+
+vamos adicionar 
+
+1 property de '$user',
+
+private,
+
+de tipo 'UserInterface'...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use App\Contracts\AuthInterface;
+use App\Contracts\UserInterface;
+use App\Entity\User;
+use Doctrine\ORM\EntityManager;
+
+class Auth implements AuthInterface
+{
+    private ?UserInterface $user = null;
+
+    public function __construct(private readonly EntityManager $entityManager) {}
+
+    public function user(): ?UserInterface
+    {
+        if (!empty($_SESSION['user'])) {
+            return $this->entityManager->getRepository(User::class)->find($_SESSION['user']);
+        }
+
+        return null;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK....
+
+
+
+
+
+
+
+
+
+-> para implementar o method de 'user()',
+
+
+PRIMEIRAMENTE PRECISAMOS CHECAR 
+
+SE O USER JÁ ESTÁ SETTADO...
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE REFORMATAMOS O CÓDIGO, PARA FICAR ASSIM:
+
+
+
+
+
+
+
+class Auth implements AuthInterface
+{
+    private ?UserInterface $user = null;
+
+    public function __construct(private readonly EntityManager $entityManager) {}
+
+    public function user(): ?UserInterface
+    {
+
+        if ($this->user !== null) { 
+            return $this->user;
+        }
+
+        $userId = $_SESSION['user'] ?? null;
+
+        if (!$userId) {
+            return null;
+        }
+
+        $this->user = $this->entityManager->getRepository(User::class)->find($userId);
+
+        return $this->user;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS TAMBÉM PRECISAMOS ADICIONAR 
+
+
+1 OUTRO CHECK, AQUI....
+
+
+
+
+
+
+
+
+É UM CHECK PARA 
+
+
+
+''IF THE USER, FOR SOME REASON, IS NOT FOUND, FOR THE GIVEN 
+USERID (user deleted, deactivated, etc)...''
+
+
+ 
+
+ -> PARA ISSO,
+
+ COLOCAMOS UM CHECK DE 
+
+
+
+ if (!$user) {
+    return null;
+ }
+
+
+
+
+
+
+
+
+
+
+
+
+
+ ficou tipo assim:
+
+
+
+
+
+
+
+
+
+ 
+class Auth implements AuthInterface
+{
+    private ?UserInterface $user = null;
+
+    public function __construct(private readonly EntityManager $entityManager) {}
+
+    public function user(): ?UserInterface
+    {
+
+        if ($this->user !== null) { 
+            return $this->user;
+        }
+
+        $userId = $_SESSION['user'] ?? null;
+
+        if ($userId === null) {
+            return null;
+        }
+
+        $user = $this->entityManager->getRepository(User::class)->find($userId);
+
+        if (!$user) {
+            return null;
+        }
+        
+        $this->user = $user;
+
+        return $this->user;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... COM ISSO, PRECISAMOS 
+
+
+GARANTIR QUE 
+
+
+
+
+A 'AuthInterface'
+
+
+ESTEJA BINDADA,
+
+DENTRO DO NOSSO CONTAINER,
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+use function DI\create;
+
+return [
+    // A little bit hacky...
+    App::class => function (DIContainer $container) {
+        AppFactory::setContainer($container);
+
+        // Import router and middlewares
+        $router = require CONFIG_PATH . '/routes/web.php';
+        $addMiddlewares = require CONFIG_PATH . '/middleware.php';
+
+        // Create app instance
+        $app = AppFactory::create();
+
+        // Register routes and middlewares to app
+        $router($app);
+        $addMiddlewares($app);
+
+        // Return app itself
+        return $app;
+    },
+    Auth::class => fn(EntityManager $entityManager) => new Auth($entityManager),
+
+
+
+
+
+
+
+
+
+
+
+
+FAZEMOS ISSO JUSTAMENTE PARA QUE CONSIGAMOS INJETAR ESSA AUTHINTERFACE 
+
+EM LUGARES QUAISQUER DE NOSSO CÓDIGO, PARA QUE ENTÃO 
+CONSIGAMOS ACESSAR A ENTITY DE 'USER'...
+
+
+
+
+
+
+
+
+
+
+
+--> mas eu escrevi errado,
+
+pq o correto é assim:
+
+
+
+
+
+
+
+
+    AuthInterface::class => fn(ContainerInterface $container) => $container->get(Auth::class),
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+
+
+
+
+AS COISAS DEVEM FUNCIONAR COMO ANTES, MAS AGORA DE FORMA MAIS ORGANIZADA...
+
+
+
+
+
+
+
+
+
+
+COM ISSO,
+
+
+
+''WE STARTED TO CREATE AND USE THE INTERFACES,
+ THAT WE COVERED EARLIER IN THIS SERIES...''
+
+
+
+
+
+
+
+
+
+
+-> AGORA DEVEMOS VER O QUE MAIS PODEMOS CLEAN UP E MELHORAR,
+
+NO NOSSO CÓDIGO...
+
+
+
+
+
+
+
+
+
+''SINCE WE ARE USING THE AUTH CLASS NOW,
+
+WE CAN ALSO EXTRACT THE LOGIN PART, FROM THE 'AuthController'...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+ESTE TRECHO AQUI TODO:
+
+
+
+
+
+
+
+
+    public function logIn(Request $request, Response $response): Response
+    {
+        // 1. Validate the request data  // * DONE  
+
+        $data = $request->getParsedBody();
+        ['email' => $email, 'password' => $password ] = $data;
+     
+        $v = new Validator($data);
+
+        $v->rule('required', ['email', 'password']);
+        $v->rule('email', 'email');
+
+
+        // 2. Check the user credentials // * DONE  
+        if(!$v->validate()) {
+            echo 'Entered';
+            var_dump($v->errors());
+            throw new ValidationException($v->errors());
+        } 
+
+        // 2.1 Find the user by email // * DONE  
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
+
+        // 2.2 Check if the user exists  // * DONE  
+        if(!$user || !password_verify($data['password'], $user->getPassword())) {
+            throw new ValidationException(['password' => ['You have entered an invalid username or password.']]);
+        }
+
+        // 2.3 Regenerate the user's sessionid, to improve security and defend against session hijacking attacks. // * DONE  
+        session_regenerate_id(true);
+
+        // 3. Save user id in the session // * DONE  
+        $_SESSION['user'] = $user->getId();
+
+        // 4. Redirect user to the home page // * DONE  
+        return $response->withHeader('Location', '/')->withStatus(302); 
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS EXTRAIR ALGUMAS PARTES DAQUI,
+
+PARA DENTRO DA CLASS DE 'AUTH'.. 
+
+
+
+
+
+
+
+tipo este trecho aqui:
+
+
+        // 2.1 Find the user by email // * DONE  
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
+
+        // 2.2 Check if the user exists  // * DONE  
+        if(!$user || !password_verify($data['password'], $user->getPassword())) {
+            throw new ValidationException(['password' => ['You have entered an invalid username or password.']]);
+        }
+
+        // 2.3 Regenerate the user's sessionid, to improve security and defend against session hijacking attacks. // * DONE  
+        session_regenerate_id(true);
+
+        // 3. Save user id in the session // * DONE  
+        $_SESSION['user'] = $user->getId();
+
+
+
+
+
+
+
+
+
+
+ESSA PARTE AÍ 
+
+
+PODE EXISTIR DENTRO DA AUTHCLASS....
+
+
+
+
+
+
+
+
+
+
+-> EM VEZ DE FAZER TUDO ISSO, 
+
+PODEMOS SÓ 
+
+RODAR ALGO COMO 
+
+
+
+"$this->auth->attemptLogin($data)',
+
+
+
+
+
+e usar '$data'
+
+
+
+PARA PASSAR TODAS NOSSAS CREDENTIALS...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+    public function logIn(Request $request, Response $response): Response
+    {
+        // 1. Validate the request data  // * DONE  
+
+        $data = $request->getParsedBody();
+        ['email' => $email, 'password' => $password ] = $data;
+     
+        $v = new Validator($data);
+
+        $v->rule('required', ['email', 'password']);
+        $v->rule('email', 'email');
+
+
+        // 2. Check the user credentials // * DONE  
+        if(!$v->validate()) {
+            echo 'Entered';
+            var_dump($v->errors());
+            throw new ValidationException($v->errors());
+        } 
+
+        $this->auth->attemptLogin($data);
+
+        // 4. Redirect user to the home page // * DONE  
+        return $response->withHeader('Location', '/')->withStatus(302); 
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EM 'AuthInterface':
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Contracts;
+
+use App\Entity\User;
+
+interface AuthInterface
+{
+    public function user(): ?UserInterface;
+
+    public function attemptLogin(array $data): void;
+}
+
+
+
+
+
+
+
+
+
+
+
+EM 
+
+
+'Auth.php':
+
+
+
+
+
+
+
+    public function attemptLogin(array $data): void
+    {
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $data['email']]);
+
+        if (!$user || !password_verify($data['password'], $user->getPassword())) {
+            throw new ValidationException(['password' => ['You have entered an invalid username or password.']]);
+        }
+
+        // 2.3 Regenerate the user's sessionid, to improve security and defend against session hijacking attacks. // * DONE
+        session_regenerate_id(true);
+
+        $_SESSION['user'] = $user->getId();
+    }
+
+
+
+
+
+
+
+
+
+
+
+CERTO... PARECE ESTAR CORRETO...
+
+
+
+
+
+
+
+
+
+
+
+MAS O PROFESSOR FEZ ALGUMAS COISAS DIFERENTES..
+
+
+
+
+
+
+
+
+ELE COLOCOU O RETURN TYPE DE 'attemptLogin'
+
+
+
+
+COMO SENDO 'boolean'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E O RESTO DO CÓDIGO FICOU TIPO ASSIM, COMO CONSEQUENCIA DISSO:
+
+
+
+
+
+
+
+
+
+    public function logIn(Request $request, Response $response): Response
+    {
+        // 1. Validate the request data  // * DONE  
+
+        $data = $request->getParsedBody();
+        ['email' => $email, 'password' => $password ] = $data;
+     
+        $v = new Validator($data);
+
+        $v->rule('required', ['email', 'password']);
+        $v->rule('email', 'email');
+
+
+        // 2. Check the user credentials // * DONE  
+        if(!$v->validate()) {
+            echo 'Entered';
+            var_dump($v->errors());
+            throw new ValidationException($v->errors());
+        } 
+
+        if($this->auth->attemptLogin($data)) {
+            throw new ValidationException(['password' => ['You have entered an invalid username or password.']]);
+        }
+
+        // 4. Redirect user to the home page // * DONE  
+        return $response->withHeader('Location', '/')->withStatus(302); 
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+e assim:
+
+
+
+
+
+
+
+    public function attemptLogin(array $data): bool
+    {
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $data['email']]);
+
+        if (!$user || !password_verify($data['password'], $user->getPassword())) {
+           return false;
+        }
+
+        // 2.3 Regenerate the user's sessionid, to improve security and defend against session hijacking attacks. // * DONE
+        session_regenerate_id(true);
+
+        $_SESSION['user'] = $user->getId();
+
+
+        $this->user = $user;
+
+        return true;
+    }
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+DESSA FORMA, NÃO ESTAMOS/VAMOS 
+USAR 
+
+
+O THROW DE 1 VALIDATION ERROR  DE DENTRO 
+
+
+DA CLASS DE AUTH.. -> O PROFESSOR QUER O RETURN 
+                        DE BOOLEANS, EM VEZ DO RETURN 
+                        DE EXCEPTIONS,
+
+                        LÁ DENTRO DA CLASS DE 'AUTH'.. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> DE VOLTA à CLASS DE 'Auth',
+
+DENTRO 
+
+DO 
+
+'attemptLogin',
+
+
+
+O PROFESSOR ACHA QUE PODEMOS 
+
+MELHORAR 
+
+
+A PARTE DE 
+
+'' 
+
+
+
+        if (!$user || !password_verify($data['password'], $user->getPassword())) {
+           return false;
+        }
+
+
+'',
+
+
+
+
+
+ELE ACHA QUE PODEMOS COLOCAR ISSO EM 1 METHOD PRÓPRIO,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+        public function checkCredentials(User $user, array $data): bool
+        {
+
+            if (password_verify($data['password'], $user->getPassword())) {
+                return true;
+            }
+
+            return false;
+        }
+
+
+
+
+
+
+
+
+
+
+TIPO ALGO ASSIM:
+
+
+
+
+
+
+
+
+
+
+    public function attemptLogin(array $credentials): bool
+    {
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $credentials['email']]);
+
+        if (!$user || !$this->checkCredentials($user, $credentials)) {
+           return false;
+        }
+
+        // 2.3 Regenerate the user's sessionid, to improve security and defend against session hijacking attacks. // * DONE
+        session_regenerate_id(true);
+
+        $_SESSION['user'] = $user->getId();
+
+
+        $this->user = $user;
+
+        return true;
+    }
+
+
+
+    public function checkCredentials(UserInterface $user, array $credentials): bool
+    {
+
+            if (password_verify($credentials['password'], $user->getPassword())) {
+                return true;
+            }
+
+            return false;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO..
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO, ADICIONAMOS ESSE METHOD NA INTERFACE:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Contracts;
+
+use App\Entity\User;
+
+interface AuthInterface
+{
+    public function user(): ?UserInterface;
+
+    public function attemptLogin(array $data): bool;
+
+    public function checkCredentials(UserInterface $user, array $credentials): bool;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... AGORA, ANTES DE TESTARMOS, O PROFESSOR QUER IMPLEMENTAR A PARTE 
+DE 
+
+'LOGOUT'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> A PARTE DE LOGOUT É MAIS FÁCIL DE IMPLEMENTAR, PQ SÓ PRECISAMOS 
+
+ACTUALLY 'UNSET' O USER DA SESSION,
+
+E AÍ SETTAR O USER OBJECT COMO 'NULL',
+
+DENTRO 
+
+
+DA CLASS 
+
+de 'auth'...
+
+
+
+
+-> PARA ISSO, PODEMOS TER 1 METHOD DE 'logout()',
+
+DENTRO DA CLASS DE 'AUTH',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Contracts;
+
+use App\Entity\User;
+
+interface AuthInterface
+{
+    public function user(): ?UserInterface;
+
+    public function attemptLogin(array $data): bool;
+
+    public function checkCredentials(UserInterface $user, array $credentials): bool;
+
+    public function logout(): void;
+}
+
+
+
+
+
+
+
+
+
+
+
+E ASSIM>:
+
+
+
+
+
+
+
+(Auth.php):
+
+
+    public function logout(): void
+    {
+        unset($_SESSION['user']);
+        $this->user = null;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ISSO FUNCIONOU...
+
+
+
+
+
+
+
+A ACTION DE LOGOUT SÓ FAZ 
+
+
+1 REQUEST à ROUTE DE LOGOUT,
+
+
+
+QUE SE CONECTA AO METHOD DE 'LOGOUT',
+
+NO CONTROLLER DE AUTHCONTROLLER...
+
+
+
+
+
+
+
+
+ESSE METHOD DE 'logout'
+
+
+faz com que seja chamado o method de 'logout()'
+
+NA CLASS DE 'auth',
+
+
+
+QUE ENTÃO, POR SUA VEZ,
+
+
+
+FAZ UNSET DA SESSION E FAZ O CLEAR OUT DA PROPERTY DE 'user'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+
+MAS AINDA PODEMOS FAZER UMAS COISAS MELHORES...
+
+
+
+
+
+
+
+
+
+
+
+
+NO CASO,
+
+O PROFESSOR NÃO GOSTA DESTA PARTE, EM 'Auth.php':
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public function attemptLogin(array $credentials): bool
+    {
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $credentials['email']]);
+
+        if (!$user || !$this->checkCredentials($user, $credentials)) {
+           return false;
+        }
+
+        session_regenerate_id(true);
+
+        $_SESSION['user'] = $user->getId();
+
+
+        $this->user = $user;
+
+        return true;
+    }
+
+
+
+
+
+
+
+
+
+
+
+ELE NÃO GOSTA QUE 
+
+ESTAMOS 
+
+
+
+
+ACESSANDO O ENTITY MANAGER 
+
+
+
+E A ENTITY DE 'USER' 
+
+ASSIM, DIRETAMENTE,
+
+
+
+NA CLASS DE 'Auth.php'...
+
+
+
+
+
+
+
+
+
+
+-> ELE NÃO GOSTA DISSO PELA MESMA RAZÃO QUE 
+ELE NÃO QUERIA 
+
+DEPENDER DA ENTITY DE 'USER' 
+
+
+
+DENTRO DA INTERFACE DE 'AUTHINTERFACE'..
+
+
+
+
+---> E É EXATAMENTE POR ISSO QUE CRIAMOS A 'USER INTERFACE',
+
+
+
+    PQ NÃO QUEREMOS QUE 
+
+    A CLASS DE 'AUTH'
+
+    SAIBA 
+
+    QUALQUER COISA SOBRE A DATABASE/ENTITY MANAGER 
+                            OU ENTITIES..
+
+
+
+
+
+
+
+
+--> O PROFESSOR QUER QUE A CLASS DE AUTH SEMPRE FUNCIONE,
+INDEPENTE DA ORM/DBAL/ELOQUENT QUE VC ESTÁ USANDO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE, EM VEZ DE INJETAR ENTITY MANAGER 
+DIRETAMENTE 
+
+
+NO 'Auth.php',
+
+É MELHOR 
+
+
+
+
+
+PROVIDENCIAR 1 CLASS QUE TENHA OS USER RELATED METHODS...
+
+
+
+
+
+
+EM VEZ DE ESSE CALL DO ENTITY MANAGEr:
+
+
+
+
+
+       $user = $this->entityManager->getRepository(User::class)->find($userId);
+
+
+
+
+
+
+
+
+PODERÍAMOS CHAMAR ALGO COMO 
+
+
+
+
+
+$user = $this->userProvider->getById($userId);
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ, LÁ EM 'attemptLogin',
+
+
+
+faríamos algo como 
+
+
+
+
+
+
+
+
+isto:
+
+
+
+
+
+$user = $this->userProvider->getByCredentials($credentials);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE VAMOS ESCREVER ASSIM:
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Contracts;
+
+interface UserProviderServiceInterface
+{
+    public function getById(int $userId): ?UserInterface;
+
+    public function getByCredentials(array $credentials): ?UserInterface;
+}
+
+
+
+
+
+
+
+
+
+
+
+AÍ VAMOS CRIAR ESSE SERVICE....
+
+PROVAVELMENTE EM 1 SERVICE COMO 
+
+
+ 
+
+ 'UserService',
+
+ ou 'UserProvider'...
+
+
+
+
+
+
+
+
+ -> MAS, ANTES DISSO, PRECISAMOS BINDAR 
+ ESSA INTERFACE LÁ NO NOSSO CONTAINER, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+     UserProviderServiceInterface::class => fn(ContainerInterface $container) => $container->get(UserProviderService ::class),
+
+
+
+
+
+
+
+
+
+
+
+E AÍ,
+
+
+
+ESSE UserProviderService:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Contracts\UserInterface;
+use App\Contracts\UserProviderServiceInterface;
+use App\Entity\User;
+use Doctrine\ORM\EntityManager;
+
+class UserProviderService implements UserProviderServiceInterface
+{
+    public function __construct(private readonly EntityManager $entityManager) {}
+
+    public function getById(int $userId): ?UserInterface
+    {
+        return $this->entityManager->getRepository(User::class)->find($userId);
+    }
+
+    public function getByCredentials(array $credentials): ?UserInterface
+    {
+        return $this->entityManager->getRepository(User::class)->findOneBy(['email' => $credentials['email']]);
+    }
+}   
+
+
+
+
+
+
+
+
+
+
+E AÍ, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use App\Contracts\AuthInterface;
+use App\Contracts\UserInterface;
+use App\Contracts\UserProviderServiceInterface;
+// use App\Entity\User;
+// use App\Exception\ValidationException;
+// use Doctrine\ORM\EntityManager;
+
+class Auth implements AuthInterface
+{
+    private ?UserInterface $user = null;
+
+    public function __construct(private readonly UserProviderServiceInterface $userProvider,) {}
+
+    public function user(): ?UserInterface
+    {
+
+        if ($this->user !== null) { 
+            return $this->user;
+        }
+
+        $userId = $_SESSION['user'] ?? null;
+
+        if ($userId === null) {
+            return null;
+        }
+
+        $user = $this->userProvider->getById($userId);
+
+        if (!$user) {
+            return null;
+        }
+        
+        $this->user = $user;
+
+        return $this->user;
+    }
+
+    public function attemptLogin(array $credentials): bool
+    {
+        $user = $this->userProvider->getByCredentials($credentials);
+
+
+        if (!$user || !$this->checkCredentials($user, $credentials)) {
+           return false;
+        }
+
+        // 2.3 Regenerate the user's sessionid, to improve security and defend against session hijacking attacks. // * DONE
+        session_regenerate_id(true);
+
+        $_SESSION['user'] = $user->getId();
+
+
+        $this->user = $user;
+
+        return true;
+    }
+
+
+
+    public function checkCredentials(UserInterface $user, array $credentials): bool
+    {
+
+            if (password_verify($credentials['password'], $user->getPassword())) {
+                return true;
+            }
+
+            return false;
+    }
+
+    public function logout(): void
+    {
+        unset($_SESSION['user']);
+        $this->user = null;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+FAZEMOS ALGUNS AJUSTES NO UserProviderService,
+
+
+TIPO ASSIM:
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Contracts\UserInterface;
+use App\Contracts\UserProviderServiceInterface;
+use App\Entity\User;
+use Doctrine\ORM\EntityManager;
+
+class UserProviderService implements UserProviderServiceInterface
+{
+    public function __construct(private readonly EntityManager $entityManager) {}
+
+    public function getById(int $userId): ?UserInterface
+    {
+        return $this->entityManager->find(User::class, $userId);
+    }
+
+    public function getByCredentials(array $credentials): ?UserInterface
+    {
+        return $this->entityManager->getRepository(User::class)->findOneBy(['email' => $credentials['email']]);
+    }
+}   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> UM OUTRO IMPROVEMENT QUE PODERÍAMOS TER FEITO, AQUI,
+
+
+É 
+
+
+SUBSTITUIR ESSE 
+
+'array $credentials'
+
+
+POR UM DTO,
+
+
+
+POR UM 'CredentialsObject',
+
+
+algo assim,
+
+
+para TER MAIOR TYPE SAFETY...
+
+
+
+
+
+
+
+
+
+
+--> POR ENQUANTO, O PROFESSOR VAI CONTINUAR COM ARRAYS,
+PARA KEEP THINGS SIMPLE...
+
+
+
+MAS MAIS TARDE ELE PODE COLOCAR DTOs,
+
+para ficar melhor...
+
+
+
+
+
+
+--> OK...
+
+
+
+
+
+
+
+
+MAS AÍ RECARREGAMOS A PAGE,
+
+E FICAMOS COM ESTE ERROR:
+
+
+
+
+
+
+
+
+Slim Application Error
+The application could not run because of the following error:
+
+Details
+Type: DI\DependencyException
+Code: 0
+Message: Error while injecting dependencies into App\Auth: No entry or class found for 'UserProviderService'
+File: /var/www/vendor/php-di/php-di/src/Definition/Resolver/ObjectCreator.php
+Line: 147
+
+
+
+
+NÃO ERA NADA, SÓ 1 IMPORT QUE ESTAVA FALTANDO...
+
+
+
+
+
+
+
+
+
+AGORA TUDO ESTÁ FUNCIONANDO, 
+
+
+
+COM ESSE REFACTOR...
+
+
+
+
+
+
+
+
+MAS AINDA NÃO ACABAMOS...
+
+
+
+
+FAREMOS MAIS UM REFACTORING NA PRÓXIMA AULA...
+
+
+
+
+
+
+
+
+
+
+
+--> MAIS REFACTORING PQ O PROFESSOR N GOSTA   
+    DO ACCESS DIRETO AO '$_SESSION',
+
+    dentro da class de 'Auth.php'....
+
+
+
+
+
+
+-> SERIA MELHOR SE TIVÉSSEMOS ALGUMA ABSTRACTION SIMPLES EM 
+    VOLTA DA '$_SESSION',
+
+
+
+    ''so that we could inject the sessionProvider, in our constructor,
+    in any place where we may need that session''...

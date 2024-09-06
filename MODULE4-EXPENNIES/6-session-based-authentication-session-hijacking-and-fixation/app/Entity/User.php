@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Contracts\UserInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Event\LifecycleEventArgs;
@@ -9,10 +10,11 @@ use Doctrine\ORM\Mapping\HasLifecycleCallbacks;
 use Doctrine\ORM\Mapping\PrePersist;
 use Doctrine\ORM\Mapping\PreUpdate;
 use Doctrine\ORM\Mapping as ORM;
+use Transaction;
 
 #[ORM\Entity, ORM\Table(name: 'users')]
 #[HasLifecycleCallbacks]  // Needed to make the 'onPrePersist' method work.
-class User
+class User implements UserInterface
 {
     public function __construct()
     {
