@@ -64,11 +64,9 @@ class AuthController
         )->message("User with the given email address already exists.");
 
 
-       if($v->validate()) {
-           echo 'Yay! We are all good!';
-       } else {
-           throw new ValidationException($v->errors());
-       }
+        if(!$v->validate()) {
+            throw new ValidationException($v->errors());
+        } 
        
        $user = new User();
 
@@ -87,6 +85,39 @@ class AuthController
 
     public function logIn(Request $request, Response $response): Response
     {
+        // 1. Validate the request data  // * DONE  
+
+        $data = $request->getParsedBody();
+        ['email' => $email, 'password' => $password ] = $data;
+     
+        $v = new Validator($data);
+
+        $v->rule('required', ['email', 'password']);
+        $v->rule('email', 'email');
+
+
+        // 2. Check the user credentials // * DONE  
+        if(!$v->validate()) {
+            echo 'Entered';
+            var_dump($v->errors());
+            throw new ValidationException($v->errors());
+        } 
+
+        // 2.1 Find the user by email // * DONE  
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
+
+        // 2.2 Check if the user exists  // * DONE  
+        if(!$user || !password_verify($data['password'], $user->getPassword())) {
+            throw new ValidationException(['password' => ['You have entered an invalid username or password.']]);
+        }
+
+        // 2.3 Regenerate the user's sessionid, to improve security and defend against session hijacking attacks. // * DONE  
+        session_regenerate_id(true);
+
+        // 3. Save user id in the session // * DONE  
+        $_SESSION['user'] = $user->getId();
+
+        // 4. Redirect user to the home page // * DONE  
         return $response->withHeader('Location', '/')->withStatus(302); 
     }
 

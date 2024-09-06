@@ -1,7 +1,6 @@
 <?php declare(strict_types=1);
 
 use App\Enum\AppEnvironment;
-use App\App;
 use App\Config;
 use DI\Container as DIContainer;
 use Doctrine\ORM\EntityManager;
@@ -10,6 +9,7 @@ use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Slim\Factory\AppFactory;
 use Slim\Views\Twig;
+use Slim\App;
 use Symfony\Bridge\Twig\Extension\AssetExtension;
 use Symfony\Component\Asset\VersionStrategy\JsonManifestVersionStrategy;
 use Symfony\Component\Asset\Package;

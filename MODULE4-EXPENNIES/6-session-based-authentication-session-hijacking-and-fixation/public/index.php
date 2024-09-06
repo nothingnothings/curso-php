@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-use App\App;
+use Slim\App;
 
 // $app    = require __DIR__ . '/../bootstrap.php';
 // $router = require CONFIG_PATH . '/routes/web.php';

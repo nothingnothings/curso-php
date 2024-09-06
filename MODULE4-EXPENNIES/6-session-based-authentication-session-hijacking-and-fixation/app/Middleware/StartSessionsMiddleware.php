@@ -23,6 +23,9 @@ class StartSessionsMiddleware implements MiddlewareInterface
             throw new SessionException('Headers already sent.');
         }
 
+        // * This increases the security of the application, by making it harder for attackers to hijack the session.
+        session_set_cookie_params(['secure' => true, 'httponly' => true, 'samesite' => 'lax']);
+
         session_start();
 
         $response = $handler->handle($request);

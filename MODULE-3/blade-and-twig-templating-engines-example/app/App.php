@@ -11,6 +11,7 @@ use Dotenv\Dotenv;
 use Illuminate\Container\Container;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Events\Dispatcher;
+use Psr\Http\Message\ResponseFactoryInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Twig\Extra\Intl\IntlExtension;
 use Twig\Loader\FilesystemLoader;
@@ -25,6 +26,7 @@ class App
         protected Container $container,
         protected ?Router $router = null,
         protected array $request = [],
+        protected ResponseFactoryInterface $responseFactory,
     ) {}
 
     public function boot(): static
@@ -74,5 +76,10 @@ class App
 
             echo View::make('error/404');
         }
+    }
+
+    public function getResponseFactory(): ResponseFactoryInterface
+    {
+        return $this->responseFactory;
     }
 }

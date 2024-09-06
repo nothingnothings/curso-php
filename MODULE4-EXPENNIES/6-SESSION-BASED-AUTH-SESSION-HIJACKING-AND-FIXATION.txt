@@ -854,3 +854,1939 @@ class AuthMiddleware implements MiddlewareInterface
 
 
 
+
+
+
+
+
+
+
+
+
+-> BASTA USAR ESSE METHOD DE 'add()'...
+
+
+
+
+
+
+
+
+-> EX:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class AuthMiddleware implements MiddlewareInterface
+{
+    public function __construct(private ResponseFactoryInterface $responseFactory) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        if (empty($_SESSION['user'])) {
+            return $this->responseFactory->createResponse()->withHeader('Location', '/login')->withStatus(302);
+        }
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TESTAMOS ISSO, PARA VER SE FUNCIONA..
+
+
+
+
+
+
+
+-> TENTAMOS ENTRAR NA PAGE DE 
+
+'localhost:8000',
+
+
+
+e aí somos redirecionados para a page de 
+
+login... sinal de que 
+
+NOSSO GUARD _ FUNCIONOU...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... A PRÓXIMA ETAPA É IMPLEMENTAR O METHOD DE 'login()',
+
+LÁ NO CONTROLLER DE 'AuthController.php'...
+
+
+
+
+
+
+
+
+
+
+
+
+MAS GANHEI ESTE ERROR:
+
+
+
+
+
+
+
+Type: TypeError
+Code: 0
+Message: DI\Definition\Source\DefinitionFile::{closure}(): Argument #1 ($app) must be of type App\App, Slim\App given
+File: /var/www/configs/container/container_bindings.php
+Line: 63
+
+
+
+
+
+
+
+
+consertei o error... eu precisava usar 
+
+
+
+
+
+\Slim\App,
+
+
+em vez de 
+
+
+\App\App...
+
+
+
+
+
+
+
+
+
+
+NOSSAS ETAPAS, NO METHOD DE LOGIN,
+
+SERÃO ASSIM:
+
+
+
+
+
+
+    public function logIn(Request $request, Response $response): Response
+    {
+        // 1. Validate the request data 
+
+        // 2. Check the user credentials 
+
+        // 3. Save user id in the session 
+
+        // 4. Redirect user to the home page
+
+        return $response->withHeader('Location', '/')->withStatus(302); 
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> A ÚLTIMA PARTE JÁ FIZEMOS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> a primeira parte,
+
+
+'validate the request data',
+
+
+PODEMOS ACTUALLY COPIAR A LÓGICA DE AUTH LÁ DO REGISTER,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public function logIn(Request $request, Response $response): Response
+    {
+        // 1. Validate the request data 
+
+        $data = $request->getParsedBody();
+        ['email' => $email, 'password' => $password ] = $data;
+     
+        $v = new Validator($data);
+
+        $v->rule('required', ['email', 'password']);
+        $v->rule('email', 'email');
+
+
+        // 2. Check the user credentials 
+
+        // 3. Save user id in the session 
+
+        // 4. Redirect user to the home page // * DONE 
+
+        return $response->withHeader('Location', '/')->withStatus(302); 
+    }
+
+
+
+
+
+
+
+
+
+
+certo....
+
+
+
+
+
+isso feito, 
+
+
+PRECISAMOS CHECAR SE O USER 
+
+
+'HAS INPUTTED THE VALID CREDENTIALS'...
+
+
+
+
+
+
+
+
+--> PARA FAZER ISSO,
+
+
+
+PRECISAMOS DE ACESSO À DATABASE,
+
+
+
+POR MEIO DO ENTITY MANAGER...
+
+
+
+
+
+
+
+--> PRECISAMOS CHECAR SE EXISTE ALGUM USER COM ESSE EMAIL...
+
+
+CASO EXISTA ALGUM USER COM ESSE EMAIL,
+
+TEMOS QUE CHECAR, COM 'password_verify()",
+
+se esse password QUE FOI INPUTTADO, NO BODY,
+
+
+
+FAZ MATCH COM O HASHED PASSWORD DE NOSSA DATABASE...
+
+
+
+
+
+
+
+
+--> PODEMOS FAZER ISSO TIPO ASSIM:
+
+
+
+
+
+
+
+        $data = $request->getParsedBody();
+        ['email' => $email, 'password' => $password ] = $data;
+     
+        $v = new Validator($data);
+
+        $v->rule('required', ['email', 'password']);
+        $v->rule('email', 'email');
+
+
+        // 2. Check the user credentials
+
+        if($v->validate()) {
+            echo 'Request is valid.';
+        } else {
+            throw new ValidationException($v->errors());
+        } 
+
+        // 2.1 Find the user by email
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
+
+        // 2.2 Check if the user exists
+        if(!$user) {
+            throw new ValidationException(['email' => 'User with the given email address does not exist.']);
+        }
+
+        // 2.3 Check if the password is correct
+        if(!password_verify($password, $user->password)) {
+            throw new ValidationException(['password' => 'Incorrect password.']);
+        }
+
+        // 3. Save user id in the session 
+
+        // 4. Redirect user to the home page // * DONE 
+
+        return $response->withHeader('Location', '/')->withStatus(302); 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TENTEI FAZER ASSIM...
+
+
+
+
+
+
+
+
+O PROFESSOR ESCREVEU A MESMA COISA, INICIALMENTE...
+
+
+
+
+
+
+
+MAS ELE DEIXOU O THROW DA EXCEPTION MAIS GENÉRICO,
+
+PQ O USER NÃO PODE RECEBER TANTA INFO ASSIM,
+
+SOBRE A RAZÃO DO ERROR:
+
+
+
+
+
+
+
+
+
+        // 1. Validate the request data 
+
+        $data = $request->getParsedBody();
+        ['email' => $email, 'password' => $password ] = $data;
+     
+        $v = new Validator($data);
+
+        $v->rule('required', ['email', 'password']);
+        $v->rule('email', 'email');
+
+
+        // 2. Check the user credentials
+
+        if($v->validate()) {
+            echo 'Request is valid.';
+        } else {
+            throw new ValidationException($v->errors());
+        } 
+
+        // 2.1 Find the user by email
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
+
+        // 2.2 Check if the user exists
+        if(!$user || !password_verify($data['password'], $user->getPassword())) {
+            throw new ValidationException(['password' => 'You have entered an invalid username or password.']);
+        }
+
+        // 3. Save user id in the session 
+
+        // 4. Redirect user to the home page // * DONE  
+
+        return $response->withHeader('Location', '/')->withStatus(302);  
+
+
+
+
+
+
+
+
+
+
+
+
+NA PRÓXIMA PARTE,
+
+SALVAMOS O USER ID 
+
+
+
+NA SESSION SUPERGLOBAL:
+
+
+
+
+
+
+
+
+       // 1. Validate the request data 
+
+        $data = $request->getParsedBody();
+        ['email' => $email, 'password' => $password ] = $data;
+     
+        $v = new Validator($data);
+
+        $v->rule('required', ['email', 'password']);
+        $v->rule('email', 'email');
+
+
+        // 2. Check the user credentials
+
+        if($v->validate()) {
+            echo 'Request is valid.';
+        } else {
+            throw new ValidationException($v->errors());
+        } 
+
+        // 2.1 Find the user by email
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
+
+        // 2.2 Check if the user exists
+        if(!$user || !password_verify($data['password'], $user->getPassword())) {
+            throw new ValidationException(['password' => 'You have entered an invalid username or password.']);
+        }
+
+        // 3. Save user id in the session 
+        $_SESSION['user'] = $user->getId();
+
+        // 4. Redirect user to the home page // * DONE  
+
+        return $response->withHeader('Location', '/')->withStatus(302); 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS USAR '$user->getId();' 
+
+
+JUSTAMENTE PQ ESSE USER É A ENTITY DE USER...
+
+
+
+
+
+
+
+
+
+
+
+-> MAS ANTES DE TESTAR ISSO,
+
+
+TEMOS QUE MODIFICAR O TEMPLATE DO TWIG,
+
+
+E ADICIONAR 
+
+ALGUM VALIDATION HANDLING NA NOSSA FORM DE 'login.twig',
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+{% extends 'auth/layout.twig' %}
+
+{% block title %}Log In
+{% endblock %}
+
+{% block content %}
+	<section class="vh-100 bg-primary bg-gradient">
+		<div class="container py-5 h-100">
+			<div class="row d-flex justify-content-center align-items-center h-100">
+				<div class="col-12 col-md-8 col-lg-6 col-xl-5">
+					<div class="card bg-light text-white" style="border-radius: 1rem;">
+						<div class="card-body p-5 text-center">
+							<div class="mb-4">
+								<h2 class="fw-bold mb-5 text-uppercase text-primary d-flex justify-content-center align-items-center">
+									<img src="{{ asset('build/images/logo.png') }}" width="64" height="64" alt="Expennies Logo"/>
+									Login
+								</h2>
+								<form method="post" action="/login">
+									<div class="form-outline form-white mb-4">
+										<input type="email" value="{{ old.email }}" class="form-control form-control-lg {{errors.email ? 'is-invalid' : ''}}" placeholder="Email" required/>
+										<div class="invalid-feedback">
+											{{ errors.email | first }}
+										</div>
+									</div>
+									<div class="form-outline form-white mb-1">
+										<input type="password" class="form-control form-control-lg {{errors.email ? 'is-invalid' : ''}}" placeholder="Password" required/>
+										<div class="invalid-feedback">
+											{{ errors.password | first }}
+										</div>
+									</div>
+									<p class="mb-4 text-end">
+										<a class="text-secondary fw-semibold" href="#">Forgot
+																																																																													                                            password?</a>
+									</p>
+									<button class="btn btn-primary bg-gradient text-white btn-lg px-5" type="submit">Log
+																																																																						                                        In
+									</button>
+								</form>
+							</div>
+							<div>
+								<p class="mb-0 text-dark">Don't have an account?
+									<a href="/register" class="text-primary fw-bold">Sign Up</a>
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+DEPOIS DISSO, TESTAMOS...
+
+
+
+
+
+
+
+
+
+MAS GANHAMOS ESTE ERROR:
+
+
+
+Warning: Undefined array key "email" in /var/www/app/Controllers/AuthController.php on line 93
+
+
+
+
+
+
+
+
+
+É POR CONTA DESTE PROblema:
+
+
+
+
+
+				<form method="post" action="/login">
+									<div class="form-outline form-white mb-4">
+										<input name="email" type="email" value="{{ old.email }}" class="form-control form-control-lg {{errors.email ? 'is-invalid' : ''}}" placeholder="Email" required/>
+										<div class="invalid-feedback">
+											{{ errors.email | first }}
+										</div>
+									</div>
+									<div class="form-outline form-white mb-1">
+										<input name="password" type="password" class="form-control form-control-lg {{errors.email ? 'is-invalid' : ''}}" placeholder="Password" required/>
+										<div class="invalid-feedback">
+											{{ errors.password | first }}
+										</div>
+									</div>
+
+
+
+
+
+
+
+
+
+O PROFESSOR HAVIA ESQUECIDO 
+
+
+
+O ATTRIBUTE DE 'name'
+
+
+nos input fields...
+
+
+
+
+
+
+
+
+
+
+OK... MAS, MESMO ASSIM, ALGO NÃO ESTÁ FUNCIONANDO... O QUE SERÁ?
+
+
+
+
+
+
+
+
+
+
+CONSERTEI....
+
+
+
+
+
+
+
+
+
+ERA SÓ 1 ERRO DE FRONTEND...
+
+
+
+
+
+
+
+
+
+
+--> COM O USER CORRETO, SOMOS REDIRECIONADOS AO DASHBOARD... SINAL QUE FUNCIONOU, ESSA PARTE 
+AÍ...
+
+
+
+
+
+
+
+
+
+
+
+-> COMO NÃO ESTAMOS REDIRECIONADOS À PAGE DE LOGIN,
+    ISSO SIGNIFICA QUE O USER ESTÁ ACTUALLY LOGGED IN...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS ABRIR AS DEV TOOLS,
+IR PARA 'APPLICATIONS',
+
+E AÍ ABRIR OS COOKIES...
+
+
+
+
+
+
+
+COM ISSO, 1 COOKIE DE 
+
+
+'PHPSESSID' foi criado,
+
+
+
+
+com value de 
+
+
+
+47dad76b3f5393b119b84a8879ccaf06 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSE É UM SESSION ID...
+
+
+
+
+
+
+
+
+
+--> SEMPRE QUE 1 NOVA SESSION É STARTADA,
+
+1 SESSION ID É GERADO, E ENTÃO ARMAZENADO 
+
+
+
+
+NO COOKIE DO USER... AÍ, EM CADA REQUEST POSTERIOR,
+
+ESSE 
+
+
+SESSION ID É USADO PARA 'LOOK UP' 
+
+A SESSION,
+LÁ NO SERVER DO PHP...
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE DELETARMOS ESSE KEY-VALUE,
+
+ESSE COOKIE AÍ,
+
+
+
+SEREMOS LOGGED OUT,
+
+
+PQ 
+
+
+AÍ O SERVER 'WON'T KNOW WHERE TO LOOK, FOR THE SESSION'...
+
+
+
+
+
+
+
+
+
+
+-> SE VC FIZER LOG OUT/DELETAR ESSE COOKIE,
+
+    1 NOVO COOKIE É AUTOMATICAMENTE GERADO POR NOSSO APP,
+
+
+    TUDO 
+    POR CAUSA DAQUELA LINHA DE 
+
+
+    'session_start()',
+
+
+    lá no nosso StartSessionsMiddleware.php...
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... AGORA VAMOS NOS AUTENTICAR...
+
+
+
+
+
+
+
+
+
+
+-> QUANDO FICAMOS AUTENTICADOS,
+
+A SESSIOID, ESSE COOKIE AÍ,
+
+NÃO VAI MUDAR... VAI CONTINUAR O MESMO..
+
+
+
+
+
+
+
+
+--> MAS ISSO É UM PROBLEMA, EXPLICA O PROFESSOR....
+
+
+
+
+
+
+
+
+-> É UM PROBLEMA PQ ABRE _ O NOSSO APP __ 
+
+A COISAS COMO:
+
+
+
+1) SESSION HIJACKING 
+
+
+
+E 
+
+
+
+2) SESSION FIXATION ATTACKS...
+
+
+
+
+
+
+
+
+
+
+-> SE 1 HACKER CONSEGUE ACESSO 
+    AO SESSIONID DE UM GIVEN USER,
+
+
+    ELES PODEM 'IMPERSONATE' 
+
+    ESSE USER AÍ...
+
+
+
+
+
+
+
+
+
+-> É CLARO QUE 'SESSION FIXATION' 
+
+E 
+
+
+'SESSION HIJACKING' 
+
+
+NÃO _ SÃO A MESMA COISA...
+
+
+
+
+
+
+
+-> APESAR DE NÃO SEREM A MESMA COISA,
+
+AMBAS POSSUEM O MESMO OBJETIVO:
+
+
+''GAIN ACCESS TO THE USER'S SESSION''...
+
+
+
+
+
+
+
+
+-> A DIFERENÇA ENTRE OS 2 
+ESTÁ, NA VERDADE,
+
+RELACIONADA AO PROCESSO DE OBTAIN DO SESSIONID...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SESSION HIJACKING:
+
+
+
+
+''THIS TYPE OF ATTACK 
+ ENTAILS __ STEALING THE VALID SESSIONID 
+ BY __ EXPLOITING OTHER VULNERABILITIES 
+ WITHIN THE APP...''
+
+
+
+
+
+
+
+ EX:
+
+
+ 1) hacker injects the script into the server 
+
+
+ 2) user authenticates 
+
+
+3) User visits the page that contains the injected script 
+
+4) user's browser executes the script 
+    and transmits the session cookie to the hacker 
+
+
+5) hacker hijacks the user's session and is authenticated...
+
+
+
+
+
+
+
+
+
+ESSE TIPO DE ATTACK É POSSÍVEL QUANDO:
+
+
+
+
+A) THE SESSIONIDs are part of the REQUEST PARAMETERS (params da url),
+    INSTEAD OF BEING PART OF THE COOKIE'S HEADER...
+
+
+
+B) MAN IN THE MIDDLE ATTACKS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM SESSION FIXATION,
+POR OUTRO LADO,
+
+
+
+''THE HACKER ATTEMPTS TO HAVE THE 
+USER  _ USE __ THE FAKE SESSION ID 
+THAT THE HACKER ALREADY HAS ACCESS TO...''
+
+
+
+
+
+
+
+COM ISSO, O ATTACKER BASICAMENTE 
+
+PLANEJA O 'PLANT' DO SESSIONID DELE 
+
+
+__DENTRO __ DO COOKIE DO USER,
+
+E, ENTÃO, SEMPRE QUE 
+
+O USER FAZ LOGIN,
+
+
+SE O SESSIONID 
+
+NÃO MUDA,
+
+
+O HACKER TAMBÉM ACABA AUTENTICADO,
+
+
+PQ _ _ELES ESTÃO USANDO A MESMA SESSION...
+
+
+
+
+
+
+
+
+
+
+
+--> O HACKER PODE CONSEGUIR ACESSO À SESSION 
+    DO USER E PODE MANIPULAR OS COOKIES DO 
+    USER POR MEIO DE VÁRIAS 
+    TÉCNICAS..
+
+
+
+
+
+    EX: SE O APP TEM OUTRAS VULNERABILIDADES,
+        O HACKER PODE EXPLOITÁ-LAS POR MEIO 
+        DE COISAS 
+
+        COMO:
+
+
+            XSS (cross-site scripting)...
+
+
+
+
+
+
+
+--> O HACKER PODE TAMBÉM TER 1 ACESSO TEMPORÁRIO AO BROWSER 
+    DO USER, E AÍ PODE ENTÃO PLANTAR O SESSIONID 
+    NESSE BROWSER, E ASSIM POR DIANTE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA,
+
+HÁ DIFERENTES MANEIRAS 
+
+
+
+PARA 
+
+
+
+'GET ACCESS TO THE USER'S SESSIONID,
+
+
+OR PLANTING AND FIXATING THE USER'S SESSIONID''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS HÁ ALGUMAS COISAS QUE PODEMOS UTILIZAR, PARA PROTEGER CONTRA ESSES ATTACKS...
+
+
+
+
+
+
+
+
+
+
+COISAS:
+
+
+
+
+
+
+1) USAR 'SECURE CONNECTION',
+    COMO 'HTTPS' ----> ISSO PREVINE 'MAN IN THE MIDDLE' ATTACKS...
+
+
+    ---> ISSO, POR SUA VEZ, AJUDA CONTRA 'SESSION HIJACKING' ATTACKS...
+
+
+
+
+
+2) CONFIGURAR AS COOKIE OPTIONS PARA USAR AS FLAGS DE 
+    'SECURE, HTTPONLY, SAMESITE', etc...
+
+
+
+
+        --> ISSO GARANTE QUE 
+            _ COOKIES DO SEU SITE _ NÃO SEJAM ACESSÍVEIS 
+            POR MEIO DE JAVASCRIPT...
+
+
+
+
+
+
+
+3) PROTECTION CONTRA XSS, cross-site scripting attacks...   
+
+        ISSO SERÁ VISTO EM 1 AULA SEPARADA...
+
+
+
+
+
+
+
+
+
+
+4) OUTRA COISA QUE DEVEMOS FAZER, PARA IMPEDIR ESSE TIPO DE ATTACK,
+
+É 
+
+
+'REGENERATE SESSION ID',
+
+SEMPRE QUE 
+
+EXISTIR ALGUMA CHANGE NO __ AUTHENTICATION STATE DO USER...
+
+(
+    ex: user logging in 
+        CONTA COMO 'authentication state being changed',
+
+        POR ISSO DEVEMOS FAZER O REGENERATE DO SESSIONID, nesse momento...
+) 
+
+
+
+
+
+
+
+--> SE FIZERMOS ESSE REGENERATE,
+
+
+''THAT WOULD MAKE THE ATTACKER'S FAKE 
+    SESSIONID  _ USELESS,
+    BECAUSE THE USER WOULD BE GETTING A _ NEW __ SESSIONID
+    WHENEVER THEY WOULD BE LOGGED/logging IN''...
+
+
+
+
+
+
+
+
+-> PARA CONSEGUIR TER ESSE EFEITO, PODEMOS USAR A 
+
+FUNCTION NATIVA DO PHP,
+
+'session_regenerate_id()',
+
+
+
+QUE FAZ EXATAMENTE ISSO...
+
+
+
+
+ 
+
+
+
+
+
+
+ -> É POR ISSO QUE, ANTES DE SALVAR/SETTAR O USERID NA SESSION,
+    PODEMOS/DEVEMOS 
+
+    CHAMAR A FUNCTION DE 'session_regenerate_id()',
+
+
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+    public function logIn(Request $request, Response $response): Response
+    {
+        // 1. Validate the request data  // * DONE  
+
+        $data = $request->getParsedBody();
+        ['email' => $email, 'password' => $password ] = $data;
+     
+        $v = new Validator($data);
+
+        $v->rule('required', ['email', 'password']);
+        $v->rule('email', 'email');
+
+
+        // 2. Check the user credentials // * DONE  
+        if(!$v->validate()) {
+            echo 'Entered';
+            var_dump($v->errors());
+            throw new ValidationException($v->errors());
+        } 
+
+        // 2.1 Find the user by email // * DONE  
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
+
+        // 2.2 Check if the user exists  // * DONE  
+        if(!$user || !password_verify($data['password'], $user->getPassword())) {
+            throw new ValidationException(['password' => ['You have entered an invalid username or password.']]);
+        }
+
+        // 2.3 Regenerate the user's sessionid, to improve security and defend against session hijacking attacks. // * DONE  
+        session_regenerate_id(true);
+
+        // 3. Save user id in the session // * DONE  
+        $_SESSION['user'] = $user->getId();
+
+        // 4. Redirect user to the home page // * DONE  
+        return $response->withHeader('Location', '/')->withStatus(302); 
+    }
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+AGORA O SESSIONID SERÁ REGENERATED, TODA VEZ QUE ACONTECER O LOGIN...
+
+
+
+
+
+
+-> TEMOS VÁRIAS OPTIONS NESSE COOKIE, QUE DEVEM SER EXPLICADAS...
+
+
+
+
+
+SÃO ELAS:
+
+
+
+
+
+
+'Name' -> nome do cookie 
+
+
+'Value' -> cookie value 
+
+
+'domain' -> site em que foi criado o cookie 
+
+
+
+'path' -> '/' 
+
+
+
+'Expires/max age' --> ....
+
+
+
+''Size' --> em bytes 
+
+
+
+
+''httpOnly' ---> usado para proteção
+ 
+
+ ''secure'' -> mesma coisa 
+
+
+
+ ''sameSite'
+
+
+ ''SameParty' 
+
+
+ ''Partition Key'' 
+
+
+
+
+
+ ''Priority'' 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ DOMAIN E PATH --> DEFINEM A SCOPE DO COOKIE -> OU SEJA, A QUE URLS o cookie deve ser enviado...
+
+
+
+
+
+
+
+ EXPIRES/MAX-AGE --> é o LIFETIME do cookie... --> quando diz 'Session', isso quer dizer que é um SESSION COOKIE, o que quer dizer que ELE É EXPIRADO/DELETADO SEMPRE QUE A BROWSER SESSION ACABA (como quando o browser é fechado)... --> mas chromium-based browsers tentam manter sessions... --> quando fechamos o browser, esses browsers restoram as sessions..
+
+
+
+
+
+
+
+
+
+
+
+
+
+ HTTPONLY E SECURE -> SE ENABLED, GARANTEM QUE OS COOKIES SÃO ENVIADOS APENAS POR 'SECURE CONNECTIONS', E NÃO PODEM SER ACESSADOS POR CLIENTSIDE SCRIPTS, COMO JAVASCRIPT... ISSO QUER DIZER QUE VC N PODE ACESSAR OS COOKIES POR MEIO DE ALGO COMO 'document.cookie'...
+
+
+
+
+
+
+
+
+
+
+ -> SE VC ESCREVER 'document.cookie' no console do browser,
+    veremos o session id..
+
+
+
+
+
+
+
+
+-> MAS SE HTTPONLY FOR ENABLED,
+
+
+SE DIGITARMOS 'document.cookie',
+
+
+NÃO PODEREMOS MAIS VER O VALUE DO COOKIE...
+
+
+
+
+
+
+
+
+
+
+
+
+'SameSite' --> essa é importante --> ''THIS OPTION LETS US SPECIFY IF/WHEN 
+                                        THE COOKIE SHOULD BE SENT WITH THE 
+                                        CROSS-SITE REQUESTS''..
+
+
+
+
+                                O VALUE PODE SER:
+
+
+                                'strict' --> significa que cookies serão enviados 
+                                                SOMENTE SE O REQUEST FOR ORIGINADO 
+                                                DE UM 'FIRST-PARTY DOMAIN' 
+
+                                                (em outras palavras,
+                                                apenas para os requests que originam 
+                                                do MESMO SITE QUE O USER FOI CRIADO...
+
+
+                                            ex: um email, no gmail...
+
+                                            se vc recebe 1 email que contém 
+                                            1 link para o seu site,
+
+                                            se vc clica nele,
+
+
+                                            ELE _ NÃO VAI _ INCLUIR OS COOKIES 
+
+                                            COM A OPTION DE 'STRICT', 
+
+                                            isso pq 
+
+                                            O REQUEST N FOI ORIGINADO DO SEU LADO, DO SEU SITE...
+
+                                                )
+
+                                'lax'--> similar a strict,
+                                            mas menos restritivo... permite 
+                                            o user navegar ao site (clicar o link, em 1 email),
+
+                                            o que incluiria os cookies no header... mas ele ainda 
+                                            previne cross-site requests... tanto para o load de images,
+                                            como frames...
+
+
+                                'none' --> QUER DIZER QUE COOKIES SERÃO ENVIADOS 
+                                            TANTO A 'FIRST-PARTY' COMO 'cross-site' requests...
+
+
+
+
+
+
+
+
+
+
+
+BEM... E PODEMOS CONFIGURAR AS OPTIONS DE SESSION COOKIE POR MEIO 
+
+
+DA FUNCTION DE 'session_set_cookie_params()'..
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, VAMOS ATÉ OS DOCS DO PHP,
+
+PARA VER COMO CONFIGURAR ESSES PARAMS...
+
+
+
+
+https://www.php.net/manual/en/function.session-set-cookie-params.php
+
+
+
+
+
+
+
+
+
+
+ESTA PARTE É IMPORTANTE:
+
+
+
+''
+Thus, you need to call session_set_cookie_params() for every request and before session_start() is called.
+
+''
+
+
+
+
+
+
+-> OU SEJA,
+
+DEVE SER CHAMADA 
+ANTES DE 'session_start()',
+
+
+lá no nosso middleware de StartSessionsMiddleware...
+
+
+
+
+
+
+
+
+
+
+-> ESSA FUNCTION TEM 2 SIGNATURES,
+
+MAS USAREMOS A SEGUNDA SIGNATURE,
+
+PARA 
+CONSEGUIRMOS 
+
+PASSAR AS OPTIONS EM 1 FORMATO DE ARRAY...
+
+
+
+
+
+
+
+
+
+--> NÓS QUEREMOS SETTAR AS OPTIONS DE 
+
+'secure',
+'httponly' 
+
+
+e 'samesite'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VAMOS VOLTAR AO CÓDIGO, ABRIR O StartSessionsMiddleware,
+
+
+
+E AÍ ESCREVER ASSIM:
+
+
+
+
+
+
+
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            throw new SessionException('Session already started.');
+        }
+
+        if (headers_sent($filename, $line)) {  // these variables can be empty.
+            throw new SessionException('Headers already sent.');
+        }
+
+        // * This increases the security of the application, by making it harder for attackers to hijack the session.
+        session_set_cookie_params(['secure' => true, 'httponly' => true, 'samesite' => 'lax']);
+
+        session_start();
+
+        $response = $handler->handle($request);
+
+        session_write_close();
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+-> OK... AGORA, COM ISSO, O NOVO COOKIE, PARA O NOVO SESSIONID,
+
+TERÁ 
+
+
+'httpOnly'
+
+
+e 
+
+'secure' 
+
+habilitados,
+
+
+e 'samesite' settado como 'lax'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ANTES DE ACABARMOS,
+
+
+
+TEMOS QUE COLOCAR GUARDS INVERSAS PARA AS ROUTES DE 'login' e 'register',
+
+para quando o user estiver já logged in...
+
+
+
+
+
+
+
+
+PODEMOS CRIAR 1 MIDDLEWARE SIMILAR AO MIDDLEWARE DE AUTH,
+
+
+AuthMiddleware,
+
+
+mas de nome 'GuestMiddleware'...
+
+
+
+
+
+
+
+
+
+
+-> NÓS VAMOS SIMPLESMENTE RODAR A LÓGICA INVERSA,
+
+PARA CHECAR:
+
+''IF USER IS LOGGED IN, WE WANT TO REDIRECT THE USER TO THE DASHBOARD''...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class GuestMiddleware implements MiddlewareInterface
+{
+    public function __construct(private ResponseFactoryInterface $responseFactory) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        if (!empty($_SESSION['user'])) {
+            return $this->responseFactory->createResponse()->withHeader('Location', '/')->withStatus(302);
+        }
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+PRONTO...
+
+
+
+
+
+
+
+ISSO FEITO,
+
+
+ADICIONAMOS ESSE MIDDLEWARE NAS OUTRAS ROUTES (4 routes),
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Controllers\AuthController;
+use App\Controllers\HomeController;
+use App\Middleware\AuthMiddleware;
+use App\Middleware\GuestMiddleware;
+use Slim\App;
+
+return function (App $app) {
+    $app->get('/', [HomeController::class, 'index'])->add(AuthMiddleware::class);
+
+    $app->get('/login', [AuthController::class, 'loginView'])->add(GuestMiddleware::class);
+    $app->get('/register', [AuthController::class, 'registerView'])->add(GuestMiddleware::class);
+    $app->post('/login', [AuthController::class, 'login'])->add(GuestMiddleware::class);
+    $app->post('/register', [AuthController::class, 'register'])->add(GuestMiddleware::class);
+    $app->post('/logout', [AuthController::class, 'logOut'])->add(AuthMiddleware::class);
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... FUNCIONOU... AGORA SOMOS REDIRECIONADOS DE VOLTA AO DASHBOARD,
+
+SEMPRE QUE JÁ ESTAMOS LOGGADOS E TENTAMOS ACESSAR ESSAS ROUTES...
+
+
+
+
+
+
+
+
+
+
+-> MAIS TARDE, FAREMOS 1 REFACTORING,
+PARA MOVER A SESSION CONFIGURATION PARA DENTRO DA CONFIG FILE...
+
+
+
+
+
+
+--> AGORA QUE A AUTH ESTÁ FUNCIONANDO, PODEMOS FAZER REFACTORING...
+
+
+
+
+
+
+
+
+
+
+-> VEREMOS COMO PODEMOS ACESSAR
+    THE AUTH USER OBJECT,
+
+
+    TUDO PARA QUE CONSIGAMOS FAZER DISPLAY DO NAME DO USER E 
+
+
+    PARA QUE CONSIGAMOS PROGRAMAR A LÓGICA DE LOGOUT DO USER...
