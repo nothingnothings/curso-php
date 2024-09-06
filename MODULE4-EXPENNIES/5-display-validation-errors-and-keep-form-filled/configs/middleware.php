@@ -18,6 +18,9 @@ return function (App $app) {
     // Custom Validation Errors Middleware:
     $app->add(\App\Middleware\ValidationErrorsMiddleware::class);
 
+    // Custom Old Form Data Middleware:
+    $app->add(\App\Middleware\OldFormDataMiddleware::class);
+
     // Session Middleware:
     $app->add(\App\Middleware\StartSessionsMiddleware::class);
 

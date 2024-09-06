@@ -21,9 +21,13 @@ class ValidationExceptionMiddleware implements MiddlewareInterface
             $response = $this->responseFactory->createResponse();
 
             $referer = $request->getServerParams()['HTTP_REFERER'];  // * gets the 'Referer' header, which contains the URL of the page that the user was trying to access.
+            $oldData = $request->getParsedBody();
 
+            // Use this Info/list to remove the 'password' and 'confirmPassword' fields from the old data, to avoid flashing sensitive information on the session.
+            $sensitiveFields = ['password', 'confirmPassword'];
 
-            $_SESSION['errors'] = $e->getErrors();  // * stores the errors in the $_SESSION superglobal, so that they can be displayed in the template.
+            $_SESSION['errors'] = $e->errors();  // * stores the errors in the $_SESSION superglobal, so that they can be displayed in the template.
+            $_SESSION['old'] = array_diff_key($oldData, array_flip($sensitiveFields));  // * stores the old form data in the $_SESSION superglobal, so that it can be displayed in the template, on validation errors.
 
             return $response->withHeader('Location', $referer);  // This will redirect the user back to the 'register' page (the page that the user was trying to access, to be more precise)...
         }

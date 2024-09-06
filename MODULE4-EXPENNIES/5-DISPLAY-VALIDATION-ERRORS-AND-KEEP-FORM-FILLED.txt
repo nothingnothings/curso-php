@@ -2739,7 +2739,7 @@ ESSA DATA FUNCIONAR COM O TWIG TEMPLATE...
 
 --> ESSENCIALMENTE,
 
-TEMOS QUE FAZER A MESMA COISA QUE FIZEMOS COM O '
+TEMOS QUE FAZER A MESMA COISA QUE FIZEMOS COM O 'ValidationExceptionMiddleware'...
 
 
 
@@ -2748,3 +2748,711 @@ TEMOS QUE FAZER A MESMA COISA QUE FIZEMOS COM O '
 
 
 
+-> COMEÇAMOS ASSIM:
+
+
+
+
+
+
+
+
+
+class ValidationExceptionMiddleware implements MiddlewareInterface
+{
+    public function __construct(private ResponseFactory $responseFactory) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        try {
+            return $handler->handle($request);
+        } catch (ValidationException $e) {
+            $response = $this->responseFactory->createResponse();
+
+            $referer = $request->getServerParams()['HTTP_REFERER'];  // * gets the 'Referer' header, which contains the URL of the page that the user was trying to access.
+
+            $_SESSION['errors'] = $e->errors();  // * stores the errors in the $_SESSION superglobal, so that they can be displayed in the template.
+            $_SESSION['old'] = $request->getParsedBody();  // * stores the old form data in the $_SESSION superglobal, so that it can be displayed in the template.
+
+            return $response->withHeader('Location', $referer);  // This will redirect the user back to the 'register' page (the page that the user was trying to access, to be more precise)...
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+AGORA TEREMOS 2 KEYS:
+
+
+
+$_SESSION['errors'] = $e->errors();  // * stores the errors in the $_SESSION superglobal, so that they can be displayed in the template.
+$_SESSION['old'] = $request->getParsedBody();  // * stores the old form data in the $_SESSION superglobal, so that it can be displayed in the template.
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AGORA PRECISAMOS DE OUTRO MIDDLEWARE, 1 MIDDLEWARE 
+PARA HANDLAR ESSA OLD DATA,
+
+
+
+COLOCAR ELA NOS NOSSOS INPUT FIELDS...
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE DUPLICAMOS 'ValidationErrorsMiddleware',
+
+
+
+E AÍ 
+
+
+
+COLOCAMOS 1 NOME DE 'OldFormDataMiddleware'...
+
+
+
+
+
+
+
+
+
+AÍ ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+class OldFormDataMiddleware implements MiddlewareInterface {
+    public function __construct(private ResponseFactory $responseFactory, private readonly Twig $twig) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+
+        if (!empty($_SESSION['old'])) { // insert errors, if any, into the twig template global (errors taken from the $_SESSION superglobal).
+
+            $old = $_SESSION['old'];
+
+
+            $this->twig->getEnvironment()->addGlobal('old', $old);
+            unset($_SESSION['old']); /// We do this so that the errors are 'flashed' (in other words, they disappear after being shown only once).
+
+        }
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, REGISTRAMOS ESSE MIDDLEWARE, ASSIM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Config;
+use Slim\Views\Twig;
+use Slim\Views\TwigMiddleware;
+use Slim\App;
+
+return function (App $app) {
+    $container = $app->getContainer();
+    $config = $container->get(Config::class);
+
+    // Twig
+    $app->add(TwigMiddleware::create($app, $container->get(Twig::class)));
+
+    // Custom Validation Exception Middleware:
+    $app->add(\App\Middleware\ValidationExceptionMiddleware::class);
+
+    // Custom Validation Errors Middleware:
+    $app->add(\App\Middleware\ValidationErrorsMiddleware::class);
+
+    // Custom Old Form Data Middleware:
+    $app->add(\App\Middleware\OldFormDataMiddleware::class);
+
+    // Session Middleware:
+    $app->add(\App\Middleware\StartSessionsMiddleware::class);
+
+    // Logger
+    $app->addErrorMiddleware(
+        (bool) $config->get('display_error_details'),
+        (bool) $config->get('log_errors'),
+        (bool) $config->get('log_error_details')
+    );
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO,
+
+NO TEMPLATE DE register.twig,
+
+
+
+
+
+
+
+
+
+PODEMOS ACESSAR ESSES VALUES 
+
+com 
+
+
+'value="{{ old.name }}"
+
+
+
+e etc etc...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+{% extends 'auth/layout.twig' %}
+
+{% block title %}Register
+{% endblock %}
+
+{% block content %}
+	<section class="vh-100 bg-primary bg-gradient">
+		<div class="container py-5 h-100">
+			<div class="row d-flex justify-content-center align-items-center h-100">
+				<div class="col-12 col-md-8 col-lg-6 col-xl-5">
+					<div class="card bg-light text-white" style="border-radius: 1rem;">
+						<div class="card-body p-5 text-center">
+							<div class="mb-4">
+								<h2 class="fw-bold mb-5 text-uppercase text-primary d-flex justify-content-center align-items-center">
+									<img src="{{ asset('build/images/logo.png') }}" width="64" height="64" alt="Expennies Logo"/>
+									Register
+								</h2>
+								<form method="post" action="/register">
+									<div class="form-outline form-white mb-4">
+										<input type="text" 
+										name="name" 
+										class="form-control form-control-lg {{ errors.name ? 'is-invalid' : ''}}" 
+										placeholder="Name"
+										value="{{old.name}}"
+										/>
+										<div class="invalid-feedback">
+											{{ errors.name | first }}
+										</div>
+									</div>
+
+									<div class="form-outline form-white mb-4">
+										<input type="email" 
+										name="email" 
+										class="form-control form-control-lg {{ errors.email ? 'is-invalid' : ''}}" 
+										placeholder="Email"
+										value="{{old.email}}"
+										/>
+										<div class="invalid-feedback">
+											{{ errors.email | first }}
+										</div>
+									</div>
+
+									<div class="form-outline form-white mb-4">
+										<input type="password" 
+										name="password" 
+										class="form-control form-control-lg {{ errors.password ? 'is-invalid' : ''}}" 
+										placeholder="Password"
+										/>
+										<div class="invalid-feedback">
+											{{ errors.password | first }}
+										</div>
+									</div>
+
+									<div class="form-outline form-white mb-5">
+										<input 
+										type="password" 
+										name="confirmPassword" 
+										class="form-control form-control-lg {{ errors.confirmPassword ? 'is-invalid' : ''}}" 
+										placeholder="Confirm Password"/>
+										<div class="invalid-feedback">
+											{{ errors.confirmPassword | first }}
+										</div>
+									</div>
+
+									<button class="btn btn-primary bg-gradient text-white btn-lg px-5" type="submit">
+										Register
+									</button>
+								</form>
+							</div>
+							<div>
+								<p class="mb-0 text-dark">Have an account?
+									<a href="/login" class="text-primary fw-bold">Sign In</a>
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ENTRETANTO, APONTA O PROFESSOR,
+
+
+É CONSIDERADA UMA GOOD PRACTICE __ NÃO FLASHAR__ PASSWORD 
+
+
+VALUES EM SESSIONS...
+
+
+
+
+
+
+
+--> É POR ISSO QUE VAMOS TENTAR _ REMOVER__ OS VALUES DE 'password' 
+
+e 'confirmPassword'
+
+
+
+do array extraído de '$_POST',
+
+de alguma maneira...
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS COMO PODEMOS FAZER ISSO?
+
+
+
+
+
+--> NÃO QUEREMOS STORE QUALQUER TIPO DE SENSITIVE DATA 
+    DENTRO 
+
+    DA SESSION, BASICAMENTE...
+
+
+
+
+
+
+
+--> certo, mas como podemos fazer isso?
+
+
+
+
+
+
+
+
+
+-> HÁ DIVERSAS MANEIRAS PELAS QUAIS PODEMOS FAZER ISSO....
+
+
+
+
+
+
+
+
+
+
+
+-> QUEREMOS EXCLUIR ALGUNS FIELDS DE SEREM FLASHADOS À SESSION...
+
+
+
+
+
+
+
+
+PARA ISSO, VAMOS ATÉ ESTE TRECHO:
+
+
+
+class ValidationExceptionMiddleware implements MiddlewareInterface
+{
+    public function __construct(private ResponseFactory $responseFactory) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        try {
+            return $handler->handle($request);
+        } catch (ValidationException $e) {
+            $response = $this->responseFactory->createResponse();
+
+            $referer = $request->getServerParams()['HTTP_REFERER'];  // * gets the 'Referer' header, which contains the URL of the page that the user was trying to access.
+
+            $_SESSION['errors'] = $e->errors();  // * stores the errors in the $_SESSION superglobal, so that they can be displayed in the template.
+            $_SESSION['old'] = $request->getParsedBody();  // * stores the old form data in the $_SESSION superglobal, so that it can be displayed in the template.
+
+            return $response->withHeader('Location', $referer);  // This will redirect the user back to the 'register' page (the page that the user was trying to access, to be more precise)...
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR COLOCA A DATA em 1 variable, '$oldData',
+
+e aí ele chama o method de 'unset'
+
+PARA REMOVER ALGUMAS DAS KEYS DE ESSA VARIABLE,
+
+TIPO ASSIM:
+
+
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        try {
+            return $handler->handle($request);
+        } catch (ValidationException $e) {
+            $response = $this->responseFactory->createResponse();
+
+            $referer = $request->getServerParams()['HTTP_REFERER'];  // * gets the 'Referer' header, which contains the URL of the page that the user was trying to access.
+            $oldData = $request->getParsedBody();
+
+            // Remove the 'password' and 'confirmPassword' fields from the old data, because they are not needed in the template.
+            unset($oldData['password']);
+            unset($oldData['confirmPassword']);
+
+            $_SESSION['errors'] = $e->errors();  // * stores the errors in the $_SESSION superglobal, so that they can be displayed in the template.
+            $_SESSION['old'] = $oldData;  // * stores the old form data in the $_SESSION superglobal, so that it can be displayed in the template.
+
+            return $response->withHeader('Location', $referer);  // This will redirect the user back to the 'register' page (the page that the user was trying to access, to be more precise)...
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+poderíamos escrever assim,
+
+
+mas o professor quer usar outro approach...
+
+
+
+
+
+
+
+
+--> O PROFESSOR QUER USAR 
+    ARRAY FUNCTIONS, PARA FILTRAR 
+
+    AS KEYS QUE EXISTEM DENTRO DE ESSE ARRAY...
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        try {
+            return $handler->handle($request);
+        } catch (ValidationException $e) {
+            $response = $this->responseFactory->createResponse();
+
+            $referer = $request->getServerParams()['HTTP_REFERER'];  // * gets the 'Referer' header, which contains the URL of the page that the user was trying to access.
+            $oldData = $request->getParsedBody();
+
+            // Use this Info/list to remove the 'password' and 'confirmPassword' fields from the old data, because they are not needed in the template.
+            $sensitiveFields = ['password', 'confirmPassword'];
+
+            $_SESSION['errors'] = $e->errors();  // * stores the errors in the $_SESSION superglobal, so that they can be displayed in the template.
+            $_SESSION['old'] = array_diff_key($oldData, array_flip($sensitiveFields));  // * stores the old form data in the $_SESSION superglobal, so that it can be displayed in the template.
+
+            return $response->withHeader('Location', $referer);  // This will redirect the user back to the 'register' page (the page that the user was trying to access, to be more precise)...
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    USAMOS 'array_diff_key()'...
+
+
+
+
+
+
+-> O PRIMEIRO ARGUMENT SERÁ A DATA INTEIRA ($oldData)..
+
+
+
+
+
+
+
+-> 'array_flip()' -> o que isso faz é FLIPPAR 
+                        AS KEYS E VALUES...
+
+                        O value era 'password' antes... 
+                        depois dessa function, vai se tornar a key do array...
+                        (e não o value)
+
+
+
+
+
+
+-> já 'array_diff_key()'
+
+vai computar a DIFERENÇA, COM BASE NA KEY....
+
+
+
+
+
+
+-> e como 'oldData' possui 
+
+coisas como 
+
+
+
+password => 'seuValue' 
+
+confirmPassword => 'seuOutroValue',
+
+
+
+
+ESSAS 2 KEYS, 'password' e 'confirmPassword',
+
+
+SERÃO COMPARADAS COM O ARRAY DE '$sensitiveFields' FLIPPADO,
+
+
+
+O QUE VAI ACABAR REMOVENDO ESSAS 2 KEYS,
+
+
+PQ ESSAS 2 KEYS TAMBÉM EXISTEM NO SEGUNDO ARRAY, DE '$sensitiveFields'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É CLARO QUE HÁ LUGARES MELHORES PARA ARMAZENAR 
+
+ESSE ARRAY DE '$sensitiveFields',
+
+
+
+mas mudaremos isso mais tarde...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ok... com isso, apenas o name e email ficarão contidos na session...
+
+
+
+
+
+
+
+
+
+
+
+
+O CÓDIGO NÃO ESTÁ MT BONITO, MAS ESTÁ FUNCIONANDO..
+
+
+
+
+
+
+
+
+O QUE INTERESSA:
+
+
+
+
+
+1) USER REGISTRATION IS WORKING 
+
+
+
+2) VALIDATION IS WORKING 
+
+
+3) USER IS ABLE TO LOG IN AND LOG OUT...
+
+
+
+
+
+
+
+
+
+
+
+-> AGORA VAMOS QUERER REFATORAR 1 POUCO, NA PRÓXIMA AULA...
