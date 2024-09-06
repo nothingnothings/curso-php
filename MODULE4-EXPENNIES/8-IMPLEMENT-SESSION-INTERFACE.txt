@@ -1,0 +1,886 @@
+
+
+
+
+
+
+
+
+ACABAMOS A PARTE INICIAL DE AUTHENTICATION...
+
+
+
+
+
+
+
+
+
+
+E, AGORA, FOMOS CAPAZES 
+
+
+DE ''IMPLEMENT THE ABILITY TO HAVE ACCESS TO THE LOGGED-IN USER'S
+    ENTITY, THROUGHOUT THE REQUEST, IN THE LAST COUPLE VIDEOS''...
+
+
+
+
+
+
+
+
+
+
+--> AGORA FAREMOS 1 POUCO DE REFACTORING,
+PARA DEIXAR NOSSO CÓDIGO 1 POUCO MAIS BONITO...
+
+
+
+
+
+
+
+
+
+
+-> A PRIMEIRA COISA QUE TEMOS QUE REFACTOR É A MANEIRA 
+    PELA QUAL INTERAGIMOS COM SESSIONS...
+
+
+
+
+
+
+
+
+
+--> EM 'Auth.php',
+
+ESTAMOS INTERAGINDO COM AS SESSIONS TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use App\Contracts\AuthInterface;
+use App\Contracts\UserInterface;
+use App\Contracts\UserProviderServiceInterface;
+
+class Auth implements AuthInterface
+{
+    private ?UserInterface $user = null;
+
+    public function __construct(private readonly UserProviderServiceInterface $userProvider,) {}
+
+    public function user(): ?UserInterface
+    {
+
+        if ($this->user !== null) { 
+            return $this->user;
+        }
+
+        $userId = $_SESSION['user'] ?? null;
+
+        if ($userId === null) {
+            return null;
+        }
+
+        $user = $this->userProvider->getById($userId);
+
+        if (!$user) {
+            return null;
+        }
+        
+        $this->user = $user;
+
+        return $this->user;
+    }
+
+    public function attemptLogin(array $credentials): bool
+    {
+        $user = $this->userProvider->getByCredentials($credentials);
+
+
+        if (!$user || !$this->checkCredentials($user, $credentials)) {
+           return false;
+        }
+
+        // 2.3 Regenerate the user's sessionid, to improve security and defend against session hijacking attacks. // * DONE
+        session_regenerate_id(true);
+
+        $_SESSION['user'] = $user->getId();
+
+
+        $this->user = $user;
+
+        return true;
+    }
+
+
+
+    public function checkCredentials(UserInterface $user, array $credentials): bool
+    {
+
+            if (password_verify($credentials['password'], $user->getPassword())) {
+                return true;
+            }
+
+            return false;
+    }
+
+    public function logout(): void
+    {
+        unset($_SESSION['user']);
+        $this->user = null;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+BASICAMENTE,
+
+
+
+
+
+ESTAMOS ACESSANDO O SUPERGLOBAL DE 
+
+
+"$_SESSION' 
+
+
+EM MÚLTIPLOS LOCAIS,
+
+
+EM MÚLTIPLAS FILES...
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR QUER BASICAMENTE FAZER 'ABSTRACT AWAY' 
+
+DE ESSE ACESSO AÍ,
+
+
+PARA DENTRO DE UMA 'SESSION CLASS' PRÓPRIA...
+
+
+
+
+
+
+
+
+
+
+
+-> NÓS TAMBÉM TEMOS ESSE MIDDLEWARE DE 
+
+'StartSessionsMiddleware':
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Exception\SessionException;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Slim\Psr7\Factory\ResponseFactory;
+
+class StartSessionsMiddleware implements MiddlewareInterface
+{
+    public function __construct(private ResponseFactory $responseFactory) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            throw new SessionException('Session already started.');
+        }
+
+        if (headers_sent($filename, $line)) {  // these variables can be empty.
+            throw new SessionException('Headers already sent.');
+        }
+
+        // * This increases the security of the application, by making it harder for attackers to hijack the session.
+        session_set_cookie_params(['secure' => true, 'httponly' => true, 'samesite' => 'lax']);
+
+        session_start();
+
+        $response = $handler->handle($request);
+
+        session_write_close();
+
+        return $response;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESSE MIDDLEWARE 
+
+
+SETTA Os SESSION COOKIE PARAMS,
+
+COM 
+
+
+'''
+
+        session_set_cookie_params(['secure' => true, 'httponly' => true, 'samesite' => 'lax']);
+
+
+''',
+
+
+
+e que 
+
+logo depois faz START 
+
+
+DA SESSION...
+
+
+
+
+
+-> ESSE MESMO METHOD, DE ESSE MIDDLEWARE,
+
+TEM 1 POUCO DE VALIDATION,
+
+
+
+
+COM ESTAS LINHAS:
+
+
+
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            throw new SessionException('Session already started.');
+        }
+
+        if (headers_sent($filename, $line)) {  // these variables can be empty.
+            throw new SessionException('Headers already sent.');
+        }
+
+
+
+
+
+
+
+
+
+O PROFESSOR ACHA QUE SERIA BOM EXTRAIR 
+
+
+ISSO, ESSA VALIDATION,
+
+
+PARA DENTRO DE ESSA NOVA CLASS DE 'SESSION',
+
+QUE QUEREMOS CRIAR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VAMOS BASICAMENTE PEGAR TODO ESTE BLOCO AQUI:
+
+
+
+
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            throw new SessionException('Session already started.');
+        }
+
+        if (headers_sent($filename, $line)) {  // these variables can be empty.
+            throw new SessionException('Headers already sent.');
+        }
+
+        // * This increases the security of the application, by making it harder for attackers to hijack the session.
+        session_set_cookie_params(['secure' => true, 'httponly' => true, 'samesite' => 'lax']);
+
+        session_start();
+
+
+
+
+
+
+
+
+
+E VAMOS OUTSOURCEAR, DE JEITO QUE FIQUE TIPO:
+
+
+
+
+
+
+
+'$this->session->start();'
+
+
+
+
+
+
+
+E ISSO AÍ, SÓ ESSE CALL, JÁ HANDLARÁ TODA A LÓGICA 
+
+PARA STARTAR AS SESSIONS PARA NÓS...
+
+
+
+
+
+
+
+
+
+-> TAMBÉM 
+
+PODEMOS OUTSOURCEAR AQUELE CALL DE 
+
+
+
+
+'session_write_close()',
+
+
+
+
+
+COLOCAR EM 1 METHOD COMO 
+
+
+
+'$this->session->close()'...
+
+
+
+
+o professor, no caso, vai chamar esse method de 'save()'...
+
+
+
+
+
+
+
+
+O CÓDIGO COMPLETO, DE ESSE METHOD 'process', do middleware,
+
+fica tipo assim:
+
+
+
+
+
+
+
+        $this->session->start();
+
+        $response = $handler->handle($request);
+
+        $this->session->save();
+
+        return $response;
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, VAMOS CRIAR ESSA SESSION CLASS,
+
+E VAMOS INJETAR NO CONSTRUCTOR,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class StartSessionsMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly SessionInterface $session) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+
+        $this->session->start();
+
+        $response = $handler->handle($request);
+
+        $this->session->save();
+
+        return $response;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA PRECISAMOS CRIAR ESSA INTERFACE E ENTÃO CRIAR A IMPLEMENTATION 
+DE ESSA INTERFACE..
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use App\Contracts\SessionInterface;
+
+class Session implements SessionInterface
+{
+    public function start(): void
+    {
+        session_set_cookie_params(['secure' => true, 'httponly' => true, 'samesite' => 'lax']);
+
+        session_start();
+    }
+
+    public function save(): void
+    {
+        session_write_close();
+    }
+}
+
+
+
+
+CERTO... PARECE ESTAR CORRETO...
+
+
+
+
+
+
+
+
+
+
+
+FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Contracts\SessionInterface;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class StartSessionsMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly SessionInterface $session) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+
+        $this->session->start();
+
+        $response = $handler->handle($request);
+
+        $this->session->save();
+
+        return $response;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> DEIXAMOS ESSA 'SessionInterface'
+
+
+como parameter do constructor pq 
+
+PODEMOS 
+
+QUERER 
+
+
+MUDAR A IMPLEMENTATION, MAIS TARDE...
+
+
+
+
+
+
+
+
+-> INTERFACES SEMPRE DEIXAM AS COISAS MAIS FÁCEIS,
+
+    PQ FACILITAM O SWAP DE IMPLEMENTATIONS...
+
+
+
+
+
+
+--> PQ PODEMOS AÍ SIMPLESMENTE TROCAR A IMPLEMENTATION, DURANTE O RUNTIME,
+    POR MEIO DO CREATE DE OUTRA CLASS,
+
+
+
+    E AÍ SIMPLESMENTE USAR ESSA OUTRA CLASS 
+
+    (ex: outra class de session management, em vez do session management 
+    default do php...)
+
+
+
+
+
+
+
+
+
+
+-> MAS PRECISAMOS BINDAR ISSO NO CONTAINER,
+
+    ESSA CLASS DE 'Session' ao 'SessionInterface',
+
+    tudo para que o container saiba 'HOW TO RESOLVE THIS DEPENDENCY'...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+    SessionInterface::class => fn(ContainerInterface $container) => $container->get(Session::class), 
+
+
+
+
+
+EX:
+
+
+
+
+    SessionInterface::class => fn(ContainerInterface $container) => new Session()
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+use function DI\create;
+
+return [
+    // A little bit hacky...
+    App::class => function (DIContainer $container) {
+        AppFactory::setContainer($container);
+
+        // Import router and middlewares
+        $router = require CONFIG_PATH . '/routes/web.php';
+        $addMiddlewares = require CONFIG_PATH . '/middleware.php';
+
+        // Create app instance
+        $app = AppFactory::create();
+
+        // Register routes and middlewares to app
+        $router($app);
+        $addMiddlewares($app);
+
+        // Return app itself
+        return $app;
+    },
+    AuthInterface::class => fn(ContainerInterface $container) => $container->get(Auth::class),
+    UserProviderServiceInterface::class => fn(ContainerInterface $container) => $container->get(UserProviderService::class),
+    SessionInterface::class => fn() => new Session(),
+    Config::class => create(Config::class)->constructor(require CONFIG_PATH . '/app.php'),
+
+
+
+
+
+
+
+
+
+
+
+
+
+TAMBÉM PODEMOS FAZER EXTRACT DA PARTE DE 
+
+
+
+''
+
+
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            throw new SessionException('Session already started.');
+        }
+
+        if (headers_sent($filename, $line)) {  // these variables can be empty.
+            throw new SessionException('Headers already sent.');
+        }
+
+
+
+
+''
+
+
+
+E COLOCAR EM 1 METHOD PRÓPRIO...
+
+
+
+
+
+
+
+
+METHOD QUE RETORNE TRUE OU FALSE...
+
+
+
+
+
+
+
+
+
+
+
+
+-- para ter algo como 
+
+
+
+'$this->isActive()'...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Contracts\SessionInterface;
+use App\Exception\SessionException;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class StartSessionsMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly SessionInterface $session) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {   
+
+        if ($this->isActive()) {
+            throw new SessionException('Session already started');
+        }
+
+        $this->session->start();
+
+        $response = $handler->handle($request);
+
+        $this->session->save();
+
+        return $response;
+    }
+
+    public function isActive(): bool
+    {
+        return session_status() === PHP_SESSION_ACTIVE;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR TAMBÉM QUER 
+
+AJUSTAR A MESSAGE DA EXCEPTION DE BAIXO:
+
+
+
+
+
+
+
