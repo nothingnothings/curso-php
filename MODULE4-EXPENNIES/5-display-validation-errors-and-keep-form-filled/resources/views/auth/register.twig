@@ -24,13 +24,22 @@
 										{{ errors.name | first }}
 									</div>
 									<div class="form-outline form-white mb-4">
-										<input type="email" name="email" class="form-control form-control-lg" placeholder="Email"/>
+										<input type="email" name="email" class="form-control form-control-lg {{ errors.email ? 'is-invalid' : ''}}" placeholder="Email"/>
+									</div>
+									<div class="invalid-feedback">
+										{{ errors.email | first }}
 									</div>
 									<div class="form-outline form-white mb-4">
-										<input type="password" name="password" class="form-control form-control-lg" placeholder="Password"/>
+										<input type="password" name="password" class="form-control form-control-lg {{ errors.password ? 'is-invalid' : ''}}" placeholder="Password"/>
+									</div>
+									<div class="invalid-feedback">
+										{{ errors.password | first }}
 									</div>
 									<div class="form-outline form-white mb-5">
-										<input type="password" name="confirmPassword" class="form-control form-control-lg" placeholder="Confirm Password"/>
+										<input type="password" name="confirmPassword" class="form-control form-control-lg {{ errors.confirmPassword ? 'is-invalid' : ''}}" placeholder="Confirm Password"/>
+									</div>
+									<div class="invalid-feedback">
+										{{ errors.confirmPassword | first }}
 									</div>
 									<button class="btn btn-primary bg-gradient text-white btn-lg px-5" type="submit">
 										Register

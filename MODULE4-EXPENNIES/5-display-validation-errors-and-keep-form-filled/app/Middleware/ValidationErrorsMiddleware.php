@@ -23,9 +23,12 @@ class ValidationErrorsMiddleware implements MiddlewareInterface
         }
            
         if(!empty($_SESSION['errors'])) { // insert errors, if any, into the twig template global (errors taken from the $_SESSION superglobal).
-            var_dump($_SESSION['errors']);
             
-            $this->twig->getEnvironment()->addGlobal('errors', $_SESSION['errors']);
+            $errors = $_SESSION['errors'];
+            
+            $this->twig->getEnvironment()->addGlobal('errors', $errors);
+
+            unset($errors); /// We do this so that the errors are 'flashed' (in other words, they disappear after being shown only once).
         }
 
         return $handler->handle($request);

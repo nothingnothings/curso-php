@@ -2161,3 +2161,590 @@ CERTO...
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+-> TEMOS QUE TENTAR FAZER ISSO FUNCIONAR 
+
+POR CONTA PRÓPRIA...
+
+
+
+
+
+
+--> FAZER OS OUTROS FIELDS FUNCIONAREM...
+
+
+
+
+
+
+
+
+--> BASTA ESCREVER ALGO ASSIM:
+
+
+
+
+
+
+
+
+
+{% extends 'auth/layout.twig' %}
+
+{% block title %}Register
+{% endblock %}
+
+{% block content %}
+	{{ errors ? errors | json_encode : '' }}
+	<section class="vh-100 bg-primary bg-gradient">
+		<div class="container py-5 h-100">
+			<div class="row d-flex justify-content-center align-items-center h-100">
+				<div class="col-12 col-md-8 col-lg-6 col-xl-5">
+					<div class="card bg-light text-white" style="border-radius: 1rem;">
+						<div class="card-body p-5 text-center">
+							<div class="mb-4">
+								<h2 class="fw-bold mb-5 text-uppercase text-primary d-flex justify-content-center align-items-center">
+									<img src="{{ asset('build/images/logo.png') }}" width="64" height="64" alt="Expennies Logo"/>
+									Register
+								</h2>
+								<form method="post" action="/register">
+									<div class="form-outline form-white mb-4">
+										<input type="text" name="name" class="form-control form-control-lg {{ errors.name ? 'is-invalid' : ''}}" placeholder="Name"/>
+                                        <div class="invalid-feedback">
+										        {{ errors.name | first }}
+									     </div>
+									</div>
+									<div class="form-outline form-white mb-4">
+										<input type="email" name="email" class="form-control form-control-lg {{ errors.email ? 'is-invalid' : ''}}" placeholder="Email"/>
+                                        <div class="invalid-feedback">
+										    {{ errors.email | first }}
+									    </div>
+                                    </div>
+									<div class="form-outline form-white mb-4">
+										<input type="password" name="password" class="form-control form-control-lg {{ errors.password ? 'is-invalid' : ''}}" placeholder="Password"/>
+                                        <div class="invalid-feedback">
+										    {{ errors.password | first }}
+									    </div>
+									</div>
+									<div class="form-outline form-white mb-5">
+										<input type="password" name="confirmPassword" class="form-control form-control-lg {{ errors.confirmPassword ? 'is-invalid' : ''}}" placeholder="Confirm Password"/>
+                                        <div class="invalid-feedback">
+										    {{ errors.confirmPassword | first }}
+									    </div>
+									</div>
+									<button class="btn btn-primary bg-gradient text-white btn-lg px-5" type="submit">
+										Register
+									</button>
+								</form>
+							</div>
+							<div>
+								<p class="mb-0 text-dark">Have an account?
+									<a href="/login" class="text-primary fw-bold">Sign In</a>
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+com isso, refreshamos a page, e ficamos com 1 nice ui em cada 
+
+1 dos fields...
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO...
+
+
+
+
+
+-> MAS PROVAVELMENTE QUEREMOS FAZER OS ERRORS 
+
+
+'GO AWAY'
+
+NO PRÓXIMO REFRESH DE PÁGINA..
+
+
+
+
+
+
+
+
+
+ISSO PQ, ATUALMENTE, ELES NÃO ESTÃO INDO EMBORA 
+
+DEPOIS DO PRIMEIRO REFRESH... ISSO PQ ESTÃO FICANDO SALVOS 
+
+
+NA '$_SESSION' DE NOSSO APP...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR QUER QUE ESSES ERRORS SEJAM DISPLAYADOS 
+APENAS UMA ÚNICA VEZ,
+
+
+E DEPOIS SUMAM...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É PARECIDO COM O EXPRESS-FLASH, PORTANTO...
+
+
+
+
+
+
+-> ''WHAT WE CAN DO, IN THIS CASE,
+
+IS ___ UNSET__ THE ERRORS, WITHIN THE SESSION,
+ 
+ AFTER WE RETRIEVE THE SESSION, IN THE 'ValidationErrorsMiddleware'...
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+           
+        if(!empty($_SESSION['errors'])) { // insert errors, if any, into the twig template global (errors taken from the $_SESSION superglobal).
+            
+            $errors = $_SESSION['errors'];
+            
+            $this->twig->getEnvironment()->addGlobal('errors', $errors);
+        }
+
+    
+
+
+TEMOS ESSE CÓDIGO, SIM...
+
+
+
+
+
+
+AÍ, DEPOIS DE ADICIONAR ISSO AO CONTEXTO GLOBAL DE NOSSAS VIEWS,
+
+PODEMOS SIMPLESMENTE FAZER UNSET DE ESSA VARIABLE CONTENDO OS VALUES DE '$_SESSION['errors']
+',
+
+COM 'unset()':
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Slim\Psr7\Factory\ResponseFactory;
+use Slim\Views\Twig;
+
+class ValidationErrorsMiddleware implements MiddlewareInterface
+{
+    public function __construct(private ResponseFactory $responseFactory, private readonly Twig $twig) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler):Response
+    {
+
+        if (isset($_SESSION['errors'])) {
+         var_dump($_SESSION['errors']);
+        } else {
+            var_dump('EMPTY');
+        }
+           
+        if(!empty($_SESSION['errors'])) { // insert errors, if any, into the twig template global (errors taken from the $_SESSION superglobal).
+            
+            $errors = $_SESSION['errors'];
+            
+            $this->twig->getEnvironment()->addGlobal('errors', $errors);
+
+            unset($errors); /// We do this so that the errors are 'flashed' (in other words, they disappear after being shown only once).
+        }
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... E ISSO FUNCIONOU...
+
+
+
+
+OS ERRORS ESTARÃO GONE,
+TODA VEZ QUE REFRESHARMOS A PAGE,
+
+DEPOIS DE FICARMOS COM AS MENSAGENS DE ERROR/VALIDATION 
+
+EM CADA INPUT FIELD...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO... AGORA O PROFESSOR PREENCHE 
+
+OS FIELDS NORMALMENTE....
+
+
+
+
+
+
+-> E A VALIDATION FUNCIONA.....
+
+
+
+
+
+
+->  OK, MAS AÍ O PROFESSOR 
+
+
+NOS APONTA 1 PROBLEMA:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''WHENEVER I GET REDIRECTED FOR FALING 
+
+THE AUTH PROCESS,
+
+
+I GET TO SEE WHICH FIELDS WERE WRONG, YES...''
+
+
+
+
+
+
+
+--> MAS O PROBLEMA, AQUI,
+
+    É QUE _ AS COISAS QUE TÍNHAMOS DIGITADO 
+
+    NOS INPUT FIELDS __ VÃO SUMIR...
+
+
+
+
+
+    E ISSO É RUIM, PQ O USER TERÁ DE INPUTTAR 
+
+    COISAS NO INPUT VALUE DE NOVO....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+IMAGINE QUE VC TEM 20 INPUT FIELDS... VC TERIA DE PREENCHER 
+TUDO DE NOVO...
+
+
+
+
+
+
+
+
+--> OK... É POR ISSO QUE QUEREMOS MANTER 
+
+
+OS INPUT FIELDS PREENCHIDOS, MESMO QUANDO O USER É REDIRECIONADO 
+BACK TO THIS REGISTER PAGE, DEVIDO A VALIDATION ERRORS,
+
+
+
+PARA TER 1 MELHOR USER EXPERIENCE...
+
+
+
+
+
+
+
+
+
+
+
+
+--> MSA COMO OPDEMOS FAZER ISSO?
+
+
+
+
+
+
+
+-> DENTRO DO MIDDLEWARE DE 'ValidationExceptionMiddleware',
+
+
+    NO TRECHO EM QUE FAZEMOS ADD DOS ERRORS À SESSION,
+
+
+    QUE É AQUI:
+
+
+
+
+
+
+
+
+
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        try {
+            return $handler->handle($request);
+        } catch (ValidationException $e) {
+            $response = $this->responseFactory->createResponse();
+
+            $referer = $request->getServerParams()['HTTP_REFERER'];  // * gets the 'Referer' header, which contains the URL of the page that the user was trying to access.
+
+
+            $_SESSION['errors'] = $e->getErrors();  // * stores the errors in the $_SESSION superglobal, so that they can be displayed in the template.
+
+            return $response->withHeader('Location', $referer);  // This will redirect the user back to the 'register' page (the page that the user was trying to access, to be more precise)...
+        }
+    }
+
+
+
+
+
+
+    EM '$_SESSION['errors'],
+
+
+PODEMOS FAZER O SET, NESSE SUPER GLOBAL DE '$_SESSION',
+
+
+TAMBÉM 
+
+
+
+DA POST DATA DO REQUEST...
+
+
+
+
+
+
+
+
+--> DESSA FORMA,
+ 
+    A POST DATA FICARÁ DISPONÍVEL 
+
+    DENTRO DO PRÓXIMO REQUEST,
+
+
+
+    MESMO APÓS O USER SER REDIRECIONADO...
+    
+
+
+
+
+
+
+
+
+
+
+
+
+    -> para isso, podemos escrever assim:
+
+
+
+
+
+
+
+
+'$_SESSION['old'] => $request->getParsedBody();
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, PRECISAMOS FAZER 
+
+ESSA DATA FUNCIONAR COM O TWIG TEMPLATE...
+
+
+
+
+
+
+
+
+
+
+--> ESSENCIALMENTE,
+
+TEMOS QUE FAZER A MESMA COISA QUE FIZEMOS COM O '
+
+
+
+
+
+
+
+

@@ -22,6 +22,9 @@ class ValidationExceptionMiddleware implements MiddlewareInterface
 
             $referer = $request->getServerParams()['HTTP_REFERER'];  // * gets the 'Referer' header, which contains the URL of the page that the user was trying to access.
 
+
+            $_SESSION['errors'] = $e->getErrors();  // * stores the errors in the $_SESSION superglobal, so that they can be displayed in the template.
+
             return $response->withHeader('Location', $referer);  // This will redirect the user back to the 'register' page (the page that the user was trying to access, to be more precise)...
         }
     }
