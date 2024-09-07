@@ -24,11 +24,11 @@ return [
             'user' => $_ENV['DB_USER'],
             'password' => $_ENV['DB_PASS'],
         ],
-        'session' => [
-            'name' => $appSnakeName . '_session',  // $appName is extracted from the 'APP_NAME' environment variable.
-            'secure' => true,
-            'httponly' => true,
-            'samesite' => 'lax'
-        ]
     ],
+    'session' => [
+        'name' => $appSnakeName . '_session',  // $appName is extracted from the 'APP_NAME' environment variable.
+        'secure' => true,
+        'httponly' => true,
+        'samesite' => 'lax'
+    ]
 ];

@@ -3,10 +3,12 @@
 use App\Contracts\AuthInterface;
 use App\Contracts\SessionInterface;
 use App\Contracts\UserProviderServiceInterface;
+use App\DTOs\SessionConfig;
 use App\Enum\AppEnvironment;
 use App\Services\UserProviderService;
 use App\Auth;
 use App\Config;
+use App\Enum\SameSite;
 use App\Session;
 use DI\Container as DIContainer;
 use Doctrine\ORM\EntityManager;
@@ -48,7 +50,14 @@ return [
     },
     AuthInterface::class => fn(ContainerInterface $container) => $container->get(Auth::class),
     UserProviderServiceInterface::class => fn(ContainerInterface $container) => $container->get(UserProviderService::class),
-    SessionInterface::class => fn(Config $config) => new Session($config->get('session')),
+    SessionInterface::class => fn(Config $config) => new Session(
+        new SessionConfig(
+            $config->get('session.name', ''),
+            $config->get('session.secure', true),
+            $config->get('session.httponly', true),
+            SameSite::from($config->get('session.samesite', 'lax'))
+        )
+    ),
     Config::class => create(Config::class)->constructor(require CONFIG_PATH . '/app.php'),
     EntityManager::class => fn(Config $config) => EntityManager::create(
         $config->get('doctrine.connection'),

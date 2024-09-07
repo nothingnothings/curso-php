@@ -3,6 +3,7 @@
 namespace App;
 
 use App\Contracts\AuthInterface;
+use App\Contracts\SessionInterface;
 use App\Contracts\UserInterface;
 use App\Contracts\UserProviderServiceInterface;
 
@@ -10,7 +11,7 @@ class Auth implements AuthInterface
 {
     private ?UserInterface $user = null;
 
-    public function __construct(private readonly UserProviderServiceInterface $userProvider,) {}
+    public function __construct(private readonly UserProviderServiceInterface $userProvider, private readonly SessionInterface $session) {}
 
     public function user(): ?UserInterface
     {
@@ -19,7 +20,7 @@ class Auth implements AuthInterface
             return $this->user;
         }
 
-        $userId = $_SESSION['user'] ?? null;
+       $userId =  $this->session->get('user');
 
         if ($userId === null) {
             return null;
@@ -45,18 +46,15 @@ class Auth implements AuthInterface
            return false;
         }
 
-        // 2.3 Regenerate the user's sessionid, to improve security and defend against session hijacking attacks. // * DONE
-        session_regenerate_id(true);
 
-        $_SESSION['user'] = $user->getId();
+        $this->session->regenerate();
+        $this->session->put('user', $user->getId());
 
 
         $this->user = $user;
 
         return true;
     }
-
-
 
     public function checkCredentials(UserInterface $user, array $credentials): bool
     {
@@ -70,7 +68,9 @@ class Auth implements AuthInterface
 
     public function logout(): void
     {
-        unset($_SESSION['user']);
+        $this->session->forget('user');
+        $this->session->regenerate();
+
         $this->user = null;
     }
 }

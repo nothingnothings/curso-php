@@ -1252,3 +1252,1988 @@ PELO MENOS AGORA NOSSA CLASS DE 'SESSION' NÃO TEM ESSES VALUES HARDCODADOS...
 
 
 
+
+
+
+
+O PROFESSOR TAMBÉM APONTA QUE ESTE TRECHO AQUI:
+
+
+
+        session_set_cookie_params(
+            [
+            'secure' => $this->options['secure'] ?? true, 
+            'httponly' => $this->options['httponly'] ?? true, 
+            'samesite' => $this->options['samesite'] ?? 'lax'
+            ]
+        );
+
+
+
+
+
+
+
+
+
+
+É UM BOM CANDIDATO PARA UM DTO...
+
+
+
+
+
+
+
+
+
+
+
+
+-> POSSO REFATORAR ISSO MESMO, TIPO ASSIM:
+
+
+
+
+
+
+<?php 
+
+declare(strict_types=1);
+
+namespace App\DTOs;
+
+class CookieParams
+{
+    public function __construct(
+        public readonly bool $secure,
+        public readonly bool $httponly,
+        public readonly string $samesite
+    ) {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, PARA UTILIZAR ISSO, POSSO ESCREVER ASSIM:
+
+
+
+
+
+<?php 
+
+declare(strict_types=1);
+
+namespace App\DTOs;
+
+class CookieParams
+{
+    public function __construct(
+        public readonly bool $secure,
+        public readonly bool $httponly,
+        public readonly string $samesite
+    ) {}
+
+
+   // Convert the CookieParams object to an associative array
+   public function toArray(): array
+   {
+       // Create an array to hold the property names and their values
+       $array = [];
+       
+       // Get the class reflection
+       $reflectionClass = new \ReflectionClass($this);
+
+       // Get all public properties
+       $properties = $reflectionClass->getProperties(\ReflectionProperty::IS_PUBLIC);
+
+       // Iterate over properties to get their names and values
+       foreach ($properties as $property) {
+           $propertyName = $property->getName();
+           // Use reflection to access the property's value
+           $array[$propertyName] = $this->$propertyName;
+       }
+
+       return $array;
+   }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+        // each key of the cookieParams will be used as a key on the session_set_cookie_params array:
+        session_set_cookie_params(
+            (new CookieParams(
+                $this->options['secure'] ?? true,
+                $this->options['httponly'] ?? true,
+                $this->options['samesite'] ?? 'lax'
+            ))->toArray()
+        );
+
+
+
+
+
+
+
+
+
+
+
+
+    CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É claro que o código do professor ficou diferente...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php 
+
+declare(strict_types=1);
+
+namespace App\DTOs;
+
+use App\Enum\SameSite;
+
+class SessionConfig
+{
+    public function __construct(
+        public readonly string $name,
+        public readonly bool $secure,
+        public readonly bool $httpOnly,
+        public readonly SameSite $sameSite
+    ) {}
+
+
+
+}
+
+
+
+
+
+
+
+parece que minha versão funcionou, mas vou seguir a versão do professor..
+
+
+
+
+
+
+
+ele escreveu tipo assim:
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App;
+
+use App\Contracts\SessionInterface;
+use App\DTOs\CookieParams;
+use App\DTOs\SessionConfig;
+use App\Exception\SessionException;
+
+class Session implements SessionInterface
+{
+
+    public function __construct(private readonly SessionConfig $options) {}
+
+    public function start(): void
+    {
+        if ($this->isActive()) {
+            throw new SessionException('Session has already been started');
+        }
+
+        if (headers_sent($filename, $line)) {
+            throw new SessionException('Headers already sent by ' . $filename . ' on line ' . $line);
+        }
+
+        // each key of the cookieParams will be used as a key on the session_set_cookie_params array:
+        session_set_cookie_params(
+            [
+            'secure' => $this->options->secure,
+            'httponly' => $this->options->httpOnly,
+            'samesite' => $this->options->sameSite->value
+            ]
+        );
+
+        session_start();
+    }
+
+    public function save(): void
+    {
+        session_write_close();
+    }
+
+    public function isActive(): bool
+    {
+        return session_status() === PHP_SESSION_ACTIVE;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+
+
+
+(container_bindings.php):
+
+
+
+
+
+
+
+
+    SessionInterface::class => fn(Config $config) => new Session(
+        new SessionConfig(
+            $config->get('session.name', ''),
+            $config->get('session.secure', true),
+            $config->get('session.httponly', true),
+            SameSite::from($config->get('session.samesite', 'lax'))
+        )
+    ),
+
+
+
+
+
+
+
+
+
+
+
+
+SE VC FEZ DE FORMA DIFERENTE, NÃO FIQUE PREOCUPADO,
+
+
+N PRECISA SER EXATAMENTE DA MESMA MANEIRA QUE O PROFESSOR FEZ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ANTES DE TESTARMOS TUDO ISSO, O PROFESSOR QUER FAZER 1 AJUSTE:
+
+
+
+
+
+
+
+    public function start(): void
+    {
+        if ($this->isActive()) {
+            throw new SessionException('Session has already been started');
+        }
+
+        if (headers_sent($filename, $line)) {
+            throw new SessionException('Headers already sent by ' . $filename . ' on line ' . $line);
+        }
+
+        // each key of the cookieParams will be used as a key on the session_set_cookie_params array:
+        session_set_cookie_params(
+            [
+            'secure' => $this->options->secure,
+            'httponly' => $this->options->httpOnly,
+            'samesite' => $this->options->sameSite->value
+            ]
+        );
+
+        session_start();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> 'session_start()'
+
+
+DEVE RETORNAR OU TRUE OU FALSE...
+
+
+
+
+
+
+
+
+
+
+-> SE, POR ALGUMA RAZÃO,
+    ESSA FUNCTION FALHA,
+
+    ELA RETORNA FALSE...
+
+
+
+
+
+
+
+
+
+
+-> QUEREMOS TER HANDLING PARA ESSES CASES DE FALSE...
+
+
+
+
+
+
+
+-> por isso podemos escrever tipo assim:
+
+
+
+
+
+
+if (!session_start()) {
+    throw new SessionException('Unable to start the session.');
+}
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+    public function start(): void
+    {
+        if ($this->isActive()) {
+            throw new SessionException('Session has already been started');
+        }
+
+        if (headers_sent($filename, $line)) {
+            throw new SessionException('Headers already sent by ' . $filename . ' on line ' . $line);
+        }
+
+        // each key of the cookieParams will be used as a key on the session_set_cookie_params array:
+        session_set_cookie_params(
+            [
+            'secure' => $this->options->secure,
+            'httponly' => $this->options->httpOnly,
+            'samesite' => $this->options->sameSite->value
+            ]
+        );
+
+        if (!session_start()) {
+            throw new SessionException('Unable to start the session.');
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+CERTO....
+
+
+
+
+
+
+
+
+
+
+
+E TAMBÉM PRECISAMOS SETTAR O 'Session name',
+
+
+
+QUE 
+
+
+
+OBTEMOS DAS OPTIONS..
+
+
+
+
+
+
+
+
+-> PODEMOS FAZER ISSO ANTES DE STARTAR A SESSION,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+if (!empty($this->options->name)) {
+    session_name($this->options->name);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App;
+
+use App\Contracts\SessionInterface;
+use App\DTOs\CookieParams;
+use App\DTOs\SessionConfig;
+use App\Exception\SessionException;
+
+class Session implements SessionInterface
+{
+
+    public function __construct(private readonly SessionConfig $options) {}
+
+    public function start(): void
+    {
+        if ($this->isActive()) {
+            throw new SessionException('Session has already been started');
+        }
+
+        if (headers_sent($filename, $line)) {
+            throw new SessionException('Headers already sent by ' . $filename . ' on line ' . $line);
+        }
+
+        // each key of the cookieParams will be used as a key on the session_set_cookie_params array:
+        session_set_cookie_params(
+            [
+            'secure' => $this->options->secure,
+            'httponly' => $this->options->httpOnly,
+            'samesite' => $this->options->sameSite->value
+            ]
+        );
+
+        if (!empty($this->options->name)) {
+            session_name($this->options->name);
+        }
+
+        if (!session_start()) {
+            throw new SessionException('Unable to start the session.');
+        }
+    }
+
+    public function save(): void
+    {
+        session_write_close();
+    }
+
+    public function isActive(): bool
+    {
+        return session_status() === PHP_SESSION_ACTIVE;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+PARA TESTAR SE ISSO FUNCIONA,
+
+
+
+
+
+
+abrimos a aba de application nas devtools...
+
+
+
+
+
+
+
+temos aquela key de 'PHPSESSID'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR DELETA ISSO,
+
+
+E AÍ RECARREGA A PAGE...
+
+
+
+
+
+
+
+
+
+-> COM ISSO, FICAMOS COM UMA KEY DE 
+
+
+'expennies_session',
+
+
+com 1 outro value gerado aleatoriamente...
+
+
+
+
+
+
+
+
+
+
+
+
+-> AGORA, QUANDO LOGGAMOS, O expennies_session 
+
+é REGENERATED, PARA PROTEGER CONTRA ATTACKS,
+O QUE QUER DIZER QUE TUDO ESTÁ FUNCIONANDO COMO O ESPERADO....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> QUASE TERMINAMOS COM O NOSSO REFACTOR...
+
+
+
+
+
+
+
+
+
+
+
+-> AGORA PRECISAMOS REFATORAR A ACTUAL 
+
+
+'$_SESSION' SUPERGLOBAL USAGE DE NOSSO APP...
+
+
+
+
+
+
+
+
+
+
+-> SE PROCURAMOS POR '$_SESSION'
+
+em nosso app,
+
+percebemos que ela está sendo usada em um monte de lugares diferentes...
+
+
+
+
+
+
+
+
+
+
+
+--> COMEÇAMOS PELA CLASS DE 'Auth.php'...
+
+
+
+
+
+--> NELA, TEMOS ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use App\Contracts\AuthInterface;
+use App\Contracts\UserInterface;
+use App\Contracts\UserProviderServiceInterface;
+
+class Auth implements AuthInterface
+{
+    private ?UserInterface $user = null;
+
+    public function __construct(private readonly UserProviderServiceInterface $userProvider,) {}
+
+    public function user(): ?UserInterface
+    {
+
+        if ($this->user !== null) { 
+            return $this->user;
+        }
+
+        $userId = $_SESSION['user'] ?? null;
+
+        if ($userId === null) {
+            return null;
+        }
+
+        $user = $this->userProvider->getById($userId);
+
+        if (!$user) {
+            return null;
+        }
+        
+        $this->user = $user;
+
+        return $this->user;
+    }
+
+    public function attemptLogin(array $credentials): bool
+    {
+        $user = $this->userProvider->getByCredentials($credentials);
+
+
+        if (!$user || !$this->checkCredentials($user, $credentials)) {
+           return false;
+        }
+
+        // 2.3 Regenerate the user's sessionid, to improve security and defend against session hijacking attacks. // * DONE
+        session_regenerate_id(true);
+
+        $_SESSION['user'] = $user->getId();
+
+
+        $this->user = $user;
+
+        return true;
+    }
+
+    public function checkCredentials(UserInterface $user, array $credentials): bool
+    {
+
+            if (password_verify($credentials['password'], $user->getPassword())) {
+                return true;
+            }
+
+            return false;
+    }
+
+    public function logout(): void
+    {
+        unset($_SESSION['user']);
+        $this->user = null;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA, TEMOS 3 MENÇÕES A '$_SESSION',
+
+
+nessa parte...
+
+
+
+
+
+
+
+
+
+-> em 'attemptLogin',
+
+ESTAMOS 
+
+
+SETTANDO O USERID,
+
+
+
+
+E TAMBÉM ESTAMOS REGENERATING O SESIONID...
+
+
+
+
+    public function attemptLogin(array $credentials): bool
+    {
+        $user = $this->userProvider->getByCredentials($credentials);
+
+
+        if (!$user || !$this->checkCredentials($user, $credentials)) {
+           return false;
+        }
+
+        // 2.3 Regenerate the user's sessionid, to improve security and defend against session hijacking attacks. // * DONE
+        session_regenerate_id(true);
+
+        $_SESSION['user'] = $user->getId();
+
+
+        $this->user = $user;
+
+        return true;
+
+    }
+
+
+
+
+
+-> NO METHOD DE LOGOUT,
+
+ESTAMOS FAZENDO UNSET DA KEY 'user',
+
+NA SESSION:
+
+
+
+
+
+
+
+    public function logout(): void
+    {
+        unset($_SESSION['user']);
+        $this->user = null;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+AGORA VAMOS REFATORAR ISSO, PARA DEIXAR COMO NOSSO CÓDIGO 
+
+
+TEM QUE SE PARECER...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> EM 'logOut',
+
+em vez de 
+
+'unset()',
+
+
+vamos 
+
+
+
+usar 
+
+
+um method de "$this->session->forget('user');'
+
+
+
+
+
+
+ISSO VAI UNSETTAR NOSSA KEY, COM 1 METHOD PRÓPRIO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+->  E, EM VEZ DE 
+
+'session_regenerate_id',
+
+
+
+PODEMOS USAR 
+
+
+'$this->session->regenerate()'
+e também 
+
+
+
+'$this->session->put('user', $user->getId());'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+
+O CÓDIGO QUE ESTÁ ASSIM:
+
+
+
+
+
+
+
+
+
+    public function attemptLogin(array $credentials): bool
+    {
+        $user = $this->userProvider->getByCredentials($credentials);
+
+
+        if (!$user || !$this->checkCredentials($user, $credentials)) {
+           return false;
+        }
+
+        // 2.3 Regenerate the user's sessionid, to improve security and defend against session hijacking attacks. // * DONE
+        session_regenerate_id(true);
+
+        $_SESSION['user'] = $user->getId();
+
+
+        $this->user = $user;
+
+        return true;
+    }
+
+
+
+
+
+
+
+
+
+
+VAI FICAR ASSIM:
+
+
+
+
+
+    public function attemptLogin(array $credentials): bool
+    {
+        $user = $this->userProvider->getByCredentials($credentials);
+
+
+        if (!$user || !$this->checkCredentials($user, $credentials)) {
+           return false;
+        }
+
+
+        $this->session->regenerate();
+        $this->session->put('user', $user->getId());
+
+
+        $this->user = $user;
+
+        return true;
+    }
+
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App;
+
+use App\Contracts\SessionInterface;
+use App\DTOs\CookieParams;
+use App\DTOs\SessionConfig;
+use App\Exception\SessionException;
+
+class Session implements SessionInterface
+{
+
+    public function __construct(private readonly SessionConfig $options) {}
+
+    public function start(): void
+    {
+        if ($this->isActive()) {
+            throw new SessionException('Session has already been started');
+        }
+
+        if (headers_sent($filename, $line)) {
+            throw new SessionException('Headers already sent by ' . $filename . ' on line ' . $line);
+        }
+
+        // each key of the cookieParams will be used as a key on the session_set_cookie_params array:
+        session_set_cookie_params(
+            [
+            'secure' => $this->options->secure,
+            'httponly' => $this->options->httpOnly,
+            'samesite' => $this->options->sameSite->value
+            ]
+        );
+
+        if (!empty($this->options->name)) {
+            session_name($this->options->name);
+        }
+
+        if (!session_start()) {
+            throw new SessionException('Unable to start the session.');
+        }
+    }
+
+    public function save(): void
+    {
+        session_write_close();
+    }
+
+    public function isActive(): bool
+    {
+        return session_status() === PHP_SESSION_ACTIVE;
+    }
+
+    public function regenerate(): void
+    {
+        session_regenerate_id(true);
+    }
+
+    public function forget(string $key): void
+    {
+        unset($_SESSION[$key]);
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+e assim:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Contracts;
+
+interface SessionInterface
+{
+    public function start(): void;
+
+    public function save(): void;
+
+    public function isActive(): bool;
+
+    public function regenerate(): void;
+
+    public function put(string $key, mixed $value): void;
+
+    public function forget(string $key): void;
+}
+
+
+
+
+
+
+
+
+
+
+também vamos regenerate o sessionid depois do logout... pq 
+
+isso também conta como um 
+
+'authentication state change'...
+
+
+
+
+
+
+
+
+
+
+
+FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use App\Contracts\AuthInterface;
+use App\Contracts\SessionInterface;
+use App\Contracts\UserInterface;
+use App\Contracts\UserProviderServiceInterface;
+
+class Auth implements AuthInterface
+{
+    private ?UserInterface $user = null;
+
+    public function __construct(private readonly UserProviderServiceInterface $userProvider, private readonly SessionInterface $session) {}
+
+    public function user(): ?UserInterface
+    {
+
+        if ($this->user !== null) { 
+            return $this->user;
+        }
+
+       $userId =  $this->session->get('user');
+
+        if ($userId === null) {
+            return null;
+        }
+
+        $user = $this->userProvider->getById($userId);
+
+        if (!$user) {
+            return null;
+        }
+        
+        $this->user = $user;
+
+        return $this->user;
+    }
+
+    public function attemptLogin(array $credentials): bool
+    {
+        $user = $this->userProvider->getByCredentials($credentials);
+
+
+        if (!$user || !$this->checkCredentials($user, $credentials)) {
+           return false;
+        }
+
+
+        $this->session->regenerate();
+        $this->session->put('user', $user->getId());
+
+
+        $this->user = $user;
+
+        return true;
+    }
+
+    public function checkCredentials(UserInterface $user, array $credentials): bool
+    {
+
+            if (password_verify($credentials['password'], $user->getPassword())) {
+                return true;
+            }
+
+            return false;
+    }
+
+    public function logout(): void
+    {
+        $this->session->forget('user');
+        $this->session->regenerate();
+
+        $this->user = null;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+O GET FICOU ASSIM:
+
+
+
+
+
+
+    public function get(string $key, mixed $default = null): mixed
+    {
+        return $_SESSION[$key] ?? $default;
+    }
+
+
+
+
+
+
+
+
+
+
+MAS O DO PROFESSOR FICOU DIFERENTE,
+
+FICOU ASSIM:
+
+
+
+
+
+    public function get(string $key, mixed $default = null): mixed
+    {
+        return array_key_exists($key, $_SESSION) ? $_SESSION[$key] : $default;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+array_key_exists()
+
+
+
+
+VS 
+
+
+
+isset() 
+
+
+
+
+
+
+
+
+
+
+isset -> vai retornar true se a key existe e se o value não é null...
+
+
+
+
+
+
+
+
+
+
+array_key_exists --> vai retornar true se a key existir, mesmo se o value estiver null...
+
+
+
+
+
+
+
+
+
+
+--> AINDA ASSIM, O PROFESSOR QUER ABSTRAIR ESSE FUNCTION CALL EM 1 METHOD PRÓPRIO,
+
+ALGO COMO 
+
+
+'$this->has($key)'...
+
+
+
+
+
+TIPO ASSIm:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App;
+
+use App\Contracts\SessionInterface;
+use App\DTOs\CookieParams;
+use App\DTOs\SessionConfig;
+use App\Exception\SessionException;
+
+class Session implements SessionInterface
+{
+
+    public function __construct(private readonly SessionConfig $options) {}
+
+    public function start(): void
+    {
+        if ($this->isActive()) {
+            throw new SessionException('Session has already been started');
+        }
+
+        if (headers_sent($filename, $line)) {
+            throw new SessionException('Headers already sent by ' . $filename . ' on line ' . $line);
+        }
+
+        // each key of the cookieParams will be used as a key on the session_set_cookie_params array:
+        session_set_cookie_params(
+            [
+            'secure' => $this->options->secure,
+            'httponly' => $this->options->httpOnly,
+            'samesite' => $this->options->sameSite->value
+            ]
+        );
+
+        if (!empty($this->options->name)) {
+            session_name($this->options->name);
+        }
+
+        if (!session_start()) {
+            throw new SessionException('Unable to start the session.');
+        }
+    }
+
+    public function save(): void
+    {
+        session_write_close();
+    }
+
+    public function get(string $key, mixed $default = null): mixed
+    {
+        return $this->has($key) ? $_SESSION[$key] : $default;
+    }
+
+    public function has(string $key): bool
+    {
+        return array_key_exists($key, $_SESSION); 
+    }
+
+    public function isActive(): bool
+    {
+        return session_status() === PHP_SESSION_ACTIVE;
+    }
+
+    public function regenerate(): bool
+    {
+       return session_regenerate_id(true);
+    }
+
+    public function put(string $key, mixed $value): void
+    {
+        $_SESSION[$key] = $value;
+    }
+
+    public function forget(string $key): void
+    {
+        unset($_SESSION[$key]);
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+com isso, refatoramos a class de 'Auth' também....
+
+fizemos isso para que ela não use a '$_SESSION' superglobal diretamente....
+
+
+
+--> com isso, ela usa apenas os methods de 
+
+
+'Session.php'... que são os methods QUE REALMENTE USAM 
+
+ESSA SUPERGLOBAL DIRETAMENTE...
+
+
+
+
+
+
+
+
+
+
+
+-> ok....
+
+
+
+
+
+
+
+
+
+
+-> AGORA BASTA REFATORAR OS MIDDLEWARES DE 'GuestMiddleware'
+
+e 
+
+
+
+'StartSessionMiddleware',
+
+
+
+que ainda possuem esse acesso a '$_SESSION'...
+
+
+
+
+
+
+
+
+
+
+--> em authMiddleware,
+
+o professor acha que podemos actually COMBINAR os middlewares 
+
+
+de 
+
+'AuthMiddleware' e 'AuthenticateMiddleware'...
+
+
+
+
+
+
+
+
+
+--> AUTHENTICATEMIDDLEWARE -> ''IT SIMPLY ADDS THE USER OBJECT TO THE ATTRIBUTE,
+                                USING THE $_SESSION''....
+
+
+
+
+--> AUTHMIDDLEWARE -> SIMPLY CHECKS IF THE 'user' key is set in the session superglobal..
+                        if it is not  set, it redirects...
+
+
+
+
+
+
+
+
+
+
+
+                -> PODEMOS FAZER ESSAS 2 COISAS EM 1 MESMO MIDDLEWARE,
+                SIMPLIFICAR AS COISAS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS SIMPLESMENTE PEGAR ESTE TRECHO 
+
+DE 'AUTHENTICATEMIDDLEWARE':
+
+
+
+
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        return $handler->handle($request->withAttribute('user', $this->auth->user()));
+    }
+
+
+
+
+
+
+
+
+
+    a parte do '$request->withAttribute()'
+
+
+
+
+
+
+
+
+
+
+    E COLOCAR AQUI, em 'AUTHMIDDLEWARE':
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Contracts\AuthInterface;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class AuthMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly AuthInterface $auth) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        if (empty($_SESSION['user'])) {
+            return $this->responseFactory->createResponse()->withHeader('Location', '/login')->withStatus(302);
+        }
+
+        return $handler->handle($request->withAttribute('user', $this->auth->user()));
+    }
+}
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+FAZ SENTIDO...
+
+
+
+
+
+
+
+
+
+O PROFESSOR TAMBÉM REFATORA ESSE METHOD, DESTA FORMA:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Contracts\AuthInterface;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class AuthMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly AuthInterface $auth) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        if ($user = $this->auth->user()) {
+            return $this->responseFactory->createResponse()->withHeader('Location', '/login')->withStatus(302);
+        }
+
+        return $handler->handle($request->withAttribute('user', $this->auth->user()));
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... AÍ DELETAMOS O MIDDLEWARE DE AUTHENTICATEMIDDLEWARE:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Config;
+use Slim\Views\Twig;
+use Slim\Views\TwigMiddleware;
+use Slim\App;
+
+return function (App $app) {
+    $container = $app->getContainer();
+    $config = $container->get(Config::class);
+
+    // Twig
+    $app->add(TwigMiddleware::create($app, $container->get(Twig::class)));
+
+    // Custom Validation Exception Middleware:
+    $app->add(\App\Middleware\ValidationExceptionMiddleware::class);
+
+    // Custom Validation Errors Middleware:
+    $app->add(\App\Middleware\ValidationErrorsMiddleware::class);
+
+    // Custom Old Form Data Middleware:
+    $app->add(\App\Middleware\OldFormDataMiddleware::class);
+
+    // Session Middleware:
+    $app->add(\App\Middleware\StartSessionsMiddleware::class);
+
+    // Logger
+    $app->addErrorMiddleware(
+        (bool) $config->get('display_error_details'),
+        (bool) $config->get('log_errors'),
+        (bool) $config->get('log_error_details')
+    );
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EM AuthMiddleware,
+
+
+DEVEMOS TAMBÉM INVERTER OS CASES,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Contracts\AuthInterface;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class AuthMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly AuthInterface $auth) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        if ($user = $this->auth->user()) {
+        return $handler->handle($request->withAttribute('user', $this->auth->user()));
+        }
+        
+        return $this->responseFactory->createResponse()->withHeader('Location', '/login')->withStatus(302);
+    }
+}
+
+
+
+
+PQ SE O USER ESTÁ AUTHENTICATED, SE ELE EXISTE, QUEREMOS QUE ELE SEJA HANDLADO  NORMALMENTE..
+
+
+
+
+
+JÁ SE ELE NÃO ESTIVER AUTH,
+
+
+QUEREMOS REDIRECIONAR...
+
+
+
+
+
+
+
+
+
+
+
+JÁ ESTE CÓDIGO FAZ O INVERSO:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Contracts\SessionInterface;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class GuestMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly SessionInterface $session) {
+        
+    }
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        if ($this->session->get('user')) {
+            return $this->responseFactory->createResponse()->withHeader('Location', '/')->withStatus(302);
+        }
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+SE O USER ESTÁ AUTH,
+
+ELE REDIRECIONA PARA A PAGE ANTERIOR...
+
+
+
+
+
+CASO CONTRÁRIO,
+
+
+
+ELE DEIXA ACESSAR AS PAGES DE LOGIN/REGISTER...
+
+
+
+
+
+
+
+
+
+
+
+-> OK.. TUDO ESTÁ FUNCIONANDO.
+
+
+
+
+
+
+
+
+
+-> AINAD FALTA O REFACTOR DO RESTO DA USAGE DO "$_SESSION'...
+
+
+
+
+
+
+-> faremos isso na próxima aula...
