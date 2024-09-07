@@ -812,7 +812,78 @@ METHOD QUE RETORNE TRUE OU FALSE...
 
 
 
-EX:
+
+
+
+
+O PROFESSOR TAMBÉM QUER 
+
+AJUSTAR A MESSAGE DA EXCEPTION DE BAIXO:
+
+
+
+
+
+    public function start(): void
+    {
+        if ($this->isActive()) {
+            throw new SessionException('Session has already been started');
+        }
+
+        if (headers_sent($filename, $line)) {
+            throw new SessionException('Headers already sent by ' . $filename . ' on line ' . $line);
+        }
+
+        session_set_cookie_params(['secure' => true, 'httponly' => true, 'samesite' => 'lax']);
+
+        session_start();
+    }
+
+
+
+
+
+
+
+
+
+O PROFESSOR TAMBÉM QUER TIRAR ESSE HARDCODE DE 'session_set_cookie_params',
+
+
+TIRAR ESSE ARRAY HARDCODADO...
+
+
+
+
+
+
+
+
+-> QUEREMOS SETTAR ESSE PARAMETER LÁ 
+    NA NOSSA CONFIG FILE...
+
+
+
+
+
+
+
+-> É POR ISSO QUE COLOCAMOS 1 PARAMETER NO CONSTRUCTOR DE 'Session',
+
+algo como 
+
+
+'private readonly array $options'...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
 
 
 
@@ -824,33 +895,106 @@ EX:
 
 <?php declare(strict_types=1);
 
-namespace App\Middleware;
+namespace App;
 
 use App\Contracts\SessionInterface;
 use App\Exception\SessionException;
-use Psr\Http\Message\ResponseInterface as Response;
-use Psr\Http\Message\ServerRequestInterface as Request;
-use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 
-class StartSessionsMiddleware implements MiddlewareInterface
+class Session implements SessionInterface
 {
-    public function __construct(private readonly SessionInterface $session) {}
 
-    public function process(Request $request, RequestHandlerInterface $handler): Response
-    {   
+    public function __construct(private readonly array $options) 
+    {
+    }
 
+    public function start(): void
+    {
         if ($this->isActive()) {
-            throw new SessionException('Session already started');
+            throw new SessionException('Session has already been started');
         }
 
-        $this->session->start();
+        if (headers_sent($filename, $line)) {
+            throw new SessionException('Headers already sent by ' . $filename . ' on line ' . $line);
+        }
 
-        $response = $handler->handle($request);
+        session_set_cookie_params(['secure' => true, 'httponly' => true, 'samesite' => 'lax']);
 
-        $this->session->save();
+        session_start();
+    }
 
-        return $response;
+    public function save(): void
+    {
+        session_write_close();
+    }
+
+    public function isActive(): bool
+    {
+        return session_status() === PHP_SESSION_ACTIVE;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ VAMOS ACESSAR OS PARAMETERS DE DENTRO DO '$options',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App;
+
+use App\Contracts\SessionInterface;
+use App\Exception\SessionException;
+
+class Session implements SessionInterface
+{
+
+    public function __construct(private readonly array $options) {}
+
+    public function start(): void
+    {
+        if ($this->isActive()) {
+            throw new SessionException('Session has already been started');
+        }
+
+        if (headers_sent($filename, $line)) {
+            throw new SessionException('Headers already sent by ' . $filename . ' on line ' . $line);
+        }
+
+        session_set_cookie_params(
+            [
+            'secure' => $this->options['secure'] ?? true, 
+            'httponly' => $this->options['httponly'] ?? true, 
+            'samesite' => $this->options['samesite'] ?? 'lax'
+            ]
+        );
+
+        session_start();
+    }
+
+    public function save(): void
+    {
+        session_write_close();
     }
 
     public function isActive(): bool
@@ -874,12 +1018,236 @@ class StartSessionsMiddleware implements MiddlewareInterface
 
 
 
-O PROFESSOR TAMBÉM QUER 
-
-AJUSTAR A MESSAGE DA EXCEPTION DE BAIXO:
 
 
 
+OK... MAS COMO PODEMOS PASSAR ESSAS 'OPTIONS'?
+
+
+
+
+
+
+-> BEM, LÁ NOS CONTAINER BINDINGS,
+
+PODEMOS ALTERAR 
+
+O CÓDIGO DE 'SESSIONINTERFACE',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+    SessionInterface::class => fn(Config $config) => new Session($config->get('session')),
+
+
+
+
+
+
+
+
+
+
+
+    -> COM ISSO, PASSAMOS ESSA CONFIG 
+
+    A NOSSA SESSION, SEM NENHUM PROBLEMA...
+
+
+
+
+
+
+AGORA SÓ NOS RESTA DEFINIR ESSA KEY DE 'session',
+lá no nosso config,
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Enum\AppEnvironment;
+
+$appEnv = $_ENV['APP_ENV'] ?? AppEnvironment::Production->value;
+
+return [
+    'app_name' => $_ENV['APP_NAME'],
+    'app_version' => $_ENV['APP_VERSION'] ?? '1.0',
+    'app_environment' => $appEnv,
+    'display_error_details' => (bool) ($_ENV['APP_DEBUG'] ?? 0),
+    'log_errors' => true,
+    'log_error_details' => true,
+    'doctrine' => [
+        'dev_mode' => AppEnvironment::isDevelopment($appEnv),
+        'cache_dir' => STORAGE_PATH . '/cache/doctrine',
+        'entity_dir' => [APP_PATH . '/Entity'],
+        'connection' => [
+            'driver' => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
+            'host' => $_ENV['DB_HOST'] ?? 'localhost',
+            'port' => $_ENV['DB_PORT'] ?? 3306,
+            'dbname' => $_ENV['DB_NAME'],
+            'user' => $_ENV['DB_USER'],
+            'password' => $_ENV['DB_PASS'],
+        ],
+        'session' => [
+            'secure' => true,
+            'httponly' => true,
+            'samesite' => 'lax'
+        ]
+    ],
+];
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+TAMBÉM PODEMOS COLOCAR UM NAME PARA A SESSION,
+
+PARA QUE 
+
+O SESSION COOKIE NÃO USE 
+
+O NOME DEFAULT DE 'PHPSESSIONID' no browser...
+
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Enum\AppEnvironment;
+
+$appEnv = $_ENV['APP_ENV'] ?? AppEnvironment::Production->value;
+$appSnakeName = strtolower(str_replace(' ', '_', $_ENV['APP_NAME']));
+
+return [
+    'app_name' => $_ENV['APP_NAME'],
+    'app_version' => $_ENV['APP_VERSION'] ?? '1.0',
+    'app_environment' => $appEnv,
+    'display_error_details' => (bool) ($_ENV['APP_DEBUG'] ?? 0),
+    'log_errors' => true,
+    'log_error_details' => true,
+    'doctrine' => [
+        'dev_mode' => AppEnvironment::isDevelopment($appEnv),
+        'cache_dir' => STORAGE_PATH . '/cache/doctrine',
+        'entity_dir' => [APP_PATH . '/Entity'],
+        'connection' => [
+            'driver' => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
+            'host' => $_ENV['DB_HOST'] ?? 'localhost',
+            'port' => $_ENV['DB_PORT'] ?? 3306,
+            'dbname' => $_ENV['DB_NAME'],
+            'user' => $_ENV['DB_USER'],
+            'password' => $_ENV['DB_PASS'],
+        ],
+        'session' => [
+            'name' => $appSnakeName . '_session',  // $appName is extracted from the 'APP_NAME' environment variable.
+            'secure' => true,
+            'httponly' => true,
+            'samesite' => 'lax'
+        ]
+    ],
+];
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OUTRO DETALHE:
+
+
+
+''WE COULD HAVE USED ENVIRONMENT VARIABLES 
+FOR 
+
+
+SECURE => TRUE 
+HTTPONLY => TRUE 
+SAMESITE => lax 
+
+'',
+
+
+
+BUT WE DON'T NEED THAT, BECAUSE WE DON'T PLAN ON CHANGING THESE VALUES...
+
+
+
+
+
+
+
+
+
+
+
+
+PELO MENOS AGORA NOSSA CLASS DE 'SESSION' NÃO TEM ESSES VALUES HARDCODADOS...
 
 
 

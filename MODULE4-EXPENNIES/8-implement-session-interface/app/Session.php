@@ -1,14 +1,34 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App;
 
 use App\Contracts\SessionInterface;
+use App\Exception\SessionException;
 
 class Session implements SessionInterface
 {
+
+    public function __construct(private readonly array $options) {}
+
     public function start(): void
     {
-        session_set_cookie_params(['secure' => true, 'httponly' => true, 'samesite' => 'lax']);
+        if ($this->isActive()) {
+            throw new SessionException('Session has already been started');
+        }
+
+        if (headers_sent($filename, $line)) {
+            throw new SessionException('Headers already sent by ' . $filename . ' on line ' . $line);
+        }
+
+        session_set_cookie_params(
+            [
+            'secure' => $this->options['secure'] ?? true, 
+            'httponly' => $this->options['httponly'] ?? true, 
+            'samesite' => $this->options['samesite'] ?? 'lax'
+            ]
+        );
 
         session_start();
     }
@@ -16,5 +36,10 @@ class Session implements SessionInterface
     public function save(): void
     {
         session_write_close();
+    }
+
+    public function isActive(): bool
+    {
+        return session_status() === PHP_SESSION_ACTIVE;
     }
 }

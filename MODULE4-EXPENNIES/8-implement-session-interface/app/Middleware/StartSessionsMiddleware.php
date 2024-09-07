@@ -16,12 +16,6 @@ class StartSessionsMiddleware implements MiddlewareInterface
     public function process(Request $request, RequestHandlerInterface $handler): Response
     {   
 
-        if ($this->isActive()) {
-            throw new SessionException('Session already started');
-        }
-
-        if (headers_sent($filename, $line)) {}
-
         $this->session->start();
 
         $response = $handler->handle($request);
@@ -31,8 +25,5 @@ class StartSessionsMiddleware implements MiddlewareInterface
         return $response;
     }
 
-    public function isActive(): bool
-    {
-        return session_status() === PHP_SESSION_ACTIVE;
-    }
+
 }

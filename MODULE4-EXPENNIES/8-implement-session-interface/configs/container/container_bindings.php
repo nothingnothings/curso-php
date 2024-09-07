@@ -48,7 +48,7 @@ return [
     },
     AuthInterface::class => fn(ContainerInterface $container) => $container->get(Auth::class),
     UserProviderServiceInterface::class => fn(ContainerInterface $container) => $container->get(UserProviderService::class),
-    SessionInterface::class => fn() => new Session(),
+    SessionInterface::class => fn(Config $config) => new Session($config->get('session')),
     Config::class => create(Config::class)->constructor(require CONFIG_PATH . '/app.php'),
     EntityManager::class => fn(Config $config) => EntityManager::create(
         $config->get('doctrine.connection'),
