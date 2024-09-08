@@ -1,0 +1,2266 @@
+
+
+
+--> VAMOS CONTINUAR COM O REFACTOR 
+
+    DO SESSIONS MIDDLEWRE..
+
+
+
+
+
+
+
+
+
+--> HOJE VAMOS REFATORAR O MIDDLEWARE DE 'VALIDATIONEXCEPTIONMIDDLEWARE',
+
+
+QUE AINDA USA O SUPERGLOBAL DE '$_SESSION'....
+
+
+
+
+
+
+
+
+
+
+
+VALIDATIONEXCEPTIONMIDDLEWARE --> ELE SETTA 
+
+
+                                AS KEYS DE 'error' e 'old',
+
+
+                                da Form,
+
+
+                                NA SESSION...
+
+
+
+EX
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Exception\ValidationException;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class ValidationExceptionMiddleware implements MiddlewareInterface
+{
+    public function __construct(private ResponseFactoryInterface $responseFactory) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        try {
+            return $handler->handle($request);
+        } catch (ValidationException $e) {
+            $response = $this->responseFactory->createResponse();
+
+            $referer = $request->getServerParams()['HTTP_REFERER'];  // * gets the 'Referer' header, which contains the URL of the page that the user was trying to access.
+            $oldData = $request->getParsedBody();
+
+            // Use this Info/list to remove the 'password' and 'confirmPassword' fields from the old data, to avoid flashing sensitive information on the session.
+            $sensitiveFields = ['password', 'confirmPassword'];
+
+            $_SESSION['errors'] = $e->errors();  // * stores the errors in the $_SESSION superglobal, so that they can be displayed in the template.
+            $_SESSION['old'] = array_diff_key($oldData, array_flip($sensitiveFields));  // * stores the old form data in the $_SESSION superglobal, so that it can be displayed in the template, on validation errors.
+
+            return $response->withHeader('Location', $referer)->withStatus(302);  // This will redirect the user back to the 'register' page (the page that the user was trying to access, to be more precise)...
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+TEMOS TAMBÉM O VALIDATIONERRORSMIDDLEWARE,
+
+QUE EXTRAI OS VALIDATION ERRORS DA SESSION, E ENTÃO 
+
+OS PASSA PARA DENTRO DOS TWIG TEMPLATES, COM ESTE CÓDIGO:
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Slim\Psr7\Factory\ResponseFactory;
+use Slim\Views\Twig;
+
+class ValidationErrorsMiddleware implements MiddlewareInterface
+{
+    public function __construct(private ResponseFactory $responseFactory, private readonly Twig $twig) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+
+        if (!empty($_SESSION['errors'])) { // insert errors, if any, into the twig template global (errors taken from the $_SESSION superglobal).
+
+            $errors = $_SESSION['errors'];
+
+
+            $this->twig->getEnvironment()->addGlobal('errors', $errors);
+            unset($_SESSION['errors']); /// We do this so that the errors are 'flashed' (in other words, they disappear after being shown only once).
+
+        }
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> e, por fim, aquele middleware de 'OldFormDataMiddleware',
+    QUE FAZ A MESMA COISA QUE O 'VALIDATIONERRORSMIDDLEWARE',
+
+
+    ELE FAZ O EXTRACT DA OLD DATA DA SESSION, E AÍ 
+
+    PASSA ESSA DATA 
+
+    AO TWIG TEMPLATE...
+
+
+
+
+
+
+
+
+
+-> OK... VAMOS COMEÇAR PELO VALIDATIONEXCEPTIONMIDDLEWARE:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Exception\ValidationException;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class ValidationExceptionMiddleware implements MiddlewareInterface
+{
+    public function __construct(private ResponseFactoryInterface $responseFactory) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        try {
+            return $handler->handle($request);
+        } catch (ValidationException $e) {
+            $response = $this->responseFactory->createResponse();
+
+            $referer = $request->getServerParams()['HTTP_REFERER'];  // * gets the 'Referer' header, which contains the URL of the page that the user was trying to access.
+            $oldData = $request->getParsedBody();
+
+            // Use this Info/list to remove the 'password' and 'confirmPassword' fields from the old data, to avoid flashing sensitive information on the session.
+            $sensitiveFields = ['password', 'confirmPassword'];
+
+            $_SESSION['errors'] = $e->errors();  // * stores the errors in the $_SESSION superglobal, so that they can be displayed in the template.
+            $_SESSION['old'] = array_diff_key($oldData, array_flip($sensitiveFields));  // * stores the old form data in the $_SESSION superglobal, so that it can be displayed in the template, on validation errors.
+
+            return $response->withHeader('Location', $referer)->withStatus(302);  // This will redirect the user back to the 'register' page (the page that the user was trying to access, to be more precise)...
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> nesse middleware, estamos fazendo FLASH da data 
+    na session, com este código:
+
+
+
+
+
+
+
+        $_SESSION['errors'] = $e->errors();  // * stores the errors in the $_SESSION superglobal, so that they can be displayed in the template.
+            $_SESSION['old'] = array_diff_key($oldData, array_flip($sensitiveFields));  // * stores the old form data in the $_SESSION superglobal, so that it can be displayed in the template, on validation errors.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O QUE PODEMOS FAZER, AQUI,
+
+
+EM VEZ DISSO,
+
+ 
+
+E TER 1 METHOD EM 'session',
+
+
+'flash()',
+
+
+que faça justamente isso, que aceite 1 key e 1 value,
+
+e então 
+
+
+adicione esse value na key desejada...
+
+
+
+
+
+
+
+
+-> TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Contracts\SessionInterface;
+use App\Exception\ValidationException;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class ValidationExceptionMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly SessionInterface $session) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        try {
+            return $handler->handle($request);
+        } catch (ValidationException $e) {
+            $response = $this->responseFactory->createResponse();
+
+            $referer = $request->getServerParams()['HTTP_REFERER'];  // * gets the 'Referer' header, which contains the URL of the page that the user was trying to access.
+            $oldData = $request->getParsedBody();
+
+            // Use this Info/list to remove the 'password' and 'confirmPassword' fields from the old data, to avoid flashing sensitive information on the session.
+            $sensitiveFields = ['password', 'confirmPassword'];
+
+            // Flash errors and old form data to the session, so that it can be used in the template.
+            $this->session->flash('errors', $e->errors());  // * flashes the errors to the session, so that they can be displayed in the template.
+            $this->session->flash('old', $oldData);  // * flashes the old form data to the session, so that it can be displayed in the template, on validation errors.
+
+            return $response->withHeader('Location', $referer)->withStatus(302);  // This will redirect the user back to the 'register' page (the page that the user was trying to access, to be more precise)...
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+MAS ESTÁ 1 POUCO ERRADO, ESTE TRECHO AQUI:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Contracts\SessionInterface;
+use App\Exception\ValidationException;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class ValidationExceptionMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly ResponseFactoryInterface $responseFactory, private readonly SessionInterface $session) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        try {
+            return $handler->handle($request);
+        } catch (ValidationException $e) {
+            $response = $this->responseFactory->createResponse();
+
+            $referer = $request->getServerParams()['HTTP_REFERER'];  // * gets the 'Referer' header, which contains the URL of the page that the user was trying to access.
+            $oldData = $request->getParsedBody();
+
+            // Use this Info/list to remove the 'password' and 'confirmPassword' fields from the old data, to avoid flashing sensitive information on the session.
+            $sensitiveFields = ['password', 'confirmPassword'];
+
+            // Flash errors and old form data to the session, so that it can be used in the template.
+            $this->session->flash('errors', $e->errors());  // * flashes the errors to the session, so that they can be displayed in the template.
+            $this->session->flash('old', array_diff_key($oldData, array_flip($sensitiveFields)));  // * flashes the old form data to the session, so that it can be displayed in the template, on validation errors.
+
+            return $response->withHeader('Location', $referer)->withStatus(302);  // This will redirect the user back to the 'register' page (the page that the user was trying to access, to be more precise)...
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+-> MAS O METHOD DE 'flash' ficou 1 pouco errado...
+
+
+
+pq eu deixei 1 value de 'mixed',
+
+quando deveria ser 'array', pq queremos flashar 1 list de messages,
+
+
+que são armazenadas em 1 array...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR TAMBÉM MUDOU O CÓDIGO 
+
+
+de unset em 'ValidationErrorsMiddleware',
+
+
+
+
+
+ELE DEIXOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+(antes):
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Slim\Psr7\Factory\ResponseFactory;
+use Slim\Views\Twig;
+
+class ValidationErrorsMiddleware implements MiddlewareInterface
+{
+    public function __construct(private ResponseFactory $responseFactory, private readonly Twig $twig) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+
+        if (!empty($_SESSION['errors'])) { // insert errors, if any, into the twig template global (errors taken from the $_SESSION superglobal).
+
+            $errors = $_SESSION['errors'];
+
+
+            $this->twig->getEnvironment()->addGlobal('errors', $errors);
+            unset($_SESSION['errors']); /// We do this so that the errors are 'flashed' (in other words, they disappear after being shown only once).
+
+        }
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(depois):
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Contracts\SessionInterface;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Slim\Psr7\Factory\ResponseFactory;
+use Slim\Views\Twig;
+
+class ValidationErrorsMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly SessionInterface $session, private readonly ResponseFactory $responseFactory, private readonly Twig $twig) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+
+        if ($errors = $this->session->getFlash('errors')) { // insert errors, if any, into the twig template global (errors taken from the $_SESSION superglobal).
+            $this->twig->getEnvironment()->addGlobal('errors', $errors); 
+        }
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR QUER QUE ESSE METHOD de 'getFlash()'
+
+
+
+faça DUAS COISAS, AO MESMO TEMPO:
+
+
+
+1) GET THE FLASHED DATA, FROM THE SESSION 
+
+
+
+2) ALSO HANDLE THE UNSET OF THE DATA, FROM THE SESSION, AFTER IT HAS BEEN RETRIEVED...
+
+
+
+
+
+
+
+
+
+
+É JUSTAMENTE POR ISSO QUE O CÓDIGO FICA BEM SLIM,
+
+
+FICA SÓ ASSIM:
+
+
+
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+
+        if ($errors = $this->session->getFlash('errors')) { // insert errors, if any, into the twig template global (errors taken from the $_SESSION superglobal).
+            $this->twig->getEnvironment()->addGlobal('errors', $errors); 
+        }
+
+        return $handler->handle($request);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> E PODEMOS, É CLARO, FAZER A MESMA COISA COM O MIDDLEWARE DE 
+
+
+'OldFormDataMiddleware'...
+
+
+
+
+
+
+
+
+
+-> PODEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Contracts\SessionInterface;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Slim\Psr7\Factory\ResponseFactory;
+use Slim\Views\Twig;
+
+class OldFormDataMiddleware implements MiddlewareInterface {
+    public function __construct(private readonly SessionInterface $session, private readonly ResponseFactory $responseFactory, private readonly Twig $twig) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+
+        if ($old = $this->session->getFlash('old')) { // insert errors, if any, into the twig template global (errors taken from the $_SESSION superglobal).
+            $this->twig->getEnvironment()->addGlobal('old', $old);
+        }
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+MAS AINDA PRECISAMOS CRIAR ESSE METHOD..
+
+
+
+
+
+
+
+
+
+
+-> OS 2 METHODS,
+
+'flash()'
+
+
+e 
+
+
+'getFlash()'...
+
+
+
+
+
+
+
+
+
+--> COM ISSO, FICAMOS COM 1 CÓDIGO COM FORMATO MELHOR DO QUE O ANTERIOR,
+QUE USAVA OS METHODS  DE 'put' e 'forget' 
+
+
+para set/unset coisas na session...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO.... MAS O PROFESSOR TAMBÉM QUER SALVAR 
+    AS 'FLASHED MESSAGES' 
+
+    EM 1 
+
+    ALGUM TIPO DE 'BUCKET',
+
+    dentro 
+
+
+
+    do superglobal de '$_SESSION'...
+
+
+
+
+
+
+
+-> O PROFESSOR QUER FAZER ISSO JUSTAMENTE PARA QUE AS KEYS 
+DE '$_SESSION' NÃO CONFLITEM COM QUALQUER OUTRA COISA QUE 
+ARMAZENARMOS NA NOSSA SESSION 
+
+(pq nós talvez armazenemos algo chamado de 'old' 
+que NÃO É A FLASHED MESSAGE PROPRIAMENTE DITA... E NÃO VAMOS QUERER QUE ISSO 
+CONFLITE COM AS FLASHED MESSAGES)
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE ARMAZENAR 'errors' e 'old' 
+
+
+EM 1 BUCKET/KEY própria 
+
+
+
+PODE SER BENEFICIAL PARA NÓS,
+
+EVENTUALMENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> NÓS VAMOS ESCREVENDO OS METHODS, NA INTERFACE, ASSIM:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Contracts;
+
+interface SessionInterface
+{
+    public function start(): void;
+
+    public function save(): void;
+
+    public function get(string $key, mixed $default = null): mixed;
+
+    public function isActive(): bool;
+
+    public function regenerate(): bool;
+
+    public function put(string $key, mixed $value): void;
+
+    public function forget(string $key): void;
+
+    public function has(string $key): bool;
+
+    public function flash(string $key, array $value): void;
+
+    public function getFlash(string $key): array;
+}
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+E o 'getFlash' vai retornar 1 array, justamente pq 
+
+estamos retornando 1 array de messages...
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+AGORA DEVEMOS ABRIR A IMPLEMENTATION DE 'SessionInterface',
+
+'Session',
+
+
+E ADICIONAR ESSES METHODS, TIPO ASSIM:
+
+
+
+
+
+
+
+    public function flash(string $key, array $messages): void
+    {   
+        $_SESSION['flash'][$key] = $messages;
+    }
+
+    public function getFlash(string $key): array
+    {
+        return $_SESSION[$key] ?? [];
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+QUEREMOS QUE AS NOSSAS MESSAGES (de 'old' e 'errors')
+
+sejam ARMAZENADAS DENTRO DE ESSA KEY DE NOME 'flash', sim....
+
+
+
+
+
+
+--> MAS AQUI HÁ UM PROBLEMA,
+    O PROFESSOR QUER QUE ESSE VALUE DE 'flash'
+
+    NÃO SEJA HARDCODADO...
+
+
+
+
+
+
+
+
+-> O PROFESSOR QUER DEIXAR ESSA KEY CONFIGURABLE,
+
+DA MESMA MANEIRA QUE DEIXAMOS O 'SESSION NAME' CONFIGURÁVEL,
+
+ATRAVÉS 
+
+DE NOSSA CONFIG FILE..
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE ESCREVEMOS ALGO ASSIM:
+
+
+
+
+
+    public function flash(string $key, array $messages): void
+    {   
+        $_SESSION[$this->options->flashName][$key] = $messages;
+    }
+    
+
+
+
+
+
+
+
+
+
+
+E, NO NOSSO DTO,
+
+ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\DTOs;
+
+use App\Enum\SameSite;
+
+class SessionConfig
+{
+    public function __construct(
+        public readonly string $name,
+        public readonly bool $secure,
+        public readonly bool $httpOnly,
+        public readonly SameSite $sameSite,
+        public readonly string $flashName
+    ) {}
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E, ENTÃO, ATUALIZAMOS O CALL DE ESSE DTO...
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+    SessionInterface::class => fn(Config $config) => new Session(
+        new SessionConfig(
+            $config->get('session.name', ''),
+            $config->get('session.secure', true),
+            $config->get('session.httponly', true),
+            SameSite::from($config->get('session.samesite', 'lax')),
+            $config->get('session.flash_name', 'flash'),
+        )
+    ),
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, LÁ NA CONFIG, DEIXAMOS ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Enum\AppEnvironment;
+
+$appEnv = $_ENV['APP_ENV'] ?? AppEnvironment::Production->value;
+$appSnakeName = strtolower(str_replace(' ', '_', $_ENV['APP_NAME']));
+
+return [
+    'app_name' => $_ENV['APP_NAME'],
+    'app_version' => $_ENV['APP_VERSION'] ?? '1.0',
+    'app_environment' => $appEnv,
+    'display_error_details' => (bool) ($_ENV['APP_DEBUG'] ?? 0),
+    'log_errors' => true,
+    'log_error_details' => true,
+    'doctrine' => [
+        'dev_mode' => AppEnvironment::isDevelopment($appEnv),
+        'cache_dir' => STORAGE_PATH . '/cache/doctrine',
+        'entity_dir' => [APP_PATH . '/Entity'],
+        'connection' => [
+            'driver' => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
+            'host' => $_ENV['DB_HOST'] ?? 'localhost',
+            'port' => $_ENV['DB_PORT'] ?? 3306,
+            'dbname' => $_ENV['DB_NAME'],
+            'user' => $_ENV['DB_USER'],
+            'password' => $_ENV['DB_PASS'],
+        ],
+    ],
+    'session' => [
+        'name' => $appSnakeName . '_session',  // $appName is extracted from the 'APP_NAME' environment variable.
+        'flash_name' => $appName . '_flash',
+        'secure' => true,
+        'httponly' => true,
+        'samesite' => 'lax'
+    ]
+];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ISSO ESTÁ BOM..
+
+
+
+
+
+
+
+
+
+
+
+
+FECHAMOS TUDO,
+
+E AÍ 
+
+
+
+
+
+
+IMPLEMENTAMOS O METHOD DE GETFLASH:
+
+
+
+
+
+    public function getFlash(string $key): array
+    {
+       $messages = $_SESSION[$this->options->flashName][$key] ?? [];
+    }
+
+
+
+
+
+
+
+
+
+
+
+--> DEPOIS DISSO, FAZEMOS A PARTE DE 'UNSET',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+    public function getFlash(string $key): array
+    {
+        $messages =  $_SESSION[$this->options->flashName][$key] ?? [];
+
+        unset($_SESSION[$this->options->flashName][$key]);
+
+        return $messages;   
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, A SUPERGLOBAL DE '$_SESSION' NÃO É MAIS USADA EM LUGAR ALGUM 
+
+DE NOSSO CÓDIGO,
+
+
+
+APENAS 
+
+
+NESSA CLASS DE 'Session',
+ 
+
+
+que é nossa implementação 
+
+
+da interface de SessionInterface... E ESSE ERA O NOSSO OBJETIVO,
+
+NÃO QUERÍAMOS 
+
+ACESSAR '$_SESSION'
+
+AO LONGO DO CÓDIGO,
+
+
+E SIM QUERÍAMOS TER 1 ABSTRACTION EM VOLTA DE '$_SESSION',
+
+
+
+
+
+
+TUDO PARA QUE CONSIGAMOS ACESSAR E TRABALHAR COM SESSIONS USANDO A SESSION CLASS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ANTES DE TESTARMOS,
+O PROFESSOR QUER FAZER MAIS 1 PEQUENO REFACTOR,
+
+NO NOSSO MIDDLEWARE DE 
+
+'ValidationExceptionMiddleware'... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NO MOMENTO, ESTAMOS PEGANDO O REFERER URL DO HEADER,
+
+COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Contracts\SessionInterface;
+use App\Exception\ValidationException;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class ValidationExceptionMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly ResponseFactoryInterface $responseFactory, private readonly SessionInterface $session) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        try {
+            return $handler->handle($request);
+        } catch (ValidationException $e) {
+            $response = $this->responseFactory->createResponse();
+
+            $referer = $request->getServerParams()['HTTP_REFERER'];  // * gets the 'Referer' header, which contains the URL of the page that the user was trying to access.
+            $oldData = $request->getParsedBody();
+
+            // Use this Info/list to remove the 'password' and 'confirmPassword' fields from the old data, to avoid flashing sensitive information on the session.
+            $sensitiveFields = ['password', 'confirmPassword'];
+
+            // Flash errors and old form data to the session, so that it can be used in the template.
+            $this->session->flash('errors', $e->errors());  // * flashes the errors to the session, so that they can be displayed in the template.
+            $this->session->flash('old', array_diff_key($oldData, array_flip($sensitiveFields)));  // * flashes the old form data to the session, so that it can be displayed in the template, on validation errors.
+
+            return $response->withHeader('Location', $referer)->withStatus(302);  // This will redirect the user back to the 'register' page (the page that the user was trying to access, to be more precise)...
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ESTA LINHA:
+
+
+
+
+
+
+
+
+            $referer = $request->getServerParams()['HTTP_REFERER'];  // * gets the 'Referer' header, which contains the URL of the page that the user was trying to access.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+_> agora, estamos pegando o REFERER URL DO HEADER...
+
+
+
+
+
+
+
+MAS O PROBLEMA É QUE ESSE HEADER TALVEZ NEM SEMPRE ESTEJA SET...
+
+
+
+
+
+
+
+
+-> E O PROFESSOR QUER GARANTIR/VALIDATE QUE 
+
+    O  HOST,
+
+    A QUE FIZEMOS REDIRECT O USER,
+
+
+    MATCHEIA COM NOSSO PRÓPRIO WEBSITE... 
+
+    (
+        ou seja, queremos garantir que o user não seja redirecionado 
+        para nenhum outro website...
+    )
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE VAMOS DEIXAR 
+
+DE ACESSAR 
+
+O REFERER URL COM ISTO:
+
+
+
+$referer = $request->getServerParams()['HTTP_REFERER'];  // * gets the 'Referer' header, which contains the URL of the page that the user was trying to access.
+
+
+
+
+
+
+
+
+EM VEZ DISSO,
+O PROFESSOR QUER CRIAR 1 SERVICE CLASS DE 
+
+'SERVER REQUEST',
+
+COM O METHOD 
+
+
+QUE 
+
+
+SERÁ RESPONSÁVEL 
+PELO GET DO 
+
+
+REFERER URL ADEQUADO... ----> AÍ, NO CASO, ESSE METHOD VAI HANDLAR 
+                                 A VALIDATION E ETC....
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, PODEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        try {
+            return $handler->handle($request);
+        } catch (ValidationException $e) {
+            $response = $this->responseFactory->createResponse();
+
+            $referer = $this->requestService->getReferer();
+
+
+
+
+
+
+
+
+
+
+--> AÍ, DENTRO DE ESSE 'getReferer()',
+
+podemos passar o '$request', como argumento...
+
+
+
+
+
+
+
+
+BASTA CRIAR ESSE REQUEST SERVICE,
+
+E IMPLEMENTAR UMA 
+
+'RequestServiceInterface',
+
+ou algo assim...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Contracts;
+
+interface RequestServiceInterface
+{
+    public function getReferer(Request $request): string;
+}
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use Psr\Http\Message\ServerRequestInterface;
+
+class RequestService
+{
+    public function __construct(private readonly ServerRequestInterface $request) {}
+
+    public function getReferer(Request $request): string
+    {
+        return $this->request->getServerParams()['HTTP_REFERER'] ?? '';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PRECISAMOS INJETAR ESSE SERVICE NO CONSTRUCTOR DE 'ValidationExceptionMiddleware':
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Contracts\SessionInterface;
+use App\Exception\ValidationException;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class ValidationExceptionMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly ResponseFactoryInterface $responseFactory, private readonly SessionInterface $session, private readonly RequestServiceInterface $requestService) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        try {
+            return $handler->handle($request);
+        } catch (ValidationException $e) {
+            $response = $this->responseFactory->createResponse();
+
+            $referer = $this->requestService->getReferer();
+
+            $referer = $request->getServerParams()['HTTP_REFERER'];  // * gets the 'Referer' header, which contains the URL of the page that the user was trying to access.
+            $oldData = $request->getParsedBody();
+
+            // Use this Info/list to remove the 'password' and 'confirmPassword' fields from the old data, to avoid flashing sensitive information on the session.
+            $sensitiveFields = ['password', 'confirmPassword'];
+
+            // Flash errors and old form data to the session, so that it can be used in the template.
+            $this->session->flash('errors', $e->errors());  // * flashes the errors to the session, so that they can be displayed in the template.
+            $this->session->flash('old', array_diff_key($oldData, array_flip($sensitiveFields)));  // * flashes the old form data to the session, so that it can be displayed in the template, on validation errors.
+
+            return $response->withHeader('Location', $referer)->withStatus(302);  // This will redirect the user back to the 'register' page (the page that the user was trying to access, to be more precise)...
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ CRIAMOS ESSE METHOD...
+
+
+
+
+
+
+
+
+
+
+
+
+-> A PRIMEIRA ETAPA É 
+
+'GET THE REFERRER THE WAY WE WERE GETTING IT BEFORE',
+
+com este código:
+
+
+
+
+
+
+    public function getReferer($request): string
+    {
+        return $this->request->getServerParams()['HTTP_REFERER'] ?? '';
+    }
+
+
+
+
+
+
+
+
+
+
+
+-> MAS O PROFESSOR EXPLICA QUE PODEMOS 
+PEGAR ESSE REFERER DE UMA MANEIRA MELHOR...
+
+
+
+
+
+
+
+
+-> BASTA ESCREVER ASSIM:
+
+
+
+    public function getReferer($request): string
+    {
+        return $this->request->getHeader('referer')[0] ?? '';
+    }
+
+
+
+
+
+
+
+
+SE O REFERER NÃO ESTÁ SET, POR QUALQUER RAZÃO,
+
+PRECISAMOS 
+
+TER ALGUM TIPO DE FALLBACK LOGIC,
+
+PARA QUE O USER SEJA REDIRECIONADO A ALGUM LUGAR...
+
+
+
+
+
+
+
+
+-> PARA ISSO, PODEMOS USAR A CLASS DE 'SESSION'...
+
+
+
+
+
+
+--> PODEMOS ESCREVER ALGO ASSIM:
+
+
+
+
+    public function getReferer($request): string
+    {
+        $referer = $this->request->getHeader('referer')[0] ?? '';
+
+        if(!$referer) {
+            return $this->session->get('previousUrl');
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+-> E VAMOS FAZER O SETUP DE 'previousUrl' NA SESSION,
+    DAQUI A POUCO...
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR INJETA A SESSION INTERFACE NO CONSTRUCTOR...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use Psr\Http\Message\ServerRequestInterface;
+
+class RequestService
+{
+    public function __construct(private readonly ServerRequestInterface $request, private readonly SessionInterface $session) {}
+
+    public function getReferer($request): string
+    {
+        $referer = $this->request->getHeader('referer')[0] ?? '';
+
+        if(!$referer) {
+            return $this->session->get('previousUrl');
+        }
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> DEPOIS DISSO,
+
+ ABRIMOS O MIDDLEWARE DE 'StartSessionsMiddleware',
+
+
+
+ QUE É O LUGAR ONDE VAMOS QUERER 
+
+ FAZER 'SET' 
+
+ DO VALUE DE 'previousUrl',
+
+
+
+ NA '$_SESSION' superglobal...
+
+
+
+
+
+
+
+
+
+
+
+ -> PARA ISSO, PODEMOS SALVAR O REQUEST URL,
+
+ QUE PODEMOS OBTER DO REQUEST OBJECT,
+  
+
+  DENTRO DA SESSION,
+
+
+  ANTES DE CHAMAR O METHOD DE '->save()'...
+
+
+
+
+
+
+
+
+->  TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Contracts\SessionInterface;
+use App\Exception\SessionException;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class StartSessionsMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly SessionInterface $session) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {   
+
+        $this->session->start();
+
+        $response = $handler->handle($request);
+
+        $this->session->put('previousUrl', (string) $request->getUri());
+
+        $this->session->save();
+
+        return $response;
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+-> SE CASTAMOS ISSO COMO STRING,
+
+
+NOS SERÁ DADA A PROPERLY FORMATTED URL...
+
+
+
+
+
+
+
+
+
+
+
+--> MAS, COM ISSO, FICAMOS COM 1 PROBLEMA...
+
+
+
+
+
+
+
+O PROBLEMA:
+
+
+
+ESSA LINHA DE 
+
+'$this->session->put()'
+
+
+
+da previousUrl vai ser executada 
+
+
+COM TODOS OS REQUESTS,
+
+ATÉ MESMO REQUESTS 
+
+DE TIPO POST/PUT/DELETE....
+
+
+
+
+
+
+
+
+
+
+
+--> E NÃO QUEREMOS QUE ESSA 'previousUrl'
+
+
+SEJA ENFIADA NA NOSSA SESSION 
+
+
+
+COM TODO TIPO DE REQUEST...
+
+
+
+
+
+
+
+-> QUEREMOS REDIRECIONAR O USER ___SOMENTE__ 
+
+
+QUANDO ELE FAZ 1 PAGE REQUEST,
+
+
+PAGE REQUEST QUE SEJA 1 GET REQUEST...
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE PODEMOS ESCREVER UMA CONDITION COMO 
+
+
+
+
+'if($request->getMethod() === 'GET') {
+            $this->session->put('previousUrl', (string) $request->getUri());
+}'
+
+
+
+
+
+
+
+
+
+TAMBÉM PRECISAMOS 'CHECK IF IT IS AN AJAX REQUEST OR NOT'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR APONTA QUE 
+
+''WE STILL HAVEN'T 
+    IMPLEMENTED THE AJAX REQUEST HANDLING YET'',
+
+
+
+
+
+por isso 
+
+
+
+VAMOS MODIFICAR ISSO MAIS TARDE, QUANDO CODARMOS AS PARTES DOS AJAX REQUESTS...
+
+
+
+
+
+
+
+
+
+
+AJAX REQUESTS --> 'XHR REQUESTS'...
+
+
+
+
+
+
+
+
+
+VOLTAMOS AO REQUEST SERVICE:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use Psr\Http\Message\ServerRequestInterface;
+
+class RequestService
+{
+    public function __construct(private readonly ServerRequestInterface $request, private readonly SessionInterface $session) {}
+
+    public function getReferer($request): string
+    {
+        $referer = $this->request->getHeader('referer')[0] ?? '';
+
+        if(!$referer) {
+            return $this->session->get('previousUrl');
+        }
+    }
+
+}
+
+
+
+
+
+
+
+
+
+DEPOIS DAQUELE IF, TEMOS QUE CHECAR 
+
+O HOST DO REFER URL,
+
+
+E GARANTIR QUE ELE DÁ MATCH COM A 'REQUEST URL' 
+
+
+DO REQUEST...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS EXTRAIR O HOST COM A FUNCTION DE 
+
+
+
+'parse_url()',
+
+
+com o argument de '$referer'...
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Contracts\SessionInterface;
+use Psr\Http\Message\ServerRequestInterface;
+
+class RequestService
+{
+    public function __construct(private readonly ServerRequestInterface $request, private readonly SessionInterface $session) {}
+
+    public function getReferer($request): string
+    {
+        $referer = $this->request->getHeader('referer')[0] ?? '';
+
+        if(!$referer) {
+            return $this->session->get('previousUrl');
+        }
+
+        $refererHost = parse_url($referer, PHP_URL_HOST);
+
+        if ($refererHost !== $request->getUri()->getHost()) {
+            $referer = $this->session->get('previousUrl');
+        }
+
+        return $referer;
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESSES SÃO APENAS ALGUNS LAYERS ADICIONAIS DE PROTEÇÃO NO NOSSO APP...
+
+
+
+
+
+
+
+
+
+
+
+--> OK, COM ISSO NOSSO REDIRECT FUNCIONA,
+O FILL DA FORM FUNCIONA TAMBÉM,
+
+E O FLASH DOS ERRORS, TAMBÉM...
+
+
+
+
+
+
+NO PRÓXIMO VIDEO, VAMOS REFATORAR O CONTROLLER DE 'AUTH' UM POUCO,
+
+AUTHCONTROLLER, 
+TUDO PARA QUE NOSSOS CONTROLLERS FIQUEM THINNER,
+
+POR MEIO DO EXTRACT DA VALIDATION E 
+
+
+O PUT DELA EM 1 CLASS PRÓPRIA...
