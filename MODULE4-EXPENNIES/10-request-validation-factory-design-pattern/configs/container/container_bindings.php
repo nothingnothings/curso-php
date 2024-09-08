@@ -2,11 +2,13 @@
 
 use App\Contracts\AuthInterface;
 use App\Contracts\RequestServiceInterface;
+use App\Contracts\RequestValidatorFactoryInterface;
 use App\Contracts\SessionInterface;
 use App\Contracts\UserProviderServiceInterface;
 use App\DTOs\SessionConfig;
 use App\Enum\AppEnvironment;
 use App\Enum\SameSite;
+use App\Factories\ValidatorFactory;
 use App\Services\RequestService;
 use App\Services\UserProviderService;
 use App\Auth;
@@ -15,6 +17,7 @@ use App\Session;
 use DI\Container as DIContainer;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;
+use GuzzleHttp\Psr7\Request;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -62,6 +65,7 @@ return [
             $config->get('session.flash_name', 'flash'),
         )
     ),
+    RequestValidatorFactoryInterface::class => fn(ContainerInterface $container) => $container->get(ValidatorFactory::class),
     Config::class => create(Config::class)->constructor(require CONFIG_PATH . '/app.php'),
     EntityManager::class => fn(Config $config) => EntityManager::create(
         $config->get('doctrine.connection'),

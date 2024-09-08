@@ -1002,3 +1002,1222 @@ OK... AÍ TENTAMOS ENTRAR NA PAGE,
 
 
 CRIAMOS 1 NOVO USER, PARA TESTAR SE O AUTHENTICATE E REDIRECT AO DASHBOARD FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK, ESTÁ FUNCIONANDO... MAS O PROFESSOR QUER REFATORAR MAIS UMA PARTE, A PARTE DE VALIDATION EM 
+'register()':
+
+
+
+
+
+
+   public function register(Request $request, Response $response): Response
+    {
+
+       $data = $request->getParsedBody();
+
+
+       [
+       'name' => $name, 
+       'email' => $email, 
+       'password' => $password, 
+       'confirmPassword' => $confirmPassword
+        ] = $data;
+
+        $userData = new UserData($name, $email, $password);
+
+
+       $v = new Validator($data);
+
+       $v->rule('required', ['name', 'email', 'password', 'confirmPassword']);
+       $v->rule('email', 'email');
+       $v->rule('equals', 'confirmPassword', 'password')->label('Confirm Password');
+
+       $v->rule(
+            function($field, $value, $params, $fields) use ($email) {
+      
+                $numberOfUsers = $this->entityManager->getRepository(User::class)->count(['email' => $value]);
+
+                return !$numberOfUsers; // will return 'true' if the number is 0 (no users found), and 'false' if the number is 1 (fail-case, when a user already exists with the email).
+            }, 'email'
+        )->message("User with the given email address already exists.");
+
+
+        if(!$v->validate()) {
+            throw new ValidationException($v->errors());
+        } 
+       
+       $this->auth->register($userData);
+    
+        return $response->withHeader('Location', '/')->withStatus(302);
+    }
+
+
+
+
+
+
+
+
+ELE QUER EXTRAIR TODAS ESSAS RULES E TUDO RELACIONADO À VALIDATION, EM CLASSES PRÓPRIAS:
+
+
+       $v = new Validator($data);
+
+       $v->rule('required', ['name', 'email', 'password', 'confirmPassword']);
+       $v->rule('email', 'email');
+       $v->rule('equals', 'confirmPassword', 'password')->label('Confirm Password');
+
+       $v->rule(
+            function($field, $value, $params, $fields) use ($email) {
+      
+                $numberOfUsers = $this->entityManager->getRepository(User::class)->count(['email' => $value]);
+
+                return !$numberOfUsers; // will return 'true' if the number is 0 (no users found), and 'false' if the number is 1 (fail-case, when a user already exists with the email).
+            }, 'email'
+        )->message("User with the given email address already exists.");
+
+
+        if(!$v->validate()) {
+            throw new ValidationException($v->errors());
+        } 
+
+
+
+
+
+
+
+
+
+
+
+    -> PODEMOS TER 1 VALIDATION CLASS PARA A USER REGISTRATION,
+
+    QUE VAI CONTER AS RULES 
+
+    E VALIDATION PARA A PARTE DE REGISTRATION...
+
+
+
+
+
+--> E PODEMOS TER 1 VALIDATION CLASS PARA O USER LOGIN,
+
+E ASSIM POR DIANTE..
+
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE VALE A PENA REFATORAR O CÓDIGO PARA ALGO ASSIM:
+
+
+
+
+
+
+
+$data = (new RegisterUserRequestValidator())->validate($request->getParsedBody());  
+
+
+
+
+
+
+
+
+OU SEJA, TEREMOS ESSA CLASS 'RegisterUserRequestValidator()'
+
+
+
+
+
+
+--> VAMOS COLOCAR ISSO EM 1 NAMESPACE PRÓPRIO, COMO 'REQUESTVALIDATORS'...
+
+
+
+
+
+
+
+-> ESSE RegisterUserRequestValidator 
+
+VAI TER 1 ÚNICO METHOD, 'validate':
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\RequestValidators;
+
+use App\Contracts\RegisterUserRequestValidatorInterface;
+use App\Contracts\RequestValidatorInterface;
+use App\DTOs\UserData;
+use App\Entity\User;
+use Doctrine\ORM\EntityManager;
+
+class RegisterUserRequestValidator implements RegisterUserRequestValidatorInterface
+{
+    public function __construct( private readonly EntityManager $entityManager) {}
+
+    public function validate(UserData $userData): array
+    {
+        $v = new \Valitron\Validator($userData);
+
+        $v->rule('required', ['name', 'email', 'password', 'confirmPassword']);
+        $v->rule('email', 'email');
+        $v->rule('equals', 'confirmPassword', 'password')->label('Confirm Password');
+
+        $v->rule(
+            function ($field, $value, $params, $fields) use ($userData) {
+                $numberOfUsers = $this->entityManager->getRepository(User::class)->count(['email' => $value]);
+
+                return !$numberOfUsers;  // will return 'true' if the number is 0 (no users found), and 'false' if the number is 1 (fail-case, when a user already exists with the email).
+            }, 'email'
+        )->message('User with the given email address already exists.');
+
+        if (!$v->validate()) {
+            throw new \App\Exception\ValidationException($v->errors());
+        }
+
+        return $v->errors();
+    }
+}
+
+
+
+
+
+
+
+
+O CONTROLLER VAI FICAR TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+    public function register(Request $request, Response $response): Response
+    {
+
+       $data = $request->getParsedBody();
+
+
+       [
+       'name' => $name, 
+       'email' => $email, 
+       'password' => $password, 
+       'confirmPassword' => $confirmPassword
+        ] = $data;
+
+        $userData = new UserData($name, $email, $password);
+        $parsedBody = $request->getParsedBody();
+
+        $data = (new RegisterUserRequestValidator())->validate($parsedBody); 
+
+        $this->auth->register($userData);
+    
+        return $response->withHeader('Location', '/')->withStatus(302);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... INJETAMOS O ENTITYMANAGER,
+
+
+E AÍ 
+
+
+
+ELE VAI RETORNAR O ARRAY DE ERRORS, SE OCORREREM QUAISQUER ERRORS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS AQUI TEMOS 1 PROBLEMA:
+
+
+''WE ARE EXPECTING ENTITY MANAGER AS A DEPENDENCY, IN THE CONSTRUCTOR...
+
+AND WE ARE INSTANTIATING THIS CLASS DIRECTLY IN THE CONTROLLER''..
+
+
+
+
+
+
+
+
+OU SEJA,
+
+NESTE TRECHO:
+
+
+
+
+
+
+        $data = (new RegisterUserRequestValidator())->validate($parsedBody); 
+
+
+
+
+
+
+
+
+
+PRECISARÍAMOS PASSAR O ENTITY MANAGER A ESSA CALL...
+
+
+
+
+
+
+
+
+
+MAS O PROFESSOR N QUER PASSAR O ENTITYMANAGER MANUALMENTE,
+
+
+TODA VEZ QUE ELE QUER CRIAR 1 REQUESTVALIDATOR OBJECT... 
+
+
+
+
+
+
+
+
+
+
+EM VEZ DISSO, O PROFESSOR 
+
+
+''WANTS SOMETHING LIKE A CONTAINER,
+
+THAT WILL BE RESPONSIBLE FOR GENERATING A NEW INSTANCE OF THIS REQUESTVALIDATOR 
+CLASS, OR ANY REQUESTVALIDATOR CLASS, THAT WE GENERATE FROM NOW ON''...
+
+
+
+
+
+
+
+
+
+-> COMO O PROFESSOR DIZ QUE 
+
+''WE NEED ""SOMETHING"" TO GENERATE 
+OR  CREATE AN INSTANCE OF REQUEST VALIDATOR CLASSES''',
+
+
+
+
+
+ISSO QUER DIZER QUE 
+
+PRECISAMOS DE UM FACTORY CLASS,
+
+
+
+
+QUE ENTÃO GERARÁ ESSAS COISAS, 'READY-TO-USE'...
+
+
+
+
+
+
+
+OK... É POR ISSO QUE VAMOS CRIAR 1 NOVO NAMESPACE, 'FACTORIES',
+
+EM QUE VAMOS COLOCAR 
+
+
+O 
+
+
+'ValidatorFactory',
+
+ou algo do gênero...
+
+
+
+
+
+
+
+
+
+TIPO ALGO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Factories;
+
+use App\Contracts\ValidatorInterface;
+use App\RequestValidators\RegisterUserRequestValidator;
+use Doctrine\ORM\EntityManager;
+
+class ValidatorFactory
+{
+
+    public function __construct(private readonly EntityManager $entityManager) {}
+
+    public function createValidator(string $validatorName): ValidatorInterface
+    {
+        switch ($validatorName) {
+            case 'RegisterUserRequestValidator':
+                return new RegisterUserRequestValidator($this->entityManager);
+            default:
+                throw new \Exception('Validator not found');
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, NO CASO,
+
+
+VAMOS USAR ESSE NEGÓCIO PARA CRIAR 1 VALIDATOR LÁ NO AUTHCONTROLLER,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Factories;
+
+use App\Contracts\ValidatorInterface;
+use App\RequestValidators\RegisterUserRequestValidator;
+use Doctrine\ORM\EntityManager;
+
+class ValidatorFactory
+{
+
+    public function __construct(private readonly EntityManager $entityManager) {}
+
+    public static function makeValidator(string $validatorName): ValidatorInterface
+    {
+        switch ($validatorName) {
+            case 'RegisterUserRequestValidator':
+                return new RegisterUserRequestValidator(self::$entityManager);
+            default:
+                throw new \Exception('Validator not found');
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, COM ISSO, PODEMOS CHAMAR ASSIM, NO AUTHCONTROLLER:
+
+
+
+
+
+
+
+    public function register(Request $request, Response $response): Response
+    {
+
+       $data = $request->getParsedBody();
+
+
+       [
+       'name' => $name, 
+       'email' => $email, 
+       'password' => $password, 
+       'confirmPassword' => $confirmPassword
+        ] = $data;
+
+        $userData = new UserData($name, $email, $password);
+        $parsedBody = $request->getParsedBody();
+
+        $registerValidator = ValidatorFactory::makeValidator('RegisterUserRequestValidator');
+
+        $data = $registerValidator->validate($parsedBody);
+
+        $this->auth->register($userData);
+    
+        return $response->withHeader('Location', '/')->withStatus(302);
+    }
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+        $registerValidator = ValidatorFactory::makeValidator('RegisterUserRequestValidator');
+
+        $data = $registerValidator->validate($parsedBody);
+
+        $this->auth->register($userData);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O JOB DA FACTORY É BASICAMENTE 'CREATE AND RESOLVE 
+                                NEW INSTANCE OF AN OBJECT,
+                                AND RETURN IT'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR PREFERE ESCREVER ASSIM:
+
+
+
+
+
+$data = $this->requestValidatorFactory->make(RegisterUserRequestValidator::class)->validate($request->getParsedBody());
+
+
+
+
+
+MAS É CLARO QUE ISSO É BASICAMENTE A MESMA COISA QUE EU ESCREVI...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESTE CÓDIGO FICOU BOM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Factories;
+
+use App\Contracts\ValidatorInterface;
+use App\RequestValidators\RegisterUserRequestValidator;
+use Doctrine\ORM\EntityManager;
+
+class ValidatorFactory
+{
+
+    public function __construct(private readonly EntityManager $entityManager) {}
+
+    public static function make(string $validatorName): ValidatorInterface
+    {
+        switch ($validatorName) {
+            case 'RegisterUserRequestValidator':
+                return new RegisterUserRequestValidator(self::$entityManager);
+            default:
+                throw new \Exception('Validator not found');
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+
+MAS AINDA PRECISAMOS BINDAR ESSA FACTORY LÁ 
+
+
+
+
+NO 'container_bindings',
+
+
+para ficarmos com 1 concrete implementation,
+
+tipo assim:
+
+
+
+
+
+
+
+    RequestValidatorFactoryInterface::class => fn(ContainerInterface $container) => $container->get(ValidatorFactory::class),
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS O PROFESSOR ESCREVEU DE FORMA DIFERENTE, TIPO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Factories;
+
+use App\Contracts\RequestValidatorInterface;
+use App\RequestValidators\RegisterUserRequestValidator;
+use Doctrine\ORM\EntityManager;
+
+class ValidatorFactory
+{
+
+    public function __construct(private readonly EntityManager $entityManager) {}
+
+    public static function make(string $validatorName): RequestValidatorInterface
+    {
+
+        $validator = $this->container->get($class);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> mas não faz diferença...
+
+
+
+
+
+
+
+mas o professor faz uns checks melhores:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Factories;
+
+use App\Contracts\RequestValidatorInterface;
+use App\RequestValidators\RegisterUserRequestValidator;
+use Doctrine\ORM\EntityManager;
+use Psr\Container\ContainerInterface;
+
+class ValidatorFactory
+{
+
+    public function __construct(private readonly ContainerInterface $container) {}
+
+    public function make(string $class): RequestValidatorInterface
+    {
+
+        $validator = $this->container->get($class);
+
+        if ($validator instanceof RequestValidatorInterface) {
+            return $validator;
+        }
+
+        throw new \RuntimeException('Failed to instantiate the request validator class: ' . $class );  
+
+    }
+}
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+    public function register(Request $request, Response $response): Response
+    {
+
+       $data = $request->getParsedBody();
+
+
+       [
+       'name' => $name, 
+       'email' => $email, 
+       'password' => $password, 
+       'confirmPassword' => $confirmPassword
+        ] = $data;
+
+        $userData = new UserData($name, $email, $password);
+        $parsedBody = $request->getParsedBody();
+
+
+        $data = $this->requestValidatorFactory
+                    ->make(RegisterUserRequestValidator::class)
+                    ->validate($parsedBody);
+
+        $this->auth->register($userData);
+    
+        return $response->withHeader('Location', '/')->withStatus(302);
+    }
+
+
+
+
+
+
+TEMOS QUE REFATORAR A PARTE DE 'LOGIN', TAMBÉM,
+
+PQ ELA AINDA ESTÁ USANDO AQUELAS RULES ANTIGAS:
+
+
+
+
+
+
+
+
+
+
+
+    public function logIn(Request $request, Response $response): Response
+    {
+        // 1. Validate the request data  // * DONE  
+
+        $data = $request->getParsedBody();
+        ['email' => $email, 'password' => $password ] = $data;
+     
+        $v = new Validator($data);
+
+        $v->rule('required', ['email', 'password']);
+        $v->rule('email', 'email');
+
+
+        // 2. Check the user credentials // * DONE  
+        if(!$v->validate()) {
+            echo 'Entered';
+            var_dump($v->errors());
+            throw new ValidationException($v->errors());
+        } 
+
+        if($this->auth->attemptLogin($data)) {
+            throw new ValidationException(['password' => ['You have entered an invalid username or password.']]);
+        }
+
+        // 4. Redirect user to the home page // * DONE  
+        return $response->withHeader('Location', '/')->withStatus(302); 
+    }
+
+
+
+
+VAMOS DEIXAR TIPO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\RequestValidators;
+
+use App\Contracts\RequestValidatorInterface;
+use App\DTOs\UserData;
+use Doctrine\ORM\EntityManager;
+
+class LoginUserRequestValidator implements RequestValidatorInterface
+{
+    public function __construct( private readonly EntityManager $entityManager) {}
+
+    public function validate(UserData $userData): array
+    {
+        $v = new \Valitron\Validator($userData);
+
+        $v->rule('required', ['email', 'password']);
+        $v->rule('email', 'email');
+
+
+        if (!$v->validate()) {
+            throw new \App\Exception\ValidationException($v->errors());
+        }
+
+        return $v->errors();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... COM ISSO, CRIAMOS NOVAS CLASSES DE VALIDATOR,
+
+
+
+
+
+COM ESSA FACTORY...
+
+
+
+
+
+
+
+-> DEIXAMOS 
+    NOSSOS CONTROLLERS BEM MAIS THIN E FÁCEIS DE MAINTAIN...
+
+
+
+
+
+
+    -> USAMOS MAIS INTERFACES E APRENDEMOS 
+
+
+    MAIS SOBRE O DESIGN PATTERN DE FACTORIES...
+
+
+
+
+
+
+
+
+--> HÁ DIVERSAS MANEIRAS DE IMPLEMENTAR AS MESMAS COISAS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> POR EXEMPLO,
+
+
+O LARAVEL FORNECE A FUNCTIONALITY 
+DE 
+
+'CUSTOM REQUEST CLASSES',
+
+
+
+EM QUE VC PODE 
+
+
+
+''INJECT CUSTOM REQUEST CLASS IN CONTROLLER METHODS,
+INSTEAD OF THE REGULAR REQUEST CLASS...
+
+WITH THAT, YOU WOULD DEFINE THE VALIDATION RULES FROM INSIDE THAT 
+CUSTOM REQUEST CLASS... THEN, LARAVEL WOULD 
+TAKE CARE OF THE ACTUAL VALIDATION AND THE THROW OF EXCEPTIONS AND ETC''....
+
+
+
+
+
+
+
+
+
+poderíamos escrever algo parecido, mas seria complicar demais o código...
+
+
+
+
+
+
+
+
+
+-> AGORA VAMOS TESTAR O CÓDIGO, PARA VER SE ESTÁ TUDO FUNCIONANDO:
+
+
+
+
+
+
+
+
+
+
+
+
+    public function register(Request $request, Response $response): Response
+    {
+
+       $data = $request->getParsedBody();
+
+
+       [
+       'name' => $name, 
+       'email' => $email, 
+       'password' => $password, 
+       'confirmPassword' => $confirmPassword
+        ] = $data;
+
+        $userData = new UserData($name, $email, $password);
+        $parsedBody = $request->getParsedBody();
+
+
+        $data = $this->requestValidatorFactory
+                    ->make(RegisterUserRequestValidator::class)
+                    ->validate($parsedBody);
+
+        $this->auth->register($userData);
+    
+        return $response->withHeader('Location', '/')->withStatus(302);
+    }
+
+
+    public function logIn(Request $request, Response $response): Response
+    {
+        // 1. Validate the request data and check the user's credentials  // * DONE  
+
+        $data = $this->requestValidatorFactory->make(UserLoginRequestValidator::class)->validate($request->getParsedBody());
+            
+        if (!$this->auth->attemptLogin($data)) {
+            throw new ValidationException(['password' => ['You have entered an invalid username or password.']]);
+        }
+
+        // 2. Redirect user to the home page // * DONE  
+        return $response->withHeader('Location', '/')->withStatus(302); 
+    }
+
+
+    public function logOut(Request $request, Response $response): Response
+    {
+        $this->auth->logout();
+
+        return $response->withHeader('Location', '/')->withStatus(302);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+ESTÁ TUDO FUNCIONANDO...
+
+
+
+
+
+
+HÁ OUTRA COISA QUE PODERÍAMOS TER MELHORADO...
+
+
+
+
+
+
+
+
+-> AINDA ESTAMOS  ACESSANDO O ENTITYMANAGER,
+
+DE DENTRO DO REQUESTVALIDATOR:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\RequestValidators;
+
+use App\Contracts\RequestValidatorInterface;
+use App\DTOs\UserData;
+use App\Entity\User;
+use Doctrine\ORM\EntityManager;
+
+class RegisterUserRequestValidator implements RequestValidatorInterface
+{
+    public function __construct( private readonly EntityManager $entityManager) {}
+
+    public function validate(UserData $userData): array
+    {
+        $v = new \Valitron\Validator($userData);
+
+        $v->rule('required', ['name', 'email', 'password', 'confirmPassword']);
+        $v->rule('email', 'email');
+        $v->rule('equals', 'confirmPassword', 'password')->label('Confirm Password');
+
+        $v->rule(
+            function ($field, $value, $params, $fields) use ($userData) {
+                $numberOfUsers = $this->entityManager->getRepository(User::class)->count(['email' => $value]);
+
+                return !$numberOfUsers;  // will return 'true' if the number is 0 (no users found), and 'false' if the number is 1 (fail-case, when a user already exists with the email).
+            }, 'email'
+        )->message('User with the given email address already exists.');
+
+        if (!$v->validate()) {
+            throw new \App\Exception\ValidationException($v->errors());
+        }
+
+        return $v->errors();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+PODERÍAMOS MELHORAR ISSO POR MEIO 
+
+DO EXTRACT DAS RULES A 1 CUSTOM RULE CLASS... MAS 
+
+ISSO É MEIO OVERKILL.... JÁ EXTRAÍMOS TODAS AS VALIDATION RULES 
+
+PARA DENTRO 
+
+DE ESSA CLASS DE 'RegisterUserRequestValidator',
+
+
+é fine acessar o entityManager aí dentro...
+
+
+
+
+
+
+-> NA PRÓXIMA AULA, 
+
+VEREMOS ALGUNS OUTROS TÓPICOS..
+
+
+
+
+
+
+-> IMPLEMENTAREMOS AS FUNCTIONALITIES DE EMAIL VERIFICATION E FORGOT PASSWORD MAIS TARDE...
