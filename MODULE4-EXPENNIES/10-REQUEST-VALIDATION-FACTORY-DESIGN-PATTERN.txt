@@ -1,0 +1,1004 @@
+
+
+
+
+
+
+
+
+
+--> CONTINUAREMOS COM O NOSSO REFACTORING...
+
+
+
+
+
+
+
+
+
+
+
+-> DESSA VEZ, VAMOS REFACTOR
+    A PARTE DO AUTHCONTROLLER...
+
+
+
+
+
+
+
+
+
+
+
+
+---> O AUTHCONTROLLER ESTÁ ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Contracts\AuthInterface;
+use App\Entity\User;
+use App\Exception\ValidationException;
+use Psr\Http\Message\ResponseInterface as Response;
+use Slim\Psr7\Request as Request;
+use Slim\Views\Twig;
+use Valitron\Validator;
+
+
+class AuthController
+{
+
+    public function __construct(private readonly Twig $twig,  private readonly AuthInterface $auth) {}
+
+    public function loginView(Request $request, Response $response): Response
+    {
+        return $this->twig->render($response, 'auth/login.twig');
+    }
+
+
+
+    public function registerView(Request $request, Response $response): Response
+    {
+
+        return $this->twig->render($response, 'auth/register.twig');
+    }
+
+
+    public function register(Request $request, Response $response): Response
+    {
+
+       $data = $request->getParsedBody();
+
+
+       [
+       'name' => $name, 
+       'email' => $email, 
+       'password' => $password, 
+       'confirmPassword' => $confirmPassword
+        ] = $data;
+
+
+       $v = new Validator($data);
+
+       $v->rule('required', ['name', 'email', 'password', 'confirmPassword']);
+       $v->rule('email', 'email');
+       $v->rule('equals', 'confirmPassword', 'password')->label('Confirm Password');
+
+       $v->rule(
+            function($field, $value, $params, $fields) use ($email) {
+      
+                $numberOfUsers = $this->entityManager->getRepository(User::class)->count(['email' => $value]);
+
+                return !$numberOfUsers; // will return 'true' if the number is 0 (no users found), and 'false' if the number is 1 (fail-case, when a user already exists with the email).
+            }, 'email'
+        )->message("User with the given email address already exists.");
+
+
+        if(!$v->validate()) {
+            throw new ValidationException($v->errors());
+        } 
+       
+       $user = new User();
+
+       $user->setName($name);
+       $user->setEmail($email);
+       $user->setHashedPassword($password);
+
+       $this->entityManager->persist($user);
+       $this->entityManager->flush();
+       
+       var_dump($data, 'THE DATA');
+
+        return $response;
+    }
+
+
+    public function logIn(Request $request, Response $response): Response
+    {
+        // 1. Validate the request data  // * DONE  
+
+        $data = $request->getParsedBody();
+        ['email' => $email, 'password' => $password ] = $data;
+     
+        $v = new Validator($data);
+
+        $v->rule('required', ['email', 'password']);
+        $v->rule('email', 'email');
+
+
+        // 2. Check the user credentials // * DONE  
+        if(!$v->validate()) {
+            echo 'Entered';
+            var_dump($v->errors());
+            throw new ValidationException($v->errors());
+        } 
+
+        if($this->auth->attemptLogin($data)) {
+            throw new ValidationException(['password' => ['You have entered an invalid username or password.']]);
+        }
+
+        // 4. Redirect user to the home page // * DONE  
+        return $response->withHeader('Location', '/')->withStatus(302); 
+    }
+
+
+    public function logOut(Request $request, Response $response): Response
+    {
+        $this->auth->logout();
+
+
+        return $response->withHeader('Location', '/')->withStatus(302);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR ACHA QUE ESSE CONTROLLER ESTÁ 'DOING TOO MUCH'...
+
+
+
+
+
+
+
+
+-> É UMA GOOD PRACTICE DEIXAR SEUS CONTROLLERS SLIM....
+
+
+
+
+
+
+
+
+
+
+-> A PRIMERIA COISA QUE O PROFESSOR QUER REFATORAR É ESSA PARTE DE VALIDATION:
+
+
+
+
+
+
+
+
+
+    public function register(Request $request, Response $response): Response
+    {
+
+       $data = $request->getParsedBody();
+
+
+       [
+       'name' => $name, 
+       'email' => $email, 
+       'password' => $password, 
+       'confirmPassword' => $confirmPassword
+        ] = $data;
+
+
+       $v = new Validator($data);
+
+       $v->rule('required', ['name', 'email', 'password', 'confirmPassword']);
+       $v->rule('email', 'email');
+       $v->rule('equals', 'confirmPassword', 'password')->label('Confirm Password');
+
+       $v->rule(
+            function($field, $value, $params, $fields) use ($email) {
+      
+                $numberOfUsers = $this->entityManager->getRepository(User::class)->count(['email' => $value]);
+
+                return !$numberOfUsers; // will return 'true' if the number is 0 (no users found), and 'false' if the number is 1 (fail-case, when a user already exists with the email).
+            }, 'email'
+        )->message("User with the given email address already exists.");
+
+
+        if(!$v->validate()) {
+            throw new ValidationException($v->errors());
+        } 
+       
+       $user = new User();
+
+       $user->setName($name);
+       $user->setEmail($email);
+       $user->setHashedPassword($password);
+
+       $this->entityManager->persist($user);
+       $this->entityManager->flush();
+       
+       var_dump($data, 'THE DATA');
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ELE QUER COLOCAR ISSO EM 1 CLASS DE VALIDATION PRÓPRIA,
+
+EXTRAIR ISSO AÍ...
+
+
+
+
+
+
+
+--> VEREMOS ISSO EM ALGUNS MINUTOS, MAS, ANTES DISSO,
+
+
+TEMOS QUE MEXER EM OUTRA COISA..
+
+
+
+
+
+
+
+
+-> É ESTA PARTE, DE USER REGISTRATION:
+
+
+
+
+
+       $user = new User();
+
+       $user->setName($name);
+       $user->setEmail($email);
+       $user->setHashedPassword($password);
+
+       $this->entityManager->persist($user);
+       $this->entityManager->flush();
+       
+       var_dump($data, 'THE DATA');
+
+        return $response;
+
+
+
+
+
+
+
+
+
+
+
+--> ESTAMOS CRIANDO 1 NOVO USER DENTRO DO CONTROLLER...
+
+
+    ISSO SIGNIFICA QUE ESTAMOS ACESSANDO O ENTITYMANAGER 
+
+    E DECIDINDO COMO VAMOS 'HASH THE PASSWORD',
+
+
+    TUDO DENTRO DE ESSE CONTROLLER...
+
+
+
+
+
+
+
+
+-> TAMBÉM, DEPOIS QUE O USER FAZ REGISTER,
+    NÓS TAMBÉM NÃO ESTAMOS REDIRECTING O USER,
+
+    E TAMBÉM NÃO ESTAMOS REALMENTE 'AUTHENTICATING' O USER...
+
+
+
+
+
+
+-> QUEREMOS AUTHENTICATE O USER ASSIM QUE ELE FAZ SIGN UP...
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE, EM VEZ DE RETORNAR 1 PLAIN RESPONSE,
+
+
+QUEREMOS RETORNAR 1 RESPONSE COM O 'LOCATION HEADER',
+
+
+TUDO PARA QUE CONSIGAMOS REDIRECIONAR O USER à HOME PAGE,
+
+
+COM STATUS 302,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+       $user = new User();
+
+       $user->setName($name);
+       $user->setEmail($email);
+       $user->setHashedPassword($password);
+
+       $this->entityManager->persist($user);
+       $this->entityManager->flush();
+       
+       var_dump($data, 'THE DATA');
+
+        // return $response;
+
+        return $response->withHeader('Location', '/')->withStatus(302);
+
+
+
+
+
+
+ 
+
+
+
+
+DEPOIS DISSO,
+
+
+O PROFESSOR QUER 
+
+OUTSOURCE ESSA PARTE TODA DE USER CREATION,
+
+
+
+
+PARA DEIXAR A CLASS DE 'AUTH' 
+
+HANDLAR A REGISTRATION...
+
+
+
+
+
+
+
+
+-> ISSO PQ _ NÓS JÁ REFATORAMOS TODO 'AUTH-RELATED STUFF'
+
+
+PARA DENTRO 
+
+DA 
+CLASS DE 'Auth.php'...
+
+
+
+
+
+
+-> É POR ISSO QUE ESCREVEMOS ASSIM:
+
+
+
+
+
+       
+    //    $user = new User();
+
+    //    $user->setName($name);
+    //    $user->setEmail($email);
+    //    $user->setHashedPassword($password);
+
+    //    $this->entityManager->persist($user);
+    //    $this->entityManager->flush();
+
+       $this->auth->register();
+       
+       var_dump($data, 'THE DATA');
+
+        // return $response;
+
+        return $response->withHeader('Location', '/')->withStatus(302);
+
+
+
+
+
+
+
+
+
+
+CERTO... AGORA BASTA CRIAR ESSE METHOD DE 'register()',
+
+dentro 
+
+
+
+da class 'Auth'...
+
+
+
+
+
+
+
+tipo assim:
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Contracts;
+
+interface AuthInterface
+{
+    public function user(): ?UserInterface;
+
+    public function attemptLogin(array $data): bool;
+
+    public function checkCredentials(UserInterface $user, array $credentials): bool;
+
+    public function logout(): void;
+
+    public function register(array $data): UserInterface;
+}
+
+
+
+
+E ASSIM:
+
+
+
+
+
+    public function register(array $data): UserInterface
+    {
+       $user = $this->userProvider->createUser();
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+--> VAMOS COMEÇAR COM 1 METHOD COMO 'createUser',
+
+
+que vai existir nesse 'UserProvider' class...
+
+
+
+
+
+
+
+-> esse method de create user vai 
+
+
+ter alguma lógica como 
+
+
+
+'$user = new User();
+
+return  $user;'
+
+
+
+
+
+
+
+
+
+
+
+
+
+O METHOD DE 'register' vai ao mesmo tempo:
+
+
+
+1) CRIAR O USER 
+
+
+
+2) USAR O USER NO LOGIN,
+    PARA AUTHENTICATE O USER, NA PÁGINA
+
+
+
+
+
+É POR ISSO QUE FICA ASSIM:
+
+
+
+    public function register(array $data): UserInterface
+    {
+       // Create User:
+       $user = $this->userProvider->createUser($data);
+
+       // Authenticate User (use created user in login):
+       $credentials = [
+           'email' => $data['email'],
+           'password' => $data['password']
+       ];
+
+       $this->attemptLogin($credentials);
+
+       return $user;
+    }
+
+
+
+
+
+
+
+
+
+
+mas o professor também refatora o method de 'attemptLogin',
+
+
+
+
+ELE PEGA AQUELAS 3 LINHAS:
+
+
+
+
+
+
+        $this->session->regenerate();
+        $this->session->put('user', $user->getId());
+
+        $this->user = $user;
+
+
+
+
+
+
+
+
+E COLOCA EM 1 OUTRO METHOD, DE NOME 
+
+
+
+
+
+'$this->logIn($user);'
+
+
+
+
+
+
+
+-> AÍ CRIAMOS ESSE METHOD,  EM 'Auth.php':
+
+
+
+
+
+
+
+
+
+
+
+    public function attemptLogin(array $credentials): bool
+    {
+        $user = $this->userProvider->getByCredentials($credentials);
+
+
+        if (!$user || !$this->checkCredentials($user, $credentials)) {
+           return false;
+        }
+
+
+        $this->logIn($user);
+
+        return true;
+    }
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+    public function logIn(UserInterface $user): void 
+    {
+        $this->session->regenerate();
+        $this->session->put('user', $user->getId());
+
+        $this->user = $user;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+AGORA PODEMOS USAR ESSE MESMO METHOD,
+
+'logIn',
+
+LÁ EM 'register()',
+
+TIPO ASSIM:
+
+
+
+
+
+    public function register(array $data): UserInterface
+    {
+       // Create User:
+       $user = $this->userProvider->createUser($data);
+
+       $this->logIn($user);
+
+       return $user;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+A FUNCTION DE 'createUser',
+
+lá em 'UserProviderService', fica assim:
+
+
+
+
+
+    public function createUser(array $data): UserInterface
+    { 
+        $user = new User();
+        
+        $user->setName($data['name']);
+        $user->setEmail($data['email']);
+        $user->setHashedPassword($data['password']);
+
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+
+        return $user;
+    }
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, NOSSO CONTROLLER DE AUTHCONTROLLER FICOU BEM MELHOR,
+
+
+PQ AGORA 
+
+
+
+''IT DOES NOT HAVE TO WORRY OR KNOW ABOUT THE ENTITY MANAGER''...
+
+
+
+
+
+
+-> AGORA ELE APENAS CHAMA O METHOD DE '$this->auth->register()',
+
+
+QUE JÁ HANDLA A PARTE DE USER CREATION, JUNTO COM A PARTE DE USER AUTHENTICATION...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+    public function register(Request $request, Response $response): Response
+    {
+
+       $data = $request->getParsedBody();
+
+
+       [
+       'name' => $name, 
+       'email' => $email, 
+       'password' => $password, 
+       'confirmPassword' => $confirmPassword
+        ] = $data;
+
+
+       $v = new Validator($data);
+
+       $v->rule('required', ['name', 'email', 'password', 'confirmPassword']);
+       $v->rule('email', 'email');
+       $v->rule('equals', 'confirmPassword', 'password')->label('Confirm Password');
+
+       $v->rule(
+            function($field, $value, $params, $fields) use ($email) {
+      
+                $numberOfUsers = $this->entityManager->getRepository(User::class)->count(['email' => $value]);
+
+                return !$numberOfUsers; // will return 'true' if the number is 0 (no users found), and 'false' if the number is 1 (fail-case, when a user already exists with the email).
+            }, 'email'
+        )->message("User with the given email address already exists.");
+
+
+        if(!$v->validate()) {
+            throw new ValidationException($v->errors());
+        } 
+       
+       $this->auth->register($data);
+    
+        return $response->withHeader('Location', '/')->withStatus(302);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR APONTA QUE ESSA VARIABLE DE '$data'
+
+É OUTRO EXCELENTE CANDIDATO PARA UM DTO...
+
+
+
+
+       $this->auth->register($data);
+
+
+
+
+-> MESMA COISA PARA O METHOD DE 'register()':
+
+
+
+
+    public function register(array $data): UserInterface;
+
+
+
+
+
+
+
+
+
+
+
+
+EM VEZ DE ACEITAR 1 ARRAY,
+
+ELE PODE ACEITAR UM DATA DTO...
+
+
+
+
+
+
+-> FARÍAMOS A MESMA COISA NO UserProviderServiceInterface,
+
+com o 'createUser':
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Contracts;
+
+interface UserProviderServiceInterface
+{
+    public function getById(int $userId): ?UserInterface;
+
+    public function getByCredentials(array $credentials): ?UserInterface;
+
+    public function createUser(array $data): UserInterface;
+}
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS CRIAR ESSE DTO...
+
+
+
+
+
+
+-> VAMOS TENTAR CRIAR, SOZINHOS...
+
+
+
+
+
+
+
+
+
+
+
+OK.... FIZ TUDO ISSO...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\DTOs;
+
+class UserData
+{
+    public function __construct(
+        public readonly string $name,
+        public readonly string $email,
+        public readonly string $password
+    ) {}
+}
+
+
+
+
+
+
+
+
+
+OK... AÍ TENTAMOS ENTRAR NA PAGE,
+
+
+CRIAMOS 1 NOVO USER, PARA TESTAR SE O AUTHENTICATE E REDIRECT AO DASHBOARD FUNCIONA...
