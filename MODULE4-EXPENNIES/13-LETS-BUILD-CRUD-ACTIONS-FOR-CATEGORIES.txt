@@ -1039,3 +1039,759 @@ DEPOIS DISSO, DEVEMOS RODAR
 
 
 
+
+
+
+
+
+
+CERTO... AGORA AS COISAS ESTÃO FUNCIONANDO....
+
+
+
+
+
+
+
+
+
+
+
+MAS PRECISAMOS FAZER OS METHODS DE 'CategoriesController'
+
+
+funcionarem....
+
+
+
+
+
+
+
+
+COMEÇAMOS COM 'STORE':
+
+
+
+
+
+    public function store(Request $request, Response $response): Response
+    {
+        // TODO
+
+        return $response->withHeader('Location', '/categories')->withStatus(302);
+    }
+
+
+
+
+
+
+
+
+
+QUEREMOS FAZER 2 COISAS, ANTES DE REDIRECIONAR O USER PARA A PAGE DE '/categories'
+
+geral....
+
+
+
+
+
+
+
+--> QUEREMOS:
+
+
+
+1. VALIDATE REQUEST DATA 
+
+
+
+2. CREATE A NEW CATEGORY RECORD, IN THE DATABASE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> COMO VC DEVE SE LEMBRAR,
+
+
+O PROFESSOR SEMPRE ESCREVE CÓDIGO FEIO, E DEPOIS REFATORA....
+
+
+
+
+
+
+
+
+--> MAS O PROFESSOR 
+
+
+AGORA VAI DIRETO PARA O CÓDIGO LIMPO,
+
+PQ JÁ TEMOS EXPERIÊNCIA...
+
+
+
+
+
+
+
+-> LÁ NO METHOD 'register()',
+
+
+    do AuthController,
+
+    VC DEVE SE LEMBRAR 
+
+
+    DO QUÃO FEIO ESTAVA O CÓDIGO, INICIALMENTE....
+
+
+
+
+
+EVENTUALMENTE, O CÓDIGO FICOU BONITO, COM ESTE FORMATO:
+
+
+
+
+
+
+
+
+
+
+
+    public function register(Request $request, Response $response): Response
+    {
+
+       $data = $request->getParsedBody();
+
+
+       [
+       'name' => $name, 
+       'email' => $email, 
+       'password' => $password, 
+       'confirmPassword' => $confirmPassword
+        ] = $data;
+
+        $userData = new UserData($email, $password, $name);
+
+        $data = $this->requestValidatorFactory
+                    ->make(RegisterUserRequestValidator::class)
+                    ->validate($userData);
+
+        $this->auth->register($userData);
+    
+        return $response->withHeader('Location', '/')->withStatus(302);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+--> bem, nós vamos pegar esse código e colar lá na parte de 'CategoriesController',
+
+
+no 'store':
+
+
+
+
+
+
+
+
+    public function store(Request $request, Response $response): Response
+    {
+        $data = $request->getParsedBody();
+
+
+        [
+        'name' => $name, 
+        'email' => $email, 
+        'password' => $password, 
+        'confirmPassword' => $confirmPassword
+         ] = $data;
+ 
+         $userData = new UserData($email, $password, $name);
+ 
+         $data = $this->requestValidatorFactory
+                     ->make(RegisterUserRequestValidator::class)
+                     ->validate($userData);
+ 
+         $this->auth->register($userData);
+
+        return $response->withHeader('Location', '/categories')->withStatus(302);
+    }
+
+
+
+
+
+
+
+
+
+
+
+MAS VAMOS ADAPTAR ISSO, PARA QUE FUNCIONE COM ESSE METHOD TAMBÉM...
+
+
+
+
+
+O FORMATO FICARÁ MAIS OU MENOS ASSIM:
+
+
+
+
+
+
+
+
+    public function store(Request $request, Response $response): Response
+    {
+        $data = $request->getParsedBody();
+
+
+        [
+        'name' => $name,  
+         ] = $data;
+ 
+         $categoryData = new CategoryData($name);
+ 
+         $data = $this->requestValidatorFactory
+                     ->make(CreateCategoryRequestValidator::class)
+                     ->validate($categoryData);
+ 
+         $this->category->create($categoryData);
+
+        return $response->withHeader('Location', '/categories')->withStatus(302);
+    }
+
+
+
+
+
+
+
+
+
+
+--> precisamos criar essa class de 'CreateCategoryRequestValidator'...
+
+
+
+
+
+
+
+
+
+fazemos tipo assim:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\RequestValidators;
+
+use App\DTOs\CategoryData;
+use Valitron\Validator;
+
+class CreateCategoryRequestValidator
+{
+    public function validate(CategoryData $categoryData): CategoryData
+    {
+        $v = new Validator($categoryData);
+
+        $v->rule('required', ['name']);
+        $v->rule('string', ['name']);
+
+        return $categoryData;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+PRECISAMOS QUE ESSE 'name' seja required, sim...
+
+
+
+
+
+-> TAMBÉM QUEREMOS QUE A LENGTH MÁXIMA SEJA DE 50 
+
+CARACTERES, TAMBÉM...
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\RequestValidators;
+
+use App\DTOs\CategoryData;
+use Valitron\Validator;
+
+class CreateCategoryRequestValidator
+{
+    public function validate(CategoryData $categoryData): CategoryData
+    {
+        $v = new Validator($categoryData);
+
+        $v->rule('required', ['name']);
+        $v->rule('string', ['name']);
+        $v->rule('lengthMax', 'name', 50);
+
+        return $categoryData;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO, QUEREMOS IMPORTAR ESSA CLASS DENTRO DE NOSSO 
+
+CONTROLLER,
+
+TIPO ASSIM:
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Models\Category;
+use App\RequestValidators\CreateCategoryRequestValidator;
+use Slim\Psr7\Request;
+use Slim\Psr7\Response;
+use Slim\Views\Twig;
+
+class CategoriesController
+{
+
+    public function __construct(private readonly Twig $twig) {}
+
+    public function index(Request $request, Response $response): Response
+    {
+
+        return $this->twig->render($response, 'categories/index.twig');
+    }
+
+    public function store(Request $request, Response $response): Response
+    {
+        $data = $request->getParsedBody();
+
+
+        [
+        'name' => $name,  
+         ] = $data;
+ 
+         $categoryData = new CategoryData($name);
+ 
+         $data = $this->requestValidatorFactory
+                     ->make(CreateCategoryRequestValidator::class)
+                     ->validate($categoryData);
+ 
+         $this->category->create($categoryData);
+
+        return $response->withHeader('Location', '/categories')->withStatus(302);
+    }
+
+
+    public function delete(Request $request, Response $response): Response
+    {
+        // TODO
+
+        return $response->withHeader('Location', '/categories')->withStatus(302);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+DPS DISSO, PRECISAMOS ACESSAR AQUELA FACTORY DE 'requestValidatorFactory'
+
+ao constructor de 'categoriesController'...
+
+
+
+
+
+
+
+FAZEMOS TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+    public function store(Request $request, Response $response): Response
+    {
+        $data = $request->getParsedBody();
+
+
+        [
+            'name' => $name,
+        ] = $data;
+
+        $categoryData = new CategoryData($name);
+
+        $data = $this->requestValidatorFactory
+            ->make(CreateCategoryRequestValidator::class)
+            ->validate($categoryData);
+
+        $this->category->create($categoryData);
+
+        return $response->withHeader('Location', '/categories')->withStatus(302);
+    }
+
+
+
+
+
+
+
+
+
+
+
+    PRECISAMOS DE UMA SERVICE 
+
+    CLASS 
+
+    PARA 
+
+    ESSE 
+
+
+'$this->category->create()'....
+
+
+
+
+
+
+
+
+
+-> PRECISAMOS DISSO PARA CREATE THE CATEGORY,
+
+PERSIST AND FLUSH IT...
+
+
+
+
+
+
+
+> É POR ISSO QUE O PROFESSOR 
+
+
+
+VAI QUERER ESCREVER ALGO COMO 
+
+
+'$this->categoryService->create(
+
+)'
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR N USOU UM DTO,
+
+MAS EU USEI...
+
+
+
+
+
+
+
+
+
+--> DEPOIS DISSO, CRIAMOS O CATEGORYSERVICE,
+
+
+COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Contracts\CategoryServiceInterface;
+use App\Contracts\RequestValidatorFactoryInterface;
+use App\Models\Category;
+use App\RequestValidators\CreateCategoryRequestValidator;
+use App\Services\CategoryService;
+use Slim\Psr7\Request;
+use Slim\Psr7\Response;
+use Slim\Views\Twig;
+
+class CategoriesController
+{
+
+    public function __construct(private readonly Twig $twig, RequestValidatorFactoryInterface $requestValidatorFactory, private readonly CategoryServiceInterface $category) {}
+
+    public function index(Request $request, Response $response): Response
+    {
+
+        return $this->twig->render($response, 'categories/index.twig');
+    }
+
+    public function store(Request $request, Response $response): Response
+    {
+        $data = $request->getParsedBody();
+
+
+        [
+            'name' => $name,
+        ] = $data;
+
+        $categoryData = new CategoryData($name);
+
+        $data = $this->requestValidatorFactory
+            ->make(CreateCategoryRequestValidator::class)
+            ->validate($categoryData);
+
+        $this->category->create($categoryData);
+
+        return $response->withHeader('Location', '/categories')->withStatus(302);
+    }
+
+
+    public function delete(Request $request, Response $response): Response
+    {
+        // TODO
+
+        return $response->withHeader('Location', '/categories')->withStatus(302);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+JÁ CRIEI ESSA INTERFACE, TAMBÉM...
+
+
+
+
+
+
+
+
+
+
+AGORA BASTA CRIAR ESSE SERVICE, E IMPLEMENTAR A INTERFACE 
+
+NELE...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Contracts\CategoryServiceInterface;
+use App\DTOs\CategoryData;
+use App\Entity\Category;
+
+class CategoryService implements CategoryServiceInterface
+{
+    public function create(CategoryData $categoryData): Category
+    {
+        $category = new Category();
+        $category->setName($categoryData->name);
+
+        return $category;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+ESSE É UM BOM COMEÇO...
+
+
+
+
+
+
+
+
+
+MAS FALTA O 
+
+'entityManager->persist()'
+
+
+e 
+
+'entityManager->flush()'...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Contracts\CategoryServiceInterface;
+use App\DTOs\CategoryData;
+use App\Entity\Category;
+use Doctrine\ORM\EntityManager;
+
+class CategoryService implements CategoryServiceInterface
+{
+
+    public function __construct(private readonly EntityManager $entityManager) {}
+
+
+    public function create(CategoryData $categoryData): Category
+    {
+        $category = new Category();
+        $category->setName($categoryData->name);
+
+        $this->entityManager->persist($category);
+        $this->entityManager->flush();
+
+        return $category;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+mas só isso não basta...
+
