@@ -24,6 +24,10 @@ class CsrfFieldsMiddleware implements MiddlewareInterface
         $csrfValueKey = $csrf->getTokenValueKey();
         $csrfName = $csrf->getTokenName();
         $csrfValue = $csrf->getTokenValue();
+        $fields = <<<HTML
+                            <input type="hidden" name="{$csrfNameKey}" value="$csrfName}">
+                            <input type="hidden" name="{$csrfValueKey}" value="{$csrfValue}">
+                            HTML;
 
         
 
@@ -33,7 +37,8 @@ class CsrfFieldsMiddleware implements MiddlewareInterface
                     'value' => $csrfValueKey
                 ],
                 'name'  => $csrfName,
-                'value' => $csrfValue
+                'value' => $csrfValue,
+                'fields' => $fields
                ];
 
 

@@ -2854,3 +2854,267 @@ NÃO CONSEGUIMOS, FICAMOS COM FAIL...
 -> ISSO ACONTECEU PQ 
 NÃO COLOCAMOS O INPUT DE TYPE HIDDEN COM O CSRF NA PARTE DE 'LOGOUT' DO CÓDIGO...
 
+
+
+
+
+
+
+
+
+
+ok... PRECISAMOS DO FIELD DE 'csrf'...
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR DIZ QUE PODERÍAMOS COPIAR E COLAR 
+
+AQUELE MESMO CÓDIGO LÁ....
+
+
+
+DE 
+
+
+
+
+''
+
+
+                                    <input type="hidden" name="{{csrf.keys.name}}" value="{{csrf.name}}">
+                                    <input type="hidden" name="{{csrf.keys.value}}" value="{{csrf.value}}">
+
+                                
+
+                                ''
+
+
+
+
+MAS ISSO SERIA REPETIR MT CÓDIGO, AO LONGO DE NOSSO APP...
+
+
+
+
+
+
+
+
+
+-> PARA FAZER ISSO FUNCIONAR SEM REPETIR MT COISA,
+
+O PROFESSOR DECIDE USAR AQUELA ESCRITA DINAMICA,
+
+TIPO ASSIM:
+
+
+
+
+                 <form action="/logout" method="post">
+                                {{ csrf.fields | raw }}
+                                <button class="dropdown-item" href="#">Log Out</button>
+                            </form>
+
+
+
+
+
+
+
+
+--> QUEREMOS INJETAR ISSO AÍ...
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS FAZER ISSO FUNCIONAR,
+
+
+BASTA EDITAR AQUELE MIDDLEWARE DE 'CsrfFieldsMiddleware',
+
+ 
+ colocar o return de mais uma key,
+
+ 'fields',
+
+ TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Psr\Container\ContainerInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Slim\Views\Twig;
+
+class CsrfFieldsMiddleware implements MiddlewareInterface
+{
+
+    public function __construct(private readonly Twig $twig, private readonly ContainerInterface $container) {}
+
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {
+
+        $csrf = $this->container->get('csrf');
+
+        $csrfNameKey = $csrf->getTokenNameKey();
+        $csrfValueKey = $csrf->getTokenValueKey();
+        $csrfName = $csrf->getTokenName();
+        $csrfValue = $csrf->getTokenValue();
+
+        
+
+        $csrfData = [
+                'keys' => [
+                    'name'  => $csrfNameKey,
+                    'value' => $csrfValueKey
+                ],
+                'name'  => $csrfName,
+                'value' => $csrfValue,
+                'fields' => <<<HTML
+                            <input type="hidden" name="{$csrfNameKey}" value="$csrfName}">
+                            <input type="hidden" name="{$csrfValueKey}" value="{$csrfValue}">
+                            HTML   
+               ];
+
+
+        // This is used to add the CSRF token to the template (to the form input fields)
+        $this->twig->getEnvironment()->addGlobal('csrf', $csrfData);
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+ISSO FEITO,
+
+PODEMOS UTILIZAR ESSA KEY NO NOSSO CÓDIGO, NOS TWIG TEMPLATES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> isso é bem conveniente...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PRECISAMOS DE ' | raw',
+
+
+
+PARA DESABILITAR O ESCAPING DO TWIG...
+
+
+
+
+---> O ESCAPING NOS PROTEGE CONTRA XSS,
+
+
+MAS 
+
+
+
+NÓS PODEMOS IMPEDIR ISSO COM 'raw',
+
+
+
+QUE É O FILTER QUE DEIXA O CONTENT SER OUTPUTTADO EXATAMENTE COMO 
+
+
+QUEREMOS... (que é o que vai fazer com que esses fields de csrf realmente sejam renderizados na page, dinamicamente)...
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, NÓS:
+
+
+
+
+1) APRENDEMOS O QUE É 'CSRF', E COMO NOS PROTEGER CONTRA ISSO...
+
+    -> USAMOS O FIRST PARTY PACKAGE DO SLIM PARA IMPLEMENTAR A PROTECTION CONTRA CSRF..
+
+
+
+
+
+
+
+
+
+
+-> NA PRÓXIMA AULA,
+
+VAMOS APRENDER 1 TÓPICO RELACIONADO, QUE É 
+
+'XSS', CROSS-SITE SCRIPTING...
