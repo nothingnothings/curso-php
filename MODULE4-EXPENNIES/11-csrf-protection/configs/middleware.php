@@ -9,6 +9,12 @@ return function (App $app) {
     $container = $app->getContainer();
     $config = $container->get(Config::class);
 
+    // CSRF fields in templates:
+    $app->add(\App\Middleware\CsrfFieldsMiddleware::class);
+
+    // CSRF protection:
+    $app->add('csrf');
+
     // Twig
     $app->add(TwigMiddleware::create($app, $container->get(Twig::class)));
 

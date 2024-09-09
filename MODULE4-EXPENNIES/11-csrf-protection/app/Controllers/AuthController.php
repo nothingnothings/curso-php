@@ -13,7 +13,6 @@ use Doctrine\ORM\EntityManager;
 use Psr\Http\Message\ResponseInterface as Response;
 use Slim\Psr7\Request as Request;
 use Slim\Views\Twig;
-use Valitron\Validator;
 
 
 class AuthController
@@ -23,7 +22,7 @@ class AuthController
         private readonly Twig $twig,  
         private readonly AuthInterface $auth, 
         private readonly EntityManager $entityManager, 
-        private readonly RequestValidatorFactoryInterface $requestValidatorFactory) {}
+        private readonly ValidatorFactory $requestValidatorFactory) {}
 
     public function loginView(Request $request, Response $response): Response
     {
@@ -68,9 +67,15 @@ class AuthController
 
     public function logIn(Request $request, Response $response): Response
     {
-        // 1. Validate the request data and check the user's credentials  // * DONE  
+        // 1. Validate the request data and check the user's credentials  // * DONE 
+        
+        $rawData = $request->getParsedBody();
 
-        $data = $this->requestValidatorFactory->make(UserLoginRequestValidator::class)->validate($request->getParsedBody());
+        var_dump($rawData);
+
+        $userData = new UserData($rawData['email'], $rawData['password']);
+
+        $data = $this->requestValidatorFactory->make(UserLoginRequestValidator::class)->validate($userData);
             
         if (!$this->auth->attemptLogin($data)) {
             throw new ValidationException(['password' => ['You have entered an invalid username or password.']]);

@@ -19,6 +19,8 @@ class UserProviderService implements UserProviderServiceInterface
 
     public function getByCredentials(array $credentials): ?UserInterface
     {
+        var_dump($credentials);
+
         return $this->entityManager->getRepository(User::class)->findOneBy(['email' => $credentials['email']]);
     }
 

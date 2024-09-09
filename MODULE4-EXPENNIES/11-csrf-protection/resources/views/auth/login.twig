@@ -16,6 +16,8 @@
                                     Login
                                 </h2>
                                 <form method="post" action="/login">
+                                    <input type="hidden" name="{{csrf.keys.name}}" value="{{csrf.name}}">
+                                    <input type="hidden" name="{{csrf.keys.value}}" value="{{csrf.value}}">
                                     <div class="form-outline form-white mb-4">
                                         <input type="email" name="email" class="form-control form-control-lg {{ errors.email ? 'is-invalid' : '' }}"
                                                value="{{ old.email }}"
@@ -32,6 +34,7 @@
                                             {{ errors.password | first }}
                                         </div>
                                     </div>
+                                 
                                     <p class="mb-4 text-end"><a class="text-secondary fw-semibold" href="#">Forgot
                                             password?</a></p>
                                     <button class="btn btn-primary bg-gradient text-white btn-lg px-5" type="submit">Log

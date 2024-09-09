@@ -1,6 +1,5 @@
 <?php declare(strict_types=1);
 
-use App\App as App;
 use App\Config;
 use Doctrine\Migrations\Configuration\EntityManager\ExistingEntityManager;
 use Doctrine\Migrations\Configuration\Migration\PhpFile;
@@ -8,6 +7,7 @@ use Doctrine\Migrations\DependencyFactory;
 use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
 use Doctrine\ORM\Tools\Console\ConsoleRunner;
 use Doctrine\ORM\EntityManager;
+use Slim\App;
 use Symfony\Component\Console\Application;
 
 // $app       = require 'bootstrap.php';

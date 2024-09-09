@@ -16,52 +16,31 @@
 									Register
 								</h2>
 								<form method="post" action="/register">
+									<input type="hidden" name="{{csrf.keys.name}}" value="{{csrf.name}}">
+									<input type="hidden" name="{{csrf.keys.value}}" value="{{csrf.value}}">
 									<div class="form-outline form-white mb-4">
-										<input type="text" 
-										name="name" 
-										class="form-control form-control-lg {{ errors.name ? 'is-invalid' : ''}}" 
-										placeholder="Name"
-										value="{{old.name}}"
-										required
-										/>
+										<input type="text" name="name" class="form-control form-control-lg {{ errors.name ? 'is-invalid' : ''}}" placeholder="Name" value="{{old.name}}" required/>
 										<div class="invalid-feedback">
 											{{ errors.name | first }}
 										</div>
 									</div>
 
 									<div class="form-outline form-white mb-4">
-										<input type="email" 
-										name="email" 
-										class="form-control form-control-lg {{ errors.email ? 'is-invalid' : ''}}" 
-										placeholder="Email"
-										value="{{old.email}}"
-										required
-										/>
+										<input type="email" name="email" class="form-control form-control-lg {{ errors.email ? 'is-invalid' : ''}}" placeholder="Email" value="{{old.email}}" required/>
 										<div class="invalid-feedback">
 											{{ errors.email | first }}
 										</div>
 									</div>
 
 									<div class="form-outline form-white mb-4">
-										<input type="password" 
-										name="password" 
-										class="form-control form-control-lg {{ errors.password ? 'is-invalid' : ''}}" 
-										placeholder="Password"
-										required
-										/>
+										<input type="password" name="password" class="form-control form-control-lg {{ errors.password ? 'is-invalid' : ''}}" placeholder="Password" required/>
 										<div class="invalid-feedback">
 											{{ errors.password | first }}
 										</div>
 									</div>
 
 									<div class="form-outline form-white mb-5">
-										<input 
-										type="password" 
-										name="confirmPassword" 
-										class="form-control form-control-lg {{ errors.confirmPassword ? 'is-invalid' : ''}}" 
-										placeholder="Confirm Password"
-										required
-										/>
+										<input type="password" name="confirmPassword" class="form-control form-control-lg {{ errors.confirmPassword ? 'is-invalid' : ''}}" placeholder="Confirm Password" required/>
 										<div class="invalid-feedback">
 											{{ errors.confirmPassword | first }}
 										</div>

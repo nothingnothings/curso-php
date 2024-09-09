@@ -98,4 +98,6 @@ return [
         new EntrypointLookup(BUILD_PATH . '/entrypoints.json'),
         $container->get('webpack_encore.packages')
     ),
+    // CSRF Protection:
+    'csrf' => fn(ResponseFactoryInterface $responseFactory) => new \Slim\Csrf\Guard($responseFactory, persistentTokenMode: true),
 ];

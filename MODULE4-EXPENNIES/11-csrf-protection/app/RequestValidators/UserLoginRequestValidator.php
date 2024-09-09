@@ -12,7 +12,14 @@ class UserLoginRequestValidator implements RequestValidatorInterface
 
     public function validate(UserData $userData): array
     {
-        $v = new \Valitron\Validator($userData);
+
+
+        $userDataArray = [
+            'email' => $userData->email,
+            'password' => $userData->password,
+        ];
+
+        $v = new \Valitron\Validator($userDataArray);
 
         $v->rule('required', ['email', 'password']);
         $v->rule('email', 'email');
@@ -22,6 +29,6 @@ class UserLoginRequestValidator implements RequestValidatorInterface
             throw new \App\Exception\ValidationException($v->errors());
         }
 
-        return $v->errors();
+        return $userDataArray;
     }
 }
