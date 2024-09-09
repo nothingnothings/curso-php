@@ -51,13 +51,11 @@ class AuthController
        'confirmPassword' => $confirmPassword
         ] = $data;
 
-        $userData = new UserData($name, $email, $password);
-        $parsedBody = $request->getParsedBody();
-
+        $userData = new UserData($email, $password, $name);
 
         $data = $this->requestValidatorFactory
                     ->make(RegisterUserRequestValidator::class)
-                    ->validate($parsedBody);
+                    ->validate($userData);
 
         $this->auth->register($userData);
     
@@ -70,8 +68,6 @@ class AuthController
         // 1. Validate the request data and check the user's credentials  // * DONE 
         
         $rawData = $request->getParsedBody();
-
-        var_dump($rawData);
 
         $userData = new UserData($rawData['email'], $rawData['password']);
 

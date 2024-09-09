@@ -11,9 +11,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 class GuestMiddleware implements MiddlewareInterface
 {
-    public function __construct(private readonly SessionInterface $session) {
-        
-    }
+    public function __construct(private readonly SessionInterface $session, private readonly ResponseFactoryInterface $responseFactory) {}
 
     public function process(Request $request, RequestHandlerInterface $handler): Response
     {
