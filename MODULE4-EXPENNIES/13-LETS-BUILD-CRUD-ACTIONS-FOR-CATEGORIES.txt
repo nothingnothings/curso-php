@@ -902,3 +902,140 @@ COM
 
 
 certo...
+
+
+
+
+
+
+TAMBÉM FICAMOS COM 1 NOVO ARQUIVO '.js',
+
+
+DE NOME 'categories.js'...
+
+
+
+
+
+
+
+
+
+
+
+NELE, ESTAMOS 
+
+
+COM 1 EVENT LISTENER,
+
+
+DE 'DOMContentLoaded'...
+
+
+
+
+--> QUANDO ISSO ACONTECE,
+
+O PROFESSOR ADICIONA 1 'event listener'
+
+
+em cada 1 dos buttons,
+
+
+
+para que 
+
+
+SEJA EXTRAÍDO O 'data-id',
+
+
+
+que é o CATEGORY ID,
+
+
+
+DE CADA 1 DOS CATEGORY ITEMS,
+
+SEMPRE QUE ELES SÃO CLICADOS...
+
+
+
+
+
+
+O CÓDIGO É ESTE:
+
+
+
+
+
+
+
+
+
+window.addEventListener('DOMContentLoaded', function () {
+
+
+    this.document.querySelectorAll('.edit-category-btn').forEach(button => {
+        button.addEventListener('click', function (event) {
+            event.preventDefault();
+            const categoryId = event.currentTarget.getAttribute('data-id');
+
+
+            console.log(categoryId);
+        });
+    });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> aí, em 'webpack.config.js',
+
+
+ESTAMOS 
+
+
+ADICIONANDO ESSE NOVO .js como entry,
+
+
+ASSIM:
+
+
+
+     */
+    .addEntry("app", "./resources/js/app.js")
+    .addEntry("dashboard", "./resources/js/dashboard.js")
+    .addEntry("auth", "./resources/js/auth.js")
+    .addEntry("categories", "./resources/js/category.js")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, DEVEMOS RODAR 
+
+'npm run dev'...
+
+
+
