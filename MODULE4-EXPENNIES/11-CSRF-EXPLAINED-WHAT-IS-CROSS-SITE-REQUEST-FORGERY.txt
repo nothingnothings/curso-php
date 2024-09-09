@@ -2816,3 +2816,41 @@ return function (App $app) {
 };
 
 
+
+
+
+
+
+
+
+consertei 1 monte de errors...
+
+
+
+O CSRF NAME E O CSRF VALUE ESTÃO SENDO PASSADOS COM SUCESSO...
+
+
+
+
+
+
+
+
+
+-> MAS SE TENTAMOS FAZER LOGOUT,
+
+
+
+NÃO CONSEGUIMOS, FICAMOS COM FAIL...
+
+
+
+
+
+
+
+
+
+-> ISSO ACONTECEU PQ 
+NÃO COLOCAMOS O INPUT DE TYPE HIDDEN COM O CSRF NA PARTE DE 'LOGOUT' DO CÓDIGO...
+
