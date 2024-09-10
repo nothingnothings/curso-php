@@ -1,0 +1,1855 @@
+
+
+
+
+
+
+
+
+VAMOS CONTINUAR COM AS CRUD OPERATIONS...
+
+
+
+
+
+
+
+
+
+
+-> DESSA VEZ, VEREMOS A FUNCTIONALITY DE 'EDIT CATEGORY'...
+
+
+
+
+
+
+
+
+-> O PROFESSOR FEZ ALGUMAS CHANGES, BEHIND THE SCENES,
+
+RELACIONADAS COM JAVASCRIPT E HTML....
+
+
+
+
+
+
+
+
+
+
+-> SE CLICAMOS NO EDIT BUTTON,
+
+
+
+
+É ABERTO 1 MODAL EM QUE 
+
+
+PODEMOS CLICAR EM 'SAVE'...
+
+
+
+
+
+
+
+
+-> ESSE SAVE NÃO FAZ NADA,
+
+APENAS PRINTA O ID 
+
+
+
+DA CATEGORY QUE VC SELECIONOU...
+
+
+
+
+
+
+
+
+
+
+--> AGORA DEVEMOS VER OS AJUSTES,
+
+E DEPOIS ESTUDAR A MANEIRA DE FAZER ISSO 
+
+FUNCIONAR,
+
+PARA EXECUTARMOS AJAX CALLS CONTRA NOSSO BACKEND...
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR ADICIONOU UMA NOVA VIEW, TWIG FILE,
+
+
+DE NOME 'edit_category_modal.twig'...
+
+
+
+
+
+
+
+
+O CÓDIGO DO MODAL FICOU ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="modal fade" id="editCategoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-outline form-white mb-4">
+                    <input type="text" name="name" required
+                           class="form-control form-control-lg"
+                           placeholder="Category Name" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i>
+                    Close
+                </button>
+                <button type="button" class="btn btn-success save-category-btn">
+                    <i class="bi bi-check-circle me-1"></i>
+                    Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+-> É QUASE IDENTICO AO MODAL DE 'NEW CATEGORY',
+
+
+
+MAS ELE DISPARARÁ CONTRA UM ENDPOINT DIFERENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSE MODAL É INCLUÍDO NO TEMPLATE DE 
+
+
+'index.twig',
+
+
+COM ESTE CÓDIGO:
+
+
+
+
+        {% include 'categories/edit_category_modal.twig' %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ NÓS ABRIMOS ESSE MODAL, SEMPRE QUE O BUTTON DE 'EDIT',
+
+EM CADA CATEGORY, É CLICADO...
+
+
+
+
+
+
+
+
+--> A PARTE DE OPEN DO MODAL É ACTUALLY HANDLADA PELO JAVASCRIPT,
+
+
+
+POR MEIO DO ARQUIVO 'categories.js',
+
+
+QUE TEM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+import { Modal } from 'bootstrap';
+
+window.addEventListener('DOMContentLoaded', function () {
+  const editCategoryModal = new Modal(
+    document.getElementById('editCategoryModal')
+  );
+
+  document.querySelectorAll('.edit-category-btn').forEach((button) => {
+    button.addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      openEditCategoryModal(editCategoryModal, { id: categoryId, name: '' });
+    });
+  });
+
+  document
+    .querySelector('.save-category-btn')
+    .addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      // TODO: Post update to the category
+      console.log(categoryId);
+    });
+});
+
+function openEditCategoryModal(modal, { id, name }) {
+  const nameInput = modal._element.querySelector('input[name="name"]');
+
+  nameInput.value = name;
+
+  modal._element
+    .querySelector('.save-category-btn')
+    .setAttribute('data-id', id);
+
+  modal.show();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+esse código todo foi criado behind the scenes...
+
+
+
+
+
+
+aquela parte de 
+
+
+''
+
+
+      openEditCategoryModal(editCategoryModal, { id: categoryId, name: '' });
+
+
+
+
+''
+
+
+
+está com o name em branco pq PRECISAMOS FETCHEAR ISSO 
+
+
+DO CONTROLLER,
+
+
+PARA CONSEGUIR O NAME DA CATEGORY,
+
+PARA QUE 
+
+ESSA INFO 
+
+
+POSSA SER PASSADA, AQUI...
+
+
+
+
+
+
+
+
+
+
+
+
+--> E, PARA CRIAR ESSE MODAL OBJECT,
+
+ESTAMOS USANDO O MODAL DA LIBRARY 'BOOTSTRAP'....
+
+
+
+--> E AÍ ESTAMOS PASSANDO 
+
+
+O ELEMENTO POR MEIO 
+
+
+DAQUELE 'document.getElementById()'...
+
+
+
+
+
+
+
+
+--> em 'openEditCategoryModal',
+
+
+
+
+ELE PEGA O VALUE DO INPUT FIELD,
+
+
+E AÍ 
+
+
+ELE DEFINE O VALUE DO ATTRIBUTE 
+
+
+
+'data-id' 
+
+
+
+do save-category-btn, 
+
+
+PARA QUE QUANDO CLIQUEMOS NESSE BUTTON,
+
+
+
+
+OBTENHAMOS ESSE 'data-id',
+
+
+
+POR MEIO DESTE CÓDIGO:
+
+
+
+
+
+
+  document
+    .querySelector('.save-category-btn')
+    .addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      // TODO: Post update to the category
+      console.log(categoryId);
+    });
+
+
+
+
+
+
+
+
+
+COM ISSO, O CATEGORYID É CONSOLE.LOGADO, e a execução termina...
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+-> AJAX É BASICAMENTE AXIOS... OU FETCH API... É TUDO A MESMA COISA,
+    COM 1 NOME DIFERENTE...
+
+
+
+
+
+-> O QUE PRECISAMOS FAZER, AQUI, SÃO 2 AJAX CALLS:
+
+
+
+
+
+
+
+
+
+
+1) The first AJAX call is 
+    to FETCH THE CATEGORY INFO, so that we can 
+    PASS THAT INFO TO 
+    the 
+
+    'openEditCategoryModal' function...
+
+
+
+    --> for that, we need to PASS THE 'name' correctly...
+
+EX:
+
+
+  document.querySelectorAll('.edit-category-btn').forEach((button) => {
+    button.addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      openEditCategoryModal(editCategoryModal, { id: categoryId, name: '' });
+    });
+  });
+
+
+
+
+
+2) THE SECOND CALL IS TO _ ACTUALLY_ 
+    __ SAVE__ THE CATEGORY INFORMATION,
+
+
+    WITH THIS PART:
+
+
+
+
+
+      document
+    .querySelector('.save-category-btn')
+    .addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      // TODO: Post update to the category
+      console.log(categoryId);
+
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE EXISTEM MILHARES DE MANEIRAS DE FAZER ISSO,
+
+
+NO LADO DO JAVASCRIPT...
+
+
+
+
+
+
+MTAS LIBRARIES...
+
+
+
+
+
+
+
+
+
+--> AS SKILLS DO PROFESSOR 
+    DE JAVASCRIPT 
+
+    ESTÃO MEIO RUSTY...
+
+
+
+
+
+
+
+
+--> EXISTEM MANEIRAS MAIS SIMPLES DE FAZER COISAS...
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR N QUER USAR MTAS DEPENDENCIES, 
+    NAO QUER USAR JQUERY, ALPINEJS, ETC...
+
+
+
+
+
+
+
+
+
+
+-> VC PODE USAR QUANTO JAVASCRIPT VC QUISER,
+
+OU QUANTO MENOS QUISER...
+
+
+
+
+
+
+
+
+
+--> MAS TAMBÉM É POSSÍVEL 
+    FAZER TUDO ISSO AQUI COM APENAS PHP E FULL PAGE RELOADS,
+
+    E NEM MESMO USAR ASYNC JAVASCRIPT CALLS...
+
+
+
+
+
+
+
+
+
+-> PRIMEIRAMENTE, PRECISAMOS DO ENDPOINT NO BACKEND...
+
+
+
+
+
+
+
+
+
+-> VAMOS ESCREVER 1 ENDPOINT NOVO, TIPO ASSIM:
+
+
+
+
+        $categories->get('/{id}', [CategoriesController::class, 'show']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    FICA TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+    $app->group('/categories', function (RouteCollectorProxy $categories) {
+        $categories->get('', [CategoriesController::class, 'index']);
+        $categories->post('', [CategoriesController::class, 'store']);
+        $categories->delete('/{id}', [CategoriesController::class, 'delete']);
+        $categories->get('/{id}', [CategoriesController::class, 'get']);
+    })->add(AuthMiddleware::class);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PRECISAMOS FAZER GET DA INFO DE 1 CATEGORY ESPECÍFICA,
+
+
+POR ISSO PRECISAMOS DE ESSA GET ROUTE AÍ...
+
+
+
+
+
+
+
+
+--> DEIXAMOS 
+
+1 NOME DE 'get' para o method no controller, tipo assim:
+
+
+
+        $categories->get('/{id}', [CategoriesController::class, 'get']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ ESCREVEMOS O METHOD, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+    public function get(Request $request, Response $response, array $args): Response
+    {
+        $categoryId = $args['id'];
+
+        $category = $this->categoryService->get($categoryId);
+
+        return $this->twig->render(
+            $response,
+            'categories/show.twig',
+            [
+            'category' => $category
+            ]
+        );
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS COMEÇAR COM ALGO ASSIM...
+
+
+
+
+
+
+
+
+
+
+
+
+-> UM NOME MELHOR PARA ESSE METHOD, NO CATEGORYSERVICE,
+É 
+
+'getById()'...
+
+
+
+
+
+
+
+
+
+
+
+-> POR ISSO ESCREVEMOS ASSIM:
+
+
+
+
+
+
+    public function getById(int $id): Category
+    {
+        return $this->entityManager->find(Category::class, $id);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ALGO ASSIM...
+
+
+
+
+
+
+
+
+
+
+
+
+-> CLARO QUE PRECISAMOS ATUALIZAR ISSO, NA INTERFACE,
+
+TIPO ASSIM:
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Contracts;
+
+use App\DTOs\CategoryData;
+use App\Entity\Category;
+use App\Entity\User;
+
+interface CategoryServiceInterface
+{
+    public function create(CategoryData $categoryData, User $user): Category;
+
+    public function getAll(): array;
+
+    public function delete(int $id): void;
+
+    public function getById(int $id): Category;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, DE VOLTA AO CONTROLLER,
+
+PRECISAMOS FAZER CHECK 
+
+
+
+
+SE A CATEGORY FOI REALMENTE FOUND...
+
+
+
+
+
+
+
+-> PQ 'THERE MAY BE NO CATEGORIES BY THAT ID... MAYBE IT WAS DELETED OR SOMETHING''....
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE PODEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+    public function get(Request $request, Response $response, array $args): Response
+    {
+        $categoryId = (int) $args['id']; // inputs from the frontend are always strings, so it needs to be cast as int.
+
+        $category = $this->categoryService->getById($categoryId);
+
+        if (!$category) {
+            return $response->withStatus(404);
+        }
+
+        return $this->twig->render(
+            $response,
+            'categories/show.twig',
+            [
+            'category' => $category
+            ]
+        );
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO..
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, O PROFESSOR ESCREVE DIFERENTE,
+
+
+
+CRIA 1 VARIABLE DE '$data',
+
+
+
+EM QUE VAMOS ARMAZENAR A INFO NECESSÁRIA 
+
+
+DE 'category' QUE QUEREMOS RETORNAR 
+
+AO FRONTEND...
+
+
+
+
+
+
+
+--> E VAMOS ESCREVER ESSA DATA COMO JSON,
+
+NO BODY DA RESPONSE, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+    public function get(Request $request, Response $response, array $args): Response
+    {
+        $categoryId = (int) $args['id']; // inputs from the frontend are always strings, so it needs to be cast as int.
+
+        $category = $this->categoryService->getById($categoryId);
+
+        if (!$category) {
+            return $response->withStatus(404);
+        }
+        
+        $data = ['id' => $category->getId(), 'name' => $category->getName()];
+
+        $response->getBody()->write(json_encode($data));
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO VAI ENVIAR NOSSA DATA COMO JSON NO BODY DA RESPONSE,
+
+
+AO CLIENT...
+
+
+
+
+
+
+
+
+
+
+
+CERTO... 
+
+
+
+
+
+
+
+
+
+MAS AINDA NÃO CONECTAMOS O FRONTEND A ESSE ENDPOINT DO BACKEND...
+
+
+
+
+
+
+
+
+
+
+
+--> MAS COMO É 1 GET REQUEST,
+
+PODEMOS TESTAR ISSO 
+
+
+
+NO BROWSER,
+
+COM A URL,
+
+TIPO ASSIM:
+
+
+
+
+
+http://localhost:8000/categories/1
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+DEU CERTO..
+
+
+
+
+
+
+
+
+
+
+
+
+-> BROWSERS MODERNOS SÃO ESPERTOS O SUFICIENTE 
+
+PARA IDENTIFICAR O TIPO DE CONTENT QUE ESTAMOS ENVIANDO,
+
+
+MAS É SEMPRE BOM DEFINIR 
+
+O TIPO DE HEADER CORRETO,
+
+
+
+
+COM '$response = $response->withHeader('Content-Type', 'application/json');'
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+    public function get(Request $request, Response $response, array $args): Response
+    {
+        $categoryId = (int) $args['id']; // inputs from the frontend are always strings, so it needs to be cast as int.
+
+        $category = $this->categoryService->getById($categoryId);
+
+        if (!$category) {
+            return $response->withStatus(404);
+        }
+        
+        $data = ['id' => $category->getId(), 'name' => $category->getName()];
+
+        $response = $response->withHeader('Content-Type', 'application/json');
+
+        $response->getBody()->write(json_encode($data));
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+VOLTAMOS AO BROWSER, RECARREGAMOS A PAGE,
+
+
+E AÍ FUNCIONOU...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO... AGORA VAMOS CONECTAR ESSE BACKEND 
+    ENDPOINT COM O FRONTEND...
+
+
+
+
+
+
+
+
+
+-> VAMOS USAR O FETCH API,
+
+QUE NOS DEIXA DISPARAR API REQUESTS...
+
+
+
+
+
+
+
+
+
+
+-> ABRIMOS O ARQUIVO DE CATEGORIES.JS,
+
+
+E ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+window.addEventListener('DOMContentLoaded', function () {
+  const editCategoryModal = new Modal(
+    document.getElementById('editCategoryModal')
+  );
+
+  document.querySelectorAll('.edit-category-btn').forEach((button) => {
+    button.addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      fetch('/categories/' + categoryId)
+        .then((response) => response.json())
+        .then((data) => {
+          openEditCategoryModal(editCategoryModal, {
+            id: categoryId,
+            name: data.name,
+          });
+        });
+    });
+  });
+
+  document
+    .querySelector('.save-category-btn')
+    .addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      // TODO: Post update to the category
+      console.log(categoryId);
+    });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VAMOS USAR OS '.then()'
+
+
+PARA HANDLAR 
+
+
+A RESPONSE MAIS ADEQUADAMENTE...
+
+
+
+
+
+
+
+
+
+
+TEMOS QUE RODAR NPM RUN BUILD,
+
+para rebuildar os arquivos...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, CONSEGUIMOS INTEGRAR 
+
+
+ESSA DATA COM O MODAL...
+
+
+
+
+
+
+
+
+-> QUANDO ABRIMOS O MODAL, A DATA DA CATEGORY É PREENCHIDA 
+
+NO INPUT FIELD...
+
+
+
+
+
+
+
+
+
+--> AGORA DEVEMOS VOLTAR AO CONTROLLER...
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR QUER FAZER 1 REFACTOR,
+
+
+
+
+
+'''SO THAT WE HAVE 
+
+A REUSABLE WAY OF GENERATING A JSON RESPONSE...
+
+A JSON FORMATTER OF SOME SORT'''..
+
+
+
+
+
+
+
+
+
+
+
+-> ou seja,
+
+
+algo como 
+
+
+
+'$response->withJson()'...
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO FUNCIONARIA, MAS EXIGIRIA ALGUMAS MUDANÇAS QUE 
+DEIXARIAM AS COISA MAIS CONFUSAS, NO MOMENTO...
+
+
+
+
+
+
+
+
+--> VAMOS DEIXAR AS COISAS SIMPLES,
+E
+ CRIAR 1 RESPONSE FORMATTER, 
+
+
+
+ COM 1 METHOD PARA FORMATAR A RESPONSE COMO JSON...
+
+
+
+
+
+
+
+
+-> TIPO ALGO ASSIM, EM 'CategoriesController':
+
+
+
+
+
+
+
+
+
+
+
+class CategoriesController
+{
+
+    public function __construct(private readonly Twig $twig, 
+    private readonly ValidatorFactory $requestValidatorFactory,
+    private readonly CategoryService $categoryService,
+    private readonly ResponseFormatter $responseFormatter
+    ) {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, LÁ EM 'get()',
+
+
+ESCREVEMOS TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+ISTO:
+
+
+
+
+
+
+
+    public function get(Request $request, Response $response, array $args): Response
+    {
+        $categoryId = (int) $args['id']; // inputs from the frontend are always strings, so it needs to be cast as int.
+
+        $category = $this->categoryService->getById($categoryId);
+
+        if (!$category) {
+            return $response->withStatus(404);
+        }
+        
+        $data = ['id' => $category->getId(), 'name' => $category->getName()];
+
+        $response = $response->withHeader('Content-Type', 'application/json');
+
+        $response->getBody()->write(json_encode($data));
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+VIRA ISTO:
+
+
+
+
+
+
+
+
+
+
+
+
+    public function get(Request $request, Response $response, array $args): Response
+    {
+        $categoryId = (int) $args['id']; // inputs from the frontend are always strings, so it needs to be cast as int.
+
+        $category = $this->categoryService->getById($categoryId);
+
+        if (!$category) {
+            return $response->withStatus(404);
+        }
+        
+        $data = ['id' => $category->getId(), 'name' => $category->getName()];
+
+        return $response->responseFormatter->asJson($response, $data);
+    }
+
+
+
+
+
+
+
+
+
+-> VAMOS CRIAR ESSE FORMATTER AGORA,
+
+
+
+
+LÁ NO ROOT DO 'app',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+    public function get(Request $request, Response $response, array $args): Response
+    {
+        $categoryId = (int) $args['id']; // inputs from the frontend are always strings, so it needs to be cast as int.
+
+        $category = $this->categoryService->getById($categoryId);
+
+        if (!$category) {
+            return $response->withStatus(404);
+        }
+        
+        $data = ['id' => $category->getId(), 'name' => $category->getName()];
+
+        return $this->responseFormatter->asJson($response, $data);
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, 
+
+
+
+LÁ NO RESPONSEFORMATTER,
+
+DEIXAMOS ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use Psr\Http\Message\ResponseInterface;
+
+class ResponseFormatter
+{
+    public function __construct() {}
+
+    public function asJson(ResponseInterface $response, mixed $data): ResponseInterface
+    {
+        $response = $response->withHeader('Content-Type', 'application/json');
+
+        $response->getBody()->write(json_encode($data));
+
+        return $response;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSE METHOD PODERÁ SER USADO EM OUTROS CONTEXTS...
+
+
+COMO ELE PODERÁ 
+
+SER USADO EM OUTROS LUGARES,
+
+
+O PROFESSOR 
+
+
+'''WANTS TO SPECIFY 
+    __ THE __ FLAGS TO SORT 
+    OF __ ESCAPE/CONVERT SOME 
+    SPECIAL CHARACTERS'''...
+
+
+
+
+
+
+
+
+-> ISSO PQ O METHOD DE 'json_encode()'
+
+
+ACEITA FLAGS COMO SEGUNDO PARAMETER...
+
+
+
+
+-> NESSE SEGUNDO PARAMETER, PODEMOS PASSAR VALUES DE TIPO 'BITMASK'...
+
+
+
+
+
+
+
+--> AS FLAGS QUE VAMOS PASSAR SÃO:
+
+
+
+'JSON_HEX_TAG' 
+
+
+'JSON_HEX_AMP'
+
+
+'JSON_HEX_QUOT'
+
+
+'JSON_HEX_APOS' (aposthrope)
+
+
+'JSON_THROW_ON_ERROR'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE ABRIMOS OS DOCS,
+
+
+LEMOS QUE 
+
+
+ESSAS FLAGS DE HEX 
+
+
+BASICAMENTE CONVERTEM ALGUNS SPECIAL CHARACTERS,
+
+
+COMO 
+
+
+# & > < ' " 
+
+
+
+
+
+
+EM VALUES UNICODE... 
+
+
+
+
+
+VALUES UNICODE SÃO TIPO 
+
+
+\u0026
+\u0027,
+
+
+
+ETC...
+
+
+
+
+
+
+
+
+-> A ÚLTIMA FLAG,
+
+
+'JSON_THROW_ON_ERROR',
+
+
+existe para 
+
+FAZER O THROW DE 1 EXCEPTION,
+
+
+SEMPRE QUE OCORRER ALGUM ERROR...
+
+
+
+
+FICA TIPO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use Psr\Http\Message\ResponseInterface;
+
+class ResponseFormatter
+{
+    public function __construct() {}
+
+    public function asJson(ResponseInterface $response, array $data): ResponseInterface
+    {
+        $response = $response->withHeader('Content-Type', 'application/json');
+
+        $response->getBody()->write(json_encode($data, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_THROW_ON_ERROR));
+
+        return $response;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> mas o professor 
+    QUER DEIXAR ISSO COMO 1 VARIABLE,
+
+
+    DE 
+    '$flags',
+
+
+
+    E VAI DEFINIR ESSAS COMO O DEFAULT VALUE,
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use Psr\Http\Message\ResponseInterface;
+
+class ResponseFormatter
+{
+    public function __construct() {}
+
+    public function asJson(ResponseInterface $response, array $data, int $flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_THROW_ON_ERROR): ResponseInterface
+    {
+        $response = $response->withHeader('Content-Type', 'application/json');
+
+        $response->getBody()->write(json_encode($data, $flags));
+
+        return $response;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+-> o professor acha que terminamos... 
+
+
+
+testamos isso, para ver se o nosso refactor 
+
+
+
+não quebrou nada...
+
+
+
+
+
+
+
+
+
+
+
+-> OK, TUDO ESTÁ FUNCIONANDO...
+
+
+
+
+
+
+
+
+
+-> A PRÓXIMA ETAPA É IMPLEMENTAR O POST REQUEST,
+
+COM A FETCH API,
+
+PARA ACTUALLY UPDATAR 
+
+
+ A DATA (o category name, no caso)...
+
+
+
+
+
+
+
+
+-> FAREMOS ISSO NA PRÓXIMA AULA...
