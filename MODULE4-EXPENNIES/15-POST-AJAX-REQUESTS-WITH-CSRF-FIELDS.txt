@@ -1,0 +1,2477 @@
+
+
+
+
+
+
+NO VIDEO ANTERIOR,
+
+VIMOS COMO FAZER UM AJAX REQUEST COM FETCH API...
+
+
+
+
+
+
+-> NESSA AULA, VAMOS MELHORAR ISSO, E DISPARAR 
+
+
+POST REQUESTS,
+
+PQ QUEREMOS FAZER SAVE DAS CATEGORIES...
+
+
+
+
+
+
+
+
+
+--> POST REQUESTS SÃO 1 POUCO MAIS DIFÍCEIS 
+
+DO QUE OS GET REQUESTS... ISSO É PQ 
+
+
+POST REQUESTS SÃO PROTEGIDOS PELA PROTEÇÃO CSRF...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE, POR DEFAULT,
+
+FAZER REQUESTS POR MEIO DA FETCH API 
+
+SIMPLESMENTE 
+
+
+
+__ NÃO FUNCIONARÁ...
+
+
+
+
+
+
+
+
+
+
+
+
+-> MESMO ASSIM, O PROFESSOR TENTA...
+
+
+
+
+
+
+
+
+-> ELE ESCREVE TIPO ASSIM:
+
+
+
+
+
+
+  document
+    .querySelector('.save-category-btn')
+    .addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      fetch('/categories/' + categoryId, {
+        method: 'POST',
+        body: JSON.stringify({ name: nameInput.value }),
+      });
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ELE PASSA  ESSAS OPTIONS AÍ...
+
+
+
+
+
+1a option --> o method, que será POST 
+
+
+
+2a option -->  UM JSON ENCODED BODY... --> PQ QUEREMOS ACESSAR ISSO, COMO ARRAY,  DENTRO DO CONTROLLER...
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS É CLARO QUE ISSO NÃO VAI FUNCIONAR...
+
+
+
+
+
+
+
+
+-> PRECISAMOS DO CSRF VALUE DA FORM,
+
+DAQUELE INPUT FIELD DE TIPO HIDDEN...
+
+
+
+
+
+
+
+
+----> PRECISAMOS COLOCAR ISSO COMO HEADER,
+DENTRO DE ESSE RESPONSE BODY...
+
+
+
+
+
+
+Ex:
+
+
+
+
+
+
+
+
+
+  document
+    .querySelector('.save-category-btn')
+    .addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      fetch('/categories/' + categoryId, {
+        method: 'POST',
+        body: JSON.stringify({
+          name: editCategoryModal._element.querySelector('input[name="name"]').value,
+        }),
+      });
+    });
+
+
+
+
+
+
+
+
+
+
+-> MAS PRECISAMOS DEFINIR O HEADER DE 
+
+
+content-type: application/json,
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+      fetch('/categories/' + categoryId, {
+        method: 'POST',
+        body: JSON.stringify({
+          name: editCategoryModal._element.querySelector('input[name="name"]')
+            .value,
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AGORA DEVEMOS CRIAR 1 NOVA ROUTE PARA 
+
+
+ESSE NEGÓCIO,
+
+
+
+DE TIPO POST,
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+        $categories->post('/{id}', [CategoriesController::class, 'update']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, LÁ NO CONTROLLER,
+
+ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+    public function update(Request $request, Response $response, array $args): Response
+    {
+        $categoryId = (int) $args['id']; // inputs from the frontend are always strings, so it needs to be cast as int.
+
+        $category = $this->categoryService->getById($categoryId);
+
+        if (!$category) {
+            return $response->withStatus(404);
+        }
+
+        $data = ['status' => 'ok'];
+
+        return $this->responseFormatter->asJson($response, $data);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+por enquanto, deixamos essa function assim...
+
+
+
+
+
+
+
+
+AINDA NÃO TEMOS A LÓGICA DE UPDATE...
+
+
+
+
+
+
+
+
+
+
+
+---> QUANDO TENTAMOS DISPARAR REQUESTS CONTRA ESSA ROUTE,
+
+
+FICAMOS COM UMA 
+
+RESPONSE COM STATUS DE 400...
+
+
+
+QUER DIZER QUE NOSSO REQUEST FALHOU...
+
+
+
+
+
+
+
+
+
+
+400 --> INDICA 1 BAD REQUEST --> E ESSA É A 'DEFAULT FAILURE HANDLER' DE NOSSA CSRF PROTECTION...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE VAMOS ATÉ OS CONTAINER BINDINGS 
+
+E INSPECIONARMOS A CLASS DE 
+
+
+'Guard',
+
+
+
+TEMOS 
+
+
+
+
+O METHOD DE 
+
+
+'process',
+
+
+e dentro dele,
+
+
+o method de 
+
+
+'handleFailure()'..
+
+
+
+
+
+
+
+
+
+-> A LÓGICA DE HANDLE FAILURE É ESTA:
+
+
+
+
+
+
+
+    public function handleFailure(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {
+        if (!is_callable($this->failureHandler)) {
+            $response = $this->responseFactory->createResponse();
+            $body = $response->getBody();
+            $body->write('Failed CSRF check!');
+            return $response
+                ->withStatus(400)
+                ->withHeader('Content-Type', 'text/plain')
+                ->withBody($body);
+        }
+
+        return call_user_func($this->failureHandler, $request, $handler);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COMO VC PODE VER,
+
+
+
+
+SE NENHUM FAILUREHANDLER É SETTADO,
+
+
+SEMPRE É ENTREGUE 
+
+
+ESSA RESPONSE DEFAULT,
+
+DE STATUSCODE DE '400'...
+
+
+
+
+
+
+
+
+
+--> COM O CONTENT-TYPE DE 'text/plain',
+
+
+
+e  a message de 
+
+
+
+
+
+''Failed CSRF check!''
+
+
+
+
+
+
+
+
+PARA VER ESSA MESSAGE, BASTA RODAR 'response.text()',
+
+
+em vez de 'response.json()'...
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ANTES DE IMPLEMENTARMOS A SOLUTION PARA ESSE PROBLEMA,
+
+
+O PROFESSOR QUER SETTAR 1 
+
+
+
+
+''CUSTOM CSRF FAILURE HANDLER''...
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO PQ O PROFESSOR NÃO QUER RESPONDER 
+
+COM 1 TEXTO DE 
+
+
+
+'Failed CSRF check'... e, sim, quer 
+
+
+RESPONDER 
+
+
+
+COM 1 EMPTY BODY,
+
+
+
+E COM TALVEZ 1 STATUS CODE DIFERENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+400 É OK,
+
+
+MAS O PROFESSOR ACHA QUE '401' OU '403'
+
+
+
+FAZ MAIS SENTIDO....
+
+
+
+
+
+
+
+
+--> 401 --> UNAUTHORIZED, WHEN AUTHENTICATION HAS FAILED.
+
+--> 403 --> AUTHENTICATION WAS SUCCESSFUL, BUT USER DOES NOT HAVE THE PROPER ACCESS..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... POR ISSO DEVEMOS CONFIGURAR NOSSO CUSTOM ERROR HANDLER...
+
+
+
+
+
+
+
+
+
+
+
+-_> PODEMOS FAZER ISSO DE DENTRO 
+
+DOS CONTAINER_BINDINGS.php...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+BASTA EDITAR ESTA BINDING AQUI:
+
+
+
+
+
+
+
+
+    'csrf' => fn(ResponseFactoryInterface $responseFactory) => 
+    new \Slim\Csrf\Guard($responseFactory, persistentTokenMode: true),
+
+
+
+
+
+
+
+
+
+
+
+
+-> COMO VC DEVE SE LEMBRAR,
+
+
+
+
+ESSA GUARD TAMBÉM ACEITA 1 ARGUMENT CHAMADO DE 'failureHandler',
+
+
+
+QUE É ACTUALLY 1 CLOSURE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> POR ISSO COMEÇAMOS ASSIM:
+
+
+
+
+
+    'csrf' => fn(ResponseFactoryInterface $responseFactory) => 
+    new \Slim\Csrf\Guard($responseFactory, persistentTokenMode: true, failureHandler: ),
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... MAS EM VEZ DE DEFINIR A CLOSURE AQUI,
+DENTRO DOS CONTAINER_BINDINGS,
+
+
+O PROFESSOR
+
+
+''WANTS TO 
+    CREATE A SEPARATE 
+
+    CSRF CLASS, AND THEN CALL FAILUREHANDLER ON THAT CLASS''...
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR QUER FAZER ISSO PQ ELE QUER DEIXAR 
+    A MAIOR QUANTIDADE DE LÓGICA FORA DO ARQUIVO DE 
+    'container_bindings.php' possível... 
+
+
+
+
+
+
+
+--> PQ O 'container_bindings' É UMA CONFIG FILE...
+
+
+
+
+
+É POR ISSO QUE A LÓGICA DE 'failureHandler'
+
+não deve ser escrita diretamente ali...
+
+
+
+
+
+
+
+
+-> POR ISSO É MELHOR 
+FAZER O INJECT DE 1 CLASS 
+
+
+DE NOME 
+
+
+'Csrf $csrf' 
+
+NESSE CONSTRUCTOR,
+
+
+
+
+
+E AÍ 
+
+
+chamar algo como 
+
+
+'$csrf->failureHandler()',
+
+
+
+QUE VAI RETORNAR 1 CLOSURE...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use Slim\Csrf\Handler;
+
+class Csrf
+{
+    public function __construct() {}
+
+    public function failureHandler(): \Closure
+    {
+        return function() {
+
+        };
+    }
+}
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+ESSE METHOD REALMENTE VAI RETORNAR 1 CLOSURE...
+
+
+
+
+
+
+
+
+
+
+
+-> ESSA CLOSURE VAI ACEITAR 2 ARGUMENTS...
+
+
+
+
+
+-> NO CASO, OS 2 ARGUMENTS SERÃO 
+
+
+'$request' e $handler'...
+
+
+
+
+
+
+
+
+
+--> TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Slim\Csrf\Handler;
+
+class Csrf
+{
+    public function __construct() {}
+
+    public function failureHandler(): \Closure
+    {
+        return function (ServerRequestInterface $request, RequestHandlerInterface $handler) {};
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ COPIAMOS A LÓGICA DO METHOD DE 
+
+
+'handleFailure',
+
+do guard,
+para 
+
+editarmos do jeito que queremos...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class Csrf
+{
+    public function __construct() {}
+
+    public function failureHandler(): \Closure
+    {
+        return function (ServerRequestInterface $request, RequestHandlerInterface $handler) {
+            return $this->responseFactory->createResponse()->withStatus(403);
+        };
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS TRANSFORMAR ISSO EM 1 ARROW FUNCTION,
+
+
+PQ É 1 LINE SÓ:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class Csrf
+{
+    public function __construct() {}
+
+    public function failureHandler(): \Closure
+    {
+        return fn(ServerRequestInterface $request,
+            RequestHandlerInterface $handler) => $this->responseFactory->createResponse()->withStatus(403);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS CUSTOMIZAR ISSO MAIS TARDE,
+
+SE QUISERMOS,
+
+
+PARA 
+
+ADD ON MAIS INFORMATION  À RESPONSE...
+
+
+
+
+
+
+
+
+
+
+MAS, POR ENQUANTO,
+ISSO ESTÁ PRETTY GOOD..
+
+
+
+
+
+
+
+
+-> SÓ PRECISAMOS INSERIR 
+
+
+
+O 'responseFactory' no constructor,
+
+tipo assim:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Slim\Psr7\Factory\ResponseFactory;
+
+class Csrf
+{
+    public function __construct(private readonly ResponseFactory $responseFactory) {}
+
+    public function failureHandler(): \Closure
+    {
+        return fn(ServerRequestInterface $request,
+            RequestHandlerInterface $handler) => $this->responseFactory->createResponse()->withStatus(403);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+DEVEMOS TESTAR TUDO ISSO, PARA VER SE FUNCIONA...
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use Closure;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Slim\Psr7\Factory\ResponseFactory;
+
+class Csrf
+{
+    public function __construct(private readonly ResponseFactory $responseFactory) {}
+
+    public function failureHandler(): Closure
+    {
+        return fn(ServerRequestInterface $request,
+            RequestHandlerInterface $handler) => $this->responseFactory->createResponse()->withStatus(403);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK.... AGORA, COM ISSO,
+
+
+ESTAMOS FICANDO COM 1 RESPONSE DE STATUS DE 403,
+
+
+E A RESPONSE DE 'Failed CSRF check!'
+
+
+não aparece mais,
+
+
+
+o que é uma boa notícia...
+
+
+
+
+
+
+
+
+
+
+--> PARA CONSERTAR O PROBLEMA DO CSRF,
+
+
+
+PRECISAMOS 
+
+''HAVE THE TOKEN NAME AND VALUE,
+AND PASS THOSE ALONG WITH OUR REQUEST BODY''..
+
+
+
+
+
+
+
+
+
+
+
+-> OU SEJA,
+
+NESSE CÓDIGO AQUI:
+
+
+
+
+
+
+
+
+
+
+
+  document
+    .querySelector('.save-category-btn')
+    .addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      fetch('/categories/' + categoryId, {
+        method: 'POST',
+        body: JSON.stringify({
+          name: editCategoryModal._element.querySelector('input[name="name"]')
+            .value,
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+
+
+
+
+E COMO ESTAMOS FAZENDO 1 ASYNC JAVASCRIPT REQUEST,
+
+
+PRECISAMOS ADICIONAR O TOKEN NAME E VALUE 
+
+DENTRO DO BODY...
+
+
+
+
+
+
+
+
+
+
+-> MAS PRECISAMOS SER CAPAZES DE RETRIEVAR 
+
+O TOKEN NAME E TOKEN VALUE,
+
+DE ALGUMA FORMA,
+
+
+
+
+
+PARA QUE ENTÃO CONSIGAMOS PASSÁ-LOS PARA DENTRO 
+
+
+DE ESSE BODY...
+
+
+
+
+
+
+
+
+
+
+
+--> UMA MANEIRA 
+
+É ADICIONAR OS FIELDS DE 'CSRF' 
+
+
+DE TIPO HIDDEN 
+
+
+DENTRO 
+
+
+
+DO MODAL,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<div class="modal fade" id="editCategoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-outline form-white mb-4">
+                    <input type="text" name="name" required
+                           class="form-control form-control-lg"
+                           placeholder="Category Name" />
+                </div>
+                {{ csrf.fields | raw }}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i>
+                    Close
+                </button>
+                <button type="button" class="btn btn-success save-category-btn">
+                    <i class="bi bi-check-circle me-1"></i>
+                    Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+isso vai renderizar esses csrf fields para nós...
+
+
+
+
+
+
+
+
+
+COM ISSO, PODEMOS ACESSÁ-LOS USANDO JAVASCRIPT ,
+
+
+DA MESMA FORMA QUE FIZEMOS COM 
+
+
+
+
+OS values de antes...
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR ESCREVE TIPO ASSIM, PORTANTO:
+
+
+
+
+
+
+
+  document
+    .querySelector('.save-category-btn')
+    .addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+      const csrfName = editCategoryModal._element.querySelector('input[name="csrf_name"]').value;
+      const csrfValue = editCategoryModal._element.querySelector('input[name="csrf_value"]').value;
+
+      fetch('/categories/' + categoryId, {
+        method: 'POST',
+        body: JSON.stringify({
+          name: editCategoryModal._element.querySelector('input[name="name"]')
+            .value,
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    });
+
+
+
+
+
+
+
+
+
+
+    AÍ VAMOS PASSAR ESSES VALUES, COMO PARTE DO BODY,
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+  document
+    .querySelector('.save-category-btn')
+    .addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+      const csrfName = editCategoryModal._element.querySelector(
+        'input[name="csrf_name"]'
+      ).value;
+      const csrfValue = editCategoryModal._element.querySelector(
+        'input[name="csrf_value"]'
+      ).value;
+
+      fetch('/categories/' + categoryId, {
+        method: 'POST',
+        body: JSON.stringify({
+          name: editCategoryModal._element.querySelector('input[name="name"]')
+            .value,
+          csrf_name: csrfName,
+          csrf_value: csrfValue,
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... VOLTAMOS AO BROWSER,
+
+
+E TENTAMOS ATINGIR O ENDPOINT NOVAMENTE...
+
+
+
+E NOVAMENTE FICAMOS COM 1 ERROR 403...
+
+
+
+
+
+
+
+
+
+
+-> MAS O csrf_name 
+e csrf_value estão sendo passados adequadamente...
+
+
+
+
+
+
+
+
+
+
+A ISSUE, AQUI,
+
+
+É QUE 
+
+
+''THE DEFAULT PSR7 IMPLEMENTATIONS __ DO NOT_ SUPPORT 
+    JSON OR XML FORMATS...''
+
+
+
+
+
+
+
+
+--> ''WE NEED TO DECODE THEM, OURSELVES,
+    FROM THE BODY''...
+
+
+
+
+
+
+--> BASICAMENTE PRECISAMOS PARSEAR O BODY,
+
+PARA EXTRAIR ESSA INFO...
+
+
+
+
+
+
+
+
+-> MAS O SLIM PHP FRAMEWORK 
+PROVIDENCIA 
+
+1 MIDDLEWARE QUE 
+
+FAZ ISSO PARA NÓS, PARA QUE 
+
+
+NÃO TENHAMOS QUE FAZER ISSO MANUALMENTE...
+
+
+
+
+
+
+
+
+-> PARA ISSO,
+
+
+BASTA ADICIONAR 
+
+O MIDDLEWARE DE 
+
+
+BODY PARSING (BodyParsingMiddleware)
+
+
+AO NOSSO STACK DE MIDDLEWARES,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Config;
+use Slim\Views\Twig;
+use Slim\Views\TwigMiddleware;
+use Slim\App;
+
+return function (App $app) {
+    $container = $app->getContainer();
+    $config = $container->get(Config::class);
+
+    // Method Override Middleware:
+    $app->add(\App\Middleware\MethodOverrideMiddleware::class);
+
+    // CSRF fields in templates:
+    $app->add(\App\Middleware\CsrfFieldsMiddleware::class);
+
+    // CSRF protection:
+    $app->add('csrf');
+
+    // Twig
+    $app->add(TwigMiddleware::create($app, $container->get(Twig::class)));
+
+    // Custom Validation Exception Middleware:
+    $app->add(\App\Middleware\ValidationExceptionMiddleware::class);
+
+    // Custom Validation Errors Middleware:
+    $app->add(\App\Middleware\ValidationErrorsMiddleware::class);
+
+    // Custom Old Form Data Middleware:
+    $app->add(\App\Middleware\OldFormDataMiddleware::class);
+
+    // Session Middleware:
+    $app->add(\App\Middleware\StartSessionsMiddleware::class);
+
+    // Body Parser Middleware (so that csrf works with json and xhr requests):
+    $app->addBodyParsingMiddleware();
+
+    // Logger
+    $app->addErrorMiddleware(
+        (bool) $config->get('display_error_details'),
+        (bool) $config->get('log_errors'),
+        (bool) $config->get('log_error_details')
+    );
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+há um method de 'registerDefaultBodyParsers()'
+
+
+dentro 
+
+
+de esse 'addBodyParsingMiddleware()',
+
+
+
+
+e ele pode ser customizado ainda além, caso necessário...
+
+
+
+
+
+
+
+-> OK...
+
+
+
+
+
+FAZEMOS ESSE SETUP AÍ, COM O MIDDLEWARE,
+
+MAS AINDA ESTAMOS FICANDO COM 
+
+
+1 RESPONSE DE STATUS 403...
+
+
+
+
+
+
+
+
+
+
+
+
+--> 
+A RAZÃO PARA O ERROR É QUE 
+
+
+O REQUEST ESTÁ SENDO ENVIADO 
+
+
+COM 1 CONTENT-TYPE DE 
+
+TIPO 
+
+
+
+'text/plain'...
+
+
+
+
+
+
+
+
+-> ERA PQ O PROFESSOR HAVIA ESCRITO 
+
+'header',
+
+
+em vez de 'headers'...
+
+
+
+
+
+
+
+
+
+-> OK... E AGORA FUNCIONOU...
+
+
+
+
+
+
+
+
+
+
+
+
+-> FICAMOS COM A RESPONSE DE STATUS CODE 200...
+
+
+
+
+
+
+
+
+
+
+-> MAS EM 1 APP DE VERDADE,
+
+
+VC TERÁ VÁRIOS MODALS DIFERENTES...
+
+
+
+
+
+
+
+-> TER DE ADICIONAR O FIELD DE 'csrf' 
+
+
+A TODOS ESSES MODAL/FORMATS
+
+
+E ENTÃO 
+
+
+
+
+TER DE FAZER O RETRIEVE DE ESSES VALUES TODOS 
+
+NO JAVASCRIPT,
+
+
+
+DESTA FORMA AQUI (
+
+
+
+      document
+    .querySelector('.save-category-btn')
+    .addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+      const csrfName = editCategoryModal._element.querySelector(
+        'input[name="csrf_name"]'
+      ).value;
+      const csrfValue = editCategoryModal._element.querySelector(
+        'input[name="csrf_value"]'
+      ).value;
+
+      fetch('/categories/' + categoryId, {
+        method: 'POST',
+        body: JSON.stringify({
+          name: editCategoryModal._element.querySelector('input[name="name"]')
+            .value,
+          csrf_name: csrfName,
+          csrf_value: csrfValue,
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    });
+
+)
+
+
+
+
+É ALGO MEIO DESNECESSÁRIO...
+
+
+
+
+
+
+
+
+
+
+--> TAMBÉM HÁ OUTRA ISSUE, AQUI:
+
+
+
+
+''WE ARE KIND OF HARDCODING THE 
+
+VALUES OF THE INPUT FIELDS OF 'csrf_name' and 'csrf_value''''...
+
+
+
+
+
+
+
+
+
+
+
+- E O PROBLEMA É QUE 
+
+ESSES FIELDS PODEM SER CUSTOMIZABLE...
+
+
+
+
+
+
+
+
+
+-> ESTAMOS HARDCODANDO ESSES VALUES... E ISSO É RUIM,
+
+
+PQ ISSO PODE MUDAR, NO BACKEND...
+
+
+
+
+
+
+
+
+
+-> HÁ, ACTUALLY, 
+
+UMA MANEIRA MELHOR DE HANDLAR ISSO AÍ...
+
+
+
+
+
+
+
+
+
+-> ''SINCE WE ARE USING PERSISTENT TOKENS,
+    WE COULD __ STORE __ THE CSRF KEY NAMES AND VALUES 
+    IN SOME META TAGS,
+
+    ON THE PAGE LOAD,
+     AND THEN _ ACCESS THEM, USING JAVASCRIPT''...
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, USAREMOS/USARÍAMOS AS 
+
+TAGS DE '<meta>' 
+
+
+LÁ NO '<head>'
+
+
+DE NOSSO HTML,
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-100">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="{{ csrf.keys.name }}" />
+        <title>{% block title %}Expennies{% endblock %}</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap"
+              rel="stylesheet">
+
+        {% block stylesheets %}
+            {{ encore_entry_link_tags('app') }}
+        {% endblock %}
+
+        {% block javascripts %}
+            {{ encore_entry_script_tags('app') }}
+        {% endblock %}
+    </head>
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+        <meta name="{{ csrf.keys.name }}" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+    COM ISSO, VAMOS ACESSAR 
+
+
+    ESSES VALUES,
+    QUE FORAM INSERIDOS COM 
+    O MIDDLEWARE DE 'CsrfFieldsMiddleware':
+
+
+
+
+
+
+
+
+
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {
+
+        $csrf = $this->container->get('csrf');
+
+        $csrfNameKey = $csrf->getTokenNameKey();
+        $csrfValueKey = $csrf->getTokenValueKey();
+        $csrfName = $csrf->getTokenName();
+        $csrfValue = $csrf->getTokenValue();
+        $fields = <<<HTML
+                            <input type="hidden" name="{$csrfNameKey}" value="{$csrfName}">
+                            <input type="hidden" name="{$csrfValueKey}" value="{$csrfValue}">
+                            HTML;
+                            
+        $csrfData = [
+                'keys' => [
+                    'name'  => $csrfNameKey,
+                    'value' => $csrfValueKey
+                ],
+                'name'  => $csrfName,
+                'value' => $csrfValue,
+                'fields' => $fields
+               ];
+
+
+        // This is used to add the CSRF token to the template (to the form input fields)
+        $this->twig->getEnvironment()->addGlobal('csrf', $csrfData);
+
+        return $handler->handle($request);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    aí continuamos escrevndo,
+
+
+    tipo assim:
+
+
+
+
+
+
+
+		<meta id="csrfName" name="{{ csrf.keys.name }}" content="{{ csrf.name }}"/>
+		<meta id="csrfValue" name="{{ csrf.keys.value }}" content="{{ csrf.value }}"/>
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+	<head>
+		<meta charset="UTF-8">
+		<meta id="csrfName" name="{{ csrf.keys.name }}" content="{{ csrf.name }}"/>
+		<meta id="csrfValue" name="{{ csrf.keys.value }}" content="{{ csrf.value }}"/>
+		<title>
+			{% block title %}Expennies
+			{% endblock %}
+		</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
+
+		{% block stylesheets %}
+			{{ encore_entry_link_tags('app') }}
+		{% endblock %}
+
+		{% block javascripts %}
+			{{ encore_entry_script_tags('app') }}
+		{% endblock %}
+	</head>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, LÁ NO JAVASCRIPT,
+
+
+PODEMOS USAR 1 FUNCTION PARA CONSEGUIR ESSES VALUES, INSERIDOS NAS META TAGS...
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+function getCsrfFields() {
+    const csrfNameField = document.querySelector('#csrfName');
+    const csrfValueField = document.querySelector('#csrfValue');
+    const csrfNameKey = csrfNameField.getAttribute('name');
+    const csrfName = csrfNameField.content;
+    const csrfValueKey = csrfValueField.getAttribute('name');
+    const csrfValue = csrfValueField.content;
+
+    return {
+        [csrfNameKey]: csrfName,
+        [csrfValueKey]: csrfValue
+    }
+     
+}
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO,
+
+NO FETCH,
+
+VAMOS ESCREVER ASSIM:
+
+
+
+
+
+
+      fetch('/categories/' + categoryId, {
+        method: 'POST',
+        body: JSON.stringify({
+          name: editCategoryModal._element.querySelector('input[name="name"]')
+            .value,
+            ...getCsrfFields(),
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  document
+    .querySelector('.save-category-btn')
+    .addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+      // const csrfName = editCategoryModal._element.querySelector(
+      //   'input[name="csrf_name"]'
+      // ).value;
+      // const csrfValue = editCategoryModal._element.querySelector(
+      //   'input[name="csrf_value"]'
+      // ).value;
+
+      fetch('/categories/' + categoryId, {
+        method: 'POST',
+        body: JSON.stringify({
+          name: editCategoryModal._element.querySelector('input[name="name"]')
+            .value,
+            ...getCsrfFields(),
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... AGORA FUNCIONOU...
+
+
+
+
+
+
+
+
+
+
+
+-> ESSES VALUES ESTÃO SENDO ENVIADOS,
+
+
+
+SEM ERRORS DE CSRF...
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS 
+
+TAMBÉM NOS LIVRAR 
+
+
+
+DAQUELE TRECHO DE 
+
+
+'{{ csrf_fields | raw }}' 
+
+
+
+LÁ NO TWIG TEMPLATE,
+
+
+
+
+PQ 
+
+
+NÃO PRECISAMOS MAIS DELES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+A PRÓXIMA ETAPA 
+
+
+é actually SALVAR O CATEGORY NAME 
+
+
+NA DATABASE...
+
+
+
+
+
+
+
+
+
+
+
+SIGNIFICA QUE PRECISAMOS ACTUALLY ADICIONAR 1 VALIDATION NO NOSSO BACKEND...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> LÁ NO CONTROLLER DE 'CATEGORIESCONTROLLER',
+
+
+PODEMOS ADICIONAR 
+
+
+UMA VALIDATION PARECIDA COM A DE CATEGORY CREATION, TIPO ASSIM:
+
+
+
+
+
+
+
+
+    public function update(Request $request, Response $response, array $args): Response
+    {   
+
+        $categoryId = (int) $args['id']; // inputs from the frontend are always strings, so it needs to be cast as int.
+
+        $category = $this->categoryService->getById($categoryId);
+
+        if (!$category) {
+            return $response->withStatus(404);
+        }
+
+        $data = $request->getParsedBody();
+
+
+        ['name' => $name] = $data;
+
+        $categoryData = new CategoryData($name);
+
+        $data = $this->requestValidatorFactory
+            ->make(UpdateCategoryRequestValidator::class)
+            ->validate($categoryData);
+
+        
+        $this->categoryService->update($categoryData, $category);
+
+        return $this->responseFormatter->asJson($response, $data);
+    }
+
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+
+
+
+
+
+    public function update(CategoryData $categoryData, Category $category): void
+    {
+        $category->setName($categoryData->name);
+
+        $this->entityManager->persist($category);
+
+        $this->entityManager->flush();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS ESTAMOS COM PROBLEMAS DE VALIDATION...
+
+
+
+
+
+
+
+-> ISSO ESTÁ ACONTECENDO 
+
+QUANDO TENTAMOS UPDATAR 
+
+
+NOSSO CATEGORY COM NAMES EM BRANCO....
+
+
+
+
+
+
+
+--> QUEREMOS RETORNAR APENAS 1 JSON RESPONSE COM VALIDATION ERRORS...
+
+
+
+
+
+-> AÍ O FRONTEND 
+
+
+VAI DECIDIR SE QUER 
+
+FAZER REDIRECT,
+
+
+
+SE VAI MOSTRAR 1 ERROR, ETC...
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE VAMOS MODIFICAR ESSES MIDDLEWARES,
+
+
+PARA FAZER COM QUE ELE CONSIGA DETECTAR SE É UM 'XHR REQUEST' (AJAX)...
+
+
+
+
+
+
+
+--> se ele detecta que é um XHR REQUEST,
+
+
+EM VEZ DE FAZER REDIRECT, ELE VAI PREPARAR UMA JSON RESPONSE ADEQUADA..
+
+
+
+
+
+
+--> MAS FAREMOS ISSO NA PRÓXIMA AULA...
