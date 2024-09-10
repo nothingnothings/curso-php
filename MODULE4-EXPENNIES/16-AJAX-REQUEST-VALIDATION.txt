@@ -1,0 +1,2820 @@
+
+
+
+
+
+
+
+
+
+--> ok... agora devemos continuar com o request de 'update category'...
+
+
+
+
+
+
+
+
+--> QUEREMOS ADICIONAR VALIDATION A XHR REQUESTS (requests 
+de tipo AJAX, requests fetch api, com json data, etc)
+
+
+
+
+
+
+
+
+
+->  A PRIMEIRA COISA QUE PRECISAMOS FAZER É 
+ACTUALLY ADICIONAR A LÓGICA PARA 'UPDATE THE CATEGORY NAME'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> MEU CÓDIGO HAVIA FICADO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public function update(Request $request, Response $response, array $args): Response
+    {   
+
+        $categoryId = (int) $args['id']; // inputs from the frontend are always strings, so it needs to be cast as int.
+
+        $category = $this->categoryService->getById($categoryId);
+
+        if (!$category) {
+            return $response->withStatus(404);
+        }
+
+        $data = $request->getParsedBody();
+
+
+        ['name' => $name] = $data;
+
+        $categoryData = new CategoryData($name);
+
+        $data = $this->requestValidatorFactory
+            ->make(UpdateCategoryRequestValidator::class)
+            ->validate($categoryData);
+
+        
+        $this->categoryService->update($categoryData, $category);
+
+        return $this->responseFormatter->asJson($response, $data);
+    }
+
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+
+
+
+
+
+    public function update(CategoryData $categoryData, Category $category): void
+    {
+        $category->setName($categoryData->name);
+
+        $this->entityManager->persist($category);
+
+        $this->entityManager->flush();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR APONTA QUE NÃO PRECISAMOS ACTUALLY RESPONDER COM DATA ALGUMA,
+
+
+QUE PODEMOS RETORNAR APENAS O RESPONSE OBJECT,
+TIPO ASSIM:
+
+
+
+
+    public function update(Request $request, Response $response, array $args): Response
+    {   
+
+        $categoryId = (int) $args['id']; // inputs from the frontend are always strings, so it needs to be cast as int.
+
+        $category = $this->categoryService->getById($categoryId);
+
+        if (!$category) {
+            return $response->withStatus(404);
+        }
+
+        $data = $request->getParsedBody();
+
+
+        ['name' => $name] = $data;
+
+        $categoryData = new CategoryData($name);
+
+        $data = $this->requestValidatorFactory
+            ->make(UpdateCategoryRequestValidator::class)
+            ->validate($categoryData);
+
+        
+        $this->categoryService->update($categoryData, $category);
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO...
+
+
+AÍ PRECISAMOS DE ALGUM METHOD NO 
+
+SERVICE DE 
+
+'categoryService',
+
+
+PARA UPDATE 
+
+
+
+
+A DATA...
+
+
+
+
+
+
+
+
+
+
+
+
+-> EU ESCREVI TIPO ASSIM:
+
+
+
+
+
+
+
+
+    public function update(Request $request, Response $response, array $args): Response
+    {   
+
+        $categoryId = (int) $args['id']; // inputs from the frontend are always strings, so it needs to be cast as int.
+
+        $category = $this->categoryService->getById($categoryId);
+
+        if (!$category) {
+            return $response->withStatus(404);
+        }
+
+        $data = $request->getParsedBody();
+
+
+        ['name' => $name] = $data;
+
+        $categoryData = new CategoryData($name);
+
+        $data = $this->requestValidatorFactory
+            ->make(UpdateCategoryRequestValidator::class)
+            ->validate($categoryData);
+
+        
+        $this->categoryService->update($categoryData, $category);
+
+        return $this->responseFormatter->asJson($response, $data);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> EU USEI 1 DTO (data transfer object),
+
+
+mas o professor não usou...
+
+
+
+
+
+mas não tem problema...
+
+
+
+
+
+
+
+
+
+
+-> CERTO... O MEU METHOD DE UPDATE FICOU ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+    public function update(CategoryData $categoryData, Category $category): void
+    {
+        $category->setName($categoryData->name);
+
+        $this->entityManager->persist($category);
+
+        $this->entityManager->flush();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS COMO FICOU O DO PROFESSOR?
+
+
+
+
+
+
+
+
+FICOU TIPO ASSIM:
+
+
+
+    public function update(CategoryData $categoryData, Category $category): void
+    {
+        $category->setName($categoryData->name);
+
+        $this->entityManager->persist($category);
+
+        $this->entityManager->flush();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+FICOU A MESMA COISA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS ESTAMOS DUPLICANDO CÓDIGO...
+
+
+
+
+
+
+
+-> PODEMOS RODAR esse '$this->update()' 
+
+
+
+lá em 'create',
+
+TAMBÉM,
+
+
+
+
+pq é o mesmo código...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+    public function create(CategoryData $categoryData, User $user): Category
+    {
+        $category = new Category();
+
+        $category->setUser($user);
+
+
+        // $category->setName($categoryData->name);
+        // $this->entityManager->persist($category);
+        // $this->entityManager->flush();
+
+        $this->update($categoryData, $category);
+
+        return $category;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+DEIXAMOS ASSIM, PORTANTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> DEPOIS DISSO, VOLTAMOS AO CONTROLLER... 
+
+
+
+
+
+
+
+
+
+
+
+
+CONTROLLER DE CATEGORIESCONTROLLER...
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR QUER ADICIONAR VALIDATION PARA O 
+
+
+
+''(int) $args['id']'',
+
+
+
+PQ ESSE VALUE PODE 
+
+
+
+EVENTUALMENTE SER TEXT,
+
+
+O QUE GERARIA 1 ERROR... O PROFESSOR NÃO QUER RODAR QUERIES DESNECESSÁRIAS,
+
+
+CASO ISSO SEJA 1 STRING MESMO...
+
+
+
+
+
+
+
+
+
+
+-> SE ISSO FOR 1 INVALID ID,
+
+
+    ESTAREMOS EXECUTANDO 1 QUERY DESNECESSÁRIA..
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE ADICIONAMOS ESTA RULE,
+
+EM 
+
+
+'UpdateCategoryRequestValidator':
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\RequestValidators;
+
+use App\Contracts\RequestValidatorInterface;
+use Valitron\Validator;
+
+class UpdateCategoryRequestValidator implements RequestValidatorInterface
+{
+    public function validate($categoryData): array
+    {
+        $v = new Validator($categoryData);
+
+        $v->rule('required', ['name']);
+        $v->rule(
+            'lengthMax',
+            'name',
+        );
+        $v->rule('integer', 'id');
+
+        $dataArray = [
+            'name' => $categoryData->name,
+        ];
+
+        return $dataArray;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+AGORA QUE ADICIONAMOS VALIDATION NO LADO DO CONTROLLER,
+
+
+
+
+DEVEMOS VER COMO PODEMOS 
+
+'SEND THE PROPER JSON RESPONSE,
+
+WHENEVER A VALIDATIONEXCEPTION OCCURS'...
+
+
+
+
+
+
+
+
+
+
+
+ 
+-> ISSO PQ, NA ÚLTIMA AULA,
+
+CONSTATAMOS QUE O NEGÓCIO VAI 'REDIRECT' O USER,
+
+EM CASES DE VALIDATIONEXCEPTION (tipo input field vazio, de name)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AQUI:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Contracts\SessionInterface;
+use App\Exception\ValidationException;
+use App\Services\RequestService;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class ValidationExceptionMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly ResponseFactoryInterface $responseFactory, 
+                                private readonly SessionInterface $session, 
+                                private readonly RequestService $requestService) {}
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): Response
+    {
+        try {
+            return $handler->handle($request);
+        } catch (ValidationException $e) {
+            
+            $response = $this->responseFactory->createResponse();
+            $referer = $this->requestService->getReferer($request);
+            $oldData = $request->getParsedBody();
+
+            // Use this Info/list to remove the 'password' and 'confirmPassword' fields from the old data, to avoid flashing sensitive information on the session.
+            $sensitiveFields = ['password', 'confirmPassword'];
+
+            // Flash errors and old form data to the session, so that it can be used in the template.
+            $this->session->flash('errors', $e->errors());  // * flashes the errors to the session, so that they can be displayed in the template.
+            $this->session->flash('old', array_diff_key($oldData, array_flip($sensitiveFields)));  // * flashes the old form data to the session, so that it can be displayed in the template, on validation errors.
+
+            return $response->withHeader('Location', $referer)->withStatus(302);  // This will redirect the user back to the 'register' page (the page that the user was trying to access, to be more precise)...
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+QUER DIZER QUE ESTAMOS TENTANDO REDIRECIONAR O USER AO REFERRER,
+
+
+COM 1 STATUS DE 302,
+
+
+
+MAS NEM ISSO ACONTECE...
+
+
+
+
+
+
+
+--> MAS A QUESTÃO É QUE NÃO QUEREMOS FAZER NADA DISSO,
+SE O VALIDATION ERROR ACONTECER 
+
+
+COM 1 REQUEST DE TIPO 'XHR' (AJAX, axios, fetch, etc)...
+
+
+
+
+
+
+
+
+
+
+PARA CONSERTAR ISSO, O QUE PRECISAMOS FAZER É 
+
+
+
+'CHECK IF THE REQUEST IS AN XHR REQUEST...
+
+IF IT IS, WE NEED TO PREPARE A PROPER JSON 
+RESPONSE, WITH VALIDATION ERRORS AND THE PROPER STATUS CODE''...
+
+
+
+
+
+
+
+SE N FOR UM XHR REQUEST,
+
+PODEMOS CONTINUAR COM ESSE CÓDIGO BÁSICO QUE TEMOS, NESSE 'ValidationExceptionMiddleware'
+
+
+aí...
+
+
+
+
+
+
+
+
+--> OK... O PROFESSOR ESTÁ FALANDO 
+
+SOBRE 
+
+
+
+XML E XHR,
+
+
+MAS O QUE SÃO ELES?
+
+
+
+
+
+
+
+
+
+XMLHTTPREQUEST --> É A MESMA COISA QUE 'XHR'...
+
+
+
+
+
+
+
+
+
+
+
+
+-> XML HTTP REQUEST --> ''IS AN API IN THE FORM OF AN __ OBJECT, WHOSE METHODS 
+                            TRANSFER DATA BETWEEN A __WEB BROWSER_ AND A WEB SERVER.
+                            THE OBJECT IS PROVIDED BY THE BROWSER'S JAVASCRIPT 
+                            ENVIRONMENT. PARTICULARLY, RETRIEVAL OF DATA 
+                            FROM XHR FOR THE PURPOSE OF CONTINUALLY MODIFYING A 
+                            LOADED WEBPAGE IS THE UNDERLYING CONCEPT OF AJAX DESIGN.
+                            DESPITE THE NAME, XHR CAN BE USED WITH PROTOCOLS __ OTHER__ THAN 
+                            HTTP, AND DATA CAN BE IN THE FORM OF NOT ONLY XML, BUT ALSO JSON,
+                            HTML OR PLAIN TEXT..''
+
+
+
+
+
+
+
+
+
+-> ISSO TE DEIXA FAZER REQUESTS AO SERVER 
+
+
+'''WITHOUT THE NEED OF PAGE REFRESH'''..
+
+
+
+
+
+
+
+
+
+
+
+
+AJAX -> É BASICAMENTE UMA ABSTRACTION DE 
+            XHR, POR ASSIM DIZER...
+
+
+
+
+
+
+
+
+--> ALGUNS FRAMEWORKS/LIBRARIES  
+    QUE PROVIDENCIAM AJAX CALL ABSTRACTIONS 
+
+
+    AUTOMATICAMENTE 
+
+    ADICIONAM 
+
+
+
+
+
+    O HEADER CHAMADO DE 
+
+
+    'X-Requested-With'...
+
+
+
+
+
+
+
+
+
+--> ESSE HEADER VEM COM UM VALUE DE 
+
+'XmlHttpRequest'...
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+fetch(
+    'somepage.xml',
+    {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest' // Tells the server that this call is made for AJAX purposes. Most libraries like jQuery/prototype/dojo do this.
+        }
+    }
+).then(
+    (response) => {
+        console.log(response);
+    }
+)
+
+
+
+
+
+
+
+
+
+--> ISSO, NO CASO,
+
+PODE SER USADO PARA CHECAR,
+
+NO BACKEND,
+
+
+SE O REQUEST É 
+
+
+DE TIPO 
+
+
+'XMLHTTPREQUEST' 
+
+OU NÃO..
+
+
+
+
+
+
+
+
+
+
+-> LIBRARIES COMO AXIOS E etc 
+FAZEM ISSO AUTOMATICAMENTE,
+
+ESSE SET DE ESSE HEADER,
+
+
+
+
+MAS O FETCH API NÃO FAZ...
+
+
+
+
+
+
+-> É POR ISSO QUE PRECISAMOS PASSAR  ESSE HEADER MANUALMENTE,
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+  document
+    .querySelector('.save-category-btn')
+    .addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+      // const csrfName = editCategoryModal._element.querySelector(
+      //   'input[name="csrf_name"]'
+      // ).value;
+      // const csrfValue = editCategoryModal._element.querySelector(
+      //   'input[name="csrf_value"]'
+      // ).value;
+
+      fetch('/categories/' + categoryId, {
+        method: 'POST',
+        body: JSON.stringify({
+          name: editCategoryModal._element.querySelector('input[name="name"]')
+            .value,
+            ...getCsrfFields(),
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      }); 
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    certo...
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO,
+
+TEREMOS QUE REPETIR 
+
+
+
+ESSA COISA EM TODOS OS LUGARES 
+
+
+
+QUE USAMOS FETCH API...
+
+
+
+
+
+
+
+
+-> PARA NÃO TER DE REPETIR ISSO 700X,
+
+
+
+O PROFESSOR VAI OUTSOURCEAR/ABSTRAIR 
+
+
+ESSA CALL DE 
+
+
+
+'fetch()',
+
+
+
+
+
+
+
+COM TIPO UMA FUNCTION SEPARADA...
+
+
+
+
+
+
+
+
+
+
+-> FICOU TIPO ASSIM:
+
+
+
+
+
+const ajax = (url, method = 'get', data = {}) => {
+    method = method.toLowerCase()
+
+    let options = {
+        method,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    }
+
+    const csrfMethods = new Set(['post', 'put', 'delete', 'patch'])
+
+    if (csrfMethods.has(method)) {
+        options.body = JSON.stringify({...data, ...getCsrfFields()})
+    } else if (method === 'get') {
+        url += '?' + (new URLSearchParams(data)).toString();
+    }
+
+    return fetch(url, options).then(response => response.json())
+}
+
+const get  = (url, data) => ajax(url, 'get', data)
+const post = (url, data) => ajax(url, 'post', data)
+
+function getCsrfFields() {
+    const csrfNameField  = document.querySelector('#csrfName')
+    const csrfValueField = document.querySelector('#csrfValue')
+    const csrfNameKey    = csrfNameField.getAttribute('name')
+    const csrfName       = csrfNameField.content
+    const csrfValueKey   = csrfValueField.getAttribute('name')
+    const csrfValue      = csrfValueField.content
+
+    return {
+        [csrfNameKey]: csrfName,
+        [csrfValueKey]: csrfValue
+    }
+}
+
+export {
+    ajax,
+    get,
+    post
+}
+
+
+
+
+
+
+
+
+BASTA IMPORTAR ISSO NO NOSSO JAVASCRIPT,
+
+
+DE ESSE ARQUIVO 'ajax.js',
+
+
+E AÍ 
+USAR ESSES METHODS DE 'ajax', 'get' e 'post'...
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ALGO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+import { Modal } from 'bootstrap';
+import { ajax, get, post } from './ajax';
+
+window.addEventListener('DOMContentLoaded', function () {
+  const editCategoryModal = new Modal(
+    document.getElementById('editCategoryModal')
+  );
+
+  document.querySelectorAll('.edit-category-btn').forEach((button) => {
+    button.addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      get('/categories/' + categoryId).then((response) =>
+        openEditCategoryModal(editCategoryModal, response)
+      );
+    });
+  });
+
+  document
+    .querySelector('.save-category-btn')
+    .addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      post('/categories/' + categoryId, {
+        name: editCategoryModal._element.querySelector('input[name="name"]')
+          .value,
+      }).then((response) => {
+        console.log(response);
+      });
+    });
+});
+
+function openEditCategoryModal(modal, { id, name }) {
+  const nameInput = modal._element.querySelector('input[name="name"]');
+
+  nameInput.value = name;
+
+  modal._element
+    .querySelector('.save-category-btn')
+    .setAttribute('data-id', id);
+
+  modal.show();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+TUDO ISSO,
+ 
+
+O SPECIFY DOS HEADERS,
+
+O STRINGIFYING,
+
+
+O PARSING DA RESPONSE COMO JSON,
+
+
+TUDO ISSO 
+
+
+FOI ABSTRACTED AWAY,
+
+
+NESSE ARQUIVO 
+
+'ajax.js'...
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR LOGO NOS EXPLICARÁ 
+A FILE DE 'ajax.js'...
+
+
+
+
+
+
+
+--> O GET METHOD 
+
+
+ACEITA A URL E 1 SEGUNDO PARAMETER,
+
+
+QUE É DE DATA,
+
+MAS NÃO TEMOS DATA ALGUMA...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+    button.addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      get('/categories/' + categoryId).then((response) =>
+        openEditCategoryModal(editCategoryModal, response)
+      );
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+
+
+
+E SE ABRIMOS O ARQUIVO DE 'ajax.js',
+
+
+
+PERCEBEMOS QUE TEMOS ESSA FUNCTION DE 'ajax',
+
+
+
+
+
+
+E AÍ 
+
+
+
+
+AQUELAS FUNCTIONS DE 'get' e 'post'...
+
+
+
+
+
+
+
+
+
+
+--> GET E POST FUNCTIONS SIMPLESMENTE 
+
+
+CHAMAM A FUNCTION DE 'ajax'
+
+
+e 
+
+passam 'get' e 'post'
+
+como parametrs...
+
+
+
+
+isso quer dizer que ela é basicamente syntatic sugar..
+
+
+
+
+
+
+
+
+
+-> JÁ A FUNCTION DE 'ajax'
+ 
+
+
+ACEITA A URL,
+
+
+O METHOD E ENTÃO DATA...
+
+
+
+
+
+
+-> DEPOIS 
+
+
+
+
+PASSAMOS AS OPTIONS DEFAULT 
+
+
+
+AO FETCH API,
+
+tipo assim:
+
+
+
+
+
+
+
+const ajax = (url, method = 'get', data = {}) => {
+  method = method.toLowerCase();
+
+  let options = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+  };
+
+  const csrfMethods = new Set(['post', 'put', 'delete', 'patch']);
+
+  if (csrfMethods.has(method)) {
+    options.body = JSON.stringify({ ...data, ...getCsrfFields() });
+  } else if (method === 'get') {
+    url += '?' + new URLSearchParams(data).toString();
+  }
+
+  return fetch(url, options).then((response) => response.json());
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NÓS TAMBÉM CHECAMOS SE O METHOD DO REQUEST É ALGUM 
+DOS CSRF 
+
+METHODS 
+
+(post, put, delete, patch)...
+
+
+
+
+
+
+-> SE O METHOD É ALGUM DESSES AÍ,
+    NÓS TAMBÉM STRINGIFAMOS O DATA OBJECT,
+
+    ANTES DE COLOCÁ-LO NO REQUEST...
+
+
+
+
+
+
+
+
+
+-> JÁ SE O METHOD É GET,
+
+NÃO PRECISAMOS ADICIONAR 
+
+
+O BODY STRINGIFADO NAS OPTIONS...
+
+
+
+
+
+EM VEZ DISSO,
+
+
+PRECISAMOS ADICIONAR OS QUERY PARAMETERS,
+
+
+
+
+E É POR ISSO QUE ESCREVEMOS TIPO ASSIM:
+
+
+
+
+
+
+else if (method === 'get') {
+    url += '?' + new URLSearchParams(data).toString();
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+FINALMENTE, A FUNCTION DE FETCH É CHAMADA...
+
+
+
+
+
+-> E AÍ,
+O NEGÓCIO CONVERTE 
+
+
+A RESPONSE EM JSON...
+
+
+
+
+
+
+
+
+
+
+
+--> É UMA ABSTRACTION BEM SIMPLES,
+
+    MAS BEM EFETIVA,
+
+
+
+    QUE NOS DEIXA EVITAR O USO DO AXIOS,
+
+
+
+    E QUE 
+
+    NOS DEIXA FAZER ESSES TIPOS DE REQUEST 
+
+    DE FORMA APROPRIADA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ''NOW WE ARE READY TO IMPLEMENT THE BACKEND CHECK FOR THE 
+XHR REQUEST''...
+
+
+
+
+
+
+
+ISSO PQ JÁ EXTRAÍMOS TUDO DO JEITO QUE QUERÍAMOS,
+
+
+E AGORA JÁ ADICIONAMOS ESSE HEADER IMPORTANTE,
+
+
+QUE 
+
+
+É USADO PARA CHECAR SE O REQUEST É DE TIPO  'XHR'
+
+OU NÃO, NO BACKEND...
+
+
+
+
+
+
+
+
+LÁ NO BACKEND,
+
+TEMOS O MIDDLEWARE DE ValidationExceptionMiddleware:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Contracts\SessionInterface;
+use App\Exception\ValidationException;
+use App\Services\RequestService;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class ValidationExceptionMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly ResponseFactoryInterface $responseFactory, 
+                                private readonly SessionInterface $session, 
+                                private readonly RequestService $requestService) {}
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): Response
+    {
+        try {
+            return $handler->handle($request);
+        } catch (ValidationException $e) {
+            
+            $response = $this->responseFactory->createResponse();
+            $referer = $this->requestService->getReferer($request);
+            $oldData = $request->getParsedBody();
+
+            // Use this Info/list to remove the 'password' and 'confirmPassword' fields from the old data, to avoid flashing sensitive information on the session.
+            $sensitiveFields = ['password', 'confirmPassword'];
+
+            // Flash errors and old form data to the session, so that it can be used in the template.
+            $this->session->flash('errors', $e->errors());  // * flashes the errors to the session, so that they can be displayed in the template.
+            $this->session->flash('old', array_diff_key($oldData, array_flip($sensitiveFields)));  // * flashes the old form data to the session, so that it can be displayed in the template, on validation errors.
+
+            return $response->withHeader('Location', $referer)->withStatus(302);  // This will redirect the user back to the 'register' page (the page that the user was trying to access, to be more precise)...
+        }
+    }
+}
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ --> AQUI, NÓS TEMOS ESSA CLASS DE 
+
+ 'requestService',
+
+
+
+
+ QUE É DE ONDE PEGAMOS O 'REFERER'...
+
+
+
+
+
+
+
+
+
+
+
+ -> AAGORA VAMOS CRIAR OUTRO METHOD NESSA CLASS,
+
+
+ PARA CHECAR SE 
+
+
+ O 
+
+REQUEST É DE TIPO 'XHR'
+
+OU NÃO...
+
+
+
+
+
+
+--> SE ELE FOR REALMENTE DE TIPO 'XHR',
+
+
+QUEREMOS RETORNAR 1 JSON RESPONSE,
+
+E NÃO 'REDIRECT'..
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+        } catch (ValidationException $e) {
+            
+            $response = $this->responseFactory->createResponse();
+
+            if ($this->requestService->isXhr($request)) {
+                // return json response:
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
+
+
+            $referer = $this->requestService->getReferer($request);
+            $oldData = $request->getParsedBody();
+
+            // Use this Info/list to remove the 'password' and 'confirmPassword' fields from the old data, to avoid flashing sensitive information on the session.
+            $sensitiveFields = ['password', 'confirmPassword'];
+
+            // Flash errors and old form data to the session, so that it can be used in the template.
+            $this->session->flash('errors', $e->errors());  // * flashes the errors to the session, so that they can be displayed in the template.
+            $this->session->flash('old', array_diff_key($oldData, array_flip($sensitiveFields)));  // * flashes the old form data to the session, so that it can be displayed in the template, on validation errors.
+
+            return $response->withHeader('Location', $referer)->withStatus(302);  // This will redirect the user back to the 'register' page (the page that the user was trying to access, to be more precise)...
+        }
+
+
+
+
+
+
+
+
+MAS É CLARO QUE PODEMOS ESCREVER ESSE IF DE 1 JEITO MELHOR...
+
+
+
+
+
+
+
+
+
+--> É PQ NÓS JÁ TEMOS AQUELE SERVICE DE 'ResponseFormatter',
+
+
+que tem aquele method de 'asJson()',
+
+
+que pode RETORNAR A NOSSA RESPONSE COMO JSON...
+
+
+
+
+
+
+BASTA INJETÁ-LO NO CONSTRUCTOR...
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+        } catch (ValidationException $e) {
+            
+            $response = $this->responseFactory->createResponse();
+
+            if ($this->requestService->isXhr($request)) {
+                // return json response:
+                return $this->responseFormatter->asJson($response, $e->errors());
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS O PROFESSOR TAMBÉM QUER SETTAR 1 STATUS CODE ESPECÍFICO...
+
+
+
+
+
+
+-> O PROFESSOR QUER USAR O STATUS CODE DE 422,
+
+
+que é o mesmo do laravel...
+
+
+
+
+-> POR ISSO ELE ESCREVE ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+            if ($this->requestService->isXhr($request)) {
+                // return json response:
+                return $this->responseFormatter->asJson($response->withStatus(422), $e->errors());
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> E SE O REQUEST NÃO É XHR,
+
+
+SIMPLESMENTE FAZEMOS O QUE ESTÁVAMOS FAZENDO ANTES...
+
+
+
+
+(
+get the referer,
+the old data from the request,
+flash the sessions 
+and then 
+REDIRECT THE USER TO THE REFERER URL,
+
+WITH THE STATUS CODE OF 302...
+
+)
+
+
+
+
+
+
+
+
+
+-_> agora precisamos de esse method de 'isXhr'...
+
+
+
+
+
+
+
+
+-> PODEMOS ESCREVER TIPO ASSIM, 
+
+
+LÁ EM 'RequestService':
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Contracts\RequestServiceInterface;
+use App\Contracts\SessionInterface;
+use Psr\Http\Message\ServerRequestInterface;
+
+class RequestService implements RequestServiceInterface
+{
+    public function __construct(private readonly ServerRequestInterface $request, private readonly SessionInterface $session) {}
+
+    public function getReferer($request): string
+    {
+        $referer = $this->request->getHeader('referer')[0] ?? '';
+
+        if(!$referer) {
+            return $this->session->get('previousUrl');
+        }
+
+        $refererHost = parse_url($referer, PHP_URL_HOST);
+
+        if ($refererHost !== $request->getUri()->getHost()) {
+            $referer = $this->session->get('previousUrl');
+        }
+
+        return $referer;
+    }
+
+    public function isXhr(ServerRequestInterface $request): bool
+    {
+        return $request->getHeaderLine('X-Requested-With') === 'XMLHttpRequest';
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS LEMBRE-SE DE QUE 
+
+
+
+COLOCAMOS 1 ITEM PARA 
+
+
+'CHECK FOR XHR REQUESTS 
+
+IN THE STARTSESSIONS MIDDLEWARE'...
+
+
+
+
+
+
+
+
+
+
+-> ESTE TRECHO AQUI:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Contracts\SessionInterface;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class StartSessionsMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly SessionInterface $session) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {   
+
+        $this->session->start();
+
+        $response = $handler->handle($request);
+
+        // TODO: Check for XHR Requests 
+         
+        if ($request->getMethod() === 'GET') {
+            $this->session->put('previousUrl', (string) $request->getUri());
+        }
+
+        $this->session->save();
+
+        return $response;
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+-> O PROBLEMA, AQUI, É QUE 
+
+SE O REQUEST METHOD FOR DE 'GET' 
+
+PARA OS XHR REQUESTS,
+
+ELE TAMBÉM 
+
+
+VAI COLOCAR 
+
+
+O 
+
+'previousUrl'
+
+
+
+NA SESSION.. E NÃO QUEREMOS FAZER ISSO...
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE QUEREMOS GARANTIR QUE 
+
+A 'previousUrl'
+
+SEJA COLOCADA NA SESSION  __APENAS__ 
+
+
+SE O METHOD FOR GET __ E APENAS __ 
+
+
+SE ELE NÃO FOR DE TIPO 'xhr'...
+
+
+
+
+
+
+
+
+
+
+
+TIPO ALGO ASSIM:
+
+
+
+
+
+
+
+
+
+class StartSessionsMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly SessionInterface $session, private readonly RequestService $requestService) {}
+
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {   
+
+        $this->session->start();
+
+        $response = $handler->handle($request);
+
+        if ($request->getMethod() === 'GET' && !$this->requestService->isXhr($request)) {
+            $this->session->put('previousUrl', (string) $request->getUri());
+        }
+
+        $this->session->save();
+
+        return $response;
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, TUDO ESTÁ NO LUGAR...
+
+
+
+
+
+
+
+
+
+
+PODEMOS TESTAR TUDO ISSO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+deu certo, estamos passando o header apropriado 
+
+
+de 'X-Requested-With',
+
+ e etc...
+
+
+
+
+
+
+
+
+
+ --> MAS AO TENTARMOS FAZER SAVE DA CATEGORY,
+
+ FICAMOS COM 1 ERROR,
+
+ ERROR 422...
+
+
+
+ 
+
+
+
+ --> MAS ESTAMOS PASSANDO O NAME DA CATEGORY,
+
+ ENTÃO PQ ESTAMOS FICANDO COM 1 ERROR 422?
+
+
+
+
+
+
+
+
+
+
+
+-> A RESPONSE FOI DE 
+
+
+
+'[Id is required, id must be an integer]'
+
+
+
+
+
+
+
+
+-> ESSAS SÃO AS NOVAS RULES 
+
+    QUE ADICIONAMOS...
+
+
+
+
+
+-> E NÃO ESTAMOS PASSANDO O ID COMO PARTE DO PAYLOAD...
+
+
+ESTAMOS PASSANDO APENAS OS FIELDS DE:
+
+
+
+1) csrf_name 
+
+2) csrf_value 
+
+3) name  
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK, QUER DIZER QUE O ID NÃO ESTÁ SENDO PASSADO...
+
+
+
+
+
+
+
+
+-> O ID É PASSADO APENAS COMO PARTE DA URL..
+
+
+
+
+
+
+
+--> HÁ UM FIX BEM FÁCIL PARA ISSO...
+
+
+
+
+
+
+
+--> BASTA IR ATÉ O CONTROLLER DE 
+
+'update()'
+
+E AÍ SIMPLESMENTE 
+
+FAZER O 'APPEND'
+
+
+
+DOS ARGUMENTS QUE 
+
+ESTÃO SENDO 
+
+
+PASSADOS A URL...
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public function update(Request $request, Response $response, array $args): Response
+    {   
+
+        $categoryId = (int) $args['id']; // inputs from the frontend are always strings, so it needs to be cast as int.
+
+        $category = $this->categoryService->getById($categoryId);
+
+        if (!$category) {
+            return $response->withStatus(404);
+        }
+
+        $data = $request->getParsedBody();
+
+
+        ['name' => $name] = $data;
+
+        $categoryData = new CategoryData($name);
+
+        $data = $this->requestValidatorFactory
+            ->make(UpdateCategoryRequestValidator::class)
+            ->validate($categoryData);
+
+        
+        $this->categoryService->update($categoryData, $category);
+
+        return $this->responseFormatter->asJson($response, $data);
+    }
+
+
+
+
+
+
+
+
+
+-> vamos fazer merge ENTRE OS 2 ARRAYS,
+
+
+COM 
+
+
+
+'$args + $request->getParsedBody()'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+NA VERDADE, TENHO QUE REESCREVER TUDO ISSO, JUNTO DO METHOD DE 'update'
+
+
+
+no categoryService...
+
+
+FICA TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+    public function update(Request $request, Response $response, array $args): Response
+    {
+        $data = $this->requestValidatorFactory->make(UpdateCategoryRequestValidator::class)->validate(
+            $args + $request->getParsedBody()
+        );
+
+        $category = $this->categoryService->getById((int) $data['id']);
+
+        if (! $category) {
+            return $response->withStatus(404);
+        }
+
+        $this->categoryService->update($category, $data['name']);
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+E ISSO FUNCIONOU....
+
+
+E A VALIDATION FUNCIONA,
+
+PQ SE TENTAMOS ENVIAR O REQUEST 
+
+
+SEM NADA NO INPUT FIELD,
+
+
+FICAMOS COM 'name is required'
+
+
+COMO RESPONSE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ANTES DE TERMINARMOS ESTA AULA,
+
+O PROFESSOR APONTA:
+
+
+
+
+'''WE CAN ACTUALLY DO THE VALIDATION ON THE ROUTE 
+ARGUMENTS __ FROM WITHIN THE ROUTES FILE,
+
+THE 'web.php'... '''
+
+
+
+
+
+
+
+
+
+
+ISSO QUER DIZER QUE NÃO PRECISAMOS ACTUALLY 
+
+ADICIONAR VALIDATION 
+
+
+NA CLASS DE 
+
+'UpdateCategoryRequestValidator',
+
+
+
+para o argument de 'id'... mas o professor queria mostrar 
+
+
+1 exemplo de como vc pode fazer isso,
+
+se vc quiser adicionar 
+
+
+alguma custom 
+
+validation a seus arguments...
+
+
+
+
+
+
+
+
+--> MAS SE SUA VALIDATION FOR UMA SIMPLES 'INTEGER VALIDATION',
+
+PARA ESSE ARGUMENT DE 'ID',
+
+VC PODE FAZER ISSO 
+
+
+
+
+COM 1 SIMPLES 'REGULAR EXPRESSION MATCHING',
+
+
+
+
+LÁ DENTRO DA DEFINIÇÃO DAS ROUTES,
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+ANTES:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Controllers\AuthController;
+use App\Controllers\CategoriesController;
+use App\Controllers\HomeController;
+use App\Middleware\AuthMiddleware;
+use App\Middleware\GuestMiddleware;
+use Slim\Routing\RouteCollectorProxy;
+use Slim\App;
+
+return function (App $app) {
+    $app->get('/', [HomeController::class, 'index'])->add(AuthMiddleware::class);
+
+    $app->group('', function (RouteCollectorProxy $guest) {
+        $guest->get('/login', [AuthController::class, 'loginView']);
+        $guest->get('/register', [AuthController::class, 'registerView']);
+        $guest->post('/login', [AuthController::class, 'login']);
+        $guest->post('/register', [AuthController::class, 'register']);
+    })->add(GuestMiddleware::class);
+
+    $app->post('/logout', [AuthController::class, 'logOut'])->add(AuthMiddleware::class);
+
+    $app->group('/categories', function (RouteCollectorProxy $categories) {
+        $categories->get('', [CategoriesController::class, 'index']);
+        $categories->post('', [CategoriesController::class, 'store']);
+        $categories->delete('/{id}', [CategoriesController::class, 'delete']);
+        $categories->get('/{id}', [CategoriesController::class, 'get']);
+        $categories->post('/{id}', [CategoriesController::class, 'update']);
+    })->add(AuthMiddleware::class);
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS:
+
+
+
+
+
+
+        $categories->post('/{id}', [CategoriesController::class, 'update']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ou seja, basta colocar ':' 
+
+E DEPOIS ESCREVER 1 REGULAR EXPRESSION,
+
+TIPO ASSIM:
+
+
+
+
+
+       $categories->post('/{id }', [CategoriesController::class, 'update']);
+
+
+
+
+
+
+
+
+
+
+
+-> OK... COM ISSO,
+
+ESPECIFICAMOS QUE 
+
+
+
+
+ESSE VALUE DEVERÁ SER UM INTEGER DE '0 A 9'...
+
+
+
+
+
+
+-> COM ISSO, SE ALGUM POST REQUEST É FEITO A ESSA URL,
+E O ID PASSADO A URL NÃO É UM INTEGER,
+
+
+ESSA ROUTE SIMPLESMENTE NÃO É INVOKED...
+
+
+
+
+
+
+
+-->  E PODEMOS FAZER ISSO NAS OUTRAS ROUTES,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Controllers\AuthController;
+use App\Controllers\CategoriesController;
+use App\Controllers\HomeController;
+use App\Middleware\AuthMiddleware;
+use App\Middleware\GuestMiddleware;
+use Slim\Routing\RouteCollectorProxy;
+use Slim\App;
+
+return function (App $app) {
+    $app->get('/', [HomeController::class, 'index'])->add(AuthMiddleware::class);
+
+    $app->group('', function (RouteCollectorProxy $guest) {
+        $guest->get('/login', [AuthController::class, 'loginView']);
+        $guest->get('/register', [AuthController::class, 'registerView']);
+        $guest->post('/login', [AuthController::class, 'login']);
+        $guest->post('/register', [AuthController::class, 'register']);
+    })->add(GuestMiddleware::class);
+
+    $app->post('/logout', [AuthController::class, 'logOut'])->add(AuthMiddleware::class);
+
+    $app->group('/categories', function (RouteCollectorProxy $categories) {
+        $categories->get('', [CategoriesController::class, 'index']);
+        $categories->post('', [CategoriesController::class, 'store']);
+        // If the id is not an integer, this route won't be reached, because the route is defined, with a regular expression, as '/{id:[0-9]+}'.
+        $categories->delete('/{id:[0-9]+}', [CategoriesController::class, 'delete']);
+        $categories->get('/{id:[0-9]+}', [CategoriesController::class, 'get']);
+        $categories->post('/{id:[0-9]+}', [CategoriesController::class, 'update']);
+    })->add(AuthMiddleware::class);
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo... essa é uma boa proteção adicional...
+
+
+
+
+
+
+
+
+
+
+
+
+
+CABE A VOCE DECIDIR COMO VC FAZ OS ROUTE PARAM VALIDATION...
+
+
+
+VC PODE OU:
+
+
+
+1) FAZER ISSO ATRAVÉS DAS ROUTES EM SI...
+
+
+
+2) ATRAVÉS DOS VALIDATORS,
+
+DENTRO DOS CONTROLLERS...
+
+
+
+
+
+
+
+
+
+-> VC TAMBÉM PODE FAZER OS 2,
+
+SE QUISER...
+
+
+
+
+
+
+--> MAS SE VC PRECISA DE UMA VALIDATION SIMPLES,
+
+DE COISAS COMO 'INTEGER VALIDATION',
+
+VC PODE FAZER DIRETAMENTE NAS ROUTES,
+
+SEM PROBLEMAS...
+
+
+
+
+SE VC TEM ALGUMAS RULES MAIS COMPLEXAS,
+
+É MELHOR FAZER POR DENTRO DOS VALIDATORS,
+
+
+
+
+NOS METHOD CALLS DENTRO DOS CONTROLLERS,
+
+
+COMO O PROFESSOR FEZ, AQUI...
+
+
+
+
+
+
+
+
+
+CERTO... 
+
+
+
+
+TUDO QUE RESTA, AGORA, É PARSEAR ISSO, NO FRONTEND,
+
+
+E DISPLAYAR OS ERRORS,
+
+DO JEITO QUE QUISERMOS...
+
+
+
+
+
+
+
+-> PODEMOS FAZER ISSO COM:
+
+
+
+1) POP UP ALERTS 
+
+
+
+2) BOOTSTRAP ALERTS...
+
+
+
+
+
+(FIND THE FIELD BY THE NAME, FIND THE RELATED DIV AND 
+MAKE IT VISIBLE, AND SO ON)....
+
+
+
+
+
+
+
+-> O PROFESSOR VAI MOSTRAR 1 MANEIRA DE FAZER ISSO,
+
+NO PRÓXIMO VIDEO..
