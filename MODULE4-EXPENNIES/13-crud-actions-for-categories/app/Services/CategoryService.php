@@ -16,6 +16,13 @@ class CategoryService implements CategoryServiceInterface
     public function __construct(private readonly EntityManager $entityManager) {}
 
 
+
+    public function getAll(): array
+    {
+        return $this->entityManager->getRepository(Category::class)->findAll();
+    }
+
+
     public function create(CategoryData $categoryData, User $user): Category
     {
         $category = new Category();
@@ -28,8 +35,12 @@ class CategoryService implements CategoryServiceInterface
         return $category;
     }
 
-    public function getAll(): array
+
+    public function delete(int $id): void
     {
-        return $this->entityManager->getRepository(Category::class)->findAll();
+       $category = $this->entityManager->find(Category::class, $id);
+
+        $this->entityManager->remove($category);
+        $this->entityManager->flush();
     }
 }

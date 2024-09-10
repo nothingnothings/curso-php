@@ -9,6 +9,9 @@ return function (App $app) {
     $container = $app->getContainer();
     $config = $container->get(Config::class);
 
+    // Method Override Middleware:
+    $app->add(\App\Middleware\MethodOverrideMiddleware::class);
+
     // CSRF fields in templates:
     $app->add(\App\Middleware\CsrfFieldsMiddleware::class);
 

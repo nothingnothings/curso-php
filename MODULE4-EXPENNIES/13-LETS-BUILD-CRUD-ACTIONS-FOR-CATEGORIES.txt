@@ -2619,3 +2619,1106 @@ E ASSIM:
 ISSO FEITO, RECARREGAMOS A PAGE, E AGORA FINALMENTE ENCONTRAMOS 
 
 AS CATEGORIES NA PAGE...
+
+
+
+
+
+
+
+
+
+
+
+--> MAS VC PODE ESTAR PENSANDO:
+
+
+''HOW CAN TWIG TEMPLATE WORK WITH 
+  THE ENTITY OBJECT?'' 
+
+
+
+
+
+
+
+
+-> PQ É ISSO QUE ESTAMOS FAZENDO,
+
+
+COM ESTE CÓDIGO:
+
+
+
+
+
+
+'categories' => $this->categoryService->getAll()'....
+
+
+
+
+
+
+
+
+-> ESTAMOS PASSANDO 1 COLLECTION/LIST 
+
+DE 
+ENTITY OBJECTS....
+
+
+
+
+
+-> E ISSO, LÁ NO TWIG TEMPLATE,
+
+É ACESSADO COM 
+
+
+
+{{category.name}}
+
+{{category.updated_at}},
+
+
+
+ETC.... MAS O ESTRANHO É QUE 
+
+ESSAS PROPERTIES SÃO 'PRIVATE'
+
+
+
+LÁ NA ENTITY EM SI... 
+
+
+
+É POR ISSO QUE QUEREMOS SABER
+
+O QUE TORNA O TWIG CAPAZ DE ACESSAR ESSAS PROPERTIES,
+
+
+MESMO ELAS SENDO PRIVATE, DENTRO DOS OBJECTS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR DIZ QUE O TWIG É ESPERTO O BASTANTE 
+
+PARA SABER O QUE É SEU ACTUAL INTENT...
+
+
+
+
+
+
+
+
+
+''WHAT IT DOES IS:
+
+
+1) IT TRIES TO FIND IF THE NAME PROPERTY EXISTS,
+    IN THE CLASS....
+
+
+
+
+2) IF IT __EXISTS__ AND IS A PUBLIC PROPERTY,
+    THEN IT WILL USE THAT....
+
+
+
+
+
+3) IF IT DOESN'T EXIST,
+
+IT WILL TRY TO EXECUTE THE '->getName()'
+
+method, in this case...
+
+
+
+
+
+
+--> OU SEJA,
+
+ELE ESTÁ CHAMANDO O METHOD DE 'getName()',
+
+
+sempre que 
+a property de 'name' estiver como PRIVATE,
+
+E NÃO PUBLIC... (e é exatamente esse o nosso caso, com a class de 'user' e a class de 'category', pq realmente temos GETTER METHODS)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... MAIS 1 COISA QUE O PROFESSOR QUER 
+
+APONTAR:
+
+
+
+
+
+
+
+NO TEMPLATE index de 'category',
+
+
+
+O PROFESSOR ESTÁ RODANDO 
+
+AQUELE FILTER DE 
+
+'date('m/d/Y g:i:A' )'
+
+
+
+EM CIMA 
+
+DE VALUES COMO 
+
+'category.createdAt'...
+
+
+
+
+
+
+
+
+ISSO É POSSÍVEL, NESSE CASO,
+
+PQ 
+
+os values realmente estão castados 
+
+como 
+
+
+DATETIMEOBJECTS,
+
+
+O QUE DEIXA POSSÍVEL O APPLY DAQUELE FILTER
+
+DO TWIG,
+PARA TRANSFORMAR ESSES VALUES NOS FORMATOS QUE 
+
+
+QUISERMOS...
+
+
+
+
+
+EX:
+
+
+
+
+
+<td>{{ category.createdAt | date('m/d/Y g:i A') }}</td>
+                                <td>{{ category.updatedAt | date('m/d/Y g:i A') }}</td>
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS AGORA DEVEMOS IMPLEMENTAR A FUNCTIONALITY DE DELETE,
+
+
+TIPO ASSIM,
+
+
+
+LÁ EM 'CategoryService':
+
+
+
+
+
+
+
+
+
+
+    public function delete(Category $category): void
+    {
+        $this->entityManager->remove($category);
+        $this->entityManager->flush();
+    }
+
+
+
+
+
+
+
+
+
+
+
+NO CONTROLLER, TIPO ASSIM:
+
+
+
+
+
+
+
+
+    public function delete(Request $request, Response $response): Response
+    {  
+         $categoryId = $request->getAttribute('categoryId');
+
+        $this->categoryService->delete($categoryId);
+
+        return $response->withHeader('Location', '/categories')->withStatus(302);
+    }
+
+
+
+
+
+
+
+
+
+
+
+MAS ISSO NÃO ESTÁ CERTO...
+
+
+
+PQ O 'categoryId'
+
+NÃO ESTÁ SENDO ARMAZENADO COMO ATTRIBUTE, DESSA FORMA,
+
+NO NOSSO APP...
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR EXPLICA QUE PODEMOS DEIXAR 1 TERCEIRO ARGUMENT 
+
+
+NA FUNCTION DE DELETE,
+
+
+DE TIPO ''array'',
+
+
+
+
+
+QUE VAMOS DEIXAR COMO '$args'...
+
+
+
+
+
+
+
+
+
+
+-> USAREMOS ESSE '$args' PARA PEGAR 
+
+
+OS PARAMS QUE ESTÃO/SERÃO PASSADOS 
+
+
+NESSA ROUTE...
+
+
+
+
+
+
+
+
+
+
+--> É ISSO QUE NOS DEIXA PEGAR OS PARAMETERS 
+PASSADOS NA ROUTE, NA URL, ETC...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+    public function delete(Request $request, Response $response, array $args): Response
+    {  
+         $categoryId = $request->getAttribute('categoryId');
+
+        $this->categoryService->delete($categoryId);
+
+        return $response->withHeader('Location', '/categories')->withStatus(302);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    basta lembrar o route de '$categories->delete()',
+
+    que tinha ESTE FORMATO:
+
+
+
+
+
+
+
+        $categories->delete('{id}', [CategoriesController::class, 'delete']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ou seja, esse parameter de 'id'...
+
+
+
+
+
+
+
+
+--> ESSE VALUE, DE 'ID',
+
+
+DA CATEGORY,
+
+NÃO VAI EXISTIR NO GET OU NO POST BODY...
+
+
+
+
+
+
+
+
+
+
+
+
+-> PRECISAMOS EXTRAIR ISSO DOS ROUTE PARAMETERS...
+
+
+
+E É JUSTAMENTE POR ISSO QUE O PROFESSOR 
+
+
+COLOCOU ESSE TERCEIRO PARAMETER, DE NOME '$args',
+
+
+
+
+QUE É UM ARRAY...
+
+
+
+
+
+
+
+
+
+
+
+
+EXPLICAÇÃO DE COMO O DELETE REQUEST METHOD FUNCIONA:
+
+
+
+
+
+
+
+
+
+
+'''BROWSER SUPPORTS GET AND POST REQUEST METHODS...''
+
+
+
+
+
+
+
+
+
+--> É JUSTAMENTE POR ISSO QUE O HTML ESTÁ COM 1 
+
+METHOD ATTRIBUTE DE 'post'...
+
+EX:
+
+
+
+
+
+        <form action="/categories/{{ category.id }}" method="post">
+                                            {{ csrf.fields | raw }}
+                                            <input type="hidden" name="_METHOD" value="DELETE" />
+                                            <button type="submit" class="btn btn-outline-primary">
+                                                <i class="bi bi-trash3-fill"></i>
+                                            </button>
+                                        </form>
+
+
+
+
+
+
+
+
+ESTAMOS USANDO ESSE METHOD DE 'POST',
+
+
+
+MAS ESTAMOS ACTUALLY ADICIONANDO 1 OUTRO 
+INPUT FIELD, DE TIPO 'HIDDEN'
+
+
+COM O NAME ATTRIBUTE DE '_METHOD',
+
+e com um attribute de nome 'value',
+
+
+com value de 'DELETE'...
+
+
+
+
+
+
+
+
+
+O PROFESSOR TAMBÉM ADICIONOU 1 OUTRO MIDDLEWARE 
+
+
+AO NOSSO ARQUIVO DE CONFIGURATION DE MIDDLEWARES,
+
+
+CHAMADO DE 'MethodOverrideMiddleware'..
+
+
+
+
+
+
+
+EX:
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Config;
+use Slim\Views\Twig;
+use Slim\Views\TwigMiddleware;
+use Slim\App;
+
+return function (App $app) {
+    $container = $app->getContainer();
+    $config = $container->get(Config::class);
+
+    // Method Override Middleware:
+    $app->add(\App\Middleware\MethodOverrideMiddleware::class);
+
+    // CSRF fields in templates:
+    $app->add(\App\Middleware\CsrfFieldsMiddleware::class);
+
+    // CSRF protection:
+    $app->add('csrf');
+
+    // Twig
+    $app->add(TwigMiddleware::create($app, $container->get(Twig::class)));
+
+    // Custom Validation Exception Middleware:
+    $app->add(\App\Middleware\ValidationExceptionMiddleware::class);
+
+    // Custom Validation Errors Middleware:
+    $app->add(\App\Middleware\ValidationErrorsMiddleware::class);
+
+    // Custom Old Form Data Middleware:
+    $app->add(\App\Middleware\OldFormDataMiddleware::class);
+
+    // Session Middleware:
+    $app->add(\App\Middleware\StartSessionsMiddleware::class);
+
+    // Logger
+    $app->addErrorMiddleware(
+        (bool) $config->get('display_error_details'),
+        (bool) $config->get('log_errors'),
+        (bool) $config->get('log_error_details')
+    );
+};
+
+
+
+esse middleware serve para permitir que 
+
+
+os methods sejam overriden.....
+
+
+
+
+
+O CÓDIGO É TIPO ASSIM:
+
+
+ 
+
+
+
+
+
+
+
+
+ <?php
+
+declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class MethodOverrideMiddleware implements MiddlewareInterface
+{
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        $methodHeader = $request->getHeaderLine('X-Http-Method-Override');
+
+        if ($methodHeader) {
+            $request = $request->withMethod($methodHeader);
+        } elseif (strtoupper($request->getMethod()) === 'POST') {
+            $body = $request->getParsedBody();
+
+            if (is_array($body) && !empty($body['_METHOD'])) {
+
+                $request = $request->withMethod($body['_METHOD']);
+            }
+
+            if ($request->getBody->eof()) {
+                $request->getBody->rewind();
+            }
+        }
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+é por conta de eses middleware que conseguimos mappear 
+
+
+
+'userId' 
+
+
+a essa route específica, com o '/{id}'
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O METHOD DE DELETE 
+
+
+FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+    public function delete(int $id): void
+    {
+       $category = $this->entityManager->find(Category::class, $id);
+
+        $this->entityManager->remove($category);
+        $this->entityManager->flush();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+MAS NÃO TEMOS NENHUMA AUTH PARA O DELTE...
+
+
+
+
+
+
+
+
+MAIS TARDE VEEREMOS MEDIDAS PARA AJUDAR COM ISSO...
+
+
+
+
+
+
+
+
+--> RECARREGAMOS A PAGE,
+E  AÍ 
+
+
+
+EXAMINAMOS OS RESULTADOS...
+
+
+
+
+
+
+
+
+
+-> ficamso com o  redirect de volta à page de 'categories'...
+
+
+
+
+
+
+
+
+-> MAS A DATA NÃO FOI A PAGADA....
+
+
+
+
+
+
+É PQ O PROFESSOR ESCREVEU DE RODAR '-flush()',
+
+
+
+PARA APLICAR O RESULTADO NA DATABASE...
+
+
+
+
+
+
+    public function delete(int $id): void
+    {
+       $category = $this->entityManager->find(Category::class, $id);
+
+        $this->entityManager->remove($category);
+        $this->entityManager->flush();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+--> mas o professor diz que 
+
+
+o pattern de 
+
+
+'' 
+
+        $this->entityManager->remove($category);
+        $this->entityManager->flush();
+
+''
+
+
+É RUIM...
+
+
+
+
+
+
+
+
+mas pq isso é ruim?
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É PQ ESTAMOS CHAMANDO OS METHODS DE 'GET' E 'POST'...
+
+
+
+
+ESTAMOS CHAMANDO 'CREATE' E 'DELETE',
+
+
+E AMBOS 
+
+POSSUEM O CALL DE '$this->entityManager' ---> 
+
+
+
+
+
+
+
+
+
+
+
+CERTO.... MAS DIGAMOS QUE TEMOS 1 IMPORTADOR 
+
+
+QUE IMPORTA 1 MONTE DE CATEGORIES...
+
+
+
+
+
+
+_-> 1 MONTE DE CATEGORIES,
+
+E aí
+
+
+
+TERÍAMOS DE RODAR 
+
+
+
+OS CREATE EM 1 LOOP....
+
+
+
+
+
+
+
+
+
+EM 1 LOOP,
+
+NÃO SERIA BOM TER ESSE 'FLUSH'
+
+
+
+NO FINAL DE 1 METHOD COMO 'create()',
+
+
+
+ISSO PQ 
+
+
+
+
+__ O 'persist()'
+
+
+E
+
+'flush()'
+
+seriam chamados 1 milhao de vezes... e isso 
+
+não é eficiente...
+
+
+
+
+
+
+
+
+
+-> E É EXATAMENTE _POR ISSO__ 
+
+
+QUE 
+
+DEVEMOS SEMPRE 
+
+TENTAR FOCAR NO CALL DO METHOD DE 'FLUSH'
+
+APENAS 1 OU 2 VEZES 
+
+
+
+DENTRO DE 1 MESMO HTTP REQUEST... 0 VEZES,
+
+SE ESTIVERMOS MEXENDO COM ENTITIES...
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS NO NOSSO CASE, AGORA,
+
+SE FSSEMOS RODAR ESSE METHOD 
+
+
+
+MÚLTIPLAS VEZES, FICARÍAMOS FLUSHING CADA VEZ QUE 
+O METHOD DE 'Create' for chamado....
+
+
+
+
+O MESMO OCORRE COM AS CATEGORIES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> HA MÚLTIPLAS MANEIRSA 
+
+
+
+
+DE SE PROTEGER CONTRA CSRF....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-. O PROFESSOR COLOCA 1 OUTRO ARGUMENT EM 'create',
+
+
+
+
+
+TERCEIRO PARAMETER, 
+
+
+algo como 1 boolean,
+
+
+em que podemos check se é true.. aí vamos querer flushaer 
+apenas se for true... 1 or 2 times....
+
+
+
+
+
+
+
+
+
+
+
+
+no nosso caso, se fossemos chamar esse method múltiplas vezes,
+
+
+vc ficaria com diversas calls 
+
+de outros methods..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> no momento, isso não é um problem,
+
+mas pode ficar ruim se tivermos mais objects...
+
+
+
+
+
+
+
+-----> o professor cria 1 novo method em 'categoryService',
+
+
+de nome 'create',
+
+
+que aí vai rodar 'persist' e flush'...
+
+
+
+
+
+
+
+
+mas ele tira isso do código, pq ainda não 
+
+é necessário...
+
+
+
+
+
+
+
+
+
+-. oo professor vai usar esse código mais tarde, no curso...
+
+
+
+
+
+
+
+
+
+-> AGORA TEMOS QUE ADICIONAR A FUNCTIONALITY DE EDIT...

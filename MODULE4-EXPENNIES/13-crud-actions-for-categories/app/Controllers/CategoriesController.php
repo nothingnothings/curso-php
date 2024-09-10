@@ -17,7 +17,7 @@ use Slim\Views\Twig;
 class CategoriesController
 {
 
-    public function __construct(private readonly Twig $twig, private readonly ValidatorFactory $requestValidatorFactory, private readonly CategoryService $category) {}
+    public function __construct(private readonly Twig $twig, private readonly ValidatorFactory $requestValidatorFactory, private readonly CategoryService $categoryService) {}
 
     public function index(Request $request, Response $response): Response
     {
@@ -26,7 +26,7 @@ class CategoriesController
             $response,
             'categories/index.twig',
             [
-                'categories' => $this->category->getAll()
+                'categories' => $this->categoryService->getAll()
             ]
         );
     }
@@ -46,15 +46,17 @@ class CategoriesController
 
         $user = $request->getAttribute('user');
 
-        $this->category->create($categoryData, $user);
+        $this->categoryService->create($categoryData, $user);
 
         return $response->withHeader('Location', '/categories')->withStatus(302);
     }
 
 
-    public function delete(Request $request, Response $response): Response
-    {
-        // TODO
+    public function delete(Request $request, Response $response, array $args): Response
+    {  
+         $categoryId = $request->getAttribute('categoryId');
+
+        $this->categoryService->delete($categoryId);
 
         return $response->withHeader('Location', '/categories')->withStatus(302);
     }
