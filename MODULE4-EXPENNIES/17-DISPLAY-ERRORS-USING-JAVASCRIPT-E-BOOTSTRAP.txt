@@ -1,0 +1,2921 @@
+
+
+
+
+
+
+
+
+-> OK... A AULA DE HOJE SERÁ MAIS JS-ORIENTED...
+
+
+
+
+
+
+
+-> O PROFESSOR NOS MOSTRARÁ COMO PODEMOS DISPLAY OS 
+
+
+VALIDATION ERRORS NO FRONTEND...
+
+
+
+
+
+-> AGORA,
+
+
+SE TENTAMOS ENVIAR 1 REQUEST DE 'EDIT CATEGORY'
+
+
+COM 1 VALUE 
+
+
+VAZIO,
+
+
+
+FICAMOS COM 1 RESPONSE DE STATUS 422...
+
+
+
+
+
+
+
+
+
+-> E, AÍ, O RESPONSE BODY 
+    CONTÉM OS VALIDATION ERRORS..
+
+
+
+
+
+
+
+--> MAS O PROFESSOR QUER ADICIONAR ALGUM TIPO DE 
+
+'FIELD VALIDATION UI',
+
+
+AQUI,
+
+
+PARA TER ALGO PARECIDO COM O QUE ESCREVEMOS NA 
+
+
+PAGE DE 'LOGIN/SIGN UP' 
+
+
+(em que os fields ficam com bordas vermelhas ao redor 
+e com 
+
+messages de error embaixo, sempre que ocorre 1 validation error)...
+
+
+
+
+
+
+
+
+
+
+
+-> SE ABRIMOS O TEMPLATE DE 'REGISTER.TWIG',
+
+
+
+
+É POSSÍVEL NOTAR QUE 
+
+ESTAMOS RENDERIZANDO CONDICIONALMENTE AQUELAS BORDAS VERMELHAS DE ERROR,
+
+NESTES TRECHOS:
+
+
+
+
+
+<input type="text" name="name" class="form-control form-control-lg {{ errors.name ? 'is-invalid' : ''}}" placeholder="Name" value="{{old.name}}" required/>
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESTAMOS TAMBÉM RENDERIZANDO OS DIV ELEMENTS 
+
+
+CONDICIONALMENTE,
+
+
+COM AS MESSAGES DE ERROR,
+
+NESTES TRECHOS:
+
+
+
+
+					<div class="invalid-feedback">
+											{{ errors.name | first }}
+										</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR QUER FAZER ALGO SIMILAR,
+
+NA PARTE DO JAVASCRIPT,
+
+
+QUANDO FAZEMOS AJAX REQUESTS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É CLARO QUE HÁ DIFERENTES MANEIRAS DE FAZER ISSO...
+
+
+
+
+
+PODEMOS:
+
+
+
+
+
+
+1) USE VALIDATION JAVASCRIPT LIBRARIES 
+
+
+
+2) SHOW POP UP NOTIFICATIONS, OR ALERTS...
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS O PROFESSOR QUER SER CONSISTENTE, E USAR APENAS AS COISAS 
+
+QUE NOS SÃO PROVIDENCIADAS PELO PHP, NATIVAMENTE...
+
+
+
+
+
+
+
+
+
+
+O QUE QUEREMOS, AQUI,
+É:
+
+
+
+
+
+1) ADD THIS 'is-invalid' CLASS TO THE INPUT FIELDS,
+DYNAMICALLY...''
+
+
+
+
+
+
+2) ALSO CREATE THE 
+'<div class="invalid-feedback">
+    {{errors.name | first }}
+    </div>
+    '
+
+
+
+    DYNAMICALLY, 
+
+    AND ALSO DISPLAY THE MESSAGE PROPERLY...
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+
+
+
+--> PARA ISSO,
+
+
+EM 'categories.js',
+
+TEMOS ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+
+import { Modal } from 'bootstrap';
+import { ajax, get, post } from './ajax';
+
+window.addEventListener('DOMContentLoaded', function () {
+  const editCategoryModal = new Modal(
+    document.getElementById('editCategoryModal')
+  );
+
+  document.querySelectorAll('.edit-category-btn').forEach((button) => {
+    button.addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      get('/categories/' + categoryId).then((response) =>
+        openEditCategoryModal(editCategoryModal, response)
+      );
+    });
+  });
+
+  document
+    .querySelector('.save-category-btn')
+    .addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      post('/categories/' + categoryId, {
+        name: editCategoryModal._element.querySelector('input[name="name"]')
+          .value,
+      }).then((response) => {
+        console.log(response);
+      });
+    });
+});
+
+function openEditCategoryModal(modal, { id, name }) {
+  const nameInput = modal._element.querySelector('input[name="name"]');
+
+  nameInput.value = name;
+
+  modal._element
+    .querySelector('.save-category-btn')
+    .setAttribute('data-id', id);
+
+  modal.show();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A PARTE IMPORTANTE É ESTA:
+
+
+
+
+      }).then((response) => {
+        console.log(response);
+      });
+
+
+
+
+
+
+
+
+
+
+
+    -> ESSA RESPONSE 
+
+    CONTÉM 
+
+
+    A JSON DATA FORMATADA...
+
+
+
+
+
+
+
+
+
+
+-> MAS O PROFESSOR NÃO QUER ADICIONAR VALIDATION HANDLING APENAS 
+
+AQUI... PQ SE ELE FIZER ISSO, ELE TERÁ DE REPETIR ESSE MESMO CÓDIGO TROCENTAS 
+VEZES,
+
+EM TODOS OS LOCAIS EM QUE TEMOS REQUESTS E O RECEIVE DE ESSA RESPONSE...
+
+
+
+
+
+
+
+
+
+
+-> EM VEZ DISSO, ELE QUER FAZER ISSO DE DENTRO DO METHOD DE 'ajax()',
+
+
+naquela outra file 'ajax.js',
+
+
+para CONSEGUIR EVITAR O DRY (DONT REPEAT YOURSELf)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE VALIDATION ERRORS FOREM RETORNADAS 
+    POR NOSSO BACKEND,
+
+    QUEREMOS QUE ELES SEJAM CAPTURADOS POR ALGUMA LÓGICA 
+
+    NO DENTRO DE 'ajax()",
+
+
+
+    que então faça o display das coisas de error...
+
+
+
+
+
+
+
+
+
+--> O QUE O PROFESSOR FARÁ, NESSE THEN BLOCK,
+
+É APENAS O CALL DE 
+
+'editCategoryModal.hide()',
+
+PARA ESCONDER ESSE MODAL,
+ 
+
+ TUDO PARA QUE ENTÃO O SHOW DA MESSAGE DE ERROR SEJA MAIS CLEAN..
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+  document.querySelectorAll('.edit-category-btn').forEach((button) => {
+    button.addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      get('/categories/' + categoryId).then((response) =>
+        openEditCategoryModal(editCategoryModal, response)
+      );
+    });
+  });
+
+  document
+    .querySelector('.save-category-btn')
+    .addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      post('/categories/' + categoryId, {
+        name: editCategoryModal._element.querySelector('input[name="name"]')
+          .value,
+      }).then((response) => {
+        editCategoryModal.hide();
+      });
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+LÁ NA FUNCTION DO AJAX,
+
+
+
+
+AJUSTAREMOS ESTE TRECHO:
+
+
+
+
+
+
+
+
+const ajax = (url, method = 'get', data = {}) => {
+  method = method.toLowerCase();
+
+  let options = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+  };
+
+  const csrfMethods = new Set(['post', 'put', 'delete', 'patch']);
+
+  if (csrfMethods.has(method)) {
+    options.body = JSON.stringify({ ...data, ...getCsrfFields() });
+  } else if (method === 'get') {
+    url += '?' + new URLSearchParams(data).toString();
+  }
+
+  return fetch(url, options).then((response) => response.json());
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> EM VEZ DE FAZER O RETURN DA RESPONSE COM O PARSED JSON,
+
+
+VAMOS SIMPLESMENTE CONSOLE.LOGGAR A RESPONSE,
+
+
+PARA VER O QUE 
+
+ESSA RESPONSE CONTÉM..
+
+
+
+
+
+
+
+
+-> VAMOS ANALISAR QUAIS FIELDS TEMOS NESSA RESPONSE,
+
+
+STATUSCODES,
+
+PARA AÍ 
+HANDLARMOS APROPRIADAMENTE...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+const ajax = (url, method = 'get', data = {}) => {
+  method = method.toLowerCase();
+
+  let options = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+  };
+
+  const csrfMethods = new Set(['post', 'put', 'delete', 'patch']);
+
+  if (csrfMethods.has(method)) {
+    options.body = JSON.stringify({ ...data, ...getCsrfFields() });
+  } else if (method === 'get') {
+    url += '?' + new URLSearchParams(data).toString();
+  }
+
+  return fetch(url, options).then((response) => {
+
+    console.log(response);
+
+    return response.json();
+  });
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CONSOLE.LOGGAMOS 
+
+
+
+ESSA RESPONSE..
+
+
+
+
+
+
+
+
+
+-> FICAMOS COM 2 RESPONSE OBJECTS LOGGADOS...
+
+
+
+
+
+
+
+---> O SEGUNDO É O QUE INTERESSA,
+É O POST REQUEST...
+
+
+
+
+
+
+
+
+
+
+
+-_> O POST REQUEST FALHOU 
+
+COM ESTAS MESSAGES:
+
+
+
+
+
+ok: false 
+
+redirect: false 
+status: 422...
+
+
+
+
+
+
+
+
+
+
+-> CERTO..
+
+
+
+
+
+BASICAMENTE, PODEMOS CHECAR SE A RESPONSE FOI OU NAO SUCCESSFUL
+
+
+
+COM A 
+
+
+PROPERTY DE 'ok',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+const ajax = (url, method = 'get', data = {}) => {
+  method = method.toLowerCase();
+
+  let options = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+  };
+
+  const csrfMethods = new Set(['post', 'put', 'delete', 'patch']);
+
+  if (csrfMethods.has(method)) {
+    options.body = JSON.stringify({ ...data, ...getCsrfFields() });
+  } else if (method === 'get') {
+    url += '?' + new URLSearchParams(data).toString();
+  }
+
+  return fetch(url, options).then((response) => {
+    if (!response.ok) {
+      if (response.status === 422) {
+        console.log('Validation Errors');
+      }
+    }
+    return response.json();
+  });
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMEÇAMOS APENAS COM A VALIDATION DO STATUS CODE DE 422...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK...
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR TAMBÉM QUER RETORNAR O 'RAW RESPONSE OBJECT',
+
+
+
+EM VEZ DE FAZER O PARSE DO JSON, BY DEFAULT...
+
+
+
+
+
+
+
+
+
+É POR ISSO QUE ELE ESCREVE ASSIM:
+
+
+
+
+
+
+
+
+
+const ajax = (url, method = 'get', data = {}) => {
+  method = method.toLowerCase();
+
+  let options = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+  };
+
+  const csrfMethods = new Set(['post', 'put', 'delete', 'patch']);
+
+  if (csrfMethods.has(method)) {
+    options.body = JSON.stringify({ ...data, ...getCsrfFields() });
+  } else if (method === 'get') {
+    url += '?' + new URLSearchParams(data).toString();
+  }
+
+  return fetch(url, options).then((response) => {
+    if (!response.ok) {
+      if (response.status === 422) {
+        console.log('Validation Errors');
+      }
+    }
+    return response;
+  });
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR MUDOU DE IDEIA,
+
+ACHA QUE 
+
+
+É MELHOR DEIXAR O RETURN DA RESPONSE RAW,
+
+E AÍ 
+
+APENAS FAZER O PARSE 
+
+DA RESPONSE COMO JSON NOS LOCAIS EM QUE ISSO É NECESSÁRIO,
+
+
+ONLY WHEN NEEDED, ON THE CALLING SIDE (
+    OU SEJA,
+
+    DENTRO DO ARQUIVO 'category.js',
+
+    nesse exemplo...
+
+)
+
+
+
+
+
+
+
+
+
+É POR ISSO QUE ALTERAMOS 
+
+
+O CÓDIGO DE 'categories.js',
+
+
+PARA PARSEAR A RESPONSE COMO JSON,
+
+ANTES DE PASSAR ESSA DATA PARA 
+
+OS MODALS...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+import { Modal } from 'bootstrap';
+import { ajax, get, post } from './ajax';
+
+window.addEventListener('DOMContentLoaded', function () {
+  const editCategoryModal = new Modal(
+    document.getElementById('editCategoryModal')
+  );
+
+  document.querySelectorAll('.edit-category-btn').forEach((button) => {
+    button.addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      get('/categories/' + categoryId)
+        .then((response) => response.json())
+        .then(openEditCategoryModal(editCategoryModal, response));
+    });
+  });
+
+  document
+    .querySelector('.save-category-btn')
+    .addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      post('/categories/' + categoryId, {
+        name: editCategoryModal._element.querySelector('input[name="name"]')
+          .value,
+      }).then((response) => {
+        editCategoryModal.hide();
+      });
+    });
+});
+
+function openEditCategoryModal(modal, { id, name }) {
+  const nameInput = modal._element.querySelector('input[name="name"]');
+
+  nameInput.value = name;
+
+  modal._element
+    .querySelector('.save-category-btn')
+    .setAttribute('data-id', id);
+
+  modal.show();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, FICAMOS COM A MESSAGE DE 'Validation errors' 
+
+
+
+aparecendo no console, o que significa que deu certo...
+
+
+
+
+
+
+
+
+
+
+_> MAS O PROFESSOR N QUER QUE O MODAL FECHE 
+
+QUANDO TEMOS ERRORS...
+
+
+
+
+
+
+
+-> PARA EVITAR ESSE CLOSE,
+BASTA ESCREVER ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+  document.querySelectorAll('.edit-category-btn').forEach((button) => {
+    button.addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      get('/categories/' + categoryId)
+        .then((response) => response.json())
+        .then(openEditCategoryModal(editCategoryModal, response));
+    });
+  });
+
+  document
+    .querySelector('.save-category-btn')
+    .addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      post('/categories/' + categoryId, {
+        name: editCategoryModal._element.querySelector('input[name="name"]')
+          .value,
+      }).then((response) => {
+        if (response.ok) {
+          editCategoryModal.hide();
+        }
+      });
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE TENTAMOS SALVAR 1 VALID CATEGORY NAME,
+
+
+O MODAL É FECHADO... CASO CONTRÁRIO (com error),
+
+ele fica aberto...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PRÓXIMO PASSO É 
+
+'FIGURE OUT HOW TO SHOW THE VALIDATION ERRORS,
+UNDER THE NECESSARY FIELDS'...
+
+
+
+
+
+
+
+
+
+
+-> EM VEZ DE FAZER O CONSOLE.LOG DA RESPONSE,
+
+
+
+VAMOS QUERER FAZER O DISPLAY DO ERROR...
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+const ajax = (url, method = 'get', data = {}) => {
+  method = method.toLowerCase();
+
+  let options = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+  };
+
+  const csrfMethods = new Set(['post', 'put', 'delete', 'patch']);
+
+  if (csrfMethods.has(method)) {
+    options.body = JSON.stringify({ ...data, ...getCsrfFields() });
+  } else if (method === 'get') {
+    url += '?' + new URLSearchParams(data).toString();
+  }
+
+  return fetch(url, options).then((response) => {
+    if (!response.ok) {
+      if (response.status === 422) {
+        // Here
+        console.log('Validation Errors');
+      }
+    }
+    return response;
+  });
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... PRECISAMOS DA FUNCTION DE 'response.json()'
+
+PARA 
+
+PARSE THE BODY,
+
+E PARA 
+
+ENTÃO ACESSAR OS VALIDATION ERRORS...
+
+
+
+
+
+
+
+
+
+
+
+
+-> NO BROWSER,
+
+VISUALIZAMOS O QUE ACABA SENDO SALVO,
+
+QUANDO TENTAMOS 
+
+
+
+SALVAR 1 EMPTY CATEGORY...
+
+
+
+
+
+
+
+
+
+-> O ERROR LOGGADO NÃO É UM JSON OBJECT,
+
+E SIM UMA PROMISE...
+
+
+
+
+
+
+
+-> ISSO QUER DIZER QUE PRECISAMOS ADICIONAR 1 THEN CALLBACK,
+
+
+QUE 
+
+
+SERÁ 
+
+
+CHAMADO QUANDO 
+
+
+ESSA PROMISE FOR FULFILLED, O QUE NOS DARÁ 
+
+O JSON QUE QUEREMOS...
+
+
+
+
+
+
+
+
+
+
+-> BASTA ESCREVEREMOS ASSIM:
+
+
+
+
+
+
+
+
+const ajax = (url, method = 'get', data = {}) => {
+  method = method.toLowerCase();
+
+  let options = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+  };
+
+  const csrfMethods = new Set(['post', 'put', 'delete', 'patch']);
+
+  if (csrfMethods.has(method)) {
+    options.body = JSON.stringify({ ...data, ...getCsrfFields() });
+  } else if (method === 'get') {
+    url += '?' + new URLSearchParams(data).toString();
+  }
+
+  return fetch(url, options).then((response) => {
+    if (!response.ok) {
+      if (response.status === 422) {
+        // Here
+
+        response.json().then((errors) => {
+          console.log(errors);
+        });
+      }
+    }
+    return response;
+  });
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+com isso, finalmente,
+
+teremos acesso 
+aos validation errors..
+
+
+
+
+
+
+
+
+
+
+-> RECARREGAMOS A PAGE,
+
+
+E AGORA 
+
+TEMOS OS VALIDATION ERRORS 
+
+('['Name is required']' )
+
+
+
+
+
+
+
+
+
+_> AGORA, EM VEZ DE CONSOLE.LOGGAR ESSES ERRORS,
+
+
+
+CHAMAREMOS ALGUM TIPO DE 'VALIDATION HANDLING FUNCTION',
+
+A QUE PASSAREMOS  ESSES ERRORS, COMO ARGUMENT,
+
+
+PARA QUE 
+
+ESSA FUNCTION 
+
+
+
+
+EVITE O BLOATING DE ESSA FUNCTION DE 'AJAX'
+
+
+AINDA MAIS...
+
+
+
+
+
+
+
+
+-> BASTA CRIAR 1 FUNCTION DE NOME 'handleValidationErrors()",
+
+
+E AÍ PASSAR OS ERRORS,
+
+TIPO ASSIM:
+
+
+
+
+ 
+ const ajax = (url, method = 'get', data = {}) => {
+  method = method.toLowerCase();
+
+  let options = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+  };
+
+  const csrfMethods = new Set(['post', 'put', 'delete', 'patch']); 
+
+  if (csrfMethods.has(method)) {
+    options.body = JSON.stringify({ ...data, ...getCsrfFields() });
+  } else if (method === 'get') {
+    url += '?' + new URLSearchParams(data).toString();
+  }
+
+  return fetch(url, options).then((response) => {
+    if (!response.ok) {
+      if (response.status === 422) {
+        // Here
+
+        response.json().then((errors) => {
+          handleValidationErrors(errors);
+        });
+      }
+    }
+    return response;
+  });
+};
+
+const get = (url, data) => ajax(url, 'get', data);
+const post = (url, data) => ajax(url, 'post', data);
+
+function getCsrfFields() {
+  const csrfNameField = document.querySelector('#csrfName');
+  const csrfValueField = document.querySelector('#csrfValue');
+  const csrfNameKey = csrfNameField.getAttribute('name');
+  const csrfName = csrfNameField.content;
+  const csrfValueKey = csrfValueField.getAttribute('name');
+  const csrfValue = csrfValueField.content;
+
+  return {
+    [csrfNameKey]: csrfName,
+    [csrfValueKey]: csrfValue,
+  };
+}
+
+function handleValidationErrors(errors) {}
+
+
+
+
+
+
+
+
+
+
+NÓS SABEMOS QUE 
+
+'errors' 
+
+VAI SER 1 JSON OBJECT...
+
+
+
+
+
+
+
+
+
+-> PRECISAMOS LOOPAR POR DENTRO DE CADA VALIDATION 
+ERROR,
+
+PARA AÍ 
+
+'FIND THE CORRESPONDING INPUT ELEMENT',
+
+TUDO PARA QUE ENTÃO CONSIGAMOS 
+
+
+
+'PROGRAMMATICALLY ADD THE 
+NECESSARY CLASS TO IT'...
+
+
+
+
+
+
+
+
+
+-> PARA ISSO,
+
+PODEMOS 
+
+USAR um 'FOR IN' LOOP,
+
+
+PARA LOOPAR __ POR DENTRO DAS PROPERTIES DO ARRAY.. (em vez de um FOR OF)...
+
+
+
+
+
+
+
+
+
+
+
+
+-> PQ AS PROPERTIES DE ESSE OBJECT DE 'errors'
+
+SÃO OS FIELD NAMES...
+
+
+
+
+--> E AÍ 
+PODEMOS USAR OS FIELD NAMES PARA 
+
+'FIND THE 
+    CORRECT INPUT FIELD'...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+function handleValidationErrors(errors) {
+  for (const name in errors) {
+    const element = document.querySelector(`[name="${name}"]`);
+    if (element) {
+      element.setCustomValidity(errors[name]);
+    }
+  }
+}
+
+
+
+
+
+
+
+POR ENQUANTO, APENAS FAZEMOS ISSO PARA OS INPUT FIELDS...
+
+QUER DIZER QUE ISSO NÃO FUNCIONARIA PARA INPUTS DE TIPO 'SELECT' OU QUALQUER 
+OUTRO TIPO DE INPUT....
+
+
+
+
+
+
+
+
+
+-> ASSIM QUE ENCONTRAMOS O VALID ELEMENT COM AQUELE NAME,
+
+
+
+PRECISAMOS ADICIONAR A CLASS DE 'is-invalid'
+
+A ESSE INPUT FIELD,
+
+TIPO ASSIM:
+
+
+
+
+function handleValidationErrors(errors) {
+  for (const name in errors) {
+    const element = document.querySelector(`[name="${name}"]`);
+
+    element.classList.add('is-invalid');
+  }
+}
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO,
+ 
+TAMBÉM ADICIONAMOS 1 CONSOLE.LOG, PARA ESSE FIELD DE 
+
+
+'errors[name]'...
+
+
+
+
+
+Ex:
+
+
+
+
+
+
+function handleValidationErrors(errors) {
+  for (const name in errors) {
+    const element = document.querySelector(`[name="${name}"]`);
+
+    element.classList.add('is-invalid');
+
+    console.log(errors[name]);
+  }
+}
+
+
+
+
+
+
+
+
+
+
+COM ISSO, 
+
+
+ACONTECERAM 2 COISAS:
+
+
+
+
+
+1) A MESSAGE DE ERROR, 'Name is required', apareceu NO CONSOLE DO CHROME....
+
+
+
+
+
+
+2) A BORDER VERMELHA  __ NÃO APARECEU AO REDOR DO INPUT FIELD,
+    E NEM A MESSAGE DE ERROR NA PARTE DE BAIXO...
+
+
+
+
+
+
+
+
+
+
+--> A RAZÃO DE A CLASS NÃO TER 
+    SIDO ADICIONADA A ESSE FIELD 
+
+    É QUE 
+
+
+
+    O selector de 
+
+    'document.querySelector('input[name="${name}"]')' 
+
+
+
+
+
+
+
+
+
+
+ESTÁ APENAS SELECIONANDO 'THE FIRST MATCHING ELEMENT'
+
+
+A ESSA QUERY...
+
+
+
+
+
+
+
+
+E É UM FATO 
+
+
+
+QUE __ 'editCategoryModal'
+
+
+
+NÃO É _ O ÚNICO LOCAL EM QUE 
+
+TEMOS um INPUT COM UM VALUE DE 'name=name'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+_> QUER DIZER QUE ELE ESTÁ SELECIONANDO O ELEMENTO ERRADO...
+
+
+
+
+
+
+
+
+
+
+
+-> A RED BORDER ESTÁ SENDO APLICADA 
+
+
+
+NO FIELD DE 'NEW CATEGORY',
+
+
+PQ É ELA QUE É REALMENTE A PRIMEIRA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+''TO FIX THIS,
+
+    _ WE NEED __ TO FIND THE FIELD _ WITHIN 
+
+    A SPECIFIC CONTAINER''''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NESSE CASO, AQUI,
+
+O CONTAINER 
+SERIA O MODEL 
+
+DE 
+'editCategoryModal'..
+
+
+
+
+
+
+
+
+
+-> MAS NÃO QUEREMOS HARDCODAR O editCategoryModal
+
+DENTRO DE 'handleValidationErrors'..
+
+
+
+-> O PROFESSOR QUER DEIXAR ALGUM TIPO DE CONTAINER COMO PARAMETER DE ESSA FUNCTION...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+function handleValidationErrors(errors, domElement) {
+  for (const name in errors) {
+    const element = domElement.querySelector(`[name="${name}"]`);
+
+    element.classList.add('is-invalid');
+
+    console.log(element);
+  }
+}
+
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+
+const ajax = (url, method = 'get', data = {}, domElement = null) => {
+  method = method.toLowerCase();
+
+  let options = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+  };
+
+  const csrfMethods = new Set(['post', 'put', 'delete', 'patch']);
+
+  if (csrfMethods.has(method)) {
+    options.body = JSON.stringify({ ...data, ...getCsrfFields() });
+  } else if (method === 'get') {
+    url += '?' + new URLSearchParams(data).toString();
+  }
+
+  return fetch(url, options).then((response) => {
+    if (!response.ok) {
+      if (response.status === 422) {
+        // Here
+
+        response.json().then((errors) => {
+          handleValidationErrors(errors, domElement);
+        });
+      }
+    }
+    return response;
+  });
+};
+
+const get = (url, data) => ajax(url, 'get', data);
+const post = (url, data) => ajax(url, 'post', data, domElement);
+
+function getCsrfFields() {
+  const csrfNameField = document.querySelector('#csrfName');
+  const csrfValueField = document.querySelector('#csrfValue');
+  const csrfNameKey = csrfNameField.getAttribute('name');
+  const csrfName = csrfNameField.content;
+  const csrfValueKey = csrfValueField.getAttribute('name');
+  const csrfValue = csrfValueField.content;
+
+  return {
+    [csrfNameKey]: csrfName,
+    [csrfValueKey]: csrfValue,
+  };
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AÍ, LÁ NO CALL DE 'post()',
+
+
+PODEMOS PASSAR ESSE DOM ELEMENT,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+  document
+    .querySelector('.save-category-btn')
+    .addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      post(
+        '/categories/' + categoryId,
+        {
+          name: editCategoryModal._element.querySelector('input[name="name"]')
+            .value,
+        },
+        editCategoryModal._element
+      ).then((response) => {
+        if (response.ok) {
+          editCategoryModal.hide();
+        }
+      });
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+
+
+ISSO FEITO, TESTAMOS 
+
+
+
+ESSA VALIDATION...
+
+
+
+
+
+
+
+
+
+
+--> OK... COM ISSO, O FIELD CORRETO É MARCADO COMO INVALID,
+
+QUANDO TENTAMOS FAZER SEND DE 1 REQUEST SEM NENHUM VALUE DE 'NAME'
+NO INTERIOR...
+
+
+
+
+
+
+
+
+
+
+
+-> AGORA SÓ TEMOS QUE CRIAR O DIV ELEMENT QUE FAÇA O DISPLAY DA ERROR MESSAGE 
+CORRETAMENTE...
+
+
+
+
+
+
+-> ISSO PQ A ESTRUTURA DE ERRORS É ACTUALLY 1 ARRAY...
+
+
+
+
+
+tipo ''' ['Name is required']'''
+
+
+
+COMO ISSO É UM ARRAY,
+
+ISSO QUER DIZER QUE 
+
+PODEMOS TER MAIS DE 1 ÚNICO VALIDATION ERROR...
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE QUEREMOS CRIAR 1 VALIDATION ERROR <div>
+
+para cada error...
+
+
+
+
+
+--> poderíamos criar 1 validation error <div> apenas,
+
+
+mas o professor quer fazer 1 loop por dentro de todos os errors, 
+
+para fazer display...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+function handleValidationErrors(errors, domElement) {
+  for (const name in errors) {
+    const element = domElement.querySelector(`[name="${name}"]`);
+
+    element.classList.add('is-invalid');
+
+    for (const error of errors[name]) {
+      element.setAttribute('data-error', error);
+    }
+
+  }
+}
+
+
+
+
+
+
+
+
+PRECISAMOS CRIAR 1 NOVO DIV ELEMENT,
+
+
+COM A CLASS DE 'invalid-feedback',
+
+
+e com o text content apropriado,
+
+
+da error message, tudo com javascript..
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+function handleValidationErrors(errors, domElement) {
+  for (const name in errors) {
+    const element = domElement.querySelector(`[name="${name}"]`);
+
+    element.classList.add('is-invalid');
+
+    for (const error of errors[name]) {
+      const errorDiv = document.createElement('div');
+      errorDiv.classList.add('invalid-feedback');
+      errorDiv.textContent = error;
+      element.parentNode.append(errorDiv);
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+ISSO ASSUME QUE VC ESTÁ USANDO 1 BOOSTRAP FORM COMUM....
+
+
+
+
+
+
+
+
+
+--> TESTAMOS ISSO COM O BROWSER....
+
+
+
+
+
+
+TENTAMOS SALVAR 1 EMPTY CATEGORY... AÍ A ERROR MESSAGE É APPENDED...
+
+
+
+
+
+
+
+
+-> MAS SE CLICAMOS 'SAVE ' MAIS UMA VEZ,
+
+
+
+FICAMOS COM A MESMA ERROR MESSAGE REPETIDA VÁRIAS VEZES...
+
+
+
+
+--> ISSO NÃO É TÃO BOM... QUEREMOS:
+
+
+
+1) FAZER COM QUE EXISTA NO MÁXIMO 1 ÚNICA ERROR MESSAGE POR VEZ 
+
+
+
+2) LIMPAR OS VALIDATION ERRORS, QUANDO 
+    O REQUEST FOR ENVIADO CORRETAMENTE...
+
+
+
+
+
+
+
+
+
+
+---> PARA ISSO, CRIAMOS UMA NOVA 
+
+    FUNCTION,
+
+
+
+    'clearValidationErrors()",
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+function clearValidationErrors(domElement) {
+  domElement.querySelector('.is-invalid').forEach((element) => {
+    element.classList.remove('is-invalid');
+    element.parentNode.querySelector('.invalid-feedback').remove();
+  });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO VAI REMOVER A RED BORDER,
+
+
+E VAI REMOVER 
+
+
+OS DIV ELEMENTS DE 'INVALID-FEEDBACK'...
+
+
+
+-> 
+
+
+
+
+
+
+
+
+
+
+AÍ RODAMOS ISSO 
+
+
+LÁ 
+
+NO CALL DE 'FETCH',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+const ajax = (url, method = 'get', data = {}, domElement = null) => {
+  method = method.toLowerCase();
+
+  let options = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+  };
+
+  const csrfMethods = new Set(['post', 'put', 'delete', 'patch']);
+
+  if (csrfMethods.has(method)) {
+    options.body = JSON.stringify({ ...data, ...getCsrfFields() });
+  } else if (method === 'get') {
+    url += '?' + new URLSearchParams(data).toString();
+  }
+
+  return fetch(url, options).then((response) => {
+    if (domElement) {
+      clearValidationErrors(domElement);
+    }
+    if (!response.ok) {
+      if (response.status === 422) {
+        // Here
+
+        response.json().then((errors) => {
+          handleValidationErrors(errors, domElement);
+        });
+      }
+    }
+    return response;
+  });
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... TESTAMOS ISSO... REFRESHAMOS A PAGE...
+
+
+
+
+
+E AÍ, ISSO FUNCIONA,..
+
+
+
+FICAMOS COM APENAS 1 INSTANCE DA ERROR MESSAGE SENDO DISPLAYED..
+
+
+
+
+
+
+
+
+-> QUANDO CLICAMOS NO BUTTON DE SAVE E TEMOS DATA NO INPUT FIELD,
+
+ISSO FUNCIONA, E OS ERRORS SOMEM..
+
+
+
+
+
+
+
+
+
+
+
+-> ANTES DE TERMINARMOS, O PROFESSOR QUER 
+
+MUDAR A ACTION DE DELETE,
+
+
+
+PARA QUE ELA 
+
+
+USE AJAX TAMBÉM...
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO PQ, ATUALMENTE,
+
+ELA APENAS FAZ SUBMIT DA FORM...
+
+
+
+
+
+
+-> ISSO PQ TEMOS UMA FORM 
+
+EM VOLTA DA DELETE ACTION, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+                 <div class="d-flex flex-">
+                                        <form action="/categories/{{ category.id }}" method="post">
+                                            {{ csrf.fields | raw }}
+                                            <input type="hidden" name="_METHOD" value="DELETE" />
+                                            <button type="submit" class="btn btn-outline-primary">
+                                                <i class="bi bi-trash3-fill"></i>
+                                            </button>
+                                        </form>
+                                        <button class="ms-2 btn btn-outline-primary edit-category-btn"
+                                                data-id="{{ category.id }}">
+                                            <i class="bi bi-pencil-fill"></i>
+                                        </button>
+                                    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+EM VEZ DISSO,
+
+
+
+O PROFESSOR VAI ESCREVER ASSIM:
+
+
+
+
+
+
+
+
+                 <div class="d-flex flex-">
+                                        <button class="ms-2 btn btn-outline-primary delete-category-btn"
+                                                data-id="{{ category.id }}">
+                                            <i class="bi bi-trash-fill"></i>
+      
+                                        <button class="ms-2 btn btn-outline-primary edit-category-btn"
+                                                data-id="{{ category.id }}">
+                                            <i class="bi bi-pencil-fill"></i>
+                                        </button>
+                                    </div>
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+-> ISSO FEITO,
+
+VAMOS ATÉ 
+
+
+'category.js'
+
+
+E 
+
+
+CRIAMOS 1 NOVO QUERY SELECTOR,
+
+AGORA PARA O BUTTON DE DELETE,
+
+QUE VAI DISPARAR 1 FUNCTION DIFERENTE, TIPO ASSIM:
+
+
+
+
+
+
+
+  document
+    .querySelector('.delete-category-btn')
+    .addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      post(
+        '/categories/' + categoryId,
+        {
+          _METHOD: 'DELETE',
+        },
+        editCategoryModal._element
+      ).then((response) => {
+        if (response.ok) {
+          editCategoryModal.hide();
+        }
+      });
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA, EM VEZ DE PASSARMOS A DATA,
+
+PASSAMOS 
+
+
+
+AQUELE PARAMETER DE '_METHOD: 'DELETE','
+
+,
+
+
+PARA INDICAR QUE ISSO SERÁ 1 REQUEST DE TIPO DELETE... 
+
+
+
+
+
+
+
+
+
+
+
+-> MAS O PROFESSOR NÃO QUER 
+TER DE ESCREVER ISSO TODA VEZ 
+QUE ELE RODAR 1 DELETE REQUEST...
+
+
+
+
+
+
+
+
+
+
+-> PARA EVITAR ISSO, ELE VAI QUERER TER ESSE HANDLING DENTRO 
+DA FILE DE 'ajax.js'....
+
+
+
+
+
+
+
+
+
+
+
+-> ELE QUER TER UMA FUNCTION DE 'delete()'...
+
+
+
+
+
+
+
+
+
+--> 'delete()"
+
+É UMA RESERVED KEYWORD NO JAVASCRIPT,
+
+por isso vamos usar 
+
+um outro nome, como 'del()'...
+
+
+
+
+
+EX:
+
+
+
+
+
+const get = (url, data) => ajax(url, 'get', data);
+const post = (url, data) => ajax(url, 'post', data, domElement);
+const del = (url, data) => ajax(url, 'delete', data, domElement);
+
+
+export { ajax, get, post, del };
+
+
+
+
+
+
+
+
+
+
+
+
+CONTINUANDO, NOSSA CALL FICA ASSIM:
+
+
+
+
+
+
+
+
+
+  document
+    .querySelector('.delete-category-btn')
+    .addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      del('/categories/' + categoryId);
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR TAMBÉM QUER COLOCAR 1 IF STATEMENT,
+PARA PEDIR PARA O USER SE ELE REALMENTE 
+
+QUER DELETAR 
+
+
+O ITEM..
+
+
+
+
+
+-> TIPO ASSIM:
+
+
+
+
+
+
+
+import { Modal } from 'bootstrap';
+import { get, post, del } from './ajax';
+
+window.addEventListener('DOMContentLoaded', function () {
+  const editCategoryModal = new Modal(
+    document.getElementById('editCategoryModal')
+  );
+
+  document.querySelectorAll('.edit-category-btn').forEach((button) => {
+    button.addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      get('/categories/' + categoryId)
+        .then((response) => response.json())
+        .then(openEditCategoryModal(editCategoryModal, response));
+    });
+  });
+
+  document
+    .querySelector('.save-category-btn')
+    .addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      post(
+        '/categories/' + categoryId,
+        {
+          name: editCategoryModal._element.querySelector('input[name="name"]')
+            .value,
+        },
+        editCategoryModal._element
+      ).then((response) => {
+        if (response.ok) {
+          editCategoryModal.hide();
+        }
+      });
+    });
+
+  document
+    .querySelector('.delete-category-btn')
+    .addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      if (confirm('Are you sure you want to delete this category?')) {
+        del('/categories/' + categoryId);
+      }
+    });
+});
+
+function openEditCategoryModal(modal, { id, name }) {
+  const nameInput = modal._element.querySelector('input[name="name"]');
+
+  nameInput.value = name;
+
+  modal._element
+    .querySelector('.save-category-btn')
+    .setAttribute('data-id', id);
+
+  modal.show();
+}
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+AGORA TEMOS QUE AJUSTAR A AJAX FUNCTION....
+
+
+
+
+
+
+
+
+
+
+-> NAQUELE TRECHO DE 
+
+
+
+
+
+  if (csrfMethods.has(method)) {
+    options.body = JSON.stringify({ ...data, ...getCsrfFields() });
+  } else if (method === 'get') {
+    url += '?' + new URLSearchParams(data).toString();
+  }
+
+
+
+
+
+
+
+
+SE O METHOD NÃO FOR DE TIPO '!== 'post'',
+
+
+
+PRECISAMOS PASSAR O VALUE DE 
+
+
+'_METHOD'
+
+
+como parameter ao body,
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+
+
+
+const ajax = (url, method = 'get', data = {}, domElement = null) => {
+  method = method.toLowerCase();
+
+  let options = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+  };
+
+  const csrfMethods = new Set(['post', 'put', 'delete', 'patch']);
+
+  if (csrfMethods.has(method)) {
+    if (method !== 'post') {
+      options.method = 'post';
+
+      data = { ...data, _METHOD: method.toUpperCase() };
+    }
+    options.body = JSON.stringify({ ...data, ...getCsrfFields() });
+  } else if (method === 'get') {
+    url += '?' + new URLSearchParams(data).toString();
+  }
+
+  return fetch(url, options).then((response) => {
+    if (domElement) {
+      clearValidationErrors(domElement);
+    }
+    if (!response.ok) {
+      if (response.status === 422) {
+        // Here
+
+        response.json().then((errors) => {
+          handleValidationErrors(errors, domElement);
+        });
+      }
+    }
+    return response;
+  });
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... COM ISSO, ACABAMOS...
+
+
+
+
+
+
+
+
+
+FUNCIONOU, MAS NOSSO BACKEND ESTÁ TENTANDO NOS REDIRECIONAR PARA A PAGE DE 302...
+
+
+
+
+
+
+
+
+
+
+-> A RAZÃO PARA O REDIRECT É QUE, DENTRO DO CONTROLLER DE 'CATEGORIES',
+
+TEMOS 
+
+
+AQUELE 
+
+CÓDIGO DE 
+
+
+''
+
+
+
+
+
+    public function delete(Request $request, Response $response, array $args): Response
+    {  
+         $categoryId = $request->getAttribute('categoryId');
+
+        $this->categoryService->delete($categoryId);
+
+        return $response->withHeader('Location', '/categories')->withStatus(302);
+    }
+
+
+
+
+''
+
+
+
+
+
+BASTA REMOVER AQUELA RESPONSE COM REDIRECT,
+DEIXAR SÓ ASSIM:
+
+
+
+
+
+    public function delete(Request $request, Response $response, array $args): Response
+    {  
+         $categoryId = $request->getAttribute('categoryId');
+
+        $this->categoryService->delete($categoryId);
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+COM ISSO, TERMINAMOS... E AGORA NÃO SOMOS REDIRECIONADOS...
+
+
+
+
+
+
+mas perceba que PRECISAMOS FAZER PAGE REFRESH PARA VER 
+
+A CATEGORY SER REMOVIDA DA TABLE...
+
+
+
+
+
+
+
+
+
+-> MESMA COISA QUANDO MUDAMOS O CATEGORY NAME...
+
+
+
+
+
+
+-> PARA FAZER ISSO UPDATAR A TABLE DA PÁGINA,
+
+PRECISAMOS DE MAIS JAVASCRIPT,
+
+E DE UM METHOD DE 'GET' 
+
+
+
+PARA FETCHEAR TODAS AS CATEGORIES...
+
+
+
+
+
+
+
+
+-> VEREMOS ISSO NO PRÓXIMO VIDEO,
+
+COM ALGO CHAMADO DE 'PAGINATION' E 'DATA TABLES'...
+
+
+
+
+
