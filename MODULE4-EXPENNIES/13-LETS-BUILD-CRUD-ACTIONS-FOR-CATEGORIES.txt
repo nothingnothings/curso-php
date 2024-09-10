@@ -1795,3 +1795,827 @@ OK...
 
 mas só isso não basta...
 
+
+
+
+
+
+
+
+
+
+
+
+--> PRECISAMOS VINCULAR A CATEGORY AO USER QUE A CRIOU...
+
+
+
+
+
+
+
+-> É POR ISSO QUE COLOCAREMOS 'USER'
+
+COMO 1 DOS PARAMETERS DO METHOD DE 'create'
+
+
+
+em 'CategoryService',
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Contracts\CategoryServiceInterface;
+use App\DTOs\CategoryData;
+use App\Entity\Category;
+use App\Entity\User;
+use Doctrine\ORM\EntityManager;
+
+class CategoryService implements CategoryServiceInterface
+{
+
+    public function __construct(private readonly EntityManager $entityManager) {}
+
+
+    public function create(CategoryData $categoryData, User $user): Category
+    {
+        $category = new Category();
+        $category->setName($categoryData->name);
+        $category->setUser($user);
+
+        $this->entityManager->persist($category);
+        $this->entityManager->flush();
+
+        return $category;
+    }
+}
+
+
+
+
+
+
+
+
+CERTO... ISSO VAI SETTAR O NAME DA CATEGORY,
+
+E TAMBÉM O USER VINCULADO A ELA (user_id dentro 
+da category)....
+
+
+
+
+
+
+
+
+
+-> MAS LÁ EM 'CategoriesController',
+
+
+PRECISAMOS PASSAR O USER COMO ARGUMENT AO CALL 
+
+DO METHOD... FAZEMOS ISSO TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+    public function store(Request $request, Response $response): Response
+    {
+        $data = $request->getParsedBody();
+
+
+        ['name' => $name] = $data;
+
+        $categoryData = new CategoryData($name);
+
+        $data = $this->requestValidatorFactory
+            ->make(CreateCategoryRequestValidator::class)
+            ->validate($categoryData);
+
+        $user = $request->getAttribute('user');
+
+        $this->category->create($categoryData, $user);
+
+        return $response->withHeader('Location', '/categories')->withStatus(302);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... E ISSO REALMENTE FUNCIONA....
+
+
+
+
+
+
+
+
+
+-> COM ISSO, TERMINAMOS COM A ETAPA N2...
+
+
+
+
+
+
+TEMOS 3 ETAPAS, PORTANTO:
+
+
+1) VALIDATE DATA 
+
+
+2) CREATE THE ENTITY 
+
+
+
+3) REDIRECT THE USER...
+
+
+
+
+
+
+
+
+--> DEVEMOS TESTAR ISSO AÍ, PARA VER SE REALMENTE FUNCIONA...
+
+
+
+
+
+
+
+
+--> TENTAMOS CRIAR ESSA CATEGORY, MAS FICAMOS COM 1 ERROR:
+
+
+
+
+''CREATED_AT CANNOT BE NULL''...
+
+
+
+
+
+
+
+
+
+
+
+
+-> PRECISAMOS SETTAR O VALUE DE 
+
+'created_at'
+
+
+QUANDO CRIAMOS 1 CATEGORY..
+
+
+
+
+
+
+
+-> PRECISAMOS USAR 1 LIFECYCLE METHOD 
+
+DENTRO 
+
+
+DA ENTITY DE 'CATEGORY',
+
+
+PARA QUE ISSO SEJA FEITO PARA NÓS, AUTOMATICAMENTE...
+
+
+
+
+OU SEJA,
+
+BASTA REPLICAR O ĆODIGO LÁ DE 
+
+''USER'', COM OS ATTRIBUTES..
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+    #[PrePersist, PreUpdate]
+    public function onPrePersist(LifecycleEventArgs $args)
+    {
+        if (!isset($this->createdAt)) {
+            $this->createdAt = new \DateTime();
+        }
+
+        $this->updatedAt = new \DateTime();
+    }
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS EM VEZ DE DUPLICAR ESSE CÓDIGO INTEIRO,
+
+
+
+COLANDO LÁ NA ENTITY DE 'CategoriesController',
+
+
+
+
+
+
+E EM VEZ DE FAZER A MESMA COISA NAS OUTRAS ENTITIES (
+    PQ TEMOS OUTRAS ENTITIES COM ESSA MESMA COLUMN DE 
+    'CREATED_AT',
+
+    E TAMBÉM VAMOS QUERER O MESMO COMPORTAMENTO LÁ...
+)
+
+
+
+
+
+
+
+
+-> PARA EVITAR ESSA DUPLICATION,
+    PODEMOS USAR ALGUM TIPO DE ABSTRACTION...
+
+
+
+
+
+
+
+-> O PROFESSOR NÃO QUER 
+    USAR INHERITANCE, PQ NÃO SERIA BOM....
+
+
+
+
+
+
+-> EM VEZ DISSO, O QUE ELE VAI QUERER USAR É 
+
+__ UM TRAIT__...
+
+
+
+
+
+
+--> VAMOS QUERER EXTRAIR ESSE CÓDIGO EM 1 TRAIT...
+
+
+
+
+
+
+
+
+
+
+-> vamos criar 1 directory de nome 'Traits',
+
+
+dentro do folder de 'Entities'...
+
+
+
+
+
+
+
+
+
+-> AÍ CRIAREMOS 1 NOVA CLASS, 
+
+
+DE NOME 'HasTimestampsTrait'...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Entity\Traits;
+
+use Doctrine\ORM\Mapping as ORM;
+
+trait HasTImestampsTrait {
+
+    
+}
+
+
+
+
+
+
+
+
+
+
+e vamos copiar e colar tanto a column de 'created_at'
+
+
+como 'updated_at', para dentro desse trait...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Entity\Traits;
+
+use Doctrine\ORM\Mapping as ORM;
+
+trait HasTImestampsTrait
+{
+
+    #[ORM\Column(name: 'created_at', type: 'datetime')]
+    private \DateTime $createdAt;
+
+    #[ORM\Column(name: 'updated_at', type: 'datetime')]
+    private \DateTime $updatedAt;
+}
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+--> TAMBÉM PRECISAMOS COLOCAR O METHOD,
+
+
+DE 
+
+
+''
+
+
+    #[PrePersist, PreUpdate]
+    public function onPrePersist(LifecycleEventArgs $args)
+    {
+        if (!isset($this->createdAt)) {
+            $this->createdAt = new \DateTime();
+        }
+
+        $this->updatedAt = new \DateTime();
+    }
+''
+
+
+
+
+
+QUER DIZER QUE O TRAIT VAI FICAR ASSIM:
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Entity\Traits;
+
+use Doctrine\ORM\Event\LifecycleEventArgs;
+use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\PrePersist;
+use Doctrine\ORM\Mapping\PreUpdate;
+
+trait HasTImestampsTrait
+{
+
+    #[ORM\Column(name: 'created_at', type: 'datetime')]
+    private \DateTime $createdAt;
+
+    #[ORM\Column(name: 'updated_at', type: 'datetime')]
+    private \DateTime $updatedAt;
+
+    #[PrePersist, PreUpdate]
+    public function onPrePersist(LifecycleEventArgs $args)
+    {
+        if (!isset($this->createdAt)) {
+            $this->createdAt = new \DateTime();
+        }
+
+        $this->updatedAt = new \DateTime();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO, BASTA USAR ESSES TRAITS 
+
+NAS ENTITIES DE 'USER' E 'CATEGORY',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Entity;
+
+use App\Entity\Traits\HasTimestampsTrait;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\HasLifecycleCallbacks;
+
+#[ORM\Entity, ORM\Table(name: 'categories')]
+#[HasLifecycleCallbacks]  // Needed to make the 'onPrePersist' method work.
+class Category
+{
+    use HasTimestampsTrait;
+
+    public function __construct()
+    {
+        $this->transactions = new ArrayCollection();
+    }
+
+    #[ORM\Id]
+    #[ORM\GeneratedValue()]
+    #[ORM\Column(type: 'integer', options: ['unsigned' => true])]
+    private int $id;
+
+    #[ORM\Column(type: 'string')]
+    private string $name;
+
+    #[ORM\Column(type: 'datetime', name: 'created_at')]
+    private \DateTime $createdAt;
+
+    #[ORM\Column(type: 'datetime', name: 'updated_at')]
+    private \DateTime $updatedAt;
+
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'categories')]
+    private ?User $user;
+
+    #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'categories')]
+    private Collection $transactions;
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name): self
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeInterface $updatedAt): self
+    {
+        $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(User $user): Category
+    {
+        $user->addCategory($this);
+
+        $this->user = $user;
+
+        return $this;
+    }
+
+    public function addTransaction(Transaction $transaction): Category
+    {
+        $this->transactions->add($transaction);
+
+        return $this;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AO RECARREGARMOS A PAGE
+
+
+
+
+E AO TENTARMOS CRIAR 1 NOVO 
+
+
+
+CATEGORY,
+
+
+CRIAMOS 1 CATEGORY NOVA E SOMOS REDIRECIONADOS 
+
+COM SUCESSO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... MAS A PAGE DE CATEGORIES 
+
+AINDA NÃO ESTAMOS VENDO NADA SENDO DISPLAYED NA TELA...
+
+
+NÃO TEMOS 
+
+TABLE ALGUMA MOSTRANDO AS TABLES...
+
+
+
+
+
+
+
+
+--> ISSO ESTÁ ASSIM PQ AINDA NÃO FIZEMOS PASS DOWN 
+
+DAS CATEGORIES,
+
+LÁ NO 'index' method,
+
+no controller..
+
+
+
+
+
+atualmente, o controller está assim:
+
+
+
+
+    public function index(Request $request, Response $response): Response
+    {
+
+        return $this->twig->render($response, 'categories/index.twig');
+    }
+
+
+
+
+
+
+
+
+
+
+PRECISAMOS DO TERCEIRO PARAMETER,
+
+
+QUE É O ARRAY DE KEYS QUE QUEREMOS PASSAR, COMO VALUES,
+
+
+AO NOSSO TWIG TEMPLATE...
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, PODEMOS USAR O SERVICE DE 'CATEGORYSERVICE'
+
+
+PARA 
+
+
+RODAR 'getAll()'
+
+ou qualquer method com nome similar,
+
+para retornar todas nossas categories...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+    public function index(Request $request, Response $response): Response
+    {
+
+        return $this->twig->render(
+            $response,
+            'categories/index.twig',
+            [
+                'categories' => $this->category->getAll()
+            ]
+        );
+    }
+
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+(CategoryService.PHP):
+
+
+    public function getAll(): array
+    {
+        return $this->entityManager->getRepository(Category::class)->findAll();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO, RECARREGAMOS A PAGE, E AGORA FINALMENTE ENCONTRAMOS 
+
+AS CATEGORIES NA PAGE...

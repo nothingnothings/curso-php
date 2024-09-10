@@ -1,20 +1,26 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\RequestValidators;
 
+use App\Contracts\RequestValidatorInterface;
 use App\DTOs\CategoryData;
 use Valitron\Validator;
 
-class CreateCategoryRequestValidator
+class CreateCategoryRequestValidator implements RequestValidatorInterface
 {
-    public function validate(CategoryData $categoryData): CategoryData
+    public function validate($categoryData): array
     {
         $v = new Validator($categoryData);
 
         $v->rule('required', ['name']);
-        $v->rule('string', ['name']);
-        $v->rule('lengthMax', 'name', );
+        $v->rule('lengthMax', 'name',);
 
-        return $categoryData;
+        $dataArray = [
+            'name' => $categoryData->name,
+        ];
+
+        return $dataArray;
     }
 }

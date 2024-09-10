@@ -10,7 +10,7 @@ class UserLoginRequestValidator implements RequestValidatorInterface
 {
     public function __construct( private readonly EntityManager $entityManager) {}
 
-    public function validate(UserData $userData): array
+    public function validate($userData): array
     {
 
 

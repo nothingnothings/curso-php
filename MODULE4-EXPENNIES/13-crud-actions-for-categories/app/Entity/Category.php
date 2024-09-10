@@ -1,14 +1,21 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Entity\Traits\HasTimestampsTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\HasLifecycleCallbacks;
 
 #[ORM\Entity, ORM\Table(name: 'categories')]
+#[HasLifecycleCallbacks]  // Needed to make the 'onPrePersist' method work.
 class Category
 {
+    use HasTimestampsTrait;
+
     public function __construct()
     {
         $this->transactions = new ArrayCollection();

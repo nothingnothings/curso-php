@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Contracts\UserInterface;
+use App\Entity\Traits\HasTimestampsTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Event\LifecycleEventArgs;
@@ -16,6 +17,8 @@ use Transaction;
 #[HasLifecycleCallbacks]  // Needed to make the 'onPrePersist' method work.
 class User implements UserInterface
 {
+    use HasTimestampsTrait;
+
     public function __construct()
     {
         $this->transactions = new ArrayCollection();
@@ -36,11 +39,11 @@ class User implements UserInterface
     #[ORM\Column(type: 'string')]
     private string $password;
 
-    #[ORM\Column(name: 'created_at', type: 'datetime')]
-    private \DateTime $createdAt;
+    // #[ORM\Column(name: 'created_at', type: 'datetime')]
+    // private \DateTime $createdAt;
 
-    #[ORM\Column(name: 'updated_at', type: 'datetime')]
-    private \DateTime $updatedAt;
+    // #[ORM\Column(name: 'updated_at', type: 'datetime')]
+    // private \DateTime $updatedAt;
 
     #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'user')]
     private Collection $transactions;
@@ -100,15 +103,15 @@ class User implements UserInterface
         return $this;
     }
 
-    #[PrePersist, PreUpdate]
-    public function onPrePersist(LifecycleEventArgs $args)
-    {
-        if (!isset($this->createdAt)) {
-            $this->createdAt = new \DateTime();
-        }
+    // #[PrePersist, PreUpdate]
+    // public function onPrePersist(LifecycleEventArgs $args)
+    // {
+    //     if (!isset($this->createdAt)) {
+    //         $this->createdAt = new \DateTime();
+    //     }
 
-        $this->updatedAt = new \DateTime();
-    }
+    //     $this->updatedAt = new \DateTime();
+    // }
 
     public function getTransactions(): Collection
     {
