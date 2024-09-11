@@ -1,0 +1,1022 @@
+
+
+
+
+
+
+
+
+
+HOJE VEREMOS PAGINATION NA TABLE DE CATEGORIES...
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR MUDOU 1 POUCO A UI 
+
+DA PAGE DE CATEGORIES...
+
+
+
+AGORA TEMOS:
+
+
+
+
+1) SEARCH BOX 
+
+
+
+
+
+2) SORTING INDICATORS NAS COLUMNS 
+
+
+
+
+
+3) DROPDOWN (que nos deixa selecionar quantas entries queremos na table)...
+
+
+
+
+
+
+
+
+
+4) BEEEEM LÁ PARA BAIXO,
+
+    TEMOS AS PAGINATION PAGES,
+
+    E AÍ 
+
+
+
+    OS BUTTONS DE PREVIOUS E NEXT...
+
+
+
+
+
+
+
+
+
+--> É CLARO QUE A PAGINATION AINDA NÃO FUNCIONA...
+
+
+
+
+
+
+
+
+
+AINDA VAMOS BUILDAR ISSO...
+
+
+
+
+
+
+
+
+-> SE CLICAMOS NAS PAGES,
+A DATA NÃO MUDA,
+
+
+
+PQ A PAGE REALMENTE FAZ O DISPLAY DE TODOS OS ROWS QUE 
+
+TEMOS NA TABLE DE 'CATEGORIES'...
+
+
+
+
+
+
+
+
+
+
+
+->  O NEGÓCIO DIZ QUE SÃO '10 items per view',
+
+
+MAS ESTAMOS ACTUALLY FAZENDO DISPLAY DE TODOS OS ITEMS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA FAZER A PAGINATION FUNCIONAR,
+
+
+O PROFESSOR DECIDIU USAR A THIRD PARTY LIBRARY 'DATA TABLESa'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+datatables.net...
+
+
+
+
+
+
+
+
+
+
+-> É UMA LIBRARY GRÁTIS..
+
+
+
+
+
+-> UMA DESVANTAGEM É QUE __ ELA USA __ JQUERY COMO DEPENDENCY...
+
+
+
+
+
+
+
+
+-> ENTRETANTO,
+
+    A BOA NOTÍCIA É QUE 
+
+    NÃO PRECISAMOS ADICIONAR JQUERY COMO DEPENDENCY 
+    DIRETA NO NOSSO APP...
+
+
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE PODEMOS AINDA INICIALIZAR E TRABALHAR 
+COM 'DATA TABLES' (pacote) 
+
+NO JAVASCRIPT, MESMO SEM O JQUERY...
+
+
+
+
+
+
+
+
+
+-> VC TAMBÉM PODE USAR OUTRA TABLE LIBRARY, SE QUISER... OU CONSTRUIR 
+1 FROM SCRATCH...
+
+
+
+
+
+
+
+
+
+-> VAMOS CONSTRUIR A PARTE BACKEND,
+PARA TER:
+
+
+
+1) PAGINATION 
+
+
+2) SORTING AND FILTERING OPTIONS,
+
+
+
+
+
+tudo isso dentro de nossas queries....
+
+
+
+
+
+
+
+
+
+
+-> TAMBÉM VEREMOS COMO ESTRUTURAR 
+
+A RESPONSE DE UMA MANEIRA UNDERSTANDABLE,
+
+
+TUDO PARA QUE SEJA 
+
+
+ENTENDIDA PELA TABLE LIBRARY ESPECÍFICA QUE ESTAMOS UTILIZANDO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR MOSTRA UM POUCO DO SETUP QUE ELE FEZ,
+
+POR TRÁS DAS CENAS..
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR ADICIONOU 2 DEPENDENCIES:
+
+
+
+
+1) datatables.net 
+
+
+
+2) datatables.net.dt 
+
+
+
+
+
+
+
+-> O SEGUNDO PACKAGE É APENAS SOBRE O STYLING DAS DATA TABLES...
+
+
+
+
+
+
+
+
+
+-> O CORE PACKAGE É REALMENTE 'datatables.net'....
+
+
+
+
+
+
+-> EM 'app.scss',
+
+
+
+
+É POSSÍVEL VISUALIZAR OS IMPORTS DE DATA TABLES,
+
+
+QUE SÃO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+@import "./variables.scss";
+@import "~bootstrap/scss/bootstrap";
+@import "~bootstrap-icons/font/bootstrap-icons";
+@import "~datatables.net/css/jquery.dataTables.css";
+
+
+* {
+  font-family: 'Roboto', sans-serif !important;
+}
+
+body {
+  background-color: #e7ebee;
+}
+
+svg.icon {
+  width: 25px;
+  height: 25px;
+}
+
+.nav-link {
+  color: #9aa0a9;
+
+  &.active {
+    background-color: inherit !important;
+    color: #57585A !important;
+  }
+
+  &:hover, &:focus {
+    color: #57585A !important;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+OK... É BASICAMENTE OS STYLES DAQUELE OUTRO PACOTE...
+
+
+
+
+
+
+
+
+
+--> LÁ EM 'index.twig'
+
+das categories,
+
+temos esta parte:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% extends 'layout.twig' %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('categories') }}
+{% endblock %}
+
+{% block title %}Categories{% endblock %}
+
+{% block content %}
+    <div class="categories container content-body">
+        <div class="text-end">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newCategoryModal">
+                <i class="bi bi-plus-circle me-1"></i>
+                New Category
+            </button>
+        </div>
+        <div class="modal fade" id="newCategoryModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <form action="/categories" method="post">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">New Category</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            {{ csrf.fields | raw }}
+                            <div class="form-outline form-white mb-4">
+                                <input type="text" name="name" required
+                                       class="form-control form-control-lg"
+                                       placeholder="Category Name" />
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="bi bi-x-circle me-1"></i>
+                                Close
+                            </button>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-circle me-1"></i>
+                                Create
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% include 'categories/edit_category_modal.twig' %}
+        {% if categories %}
+            <div id="categoriesTable">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Created At</th>
+                            <th>Updated At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for category in categories %}
+                            <tr>
+                                <td>{{ category.name }}</td>
+                                <td>{{ category.createdAt | date('m/d/Y g:i A') }}</td>
+                                <td>{{ category.updatedAt | date('m/d/Y g:i A') }}</td>
+                                <td>
+                                    <div class="d-flex flex-">
+                                        <form action="/categories/{{ category.id }}" method="post">
+                                            {{ csrf.fields | raw }}
+                                            <input type="hidden" name="_METHOD" value="DELETE" />
+                                            <button type="submit" class="btn btn-outline-primary">
+                                                <i class="bi bi-trash3-fill"></i>
+                                            </button>
+                                        </form>
+                                        <button class="ms-2 btn btn-outline-primary edit-category-btn"
+                                                data-id="{{ category.id }}">
+                                            <i class="bi bi-pencil-fill"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+MAS ESSE CÓDIGO MUDOU 1 POUCO, AGORA É ASSIM:
+
+
+
+
+
+
+
+
+
+
+            <div>
+                <table id="categoriesTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Created At</th>
+                            <th>Updated At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... ESTAMOS MOSTRANDO APENAS AS COLUMNS,
+
+
+E AÍ ESTAMOS MOSTRANDO A TABLE...
+
+
+
+
+
+
+
+-> a table fica dentro de '<tbody>'</tbody>',
+
+NESSE CASO...
+
+
+
+
+
+
+
+
+-> ESSE TBODY, NESSE CASO,
+
+
+É 'POPULATED, USING DATA FROM THE BACKEND,
+ 
+    IN THE FRONTEND, USING JAVASCRIPT'...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+{% extends 'layout.twig' %}
+
+{% block javascripts %}
+	{{ parent() }}
+	{{ encore_entry_script_tags('categories') }}
+{% endblock %}
+
+{% block title %}Categories
+{% endblock %}
+
+{% block content %}
+	<div class="categories container content-body">
+		<div class="text-end">
+			<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newCategoryModal">
+				<i class="bi bi-plus-circle me-1"></i>
+				New Category
+			</button>
+		</div>
+		<div class="modal fade" id="newCategoryModal" tabindex="-1" aria-hidden="true">
+			<div class="modal-dialog">
+				<form action="/categories" method="post">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title">New Category</h5>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body">
+							{{ csrf.fields | raw }}
+							<div class="form-outline form-white mb-4">
+								<input type="text" name="name" required class="form-control form-control-lg" placeholder="Category Name"/>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+								<i class="bi bi-x-circle me-1"></i>
+								Close
+							</button>
+							<button type="submit" class="btn btn-success">
+								<i class="bi bi-check-circle me-1"></i>
+								Create
+							</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+		{% include 'categories/edit_category_modal.twig' %}
+		<div>
+			<table id="categoriesTable">
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>Created At</th>
+						<th>Updated At</th>
+						<th>Actions</th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+		</div>
+	</div>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK, MAS QUAL É O JAVASCRIPT QUE FOI UTILIZADO?
+
+
+
+
+
+-> PRIMEIRAMENTE, INSTALE OS PACOTES,
+
+COM 
+
+npm install datatables.net datatables.net-dt
+
+
+
+
+
+
+
+
+
+E O JAVASCRIPT É TIPO ASSIM:
+
+
+
+
+
+
+import Datatable from "datatables.net";
+
+
+
+
+
+
+
+
+
+IMPORTAMOS ESSE COMPONENTE AÍ...
+
+
+
+
+
+
+
+
+-> DEPOIS DISSO,
+
+
+
+VAMOS CRIAR 1 NOVO OBJECT 'DataTable',
+
+
+
+
+COM ESTE CÓDIGO:
+
+
+
+
+
+window.addEventListener('DOMContentLoaded', function () {
+  const editCategoryModal = new Modal(
+    document.getElementById('editCategoryModal')
+  );
+
+  const table = new Datatable('#categoriesTable', {});
+
+
+
+
+
+
+
+
+
+
+
+  PRECISAMOS PASSAR VÁRIAS OPTIONS A ESSE OBJECT 'DataTable'...
+
+
+
+
+
+
+  -> ENTRE ELAS, AS OPTIONS:
+
+
+
+  serverSide: true/false 
+
+
+  ajax: '/categories/load',
+
+  orderMulti: false, 
+
+
+  columns: [
+    {data: 'name'},
+    {data: 'createdAt'},
+    {data: 'updatedAt'}
+  ],
+
+  sortable: false,
+
+  data: row => ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  VAI FICANDO TIPO ASSIM:
+
+
+
+
+  
+
+
+
+  
+
+AS OPTIONS SÃO:
+
+
+
+
+
+
+
+serverSide --> deixamos como TRUE,
+            PQ VAMOS QUERER FETCHEAR A DATA 
+            LÁ DO SERVERSIDE...
+
+
+
+
+
+
+ajax --> '/categories/load' --> 
+                            ISSO É USADO 
+                            PARA 
+
+                            ESPECIFICAR 
+
+                            A URL 
+
+                            DE ONDE VAMOS 
+
+                            FETCHEAR A DATA...
+
+                            --> NO CASO,
+
+                            SERÁ 'categories/load'...
+
+
+
+
+
+'orderMulti' --> true/false...
+
+
+
+                    vc pode escolher se SERÁ 
+                    POSSÍVEL FAZER 'SORT'
+
+                    considerando MULTI COLUMN ou não 
+
+
+
+
+'columns' --> É A DISTRIBUIÇÃO DA SUA DATA,
+                EM QUE COLUMNS FICARÁ...
+
+
+
+
+
+--> CADA COLUMN 
+
+
+
+
+VAI TER INFO PRÓPRIA...
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+{data: 'name'},
+{data: 'createdAt'},
+{data: 'updatedAt'},
+{
+    sortable: false,
+    data: row => `<div class="d-flex flex">
+                    <button type="submit" class="btn btn-outline-primary delete-category-btn" data-id="${row.id}">
+                        <i class="bi bi-trash3-fill"></i>
+                    </button>
+                    <button type="submit" class="btn btn-outline-primary edit-category-btn" data-id="${row.id}">
+                        <i class="bi bi-pencil-fill"></i>
+                    </button>
+                </div>
+                `
+                
+}
+
+
+
+
+
+
+
+OU SEJA,
+
+
+
+ISSO VAI DEFINIR A DATA DE CADA COLUMN...
+
+
+
+
+
+
+NAS COLUMNS 'NORMAIS',
+
+
+TEMOS AS KEYS DE CADA COLUMN,
+
+
+QUE É RETORNADA EM CADA RESPONSE...
+
+
+
+
+
+
+OU SEJA,
+
+
+A RESPONSE 
+
+É UM JSON OBJECT COM 
+
+1 ARRAY DE VALUES,
+
+
+EM QUE CADA VALUE OBJECT 
+
+POSSUI 
+
+
+SA PROPRIEDADES DE 'name', 'createdAt' 
+
+e 'upadtedAt'...
+
+
+
+
+
+
+
+
+
+-> OK... TODAS AS COLUMNS ESTARÃO 
+REPRESENTADAS NESSES JSON objects..
+
+
+
+
+
+
+
+
+
+
+--> A ÚNICA EXCEÇÃO É A ÚLTIMA COLUMN,
+
+QUE NÃO SERÁ EXATAMENTE 
+
+ALGO QUE PULLAMOS DA DATABASE, DO SERVER,
+
+
+
+E SIM 
+
+FAZEMOS DISPLAY DE CUSTOM HTML (pq 
+
+são os buttons de 'edit' e 'delete'...)
+
+
+
+
+
+
+--> NÓS TAMBÉM DESABILITAMOS SORTING NESSA ÚLTIMA COLUMN,
+PQ ISSO BUGARIA TUDO....
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... ISSO É TUDO, QUANTO AOS TABLE OBJECTS... 
+
+
+
+
+
+'''AND THAT IS PRETTY MUCH IT AS FAR AS THE TABLE OBJECTS 
+GO... IT TAKES __ CARE__ OF MAKING THE REQUEST TO THE 
+SERVER, WHENEVER SOME ACTION HAPPENS ON THE TABLE (
+    like user sorts table by a specific column...
+
+    enters text in the search bar, 
+
+
+    or uses the pagination (forward and previous buttons)
+)
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR QUER FALAR DE OUTRA PARTE EM QUE FEZ 
+AJUSTES....
+
+
+
+
+
+-> É ESTA PARTE AQUI:
+
+
+
+
+
+
