@@ -990,7 +990,7 @@ PQ ISSO BUGARIA TUDO....
 '''AND THAT IS PRETTY MUCH IT AS FAR AS THE TABLE OBJECTS 
 GO... IT TAKES __ CARE__ OF MAKING THE REQUEST TO THE 
 SERVER, WHENEVER SOME ACTION HAPPENS ON THE TABLE (
-    like user sorts table by a specific column...
+    like user sorts table by a specific column,
 
     enters text in the search bar, 
 
@@ -1020,3 +1020,629 @@ AJUSTES....
 
 
 
+    document.querySelector('#categoriesTable').addEventListener('click', function (event) {
+        const editBtn   = event.target.closest('.edit-category-btn')
+        const deleteBtn = event.target.closest('.delete-category-btn')
+
+        if (editBtn) {
+            const categoryId = editBtn.getAttribute('data-id')
+
+            get(`/categories/${ categoryId }`)
+                .then(response => response.json())
+                .then(response => openEditCategoryModal(editCategoryModal, response))
+        } else {
+            const categoryId = deleteBtn.getAttribute('data-id')
+
+            if (confirm('Are you sure you want to delete this category?')) {
+                del(`/categories/${ categoryId }`).then(response => {
+                    if (response.ok) {
+                        table.draw()
+                    }
+                })
+            }
+        }
+    })
+
+
+
+
+
+
+
+
+
+é a parte 
+
+que adiciona o event de 'click' 
+
+
+
+a esse elemento '#categoriesTable'
+
+inteiro..
+
+
+
+
+
+-> ESSES EVENT LISTENERS SÃO ADICIONADOS 
+
+NA TABLE QUE É 
+O PARENT 
+
+
+DAQUELES BUTTONS QUE SÃO ADICIONADOS DINAMICAMENTE...
+
+
+
+
+
+
+
+
+-> COM O 'IF/ELSE',
+
+checamos se foi o button de EDIT ou o de DELETE 
+
+que foi clicado,
+
+
+
+E AÍ REALIZAMOS AS ACTIONS APROPRIADAS PARA AQUELE BUTTON...
+
+
+
+
+
+
+
+
+
+
+
+
+-> essa 'selection' do editBtn e deleteBtn acontece 
+
+NO MOMENTO DO CLICK 
+
+
+
+pq isso só pode acontecer depois da table ser carregada...
+
+
+
+
+
+
+
+-> IMPORTANTE TAMBÉM É AQUELA FUNCTION DE 'table.draw()',
+
+que aparece no final...
+
+
+
+
+
+
+
+
+-> ESSA FUNCTION BASICAMENTE FAZ RE-DRAW/RELOAD DA TABLE,
+
+PARA QUE A DATA SEJA ATUALIZADA... ESSA ERA A ISSUE QUE TÍNHAMOS NA 
+
+ÚLTIMA AULA,
+
+EM QUE, QUANDO DELETÁVAMOS 1 CATEGORY OU FAZÍAMOS 1 UPDATE NO NAME DE 1 CATEGORY,
+
+
+ÉRAMOS FORÇADOS A RECARREGAR A PAGE, PARA VER O UPDATE NA TABLE..
+
+
+
+
+
+
+
+
+-> AGORA, COM ESSE 'table.draw()',
+
+não precisamos mais fazer isso...
+
+
+
+
+
+
+
+
+
+
+
+
+-> FAZEMOS A MESMA COISA MAIS PARA BAIXO, AQUI:
+
+
+
+
+
+
+  document
+    .querySelector('.save-category-btn')
+    .addEventListener('click', function (event) {
+      const categoryId = event.currentTarget.getAttribute('data-id');
+
+      post(
+        '/categories/' + categoryId,
+        {
+          name: editCategoryModal._element.querySelector('input[name="name"]')
+            .value,
+        },
+        editCategoryModal._element
+      ).then((response) => {
+        if (response.ok) {
+          table.draw();
+          editCategoryModal.hide();
+        }
+      });
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO TAMBÉM VAI FAZER O REDRAW DA TABLE,
+
+
+
+ASSIM QUE tiver acontecido o save...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... DEPOIS DISSO, RODAMOS NPM INSTALL E NPM RUN DEV...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A PAGINATION, SORTING E FILTERING QUE CONSTRUÍREMOS NO BACKEND 
+FUNCIONARÃO 
+
+EM QUALQUER FRONTEND,
+
+DESDE QUE VC:
+
+
+1) HOOK IT UP PROPERLY 
+
+
+2) STRUCTURE THE RESPONSE, AS NEEDED...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK, MAS QUAIS FORAM AS CHANGES NO BACKEND SIDE?
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR ADICIONOU UMA NOVA ROUTE,
+
+
+
+
+DENTRO DO 'web.php',
+
+
+
+
+
+
+A ROUTE DE '/load',
+
+
+
+de tipo get,
+
+
+
+QUE É A ROUTE A QUE 
+
+
+
+
+AQUELA DATATABLE VAI FAZER AJAX REQUESTS...
+
+
+
+
+
+
+
+
+
+
+-> TIPO ASSIM:
+
+
+
+ 
+
+
+
+
+ <?php declare(strict_types=1);
+
+use App\Controllers\AuthController;
+use App\Controllers\CategoriesController;
+use App\Controllers\HomeController;
+use App\Middleware\AuthMiddleware;
+use App\Middleware\GuestMiddleware;
+use Slim\Routing\RouteCollectorProxy;
+use Slim\App;
+
+return function (App $app) {
+    $app->get('/', [HomeController::class, 'index'])->add(AuthMiddleware::class);
+
+    $app->group('', function (RouteCollectorProxy $guest) {
+        $guest->get('/login', [AuthController::class, 'loginView']);
+        $guest->get('/register', [AuthController::class, 'registerView']);
+        $guest->post('/login', [AuthController::class, 'login']);
+        $guest->post('/register', [AuthController::class, 'register']);
+    })->add(GuestMiddleware::class);
+
+    $app->post('/logout', [AuthController::class, 'logOut'])->add(AuthMiddleware::class);
+
+    $app->group('/categories', function (RouteCollectorProxy $categories) {
+        $categories->get('', [CategoriesController::class, 'index']);
+        $categories->post('', [CategoriesController::class, 'store']);
+        $categories->get('/load', [CategoriesController::class, 'load']);
+        // If the id is not an integer, this route won't be reached, because the route is defined, with a regular expression, as '/{id:[0-9]+}'.
+        $categories->delete('/{id:[0-9]+}', [CategoriesController::class, 'delete']);
+        $categories->get('/{id:[0-9]+}', [CategoriesController::class, 'get']);
+        $categories->post('/{id:[0-9]+}', [CategoriesController::class, 'update']);
+    })->add(AuthMiddleware::class);
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+O METHOD DE LOAD, NESSE CONTROLLER, POR SUA VEZ,
+
+FICOU ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+    public function load(Request $request, Response $response): Response
+    {
+        $params = $request->getQueryParams();
+
+        $categories = array_map(
+            function(Category $category) {
+                return [
+                    'id' => $category->getId(),
+                    'name' => $category->getName(),
+                    'createdAt' => $category->getCreatedAt()->format('Y-m-d H:i:s'),
+                    'updatedAt' => $category->getUpdatedAt()->format('Y-m-d H:i:s'),
+                ];
+            }, 
+            $this->categoryService->getAll()
+        );
+
+        return $this->responseFormatter->asJson($response, [
+            'data' => $categories,
+            'draw' => (int) $params['draw'],
+            'recordsTotal' => count($categories),
+            'recordsFiltered' => count($categories),
+        ]);
+    }
+
+
+
+
+
+
+
+
+
+
+--> ESTAMOS FETCHEANDO TODAS AS CATEGORIES, E AÍ 
+
+FORMATANDO-AS NO 
+
+
+FORMATO SUPORTADO PELO OBJECT 
+
+'DATATABLE',
+
+
+DO FRONTEND...
+
+
+
+
+
+
+
+
+
+
+
+--> ANTERIORMENTE,
+
+ESTÁVAMOS PASSANDO 
+
+
+ESSAS CATEGORIES DENTRO DO 'index()',
+
+
+MAS AGORA 
+
+ESTAMOS 
+
+
+
+
+FAZENDO ISSO 
+
+
+POR MEIO 
+
+
+DE ESSA ROUTE SEPARADA DE 'load'...
+
+
+
+
+
+
+
+
+-> NÃO ESTAMOS MAIS RENDERIZANDO AS CATEGORIES DIRETAMENTE NO TEMPLATE...
+
+
+
+
+
+
+
+-> EXPLICAÇÃO:
+
+
+
+    public function load(Request $request, Response $response): Response
+    {
+        $params = $request->getQueryParams();
+
+        $categories = array_map(
+            function(Category $category) {
+                return [
+                    'id' => $category->getId(),
+                    'name' => $category->getName(),
+                    'createdAt' => $category->getCreatedAt()->format('Y-m-d H:i:s'),
+                    'updatedAt' => $category->getUpdatedAt()->format('Y-m-d H:i:s'),
+                ];
+            }, 
+            $this->categoryService->getAll()
+        );
+
+        return $this->responseFormatter->asJson($response, [
+            'data' => $categories,
+            'draw' => (int) $params['draw'],
+            'recordsTotal' => count($categories),
+            'recordsFiltered' => count($categories),
+        ]);
+    }
+
+
+
+
+
+
+
+
+
+
+
+-> ESTAMOS:
+
+
+
+
+
+1) PEGANDO OS QUERY PARAMETERS DO REQUEST 
+
+
+
+2) FETCHEANDO TODAS AS CATEGORIES...
+
+
+
+
+
+3) APLICANDO A FUNCTION DE 'ARRAY_MAP' 
+
+EM CIMA DE ESSE ARRAY,
+
+
+PARA BASICAMENTE LOOPAR EM CADA CATEGORY OBJECT,
+
+
+E PARA AÍ TRANSFORMAR CADA ENTIDADE 'CATEGORY'
+
+EM 1 ARRAY 
+
+COMPATÍVEL COM A DATATABLE..
+
+
+
+
+
+
+AS KEYS SÃO O QUE É MAPPEADO NA PARTE DO JAVASCRIPT, NO FRONTEND....
+
+
+
+
+(tipo 
+
+"{data: name}",
+"{data: createdAt}"
+
+
+)
+
+
+
+SE NÃO PASSAMOS DATA NESSA ESTRUTURA, FICAMOS COM ERRORS...
+
+
+
+
+
+
+
+
+
+
+
+--> ASSIM QUE AS CATEGORIES SÃO TODAS PROPERLY FORMATTED,
+    retornamos 1 json response,
+
+
+    formatada do jeito que 
+
+    a datatable 
+    consegue compreender...
+
+
+
+
+
+
+--> TEMOS A OPTION DE 'draw',   também,
+    que 
+
+    logo explicaremos...
+
+
+
+
+    ex:
+
+
+
+            return $this->responseFormatter->asJson($response, [
+            'data' => $categories,
+            'draw' => (int) $params['draw'],
+            'recordsTotal' => count($categories),
+            'recordsFiltered' => count($categories),
+        ]);
+
+
+
+
+
+
+
+
+
+
+
+ISSO É TUDO...
+
+
+
+
+
+
+
+
+
+A DIFERENÇA ENTRE 'RECORDS TOTAL'
+
+
+E 
+
+'RECORDS FILTERED'
+
+
+
+É QUE 
+
+
+
+'RECORDS TOTAL' É O NÚMERO DE RECORDS ANTES DE APLICAR FILTERS AOS RESULTS...

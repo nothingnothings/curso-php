@@ -7,6 +7,7 @@ namespace App\Controllers;
 use App\Contracts\CategoryServiceInterface;
 use App\Contracts\RequestValidatorFactoryInterface;
 use App\DTOs\CategoryData;
+use App\Entity\Category;
 use App\Factories\ValidatorFactory;
 use App\RequestValidators\CreateCategoryRequestValidator;
 use App\RequestValidators\UpdateCategoryRequestValidator;
@@ -97,5 +98,29 @@ class CategoriesController
         $this->categoryService->update($category, $data['name']);
 
         return $response;
+    }
+
+    public function load(Request $request, Response $response): Response
+    {
+        $params = $request->getQueryParams();
+
+        $categories = array_map(
+            function(Category $category) {
+                return [
+                    'id' => $category->getId(),
+                    'name' => $category->getName(),
+                    'createdAt' => $category->getCreatedAt()->format('Y-m-d H:i:s'),
+                    'updatedAt' => $category->getUpdatedAt()->format('Y-m-d H:i:s'),
+                ];
+            }, 
+            $this->categoryService->getAll()
+        );
+
+        return $this->responseFormatter->asJson($response, [
+            'data' => $categories,
+            'draw' => (int) $params['draw'],
+            'recordsTotal' => count($categories),
+            'recordsFiltered' => count($categories),
+        ]);
     }
 }

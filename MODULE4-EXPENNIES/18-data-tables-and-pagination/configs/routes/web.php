@@ -23,6 +23,7 @@ return function (App $app) {
     $app->group('/categories', function (RouteCollectorProxy $categories) {
         $categories->get('', [CategoriesController::class, 'index']);
         $categories->post('', [CategoriesController::class, 'store']);
+        $categories->get('/load', [CategoriesController::class, 'load']);
         // If the id is not an integer, this route won't be reached, because the route is defined, with a regular expression, as '/{id:[0-9]+}'.
         $categories->delete('/{id:[0-9]+}', [CategoriesController::class, 'delete']);
         $categories->get('/{id:[0-9]+}', [CategoriesController::class, 'get']);
