@@ -66,3 +66,30 @@ function openEditCategoryModal(modal, { id, name }) {
 
   modal.show();
 }
+
+
+
+document.querySelector('#categoriesTable').addEventListener('click', function (event) {
+
+  const editBtn = event.target.closest('.edit-category-btn');
+
+  const deleteBtn = event.target.closest('.delete-category-btn');
+
+
+
+  if (editBtn) {
+    const categoryId = editBtn.getAttribute('data-id');
+    get('/categories/' + categoryId)
+      .then((response) => response.json())
+      .then(response => openEditCategoryModal(editCategoryModal, response));
+  } else {
+     const categoryId = deleteBtn.getAttribute('data-id');
+     if (confirm('Are you sure you want to delete this category?')) {
+       del('/categories/' + categoryId).then(
+        () => {
+          table.draw();
+        }
+       )
+     }
+
+});
