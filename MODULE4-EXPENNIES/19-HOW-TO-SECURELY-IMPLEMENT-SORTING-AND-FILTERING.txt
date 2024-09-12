@@ -1,0 +1,144 @@
+
+
+AGORA VAMOS ADICIONAR SORTING E FILTERING FEATURES A 
+
+NOSSA CATEGORIES DATATABLE...
+
+
+
+
+
+
+
+
+
+COMEÇAMOS COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+    public function load(Request $request, Response $response): Response
+    {
+        $params = $request->getQueryParams();
+
+        $categories = $this->categoryService->getPaginatedCategories((int) $params['start'], (int) $params['length']);
+
+        $transformer = function(Category $category) {
+            return [
+                'id' => $category->getId(),
+                'name' => $category->getName(),
+                'createdAt' => $category->getCreatedAt()->format('Y-m-d H:i:s'),
+                'updatedAt' => $category->getUpdatedAt()->format('Y-m-d H:i:s'),
+            ];
+        };
+
+        $categoryAmount = count($categories);
+
+        return $this->responseFormatter->asJson($response, [
+            'data' => array_map($transformer, (array) $categories->getIterator()),
+            'draw' => (int) $params['draw'],
+            'recordsTotal' => $categoryAmount,
+            'recordsFiltered' => $categoryAmount,
+        ]);
+    }
+
+
+
+
+
+
+
+
+
+
+
+    O PROFESSOR COLOCA 1 VAR_DUMP EM 'params',
+
+    PARA VER O TIPO DE DATA QUE 
+
+    PODEMOS USAR PARA O SORTING...
+
+
+
+
+
+
+
+
+
+
+-> A DATA, VISTA NO BROWSER DEV TOOLS, NA RESPONSE,
+
+É ESTA:
+
+
+
+
+
+
+order --> CONTÉM A COLUMN A QUE ESTAMOS 'SORTING BY',
+                E A DIRECTION DO SORT (asc ou desc)...
+
+
+            
+
+            -> NÓS TAMBÉM PODEMOS ACTUALLY 
+                PEGAR O PROPER COLUMN NAME,
+
+                POR MEIO DO INDEX DA COLUMN (0, nesse caso)... -> 0, nesse caso, se refere ao 'name' da category...
+
+
+
+
+
+
+
+
+    --> SE CLICAMOS NA COLUMN DE 'UPDATED BY',
+    FICAMOS COM 1 VALUE DE ORDER DE '2',
+
+
+    pq o index 2 é realmente a column de 'updated at'...
+
+
+
+
+
+
+
+-> COM ISSO, PODEMOS BASICAMENTE 
+
+ACESSAR 
+
+OS COLUMN NAMES POR MEIO DOS INDEXES...
+
+
+
+
+
+
+
+
+
+
+
+-> NO NOSSO CÓDIGO,
+
+
+
+O PROFESSOR 
+
+
+
+ESCREVE 1 VARIABLE DE NOME '$orderBy',
+
+tipo assim:
+
+
+
+
+
