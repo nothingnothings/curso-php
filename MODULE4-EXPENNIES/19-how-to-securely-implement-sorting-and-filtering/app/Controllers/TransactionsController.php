@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Contracts\CategoryServiceInterface;
+use App\Contracts\RequestValidatorFactoryInterface;
+use App\Contracts\TransactionServiceInterface;
 use App\DTOs\CategoryData;
 use App\Entity\Category;
 use App\Factories\ValidatorFactory;
 use App\RequestValidators\CreateCategoryRequestValidator;
 use App\RequestValidators\UpdateCategoryRequestValidator;
 use App\ResponseFormatter;
-use App\Services\CategoryService;
 use App\Services\RequestService;
 use Psr\Http\Message\ResponseInterface;
 use Slim\Psr7\Request;
@@ -23,7 +25,7 @@ class CategoriesController
     public function __construct(
         private readonly Twig $twig,
         private readonly ValidatorFactory $requestValidatorFactory,
-        private readonly CategoryService $categoryService,
+        private readonly TransactionServiceInterface $transactionService,
         private readonly RequestService $requestService,
         private readonly ResponseFormatter $responseFormatter
     ) {}
@@ -133,7 +135,6 @@ class CategoriesController
         //     'recordsTotal' => $categoryAmount,
         //     'recordsFiltered' => $categoryAmount,
         // ]);
-
 
         return $this->responseFormatter->asDataTable(
             $response,
