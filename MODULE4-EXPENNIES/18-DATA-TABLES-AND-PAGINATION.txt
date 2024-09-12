@@ -1646,3 +1646,1631 @@ E
 
 
 'RECORDS TOTAL' É O NÚMERO DE RECORDS ANTES DE APLICAR FILTERS AOS RESULTS...
+
+
+
+
+
+
+
+
+
+
+-> 'records filtered' -> é o número de records depois do filter 
+
+ser aplicado 
+
+à query...
+
+
+
+
+
+
+-> NESSA PARTE,
+
+ESTAMOS DEFININDO 
+O VALUE 
+
+
+DE 'FILTERED' E 'TOTAL' COMO 
+
+O MESMO NÚMERO,
+
+
+
+COM ESTA LÓGICA:
+
+
+
+            'recordsTotal' => count($categories),
+            'recordsFiltered' => count($categories),
+
+
+
+
+
+
+
+
+
+
+-> MAIS PARA BAIXO, NA NOSSA PÁGINA,
+
+TEMOS AQUELE TEXT QUE DIZ 
+
+
+
+''SHOWING 1 TO 10 OF 59 ENTRIES''....
+
+
+
+
+
+
+
+
+
+
+-> DEPOIS QUE ADICIONARMOS FILTERING 
+    NO NOSSO APP, 
+
+    ISSO VAI MUDAR...
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR SIMULA ISSO (número de records totais maior do que os filtered),
+
+
+com este código:
+
+
+
+
+
+            'recordsTotal' => count($categories) + 5,
+            'recordsFiltered' => count($categories),
+
+
+
+
+
+
+
+
+
+COM ISSO,
+
+
+FICAMOS CMO 1 MESSAGE DIFERENTE,
+
+DE 
+
+
+
+' ''SHOWING 1 TO 10 OF 59 ENTRIES (filtered from 64 total entries)''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VC PODE ESCOLHER A MANEIRA PELA QUAL VC FAZ SHOW DE ESSA INFORMATION.
+
+
+
+
+
+
+-> O PROFESSOR PREFERE ESSE SIMPLES SHOW DE TEXT,
+
+
+SEM ESSA PARTE DE 
+
+'(filtered from 64 total entries)'....
+
+
+E É EXATAMENTE POR ISSO QUE ELE DEFINIU 
+
+
+ESSAS 2 KEYS,
+
+
+'total' e 'filtered',
+
+como o mesmo count value...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR DIZ QUE PODEMOS ADICIONAR 1 MICROOPTIMIZATION,
+
+ESCREVENDO ASSIM:
+
+
+
+
+
+
+
+        $categoryAmount = count($categories);
+
+        return $this->responseFormatter->asJson($response, [
+            'data' => $categories,
+            'draw' => (int) $params['draw'],
+            'recordsTotal' => $categoryAmount,
+            'recordsFiltered' => $categoryAmount,
+        ]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR ENTÃO NOS EXPLICA O MOTIVO DO PARAMETER DE 
+
+
+
+'draw'...
+
+
+
+
+
+
+
+
+
+
+
+-> ESSE PARAMETER DE 'draw' 
+
+
+é 
+
+
+'''ACTUALLY A _ SEQUENCE NUMBER _ ATTACHED 
+    TO A __ REQUEST'''....
+
+
+
+
+
+
+''''AND THIS SEQUENCE NUMBER GETS INCREMENTED,
+FOR EVERY REQUEST....''''
+
+
+
+
+
+
+''''AND THE DATA TABLE USES THIS "SEQUENCE NUMBER"
+    TO DRAW THE CORRECT PAGE'''
+
+
+
+
+
+
+-> QUER DIZER QUE O 'draw'
+
+É ALGO QUE A DATA TABLE, NO FRONTEND, USA INTERNAMENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO... MAS AGORA DEVEMOS COMEÇAR,
+
+VER COMO PODEMOS FAZER ESSA PAGINATION FUNCIONAR..
+
+
+
+
+
+
+
+
+
+-> MAIS TARDE VEREMOS COMO PODEMOS FAZER O SORTING E PAGINATION FUNCIONAREM...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA BUILDAR PAGINATION,
+    PRECISAMOS BASICAMENTE 
+
+
+
+    UTILIZAR AS OPTIONS DE 'LIMIT' E 'OFFSET'
+
+    DENTRO DAS QUERIES...
+
+
+
+
+
+
+
+
+
+-> FELIZMENTE, O DOCTRINE ORM QUERY BUILDER
+    JÁ POSSUI BUILT-IN METHODS  
+    QUE PODEMOS UTILIZAR 
+
+    __ PARA __ SETUPPAR ESSAS OPTIONS...
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, 
+
+
+''WE NEED TO ___EXTRACT_ THE 
+    LIMIT AND OFFSET, FROM THE QUERY PARAMETERS ('$params = $request->getQueryParams()'),
+    AND THEN _ PASS THEM DOWN TO THE METHOD THAT WILL THEN ACTUALLY APPLY IT TO THE QUERY...'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> a primeira coisa que faremos, aqui,
+
+é renomear 
+
+
+
+aquele method de 
+
+
+'$this->categoryService->getAll()''
+
+
+para outra coisa,
+
+
+como 
+
+
+
+
+'getPaginatedCategories()',
+
+
+
+PQ NÓS REALMENTE NUNCA VAMOS querer 
+pegar 
+
+todas as categories de 1 só vez...
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+-> AÍ, COM ISSO, 
+
+
+
+
+TEREMOS ESSE METHOD DE 'getPaginatedCategories',
+
+
+
+LÁ NO categoryService..
+
+
+
+
+
+
+
+
+
+
+
+VAMOS ESCREVENDO ASSIM:
+
+
+
+
+
+
+
+    public function load(Request $request, Response $response): Response
+    {
+        $params = $request->getQueryParams();
+
+        $categories = array_map(
+            function(Category $category) {
+                return [
+                    'id' => $category->getId(),
+                    'name' => $category->getName(),
+                    'createdAt' => $category->getCreatedAt()->format('Y-m-d H:i:s'),
+                    'updatedAt' => $category->getUpdatedAt()->format('Y-m-d H:i:s'),
+                ];
+            }, 
+            // $this->categoryService->getAll() // ! We'll never need to actually fetch all categories in a single go. We'll always need to fetch only the paginated categories (page by page, with limit and offset).
+            $this->categoryService->getPaginatedCategories($params['length'], $params['start'])
+        );
+
+        $categoryAmount = count($categories);
+
+        return $this->responseFormatter->asJson($response, [
+            'data' => $categories,
+            'draw' => (int) $params['draw'],
+            'recordsTotal' => $categoryAmount,
+            'recordsFiltered' => $categoryAmount,
+        ]);
+    }
+
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+
+
+    // Used with pagination.
+    public function getPaginatedCategories(): array
+    {
+    }
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+AÍ, DENTRO DISSO, NÃO VAMOS USAR 'findAll()',
+
+e sim 
+
+
+
+VAMOS 
+
+
+'GET THE QUERY BUILDER, AND THEN APPLY THE LIMIT AND OFFSET...''
+
+
+
+
+
+
+
+
+--> PODEMOS ACEITAR O LIMIT E OFFSET COMO PARAMETERS DA FUNCTION,
+
+TIPO ASSIM:
+
+
+
+
+
+    // Used with pagination.
+    public function getPaginatedCategories(int $start, int $length): array
+    {
+        $qb = $this->entityManager->createQueryBuilder();
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE PERCEBER, AQUI JÁ CRIAMOS 
+
+
+O QUERY BUILDER,
+
+PARA ENTÃO CONSEGUIRMOS 
+
+CRIAR A LÓGICA PARA RETRIEVE COM O LIMIT E OFFSET...
+
+
+
+
+
+
+CERTO... MAS, AQUI,
+
+TEMOS 1 ERRO/DIFERENÇA EM RELAÇÃO AO CÓDIGO DO PROFESSOR....
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR USOU 'getRepository(Category::class)',
+
+ANTES DE CHAMAR O 'createQueryBuilder()',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+  $qb = $this->entityManager->getRepository(Category::class)->createQueryBuilder('c');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  COM ISSO, NÓS CRIAMOS UM QUERY BUILDER PARA A TABLE DE 'categories',
+
+  ao mesmo tempo que 
+  definimos um alias de 'c' para ela...
+
+
+
+
+
+
+
+
+
+
+
+
+
+  -> AÍ, OS METHODS PARA APLICAR 'LIMIT' E 'OFFSET' SÃO:
+
+
+
+
+
+
+1) 'setFirstResult()'  --> COMO PARAMETER DISSO, COLOCAMOS AQUELE VALUE DE '$start'... 
+                            ESSE É BASICAMENTE O PARAMETER CORRESPONDENTE A 'offset'...
+                             IT IS THE NUMBER OF ROWS TO _ SKIP__...
+
+
+
+
+2) 'setMaxResult()' ->  É BASICAMENTE O LIMIT.... NÚMERO MÁXIMO DE RECORDS A SEREM RETRIEVADOS, POR VEZ...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+        ->setFirstResult($start) // offset. It is the number of rows to skip.
+        ->setMaxResults($length); // limit. It is the maximum number of rows to retrieve.
+
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+     $qb = $this->entityManager->getRepository(Category::class)
+        ->createQueryBuilder('c')  // alias of the table will be 'c'.
+        ->setFirstResult($start) // offset. It is the number of rows to skip.
+        ->setMaxResults($length); // limit. It is the maximum number of rows to retrieve.
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+ISSO FEITO, FINALMENTE, PODEMOS RETORNAR O RESULT 
+
+
+DA QUERY,
+
+
+COM 
+
+
+'return $query->getQuery()->getResult();'
+
+
+
+
+
+EX:
+
+
+
+
+
+
+    // Used with pagination.
+    public function getPaginatedCategories(int $start, int $length): array
+    {
+        $query = $this->entityManager->getRepository(Category::class)
+        ->createQueryBuilder('c')  // alias of the table will be 'c'.
+        ->setFirstResult($start) // offset. It is the number of rows to skip.
+        ->setMaxResults($length); // limit. It is the maximum number of rows to retrieve.
+
+
+        return $query->getQuery()->getResult();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+--> AGORA VOLTAMOS AO CONTROLLER, PARA PASSAR OS 2 PARAMETERS 
+
+NESSE METHOD....
+
+
+
+
+
+
+
+
+    public function load(Request $request, Response $response): Response
+    {
+        $params = $request->getQueryParams();
+
+        $categories = array_map(
+            function(Category $category) {
+                return [
+                    'id' => $category->getId(),
+                    'name' => $category->getName(),
+                    'createdAt' => $category->getCreatedAt()->format('Y-m-d H:i:s'),
+                    'updatedAt' => $category->getUpdatedAt()->format('Y-m-d H:i:s'),
+                ];
+            }, 
+            // $this->categoryService->getAll() // ! We'll never need to actually fetch all categories in a single go. We'll always need to fetch only the paginated categories (page by page, with limit and offset).
+            $this->categoryService->getPaginatedCategories($params['start'], $params['length'])
+        );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VAMOS OBTER ESSES VALUES LÁ DAS KEYS DO PARAMS,
+
+BASICAMENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR COLOCA 1 VAR_DUMP DE '$params',
+
+para ver COMO PODEMOS 
+
+
+
+
+EXTRAIR ESSES PARAMETER VALUES DO REQUEST...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> por default,
+
+o datatables faz sort considerando o NAME,
+
+
+em ordem alfabética...
+
+
+
+
+
+
+
+
+
+
+
+-> DENTRO DE ESSE VAR_DUMP,
+
+
+
+ficamos com vários values,
+
+
+
+mas o que nos interessa 
+
+
+
+
+
+é a parte de 'start' e 'length'....
+
+
+
+
+
+
+
+
+
+
+
+
+NÓS TAMBÉM TEMOS O PARAMETER DE 'search',
+
+
+que 
+contém o value que estamos 'searching for'...
+
+
+
+
+
+
+
+
+
+
+
+-> também temos o regex, mas não vamos nos preocupar com isso agora.. usaremos isso 
+com o filtering, mais tarde...
+
+
+
+
+
+
+
+
+
+-> MAS AGORA VAMOS EXTRAIR O 'start' e o 'length',
+
+e aí fazer PASS DOWN DISSO A NOSSA QUERY..
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE O PROFESSOR ESCREVE ASSIM:
+
+
+
+
+
+
+            $this->categoryService->getPaginatedCategories($params['start'], $params['length'])
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR TAMBÉM CASTA ESSES NEGÓGIOS COMO INTEGERS,
+
+PQ  ELAS SERÃO STRINGS POR DEFAULT..
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESCREVEMOS ASSIM:
+
+
+
+            $this->categoryService->getPaginatedCategories((int) $params['start'], (int) $params['length'])
+
+
+
+
+
+
+
+
+
+
+
+MAIS TARDE, PODEMOS REFORMATAR ISSO COMO UM DTO...
+
+
+
+
+
+
+
+
+MAS NÃO FAREMOS ISSO AGORA...
+
+
+
+
+
+
+
+
+
+
+-> E ISSO FUNCIONOU,
+PQ 
+
+AGORA 
+
+TEMOS 
+
+
+
+APENAS 10 ROWS POR PAGE... 
+
+
+
+
+QUER DIZER QUE 
+
+
+''IT HAS LIMITED THE DISPLAY 
+TO ONLY 10 ROWS''...
+
+
+
+
+
+
+
+
+-> MAS NENHUM BUTTON DAS OUTRAS PAGES APARECEU NA PARTE INFERIOR,
+
+O QUE QUER DIZER QUE A PAGINATION NÃO ESTÁ FUNCIONANDO DE VERDADE AINDA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS A PARTE DE LIMIT E OFFSET JÁ ESTÃO 
+FUNCIONANDO COMO O ESPERADO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESTÃO FUNCIONANDO POR CONTA DISTO, NO FRONTEND:
+
+
+
+
+
+
+
+
+
+In your JavaScript code, the query parameters for pagination are managed by the DataTables library. Here's a detailed look at how this works and how the query parameters are handled:
+
+DataTables Configuration
+In your DataTables initialization, you have the serverSide option set to true and an ajax URL provided:
+
+javascript
+Copiar código
+const table = new DataTable('#categoriesTable', {
+  serverSide: true,
+  ajax: '/categories/load',
+  orderMulti: false,
+  columns: [
+    // Column definitions...
+  ],
+});
+
+
+
+
+
+
+
+
+
+
+
+quer dizer que é a própria lib de 'datatables'
+
+que está formatando a url e enfiando esses query parameters,
+
+automaticamente....
+
+
+
+
+
+
+
+
+
+Your JavaScript code initializes the DataTable with server-side processing enabled and provides a URL for the DataTables AJAX requests. The library takes care of sending the correct query parameters to your server and processing the server’s response to update the table.
+
+
+
+Você disse:
+what are the defaults of datatable
+O ChatGPT disse:
+ChatGPT
+DataTables is a highly customizable library, but it comes with a set of default settings that control its behavior and appearance. Here’s a summary of some key default settings in DataTables:
+
+Default Settings
+Pagination:
+
+paging: true (Pagination is enabled by default).
+pagingType: 'simple_numbers' (The default pagination control shows "Previous", page numbers, and "Next" buttons).
+Ordering:
+
+ordering: true (Column sorting is enabled by default).
+order: [] (No default sorting order; sorting is based on user interaction).
+Searching:
+
+searching: true (A search box is included by default).
+search: An empty string '' (No default search term).
+Information Display:
+
+info: true (Information about the current page and the total number of records is displayed by default).
+Length Menu:
+
+lengthMenu: [10, 25, 50, 100] (Options for the number of records per page are 10, 25, 50, and 100).
+Page Length:
+
+pageLength: 10 (The default number of records per page is 10).
+Display Length:
+
+lengthChange: true (Allows users to change the number of records displayed per page).
+DOM Structure:
+
+dom: 'lfrtip' (Defines the layout of the table controls; includes the length changing input, filtering input, table, and pagination controls).
+Server-Side Processing:
+
+serverSide: false (Server-side processing is not enabled by default; DataTables operates in client-side mode).
+Language:
+
+language: (Contains default text strings for various UI elements, such as search input labels and pagination text).
+Ajax:
+
+ajax: null (No default AJAX source; data is expected to be provided directly).
+Example of Default Configuration
+If you initialize a DataTable with no options, it uses the default settings:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+
+
+MAS A PAGINATION __ AINDA NÃO ESTÁ FUNCIONANDO...
+
+
+
+
+
+
+
+
+
+
+
+
+MAS PQ NÃO ESTÁ FUNCIONANDO?
+
+
+
+
+
+
+
+
+
+
+A RAZÃO PARA ISSO NÃO ESTAR FUNCIONANDO 
+
+
+
+
+É O NÚMERO DE 'TOTAL ENTRIES'...
+
+
+
+
+
+
+
+-> O NÚMERO/COUNT DE 'TOTAL ENTRIES'
+
+ESTÁ ERRADO...
+
+
+
+
+
+
+
+
+
+-> A FUNCTION DE COUNT,
+
+
+QUE TEMOS AQUI:
+
+
+
+
+
+
+        $categoryAmount = count($categories);
+
+
+
+
+
+
+
+
+
+ESTÁ CONTANDO A QUANTIDADE DE CATEGORIES QUE SÃO RETORNADAS POR AQUELA NOSSA QUERY,
+
+E NÃO 
+
+
+A QUANTIDADE DE CATEGORIES __ REALMENTE __ TOTAL__
+
+
+DA NOSSA TABLE...
+
+
+
+
+
+
+
+
+-> PARA CONSERTAR ISSO, BASTA CRIAR UM NOVO METHOD EM 'categoryService',
+
+
+QUE FAÇA ESSE COUNT AÍ... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> E É PRECISAMENTE POR CONTA DISSO QUE NENHUMA OUTRA PAGE/BUTTON DE PAGE 
+
+ESTÁ APARECENDO, NAQUELA PARTE INFERIOR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> BASICAMENTE, PRECISAMOS DO TOTAL COUNT 
+
+SEM O OFFSET E LIMIT SENDO APLICADOS A QUERY...
+
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS BUILDAR HANDLING PARA ISSO, MANUALMENTE,
+
+
+OU, ENTÃO,
+
+USAR A CLASS DE 'PAGINATOR' 
+
+BUILT-IN,
+ 
+
+ DO DOCTRINE ORM....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, PARA TER ESSE COUNT CORRETO,
+
+
+PODEMOS VOLTAR AO CATEGORYSERVICE,
+
+
+
+LÁ NO 'getPaginatedCategories',
+
+
+ 
+
+
+PODEMOS CRIAR 1 NOVA INSTANCE 
+
+
+DA CLASS DE 'Paginator',
+
+e aí passar 
+
+
+
+
+
+O QUERY OBJECT COMO ARGUMENT....
+
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE, LÁ EM 'getPaginatedCategories',
+
+
+
+
+VAMOS RETORNAR 
+
+NÃO A QUERY EM SI,
+
+
+E SIM 
+
+
+VAMOS RETORNAR 
+
+
+
+UMA INSTANCE DE 'paginator',
+
+
+com a query já embutida nele...
+
+
+
+
+
+
+
+
+
+-> TIPO ASSIM:
+
+
+
+
+
+
+
+    // Used with pagination.
+    public function getPaginatedCategories(int $start, int $length): Paginator
+    {
+        $query = $this->entityManager->getRepository(Category::class)
+        ->createQueryBuilder('c')  // alias of the table will be 'c'.
+        ->setFirstResult($start) // offset. It is the number of rows to skip.
+        ->setMaxResults($length); // limit. It is the maximum number of rows to retrieve.
+
+
+        // return $query->getQuery()->getResult();
+        return new Paginator($query);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+-> a vantagem de 'Paginator'
+
+é que 
+
+ele funciona TAMBÉM COM 
+
+
+'count()',
+
+
+
+MESMO NÃO SENDO 1 ARRAY,
+
+
+
+ISSO PQ ELE IMPLEMENTA A INTERFACE DE 'Countable'... (o que faz com que exista o method de 'count()', no seu interior)...
+
+
+
+
+
+
+
+
+
+
+IteratorAggregate --> É UMA INTERFACE QUE NOS DEIXA 'ITERATE OVER AN OBJECt',
+
+                        como se ele fosse 1 array....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR REFORMATA ISSO,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+    public function load(Request $request, Response $response): Response
+    {
+        $params = $request->getQueryParams();
+
+        $categories = $this->categoryService->getPaginatedCategories((int) $params['start'], (int) $params['length']);
+
+        $transformer = function(Category $category) {
+            return [
+                'id' => $category->getId(),
+                'name' => $category->getName(),
+                'createdAt' => $category->getCreatedAt()->format('Y-m-d H:i:s'),
+                'updatedAt' => $category->getUpdatedAt()->format('Y-m-d H:i:s'),
+            ];
+        };
+
+        $categoryAmount = count($categories);
+
+        return $this->responseFormatter->asJson($response, [
+            'data' => array_map($transformer, (array) $categories->getIterator()),
+            'draw' => (int) $params['draw'],
+            'recordsTotal' => $categoryAmount,
+            'recordsFiltered' => $categoryAmount,
+        ]);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+Ficou bem mais difícil de ler, mas mais 
+conciso...
+
+
+
+
+
+
+
+
+
+
+
+
+
+ A PAGE FUNCIONA COMO ANTES,
+
+ E AGORA 
+
+ A PAGINATION FUNCIONA...
+
+
+
+
+
+
+
+ -> FICAMOS COM 6 PAGES,
+
+ E É POSSÍVEL VER 
+
+
+
+ 'SHOWING 1 TO 10 OF 59 ENTRIES''..
+
+
+
+
+
+
+
+
+
+
+ -> A PAGINATION ESTÁ FUNCIONANDO CORRETAMENTE,
+
+ PQ AGORA ESTÁ 'LOADING THE SECOND PAGE OF THE CATEGORIES'...
+
+
+
+
+
+
+
+
+
+
+
+ -> OS BUTTONS DE 'NEXT' E 'PREVIOUS' TAMBÉM FUNCIONAM...
+
+
+
+
+
+
+
+
+ -> TAMBÉM PODEMOS AUMENTAR O LIMIT DE CATEGORIES QUE SÃO MOSTRADAS POR PAGE, SEM PROBLEMAS...
+
+
+
+
+
+
+
+
+
+
+ CERTO... AGORA QUE A PAGINATION ESTÁ FUNCIONANDO,
+
+ A PRÓXIMA ETAPA 
+
+
+
+É ADICIONAR SORTING E FILTERING...
+
+
+
+

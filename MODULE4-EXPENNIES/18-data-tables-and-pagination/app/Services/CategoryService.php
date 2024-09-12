@@ -9,6 +9,7 @@ use App\DTOs\CategoryData;
 use App\Entity\Category;
 use App\Entity\User;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 
 class CategoryService implements CategoryServiceInterface
 {
@@ -60,5 +61,18 @@ class CategoryService implements CategoryServiceInterface
         $this->entityManager->persist($category);
 
         $this->entityManager->flush();
+    }
+
+    // Used with pagination.
+    public function getPaginatedCategories(int $start, int $length): Paginator
+    {
+        $query = $this->entityManager->getRepository(Category::class)
+        ->createQueryBuilder('c')  // alias of the table will be 'c'.
+        ->setFirstResult($start) // offset. It is the number of rows to skip.
+        ->setMaxResults($length); // limit. It is the maximum number of rows to retrieve.
+
+
+        // return $query->getQuery()->getResult();
+        return new Paginator($query);
     }
 }

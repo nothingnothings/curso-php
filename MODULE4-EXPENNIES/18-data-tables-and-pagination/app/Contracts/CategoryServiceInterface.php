@@ -5,6 +5,7 @@ namespace App\Contracts;
 use App\DTOs\CategoryData;
 use App\Entity\Category;
 use App\Entity\User;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 
 interface CategoryServiceInterface
 {
@@ -17,4 +18,6 @@ interface CategoryServiceInterface
     public function getById(int $id): ?Category;
 
     public function update(Category $category, CategoryData $categoryData): void;
+
+    public function getPaginatedCategories(int $start, int $length): Paginator;
 }
