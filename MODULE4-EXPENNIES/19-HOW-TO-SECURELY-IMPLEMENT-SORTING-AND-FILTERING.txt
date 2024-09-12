@@ -142,3 +142,1985 @@ tipo assim:
 
 
 
+
+
+$orderBy = $params['columns'][$params['order'][0]['column']]['data'];
+
+
+
+
+
+
+
+fazemos 1 drill até essa property de 'data',
+
+
+pq queremos pegar o NAME da column,
+
+
+
+para que consigamos enfiar esse 'name'
+
+
+na nossa query...
+
+
+
+
+
+
+
+---> VAMOS BASICAMENTE 
+    MODIFICAR A QUERY BASE,
+
+    logo abaixo,
+
+    com o value de esse 'orderBy'...
+
+
+
+
+
+
+
+
+--> ISSO FEITO, PODEMOS TER OUTRA VARIABLE,
+
+
+
+chamada de '$orderDirection',
+
+que vai 
+
+
+conter ou o value 'asc' ou 'desc'...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+$orderBy = $params['columns'][$params['order'][0]['column']]['data'];
+$orderDirection = $params['order'][0]['dir'];
+
+
+
+
+
+
+
+
+
+
+
+O CÓDIGO VAI FICANDO ASSIM:
+
+
+
+
+
+
+
+    public function load(Request $request, Response $response): Response
+    {
+        $params = $request->getQueryParams();
+
+        $orderBy = $params['columns'][$params['order'][0]['column']]['data'];
+        $orderDirection = $params['order'][0]['dir'];
+        
+        var_dump($orderBy);
+        var_dump($orderDirection);
+
+        $categories = $this->categoryService->getPaginatedCategories((int) $params['start'], (int) $params['length']);
+
+        $transformer = function(Category $category) {
+            return [
+                'id' => $category->getId(),
+                'name' => $category->getName(),
+                'createdAt' => $category->getCreatedAt()->format('Y-m-d H:i:s'),
+                'updatedAt' => $category->getUpdatedAt()->format('Y-m-d H:i:s'),
+            ];
+        };
+
+        $categoryAmount = count($categories);
+
+        return $this->responseFormatter->asJson($response, [
+            'data' => array_map($transformer, (array) $categories->getIterator()),
+            'draw' => (int) $params['draw'],
+            'recordsTotal' => $categoryAmount,
+            'recordsFiltered' => $categoryAmount,
+        ]);
+    }
+
+
+
+
+
+
+
+
+
+
+
+FAZEMOS 1 VAR DUMP DE ESSAS 2 VARIABLES...
+
+
+
+
+
+
+
+COMO VALUE DO DUMP, FICAMOS COM 
+
+'createdAt' 
+
+
+
+e 
+
+
+'asc'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> se clicamos na column + uma vez,
+
+ficamos com 'desc'....
+
+
+
+
+
+
+
+
+
+-> AGORA VAMOS PASSAR ESSES 
+
+PARAMETERS AO METHOD DE 'getPaginatedCategories'...
+
+
+
+
+
+-> ADICIONAMOS ESSAS VARIABLES COMO PARAMETERS,
+
+
+
+E AÍ 
+
+EDITAMOS A LÓGICA DE 'getPaginatedCategories',
+,
+
+TIPO ASSIM:
+
+
+
+      $categories = $this->categoryService->getPaginatedCategories((int) $params['start'], (int) $params['length'], $orderBy, $orderDirection);
+
+
+
+
+
+
+
+
+
+
+
+
+
+E, NA DEFINIÇÃO DO METHOD:
+
+
+
+
+    // Used with pagination.
+    public function getPaginatedCategories(int $start, int $length, string $orderBy, string $dir): Paginator
+    {
+        $query = $this->entityManager->getRepository(Category::class)
+            ->createQueryBuilder('c')  // alias of the table will be 'c'.
+            ->setFirstResult($start) // offset. It is the number of rows to skip.
+            ->setMaxResults($length) // limit. It is the maximum number of rows to retrieve.
+            ->orderBy('c.' . $orderBy, $dir);
+
+        // return $query->getQuery()->getResult();
+        return new Paginator($query);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK.... COM ISSO,
+
+
+
+O SORTING PASSA A FUNCIONAR...
+
+
+ESSE ORDER BY FUNCIONA....
+
+
+
+
+
+
+
+
+
+
+---> MAS ISSO TUDO 
+
+
+NOS TRAZ 1 PROBLEMA...
+
+
+
+
+
+
+
+
+
+
+ESTE CÓDIGO:
+
+
+
+            ->orderBy('c.' . $orderBy, $dir);
+
+
+
+
+
+
+
+
+
+PODE PARECER HARMLESS,
+
+
+MAS _ _ NA VERDADE, PODE SER __ 
+
+DANGEROUS, E VULNERÁVEL A ATAQUES DE SQL INJECTION...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+para demonstrar, o professor volta ao browser,
+
+abre os devtools,
+
+
+aí copia a request url,
+
+
+coloca em 1 nova tab,
+
+
+e aí 
+
+
+FICAMOS COM A JSON RESPONSE (é o esperado)...
+
+
+
+
+
+
+
+
+
+
+--> MAS AÍ O PROFESSOR DECIDE PEGAR 
+
+A URL E ENTÃO EDITÁ-LA....
+
+
+
+TROCAR OS PARAMETERS PASSADOS NA URL,
+
+
+OS PARAMETERS 
+
+
+DE ORDER BY....
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ELE TROCA O 'asc' por 'desc'...
+
+
+
+
+
+
+
+
+--> E ISSO FUNCIONA... A DATA MUDA 
+
+PARA A VERSÃO DE 'DESCENDING' DAQUELE RESULT SET....
+
+
+
+
+
+
+
+
+
+
+
+--> MAS O PROFESSOR ENTÃO DECIDE PASSAR CÓDIGO MALICIOSO,
+
+PARA VER OS EFEITOS...
+
+
+
+
+
+
+
+
+
+
+
+
+-> o professor só escreve uma ' antes do asc,
+
+para ver o resultado....
+
+
+
+
+
+
+FICAMOS COM 1 ERROR,
+
+
+
+
+FICAMOS COM 1 QUERY EXCEPTION...
+
+
+
+
+
+
+
+
+
+
+E AÍ O APP QUEBRA...
+
+
+
+
+
+
+
+
+
+
+
+
+-> É UMA SYNTAX EXCEPTION... ISSO QUER DIZER QUE 
+A ' FOI INSERIDA __DIRETAMENTE__ NA QUERY...
+
+
+
+
+
+
+
+--> ISSO QUER DIZER QUE O USER PODERIA,
+SE QUISESSE,
+
+REALIZAR UM SQL INJECTION ATTACK, BEM COMPOSTO, PARA ACESSAR 
+
+TODOS SEUS DADOS....
+
+
+
+
+
+
+
+
+
+
+-> COMO NÓS NÃO PODEMOS USAR PARAMETERS OU PLACEHOLDERS 
+
+NA CLAUSE DE 'orderBy',
+
+
+PRECISAMOS USAR OUTRA COISA,
+
+
+CHAMADA DE 'ALLOW LIST'...
+
+
+
+
+
+
+
+
+
+
+
+--> COM A ALLOW LIST,
+
+APENAS OS VALUES QUE DEFINIRMOS 
+
+SERÃO ACEITOS COMO PARAMETERS...
+
+
+
+
+
+
+
+
+
+
+
+
+-> BASICAMENTE CHECAMOS OS VALUES DE 'orderBy',
+
+e fazemos com que APENAS SERÃO VÁLIDOS 
+
+
+SE FOREM 
+
+
+os values 
+
+
+'name'
+
+
+'updatedAt',
+
+
+'createdAt'
+
+
+e etc...
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, DEVEMOS TER UM CÓDIGO COMO 
+
+
+
+
+
+
+
+
+$orderBy = in_array($orderBy, ['name', 'createdAt', 'updatedAt']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO PQ APENAS ESSES VALUES SERÃO TIDOS COMO 'VALID'...
+
+    O RESTO DOS VALUES É CONSIDERADO ILEGAL....
+
+
+
+
+
+
+
+VAI FICANDO TIPO ASSIM:
+
+
+
+
+
+
+
+   // Used with pagination.
+    public function getPaginatedCategories(int $start, int $length, string $orderBy, string $dir): Paginator
+    {
+        $query = $this->entityManager->getRepository(Category::class)
+            ->createQueryBuilder('c')  // alias of the table will be 'c'.
+            ->setFirstResult($start) // offset. It is the number of rows to skip.
+            ->setMaxResults($length); // limit. It is the maximum number of rows to retrieve.
+
+        // We use this 'allow list' to prevent SQL injection attacks.
+        $orderBy = in_array($orderBy, ['name', 'createdAt', 'updatedAt']) ? $orderBy : 'name';
+
+        $dir = in_array($dir, ['asc', 'desc']) ? $dir : 'asc';
+
+        $query->addOrderBy('c.' . $orderBy, $dir);
+
+        // return $query->getQuery()->getResult();
+        return new Paginator($query);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, CONSEGUIMOS ADICIONAR ESSE BLOCK 
+
+A ATTACKS DE SQL INJECTION...
+
+
+
+
+CASO O VALUE SEJA INVALID,
+
+
+O NEGÓCIO SEMPRE VAI TER O DEFAULT COMO 'name' (a column)
+
+e 
+
+'asc' (a direction do order by)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+    // Used with pagination.
+    public function getPaginatedCategories(int $start, int $length, string $orderBy, string $dir): Paginator
+    {
+        $query = $this->entityManager->getRepository(Category::class)
+            ->createQueryBuilder('c')  // alias of the table will be 'c'.
+            ->setFirstResult($start) // offset. It is the number of rows to skip.
+            ->setMaxResults($length); // limit. It is the maximum number of rows to retrieve.
+
+        // We use this 'allow list' to prevent SQL injection attacks.
+        $orderBy = in_array($orderBy, ['name', 'createdAt', 'updatedAt']) ? $orderBy : 'name';
+        $dir = strtolower($dir) === 'asc' ? 'asc' : 'desc';
+
+        $query->addOrderBy('c.' . $orderBy, $dir);
+
+        // return $query->getQuery()->getResult();
+        return new Paginator($query);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+    // Used with pagination.
+    public function getPaginatedCategories(int $start, int $length, string $orderBy, string $dir): Paginator
+    {
+        $query = $this->entityManager->getRepository(Category::class)
+            ->createQueryBuilder('c')  // alias of the table will be 'c'.
+            ->setFirstResult($start) // offset. It is the number of rows to skip.
+            ->setMaxResults($length); // limit. It is the maximum number of rows to retrieve.
+
+        // We use these 'allow lists' to prevent SQL injection attacks.
+        $orderBy = in_array($orderBy, ['name', 'createdAt', 'updatedAt']) ? $orderBy : 'name';
+
+        $dir = strtolower($dir) === 'asc' ? 'asc' : 'desc';
+
+        $query->addOrderBy('c.' . $orderBy, $dir);
+
+        // return $query->getQuery()->getResult();
+        return new Paginator($query);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AGORA QUANDO VOLTARMOS A PAGE E TENTARMOS 
+
+
+COLOCAR VALUES INVÁLIDOS NA URL,
+
+
+
+
+FICAMOS COM AQUELE DEFAULT CASE,
+
+E NÃO FICAMOS MAIS COM ERRORS... (e agora ficamos 
+protegidos contra sql injection attacks)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> DEPOIS DISSO, QUEREMOS 
+
+
+ADICIONAR A OPTION DE 'FILTERING'
+
+
+na nossa table...
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, ADICIONAMOS UM NOVO PARAMETER,
+CHAMADO DE '$searchTerm'...
+
+
+
+
+-->  AÍ ESCREVEMOS UMA VALIDATION,
+
+CHECANDO SE O VALUE DE 'searchTerm'
+
+
+está vazio, tipo assim:
+
+
+
+
+
+
+
+
+
+
+
+if (!empty($searchTerm)) {
+    $query->where('c.name LIKE :name')->setParameter('name', '%' . $searchTerm' . '%');
+}
+
+
+
+
+
+
+
+
+
+
+CERTO....
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+    // Used with pagination.
+    public function getPaginatedCategories(int $start, int $length, string $orderBy, string $dir): Paginator
+    {
+        $query = $this->entityManager->getRepository(Category::class)
+            ->createQueryBuilder('c')  // alias of the table will be 'c'.
+            ->setFirstResult($start) // offset. It is the number of rows to skip.
+            ->setMaxResults($length); // limit. It is the maximum number of rows to retrieve.
+
+        // We use these 'allow lists' to prevent SQL injection attacks.
+        $orderBy = in_array($orderBy, ['name', 'createdAt', 'updatedAt']) ? $orderBy : 'name';
+
+        $dir = strtolower($dir) === 'asc' ? 'asc' : 'desc';
+
+
+        if (!empty($searchTerm)) {
+            $query->where('c.name LIKE :name')->setParameter('name', '%' . $searchTerm . '%');
+        }
+
+
+        $query->orderBy('c.' . $orderBy, $dir);
+
+        // return $query->getQuery()->getResult();
+        return new Paginator($query);
+    }
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO, VOLTAMOS AO CONTROLLER,
+
+
+E AÍ 
+
+
+COLOCAMOS O VALUE DE 'searchTerm'
+
+
+dentro 
+
+
+dos params,
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+
+    public function load(Request $request, Response $response): Response
+    {
+        $params = $request->getQueryParams();
+
+        $start = (int) $params['start'];
+        $length = (int) $params['length'];
+        $orderBy = $params['columns'][$params['order'][0]['column']]['data'];
+        $orderDirection = $params['order'][0]['dir'];
+        $searchTerm = $params['search']['value'];
+
+
+        
+        var_dump($orderBy);
+        var_dump($orderDirection);
+
+        $categories = $this->categoryService->getPaginatedCategories($start, $length, $orderBy, $orderDirection, $searchTerm);
+
+        $transformer = function(Category $category) {
+            return [
+                'id' => $category->getId(),
+                'name' => $category->getName(),
+                'createdAt' => $category->getCreatedAt()->format('Y-m-d H:i:s'),
+                'updatedAt' => $category->getUpdatedAt()->format('Y-m-d H:i:s'),
+            ];
+        };
+
+        $categoryAmount = count($categories);
+
+        return $this->responseFormatter->asJson($response, [
+            'data' => array_map($transformer, (array) $categories->getIterator()),
+            'draw' => (int) $params['draw'],
+            'recordsTotal' => $categoryAmount,
+            'recordsFiltered' => $categoryAmount,
+        ]);
+    }
+
+
+
+
+
+
+
+
+    E ASSIM:
+
+
+
+
+
+
+
+
+    // Used with pagination.
+    public function getPaginatedCategories(int $start, int $length, string $orderBy, string $dir, string $searchTerm = ''): Paginator
+    {
+        $query = $this->entityManager->getRepository(Category::class)
+            ->createQueryBuilder('c')  // alias of the table will be 'c'.
+            ->setFirstResult($start) // offset. It is the number of rows to skip.
+            ->setMaxResults($length); // limit. It is the maximum number of rows to retrieve.
+
+        // We use these 'allow lists' to prevent SQL injection attacks.
+        $orderBy = in_array($orderBy, ['name', 'createdAt', 'updatedAt']) ? $orderBy : 'name';
+
+        $dir = strtolower($dir) === 'asc' ? 'asc' : 'desc';
+
+
+        if (!empty($searchTerm)) {
+            $query->where('c.name LIKE :name')->setParameter('name', '%' . $searchTerm . '%');
+        }
+
+        $query->orderBy('c.' . $orderBy, $dir);
+
+        // return $query->getQuery()->getResult();
+        return new Paginator($query);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+AÍ VOLTAMOS A PAGE DE 
+
+
+CATEGORIES,
+ E TENTAMOS FILTER POR 
+
+
+
+
+ALGUM NOME, COMO 'INTERNET'...
+
+
+
+
+
+
+
+-> AO FAZER ISSO,
+
+
+CONSEGUIMOS FILTRAR...
+
+
+
+
+
+
+
+
+
+
+--> ENTRETANTO, O PROFESSOR APONTA QUE, AQUI,
+ESTAMOS COM 1 PROBLEMA...
+
+
+
+
+
+
+
+
+--> MAS Q PROBLEMA?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR FAZ:
+
+
+
+
+
+
+1) REMOVE O SEARCH VALUE DA SEARCH BAR 
+
+
+
+2) AÍ EDITA UMA DAS CATEGORIES,
+ 
+    COMO 'Tuition'....
+
+
+
+
+3) ELE COLOCA '%' no final da category...
+
+
+
+
+
+TIPO ASSIM:
+
+
+'Tuition%'...
+
+
+
+
+
+
+
+
+
+4) DEPOIS DISSO, ELE TENTA PROCURAR POR '%',
+
+    lá na search bar...
+
+
+
+
+
+
+
+
+
+
+-> VEREMOS QUE NADA ACONTECERÁ, VISUALMENTE....
+
+
+
+
+
+
+
+
+--> MAS NO BACKGROUND, NAS DEV TOOLS,
+
+VEREMOS QUE A QUERY ESTARÁ ACTUALLY 
+SENDO 
+EFETUADA,
+
+TODA VEZ QUE DIGITAMOS '%'...
+
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE '%' 
+    ESTÁ SENDO PASSADO, COMO SEARCH TERM,
+
+    AO NOSSO METHOD DE 'load'...
+
+
+
+    MAS ISSO NÃO ESTÁ TENDO EFEITO ALGUM,
+
+    PQ TODOS OS RESULTS ESTÃO SEMPRE 
+
+    SENDO RETORNADOS...
+
+
+
+
+
+
+--> ISSO ESTÁ ACONTECENDO JUSTAMENTE PQ 
+
+
+'%' e '_' SÃO SPECIAL CHARACTERS,
+
+
+
+QUE SEMPRE PRECISAM SER ___ ESCAPED__,
+
+
+PRECISAM SER ESCAPED, SE REALMENTE QUEREMOS 
+
+OS UTILIZAR COMO LITERALS...
+
+
+
+
+
+
+
+
+
+
+TODAS AS CATEGORIES SÃO RETORNADAS
+
+JUSTAMENTE PQ ESSES CARACTERES SÃO IGNORADOS,
+
+PQ 
+
+ELES CONTÉM SPECIAL MEANING, NAS NOSSAS QUERIES...
+
+
+
+
+
+
+
+
+
+
+-> PARA FAZER ESCAPE DE ESSES CARACTERES, PODEMOS OU:
+
+
+
+
+
+1) usar str_replace()
+    e então SUBSTITUIR OS '_' e '%' 
+
+    com coisas como '\%' 
+
+
+    e '\_'... 
+
+
+
+EX:
+
+        if (!empty($searchTerm)) {
+              // We escape these special characters, so that they can be used as search terms in our filter/search bar.
+            $searchTerm = str_replace(['%', '_'], ['\%', '\_'], $searchTerm);
+            $query->where('c.name LIKE :name')->setParameter('name', '%' . $searchTerm . '%');
+        }
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+-> COM ISSO, ESSE FILTERING, COM ESSES SYMBOLS,
+
+FUNCIONA....
+
+
+
+
+
+--> ESSE APPROACH FUNCIONA, É CLARO,
+
+MAS EXISTE 1 MANEIRA BEM MAIS FÁCIL DE FAZER ISSO,
+
+
+
+QUE É POR MEIO DA FUNCTION DE 
+
+'addcslashes()'...
+
+
+
+
+
+
+
+
+
+
+2) addcslashes() --> É BASICAMENTE UMA FUNCTION 
+                    QUE ADICIONA BACKSLASH 
+
+                    AOS GIVEN CHARACTERS...
+
+
+
+
+
+
+PARA CONSEGUIR FAZER ISSO, BASTA ESCREVER ASSIM:
+
+
+
+
+
+
+
+            $query->where('c.name LIKE :name')->setParameter('name', '%' . addcslashes($searchTerm, '%_') . '%');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VOLTAMOS AO BROWSER, TENTAMOS FILTRAR NOVAMENTE, E AGORA FUNCIONA...
+
+
+
+
+
+
+COM ISSO, TEMOS PAGINATION, SORTING E FILTERING FUNCIONANDO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA DEVEMOS FAZER 1 POUCO DE CLEANUP...
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR QUE REFATORAR TODA ESTA PARTE
+
+
+
+
+
+
+
+ public function load(Request $request, Response $response): Response
+    {
+        $params = $request->getQueryParams();
+
+        $start = (int) $params['start'];
+        $length = (int) $params['length'];
+        $orderBy = $params['columns'][$params['order'][0]['column']]['data'];
+        $orderDirection = $params['order'][0]['dir'];
+        $searchTerm = $params['search']['value'];
+
+
+        
+        var_dump($orderBy);
+        var_dump($orderDirection);
+
+        $categories = $this->categoryService->getPaginatedCategories($start, $length, $orderBy, $orderDirection, $searchTerm);
+    }
+  
+
+
+
+
+
+  -> O PROFESSOR ACHA QUE SERIA MAIS LEGAL 
+
+
+  TER 1 DTO COMO 
+
+
+  ''DataTableFilters',
+
+
+  algo assim...
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE O PROFESSOR 
+
+
+ESCREVE ALGO ASSIM:
+
+
+
+
+
+
+
+
+$params = $this->requestService->getDataTableQueryParameters($request);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESSE METHOD AÍ, POR SUA VEZ, VAI RETORNAR 1 DTO OBJECT,
+
+
+QUE VAI NOS AJUDAR A ORGANIZAR TUDO...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+    public function load(Request $request, Response $response): Response
+    {
+        // $params = $request->getQueryParams();
+
+        // $start = (int) $params['start'];
+        // $length = (int) $params['length'];
+        // $orderBy = $params['columns'][$params['order'][0]['column']]['data'];
+        // $orderDirection = $params['order'][0]['dir'];
+        // $searchTerm = $params['search']['value'];
+
+        $params = $this->requestService->getDataTableQueryParameters($request);
+
+        $categories = $this->categoryService->getPaginatedCategories($params);
+
+        $transformer = function(Category $category) {
+            return [
+                'id' => $category->getId(),
+                'name' => $category->getName(),
+                'createdAt' => $category->getCreatedAt()->format('Y-m-d H:i:s'),
+                'updatedAt' => $category->getUpdatedAt()->format('Y-m-d H:i:s'),
+            ];
+        };
+
+        $categoryAmount = count($categories);
+
+        return $this->responseFormatter->asJson($response, [
+            'data' => array_map($transformer, (array) $categories->getIterator()),
+            'draw' => (int) $params['draw'],
+            'recordsTotal' => $categoryAmount,
+            'recordsFiltered' => $categoryAmount,
+        ]);
+    }
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+FICOU BEM MAIS ORGANIZADO...
+
+
+
+E ESE NOVO METHOD, FICOU ASSIM:
+
+
+
+
+
+
+
+    public function getDataTableQueryParameters(ServerRequestInterface $request): DataTableFilters
+    {
+        $params = $request->getQueryParams();
+
+        $start = (int) $params['start'];
+        $length = (int) $params['length'];
+        $orderBy = $params['columns'][$params['order'][0]['column']]['data'];
+        $orderDirection = $params['order'][0]['dir'];
+        $searchTerm = $params['search']['value'];
+
+        return new DataTableFilters($searchTerm, $orderBy, $orderDirection, $start, $length);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+ public function load(Request $request, Response $response): Response
+    {
+        // $params = $request->getQueryParams();
+
+        // $start = (int) $params['start'];
+        // $length = (int) $params['length'];
+        // $orderBy = $params['columns'][$params['order'][0]['column']]['data'];
+        // $orderDirection = $params['order'][0]['dir'];
+        // $searchTerm = $params['search']['value'];
+
+        $params = $this->requestService->getDataTableQueryParameters($request);
+
+        $categories = $this->categoryService->getPaginatedCategories($params);
+
+        $transformer = function(Category $category) {
+            return [
+                'id' => $category->getId(),
+                'name' => $category->getName(),
+                'createdAt' => $category->getCreatedAt()->format('Y-m-d H:i:s'),
+                'updatedAt' => $category->getUpdatedAt()->format('Y-m-d H:i:s'),
+            ];
+        };
+
+        $categoryAmount = count($categories);
+
+        return $this->responseFormatter->asJson($response, [
+            'data' => array_map($transformer, (array) $categories->getIterator()),
+            'draw' => (int) $params->draw,
+            'recordsTotal' => $categoryAmount,
+            'recordsFiltered' => $categoryAmount,
+        ]);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... MAS O PROFESSOR 
+
+
+TAMBÉM QUER REFORMATAR TODO ESTE TRECHO AQUI:
+
+
+
+[
+            'data' => array_map($transformer, (array) $categories->getIterator()),
+            'draw' => (int) $params->draw,
+            'recordsTotal' => $categoryAmount,
+            'recordsFiltered' => $categoryAmount,
+        ]
+
+
+
+
+
+
+
+
+
+EM VEZ DE TER ESSE ARRAY,
+
+
+
+
+
+O PROFESSOR QUER TROCAR O METHOD 'asJson'
+
+
+inteiro,
+
+
+trocar por uma function como 
+
+
+
+
+$this->responseFormatter->asDataTable()'...
+
+
+
+
+
+
+
+--> AÍ,
+
+
+
+COM ISSO, ELE VAI QUERER PASSAR OS PARAMETERS TIPO ASSIM:
+
+
+$this->responseFormatter->asDataTable(
+    $response,
+    array_map($transformer, (array) $categories->getIterator()),
+    $params->draw,
+    $totalCategories
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> BASTA CRIAR ESSE METHOD, TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App;
+
+use Psr\Http\Message\ResponseInterface;
+
+class ResponseFormatter
+{
+    public function __construct() {}
+
+    public function asJson(ResponseInterface $response, array $data, int $flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_THROW_ON_ERROR): ResponseInterface
+    {
+        $response = $response->withHeader('Content-Type', 'application/json');
+
+        $response->getBody()->write(json_encode($data, $flags));
+
+        return $response;
+    }
+
+    public function asDataTable(ResponseInterface $response, array $data, int $draw, int $totalCategories): ResponseInterface
+    {
+        return $this->asJson(
+            $response,
+            [
+                'data' => $data,
+                'draw' => $draw,
+                'recordsTotal' => $totalCategories,
+                'recordsFiltered' => $totalCategories,
+            ]
+        ); 
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+COM ISSO, NO CONTROLLER,
+
+FICOU ASSIM:
+
+
+
+
+
+
+
+    public function load(Request $request, Response $response): Response
+    {
+        $params = $this->requestService->getDataTableQueryParameters($request);
+
+        $categories = $this->categoryService->getPaginatedCategories($params);
+
+        $transformer = function (Category $category) {
+            return [
+                'id' => $category->getId(),
+                'name' => $category->getName(),
+                'createdAt' => $category->getCreatedAt()->format('Y-m-d H:i:s'),
+                'updatedAt' => $category->getUpdatedAt()->format('Y-m-d H:i:s'),
+            ];
+        };
+
+        $categoryAmount = count($categories);
+
+        $this->responseFormatter->asDataTable(
+            $response,
+            array_map($transformer, (array) $categories->getIterator()),
+            $params->draw,
+            $categoryAmount
+        );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+O PROFESSOR DIZ QUE PODERÍAMOS MELHORAR ISSO AINDA MAIS,
+
+EXTRAIR ESSE TRANSFORMER EM 1 
+CLASS PRÓPRIA...
+
+
+
+
+
+
+
+
+
+
+OU, ENTÃO, CRIAR UMA CLASS DEDICADA, QUE HANDLARIA 
+
+OS PROCESSOS MAIS COMPLICADOS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS TUDO AINDA FUNCIONA, A PAGE AINDA CARREGA,
+
+
+
+A PAGINATION AINDA FUNCIONA, ETC ETC...
+
+
+
+
+
+
+-> ACABAMOS COM A PARTE DA ENTITY DE CATEGORIES,
+
+PORTANTO...
+
+
+
+
+
+
+
+
+
+
+--> JÁ ADICIONAMOS TUDO QUE QUERÍAMOS A PAGE DE 
+
+CATEGORIES...
+
+
+
+
+
+
+
+
+
+
+-> TEMOS:
+
+
+
+
+1) ABILIDADE DE DELETAR CATEGORIES 
+
+
+2) PAGINATION 
+
+
+3) EDIT 
+
+
+4) TODAS AS CRUD OPERATIONS FUNCIONANDO...
+
+
+
+
+
+
+
+
+--> O PRÓXIMO PASSO É FAZER A MESMA COISA,
+
+MAS COM A PAGE DE TRANSACTIONS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> EM VEZ DO PROFESSOR FAZER ISSO, ELE QUER QUE FAÇAMOS ISSO 
+
+
+POR CONTA PRÓPRIA, COMO EXERCÍCIO...
+
+
+
+
+
+
+
+
+
+
+--> É BEM SIMPLES,
+
+PQ SÓ PRECISAMOS DUPLICAR O CÓDIGO 
+
+
+DO CATEGORIES, E FAZER FUNCIONAR COM AS TRANSACTIONS...
+
+
+
+
+
+
+
+----> SÓ AS TRANSACTIONS SERÃO 1 POUCO MAIS COMPLICADAS,
+    PQ TEMOS 1 POUCO MAIS DE INPUT FIELDS...
+
+
+
+
+
+
+
+
+--> TRANSACTION TEM:
+
+1) DESCRIPTION 
+
+2) CATEGORY 
+
+3) AMOUNT 
+
+4) DATE 
+
+5) QUAISQUER RECEIPTS QUE VC QUER UPLOAD...
+
+
+
+
+
+
+--> NÃO DEVEMOS NOS IMPORTAR COM A PARTE DOS RECEIPTS...
+
+
+
+
+
+
+--> MAS DEVEMOS TENTAR IMPLEMENTAR A PARTE DE CRUD 
+    COM AS TRANSACTIONS...
+
+
+
+
+
+
+
+
+
+--> QUEREMOS AS ABILIDADES PARA:
+
+
+
+
+1) CREATE 
+
+
+2) VIEW 
+
+
+3) SEARCH 
+
+
+4) SORT (order by)
+
+
+5) UPDATE/EDIT 
+
+
+
+6) DELETE 
+
+
+
+
+transactions...
+
+
+
+
+
+
+
+
+-> ISSO TUDO VAI TE AJUDAR 
+    A COLOCAR AS COISAS QUE VC APRENDEU EM PRÁTICA...
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR VAI MOSTRAR A SOLUÇÃO NA PRÓXIMA AULA...
+
+
+
+
+

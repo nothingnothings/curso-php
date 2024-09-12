@@ -12,6 +12,7 @@ use App\Factories\ValidatorFactory;
 use App\RequestValidators\CreateCategoryRequestValidator;
 use App\RequestValidators\UpdateCategoryRequestValidator;
 use App\ResponseFormatter;
+use App\Services\RequestService;
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 use Slim\Views\Twig;
@@ -19,10 +20,12 @@ use Slim\Views\Twig;
 class CategoriesController
 {
 
-    public function __construct(private readonly Twig $twig, 
-    private readonly ValidatorFactory $requestValidatorFactory,
-    private readonly CategoryServiceInterface $categoryService,
-    private readonly ResponseFormatter $responseFormatter
+    public function __construct(
+        private readonly Twig $twig,
+        private readonly ValidatorFactory $requestValidatorFactory,
+        private readonly CategoryServiceInterface $categoryService,
+        private readonly RequestService $requestService,
+        private readonly ResponseFormatter $responseFormatter
     ) {}
 
     public function index(Request $request, Response $response): Response
@@ -59,8 +62,8 @@ class CategoriesController
 
 
     public function delete(Request $request, Response $response, array $args): Response
-    {  
-         $categoryId = $request->getAttribute('categoryId');
+    {
+        $categoryId = $request->getAttribute('categoryId');
 
         $this->categoryService->delete($categoryId);
 
@@ -76,11 +79,10 @@ class CategoriesController
         if (!$category) {
             return $response->withStatus(404);
         }
-        
+
         $data = ['id' => $category->getId(), 'name' => $category->getName()];
 
         return $this->responseFormatter->asJson($response, $data);
-
     }
 
     public function update(Request $request, Response $response, array $args): Response
@@ -102,11 +104,19 @@ class CategoriesController
 
     public function load(Request $request, Response $response): Response
     {
-        $params = $request->getQueryParams();
+        // $params = $request->getQueryParams();
 
-        $categories = $this->categoryService->getPaginatedCategories((int) $params['start'], (int) $params['length']);
+        // $start = (int) $params['start'];
+        // $length = (int) $params['length'];
+        // $orderBy = $params['columns'][$params['order'][0]['column']]['data'];
+        // $orderDirection = $params['order'][0]['dir'];
+        // $searchTerm = $params['search']['value'];
 
-        $transformer = function(Category $category) {
+        $params = $this->requestService->getDataTableQueryParameters($request);
+
+        $categories = $this->categoryService->getPaginatedCategories($params);
+
+        $transformer = function (Category $category) {
             return [
                 'id' => $category->getId(),
                 'name' => $category->getName(),
@@ -117,11 +127,18 @@ class CategoriesController
 
         $categoryAmount = count($categories);
 
-        return $this->responseFormatter->asJson($response, [
-            'data' => array_map($transformer, (array) $categories->getIterator()),
-            'draw' => (int) $params['draw'],
-            'recordsTotal' => $categoryAmount,
-            'recordsFiltered' => $categoryAmount,
-        ]);
+        // return $this->responseFormatter->asJson($response, [
+        //     'data' => array_map($transformer, (array) $categories->getIterator()),
+        //     'draw' => (int) $params->draw,
+        //     'recordsTotal' => $categoryAmount,
+        //     'recordsFiltered' => $categoryAmount,
+        // ]);
+
+        $this->responseFormatter->asDataTable(
+            $response,
+            array_map($transformer, (array) $categories->getIterator()),
+            $params->draw,
+            $categoryAmount
+        );
     }
 }

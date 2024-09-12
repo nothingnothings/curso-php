@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App;
 
@@ -15,5 +17,18 @@ class ResponseFormatter
         $response->getBody()->write(json_encode($data, $flags));
 
         return $response;
+    }
+
+    public function asDataTable(ResponseInterface $response, array $data, int $draw, int $totalCategories): ResponseInterface
+    {
+        return $this->asJson(
+            $response,
+            [
+                'data' => $data,
+                'draw' => $draw,
+                'recordsTotal' => $totalCategories,
+                'recordsFiltered' => $totalCategories,
+            ]
+        ); 
     }
 }
