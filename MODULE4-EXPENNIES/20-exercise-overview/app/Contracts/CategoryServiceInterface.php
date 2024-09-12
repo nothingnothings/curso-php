@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace App\Contracts;
 
@@ -20,7 +18,7 @@ interface CategoryServiceInterface
 
     public function getById(int $id): ?Category;
 
-    public function update(Category $category, CategoryData $categoryData): void;
+    public function update(Category $category, string $name): Category;
 
     public function getPaginatedCategories(DataTableFilters $dataTableFilters): Paginator;
 }

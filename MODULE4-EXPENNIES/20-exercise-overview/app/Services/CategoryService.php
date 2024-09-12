@@ -38,16 +38,27 @@ class CategoryService implements CategoryServiceInterface
 
         $this->update($category, $categoryData);
 
+
+
         return $category;
     }
 
 
     public function delete(int $id): void
     {
-        $category = $this->entityManager->find(Category::class, $id);
-
-        $this->entityManager->remove($category);
-        $this->entityManager->flush();
+        try {
+            $category = $this->entityManager->find(Category::class, $id);
+            
+            if ($category === null) {
+                throw new \Exception("Category not found");
+            }
+    
+            $this->entityManager->remove($category);
+            $this->entityManager->flush();
+        } catch (\Exception $e) {
+            // Log the exception or handle it
+            throw new \Exception("Failed to delete category: " . $e->getMessage());
+        }
     }
 
     public function getById(int $id): ?Category
@@ -55,13 +66,14 @@ class CategoryService implements CategoryServiceInterface
         return $this->entityManager->find(Category::class, $id);
     }
 
-    public function update(Category $category, CategoryData $categoryData): void
+    public function update(Category $category, string $name): Category
     {
-        $category->setName($categoryData->name);
+        $category->setName($name);
 
         $this->entityManager->persist($category);
-
         $this->entityManager->flush();
+
+        return $category;
     }
 
     // Used with pagination.

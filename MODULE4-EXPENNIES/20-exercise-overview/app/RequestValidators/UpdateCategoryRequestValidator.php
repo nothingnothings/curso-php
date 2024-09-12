@@ -3,25 +3,23 @@
 namespace App\RequestValidators;
 
 use App\Contracts\RequestValidatorInterface;
+use App\Exception\ValidationException;
 use Valitron\Validator;
 
 class UpdateCategoryRequestValidator implements RequestValidatorInterface
 {
-    public function validate($categoryData): array
+    public function validate(array $data): array
     {
-        $v = new Validator($categoryData);
+        $v = new Validator($data);
 
-        $v->rule('required', ['name']);
-        $v->rule(
-            'lengthMax',
-            'name',
-        );
+        $v->rule('required', ['name', 'id']);
+        $v->rule('lengthMax', 'name', 50);
         $v->rule('integer', 'id');
 
-        $dataArray = [
-            'name' => $categoryData->name,
-        ];
+        if (!$v->validate()) {
+            throw new ValidationException($v->errors());
+        }
 
-        return $dataArray;
+        return $data;
     }
 }

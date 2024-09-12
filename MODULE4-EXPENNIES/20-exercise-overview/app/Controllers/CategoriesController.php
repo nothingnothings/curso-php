@@ -63,9 +63,7 @@ class CategoriesController
 
     public function delete(Request $request, Response $response, array $args): Response
     {
-        $categoryId = $request->getAttribute('categoryId');
-
-        $this->categoryService->delete($categoryId);
+        $this->categoryService->delete((int) $args['id']);
 
         return $response;
     }
@@ -85,6 +83,7 @@ class CategoriesController
         return $this->responseFormatter->asJson($response, $data);
     }
 
+    
     public function update(Request $request, Response $response, array $args): Response
     {
         $data = $this->requestValidatorFactory->make(UpdateCategoryRequestValidator::class)->validate(
@@ -102,15 +101,9 @@ class CategoriesController
         return $response;
     }
 
+
     public function load(Request $request, Response $response): ResponseInterface
     {
-        // $params = $request->getQueryParams();
-
-        // $start = (int) $params['start'];
-        // $length = (int) $params['length'];
-        // $orderBy = $params['columns'][$params['order'][0]['column']]['data'];
-        // $orderDirection = $params['order'][0]['dir'];
-        // $searchTerm = $params['search']['value'];
 
         $params = $this->requestService->getDataTableQueryParameters($request);
 
@@ -126,14 +119,6 @@ class CategoriesController
         };
 
         $categoryAmount = count($categories);
-
-        // return $this->responseFormatter->asJson($response, [
-        //     'data' => array_map($transformer, (array) $categories->getIterator()),
-        //     'draw' => (int) $params->draw,
-        //     'recordsTotal' => $categoryAmount,
-        //     'recordsFiltered' => $categoryAmount,
-        // ]);
-
 
         return $this->responseFormatter->asDataTable(
             $response,
