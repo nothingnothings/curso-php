@@ -13,6 +13,7 @@ use App\RequestValidators\CreateCategoryRequestValidator;
 use App\RequestValidators\UpdateCategoryRequestValidator;
 use App\ResponseFormatter;
 use App\Services\RequestService;
+use Psr\Http\Message\ResponseInterface;
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 use Slim\Views\Twig;
@@ -102,7 +103,7 @@ class CategoriesController
         return $response;
     }
 
-    public function load(Request $request, Response $response): Response
+    public function load(Request $request, Response $response): ResponseInterface
     {
         // $params = $request->getQueryParams();
 
@@ -134,7 +135,7 @@ class CategoriesController
         //     'recordsFiltered' => $categoryAmount,
         // ]);
 
-        $this->responseFormatter->asDataTable(
+        return $this->responseFormatter->asDataTable(
             $response,
             array_map($transformer, (array) $categories->getIterator()),
             $params->draw,
