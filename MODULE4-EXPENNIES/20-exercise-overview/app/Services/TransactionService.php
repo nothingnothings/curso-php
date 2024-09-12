@@ -79,7 +79,7 @@ class TransactionService implements TransactionServiceInterface
 
 
         $query = $this->entityManager->getRepository(Transaction::class)
-            ->createQueryBuilder('c')  // alias of the table will be 'c'.
+            ->createQueryBuilder('t')  // alias of the table will be 'c'.
             ->setFirstResult($start) // offset. It is the number of rows to skip.
             ->setMaxResults($length); // limit. It is the maximum number of rows to retrieve.
 
@@ -92,10 +92,10 @@ class TransactionService implements TransactionServiceInterface
         if (!empty($searchTerm)) {
             // We escape these special characters, so that they can be used as search terms in our filter/search bar.
             // $searchTerm = str_replace(['%', '_'], ['\%', '\_'], $searchTerm);
-            $query->where('c.name LIKE :name')->setParameter('name', '%' . addcslashes($searchTerm, '%_') . '%');
+            $query->where('t.name LIKE :name')->setParameter('name', '%' . addcslashes($searchTerm, '%_') . '%');
         }
 
-        $query->orderBy('c.' . $orderBy, $dir);
+        $query->orderBy('t.' . $orderBy, $dir);
 
         // return $query->getQuery()->getResult();
         return new Paginator($query);
