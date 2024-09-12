@@ -30,14 +30,7 @@ class CategoriesController
 
     public function index(Request $request, Response $response): Response
     {
-
-        return $this->twig->render(
-            $response,
-            'categories/index.twig',
-            [
-                'categories' => $this->categoryService->getAll()
-            ]
-        );
+        return $this->twig->render($response, 'categories/index.twig');
     }
 
     public function store(Request $request, Response $response): Response

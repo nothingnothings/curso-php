@@ -5,13 +5,15 @@ namespace App\RequestValidators;
 use App\Contracts\RequestValidatorInterface;
 use Valitron\Validator;
 
-class CreateCategoryRequestValidator implements RequestValidatorInterface
+class CreateTransactionRequestValidator implements RequestValidatorInterface
 {
     public function validate($categoryData): array
     {
         $v = new Validator($categoryData);
 
-        $v->rule('required', ['name']);
+        $v->rule('required', ['description']);
+        $v->rule('required', ['amount']);
+
         $v->rule(
             'lengthMax',
             'name',
