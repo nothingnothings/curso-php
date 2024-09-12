@@ -2,32 +2,32 @@
 
 {% block javascripts %}
 	{{ parent() }}
-	{{ encore_entry_script_tags('categories') }}
+	{{ encore_entry_script_tags('transactions') }}
 {% endblock %}
 
 {% block title %}Transactions
 {% endblock %}
 
 {% block content %}
-	<div class="categories container content-body">
+	<div class="transactions container content-body">
 		<div class="text-end">
-			<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newCategoryModal">
+			<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newTransactionModal">
 				<i class="bi bi-plus-circle me-1"></i>
 				New Transaction
 			</button>
 		</div>
-		<div class="modal fade" id="newCategoryModal" tabindex="-1" aria-hidden="true">
+		<div class="modal fade" id="newTransactionModal" tabindex="-1" aria-hidden="true">
 			<div class="modal-dialog">
-				<form action="/categories" method="post">
+				<form action="/transactions" method="post">
 					<div class="modal-content">
 						<div class="modal-header">
-							<h5 class="modal-title">New Category</h5>
+							<h5 class="modal-title">New Transaction</h5>
 							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 						</div>
 						<div class="modal-body">
 							{{ csrf.fields | raw }}
 							<div class="form-outline form-white mb-4">
-								<input type="text" name="name" required class="form-control form-control-lg" placeholder="Category Name"/>
+								<input type="text" name="name" required class="form-control form-control-lg" placeholder="Transaction Name"/>
 							</div>
 						</div>
 						<div class="modal-footer">
@@ -44,13 +44,13 @@
 				</form>
 			</div>
 		</div>
-		{% include 'categories/edit_category_modal.twig' %}
+		{% include 'transactions/edit_transaction_modal.twig' %}
 		<div>
-			<table id="categoriesTable">
+			<table id="transactionsTable">
 				<thead>
 					<tr>
 						<th>Description</th>
-						<th>Category</th>
+						<th>Transaction</th>
 						<th>Amount</th>
 						<th>Transaction Date</th>
 						<th>Created At</th>
