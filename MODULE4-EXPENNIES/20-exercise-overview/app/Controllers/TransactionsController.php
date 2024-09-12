@@ -111,25 +111,23 @@ class TransactionsController
 
         $transactions = $this->transactionService->getPaginatedCategories($params);
 
-        return $this->responseFormatter->asDataTable($response, [$transactions->getIterator()], $params->draw, $transactions->count());
-
         $transformer = function (Transaction $transaction) {
-            return [
-                'id' => $transaction->getId(),
-                'description' => $transaction->getDescription(),
-                'amount' => $transaction->getAmount(),
-                'category' => $transaction->getCategory()->getName(),
-                'date' => $transaction->getCreatedAt()->format('Y-m-d H:i:s')
-            ];
+                    return [
+                            'description' => $transaction->getDescription(),
+                            'amount' => $transaction->getAmount(),
+                            'category' => $transaction->getCategory()->getName(),
+                            'date' => $transaction->getCreatedAt()->format('Y-m-d H:i:s')
+                        ];
         };
 
         $transactionsAmount = count($transactions);
 
+        // This is super wrong.
         return $this->responseFormatter->asDataTable(
-            $response,
-            array_map($transformer, (array) $transactions->getIterator()),
-            $params->draw,
-            $transactionsAmount
-        );
+                $response,
+                array_map($transformer, (array) $transactions->getIterator()),
+                $params->draw,
+                $transactionsAmount
+            );
     }
 }

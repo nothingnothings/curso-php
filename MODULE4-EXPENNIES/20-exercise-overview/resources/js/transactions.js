@@ -7,14 +7,21 @@ window.addEventListener('DOMContentLoaded', function () {
     document.getElementById('editTransactionModal')
   );
 
+  this.fetch('/transactions/load')
+    .then((response) => response.json())
+    .then((response) => {
+      console.log(response);
+    });
+
   const table = new DataTable('#transactionsTable', {
     serverSide: true,
     ajax: '/transactions/load',
     orderMulti: false,
     columns: [
-      { data: 'name' },
-      { data: 'createdAt' },
-      { data: 'updatedAt' },
+      { data: 'description' },
+      { data: 'amount' },
+      { data: 'category' },
+      { data: 'date' },
       {
         sortable: false,
         data: (row) => `
@@ -66,8 +73,9 @@ window.addEventListener('DOMContentLoaded', function () {
       post(
         `/transactions/${transactionId}`,
         {
-          name: editTransactionModal._element.querySelector('input[name="name"]')
-            .value,
+          name: editTransactionModal._element.querySelector(
+            'input[name="name"]'
+          ).value,
         },
         editTransactionModal._element
       ).then((response) => {

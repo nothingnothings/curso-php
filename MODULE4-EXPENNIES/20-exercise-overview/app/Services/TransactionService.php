@@ -73,7 +73,7 @@ class TransactionService implements TransactionServiceInterface
 
         $start = $dataTableFilters->start ?? 0;
         $length = $dataTableFilters->length ?? 10;
-        $orderBy = $dataTableFilters->orderBy ?? 'name';
+        $orderBy = $dataTableFilters->orderBy ?? 'description';
         $dir = $dataTableFilters->orderDir ?? 'asc';
         $searchTerm = $dataTableFilters->searchTerm ?? '';
 
@@ -84,7 +84,7 @@ class TransactionService implements TransactionServiceInterface
             ->setMaxResults($length); // limit. It is the maximum number of rows to retrieve.
 
         // We use these 'allow lists' to prevent SQL injection attacks.
-        $orderBy = in_array($orderBy, ['name', 'createdAt', 'updatedAt']) ? $orderBy : 'name';
+        $orderBy = in_array($orderBy, ['description', 'amount', 'category', 'date']) ? $orderBy : 'description';
 
         $dir = strtolower($dir) === 'asc' ? 'asc' : 'desc';
 
@@ -92,7 +92,7 @@ class TransactionService implements TransactionServiceInterface
         if (!empty($searchTerm)) {
             // We escape these special characters, so that they can be used as search terms in our filter/search bar.
             // $searchTerm = str_replace(['%', '_'], ['\%', '\_'], $searchTerm);
-            $query->where('t.name LIKE :name')->setParameter('name', '%' . addcslashes($searchTerm, '%_') . '%');
+            $query->where('t.description LIKE :description')->setParameter('description', '%' . addcslashes($searchTerm, '%_') . '%');
         }
 
         $query->orderBy('t.' . $orderBy, $dir);
