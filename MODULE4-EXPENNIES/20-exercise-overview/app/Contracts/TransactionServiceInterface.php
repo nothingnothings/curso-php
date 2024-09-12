@@ -14,7 +14,7 @@ interface TransactionServiceInterface
 
     public function getById(int $id): ?Transaction;
 
-    public function update(Transaction $transaction, string $name): void;
+    public function update(Transaction $transaction, TransactionData $transactionData): Transaction;
 
     public function delete(int $id): void;
 }
