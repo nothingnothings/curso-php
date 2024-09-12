@@ -3,13 +3,14 @@
 namespace App\RequestValidators;
 
 use App\Contracts\RequestValidatorInterface;
+use App\DTOs\TransactionData;
 use Valitron\Validator;
 
 class CreateTransactionRequestValidator implements RequestValidatorInterface
 {
-    public function validate($categoryData): array
+    public function validate(array $data): array
     {
-        $v = new Validator($categoryData);
+        $v = new Validator($data);
 
         $v->rule('required', ['description']);
         $v->rule('required', ['amount']);
@@ -20,7 +21,7 @@ class CreateTransactionRequestValidator implements RequestValidatorInterface
         );
 
         $dataArray = [
-            'name' => $categoryData->name,
+            'description' => $data['description'],
         ];
 
         return $dataArray;

@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use App\DTOs\CategoryData;
 use App\DTOs\TransactionData;
-use App\Entity\Category;
 use App\Entity\Transaction;
 use App\Factories\ValidatorFactory;
-use App\RequestValidators\CreateCategoryRequestValidator;
 use App\RequestValidators\CreateTransactionRequestValidator;
 use App\RequestValidators\UpdateCategoryRequestValidator;
+use App\RequestValidators\UpdateTransactionRequestValidator;
 use App\ResponseFormatter;
 use App\Services\TransactionService;
 use App\Services\RequestService;
@@ -33,7 +31,7 @@ class TransactionsController
 
     public function index(Request $request, Response $response): Response
     {
-        return $this->twig->render($response, 'categories/index.twig');
+        return $this->twig->render($response, 'transactions/index.twig');
     }
 
     public function store(Request $request, Response $response): Response
@@ -42,17 +40,20 @@ class TransactionsController
 
 
         ['description' => $description] = $data;
-        ['amount' => $amount] = $data;
-        ['user' => $user] = $data;
         ['category' => $category] = $data;
+        ['amount' => $amount] = $data;
+        ['date' => $date] = $data;
+  
 
 
 
-        $transactionData = new TransactionData($description);
+        $transactionData = new TransactionData($description, $category, $amount, $date);
 
         $data = $this->requestValidatorFactory
             ->make(CreateTransactionRequestValidator::class)
-            ->validate($transactionData);
+            ->validate([
+                'description' => $description,
+            ]);
 
         $user = $request->getAttribute('user');
 
@@ -87,7 +88,7 @@ class TransactionsController
     
     public function update(Request $request, Response $response, array $args): Response
     {
-        $data = $this->requestValidatorFactory->make(UpdateCategoryRequestValidator::class)->validate(
+        $data = $this->requestValidatorFactory->make(UpdateTransactionRequestValidator::class)->validate(
             $args + $request->getParsedBody()
         );
 
