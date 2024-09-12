@@ -24,12 +24,11 @@ class TransactionService implements TransactionServiceInterface
 
     public function create(TransactionData $transactionData, User $user): Transaction
     {
-        $transaction = new Category();
+        $transaction = new Transaction();
 
         $transaction->setUser($user);
 
         $this->update($transaction, $transactionData);
-
 
 
         return $transaction;

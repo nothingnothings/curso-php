@@ -8,7 +8,7 @@ use App\Entity\User;
 
 interface TransactionServiceInterface
 {
-    public function create(TransactionData $transactionData, User $user): void;
+    public function create(TransactionData $transactionData, User $user): Transaction;
 
     public function getAll(): array;
 
