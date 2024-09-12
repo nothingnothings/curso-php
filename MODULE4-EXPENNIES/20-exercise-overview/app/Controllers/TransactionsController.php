@@ -111,12 +111,15 @@ class TransactionsController
 
         $transactions = $this->transactionService->getPaginatedCategories($params);
 
+        return $this->responseFormatter->asDataTable($response, [$transactions->getIterator()], $params->draw, $transactions->count());
+
         $transformer = function (Transaction $transaction) {
             return [
                 'id' => $transaction->getId(),
                 'description' => $transaction->getDescription(),
-                'createdAt' => $transaction->getCreatedAt()->format('Y-m-d H:i:s'),
-                'updatedAt' => $transaction->getUpdatedAt()->format('Y-m-d H:i:s'),
+                'amount' => $transaction->getAmount(),
+                'category' => $transaction->getCategory()->getName(),
+                'date' => $transaction->getCreatedAt()->format('Y-m-d H:i:s')
             ];
         };
 
