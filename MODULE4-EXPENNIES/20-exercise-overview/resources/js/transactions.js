@@ -81,12 +81,34 @@ window.addEventListener('DOMContentLoaded', function () {
         editTransactionModal._element
       ).then((response) => {
         if (response.ok) {
-          console.log(response, "THE RESPONSE");
+          console.log(response, 'THE RESPONSE');
           table.draw();
           editTransactionModal.hide();
         }
       });
     });
+
+  const addNewTransactionBtn = document.getElementById(
+    'add-new-transaction-btn'
+  );
+
+  addNewTransactionBtn.addEventListener('click', function (event) {
+    const categorySelectDropdown = document.getElementById('new-transaction-dropdown');
+    const dateInput = document.querySelector('input[name="date"]');
+
+    get('/categories/all')
+      .then((response) => response.json())
+      .then((categories) => {
+        categories.forEach((category) => {
+          const option = document.createElement('option');
+          option.value = category.id;
+          option.text = category.name;
+          categorySelectDropdown.appendChild(option);
+        });
+
+        dateInput.value = new Date().toISOString().slice(0, 10);
+      });
+  });
 });
 
 function openEditTransactionModal(

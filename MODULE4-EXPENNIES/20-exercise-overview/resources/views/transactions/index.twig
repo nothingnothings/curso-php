@@ -11,7 +11,7 @@
 {% block content %}
 	<div class="transactions container content-body">
 		<div class="text-end">
-			<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newTransactionModal">
+			<button id="add-new-transaction-btn" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newTransactionModal">
 				<i class="bi bi-plus-circle me-1"></i>
 				New Transaction
 			</button>
@@ -27,7 +27,16 @@
 						<div class="modal-body">
 							{{ csrf.fields | raw }}
 							<div class="form-outline form-white mb-4">
-								<input type="text" name="name" required class="form-control form-control-lg" placeholder="Transaction Name"/>
+								<textarea name="description" required class="form-control form-control-lg" placeholder="Transaction Description"></textarea>
+							</div>
+							<div class="form-outline form-white mb-4">
+								<input name="amount" type="number" required class="form-control form-control-lg" placeholder="Transaction Amount"/>
+							</div>
+							<div class="form-outline form-white mb-4">
+								<select id="new-transaction-dropdown" name="category" required class="form-control form-control-lg"></select>
+							</div>
+							<div class="form-outline form-white mb-4">
+								<input name="date" type="date" required class="form-control form-control-lg" placeholder="Transaction Date"/>
 							</div>
 						</div>
 						<div class="modal-footer">
