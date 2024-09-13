@@ -120,4 +120,11 @@ class CategoriesController
             $categoryAmount
         );
     }
+
+    public function getAll(Request $request, Response $response): Response
+    {
+        $categories = $this->categoryService->getAll();
+
+        return $this->responseFormatter->asJson($response, $categories);
+    }
 }

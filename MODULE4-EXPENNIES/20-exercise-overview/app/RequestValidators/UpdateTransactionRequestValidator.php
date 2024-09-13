@@ -12,9 +12,11 @@ class UpdateTransactionRequestValidator implements RequestValidatorInterface
     {
         $v = new Validator($data);
 
-        $v->rule('required', ['name', 'id']);
-        $v->rule('lengthMax', 'name', 50);
+        $v->rule('optional', ['description', 'id', 'amount', 'category']);
+        $v->rule('lengthMax', 'description', 500);
         $v->rule('integer', 'id');
+        $v->rule('numeric', 'amount');
+        $v->rule('numeric', 'category');
 
         if (!$v->validate()) {
             throw new ValidationException($v->errors());

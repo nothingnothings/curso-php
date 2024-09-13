@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace App\Entity;
 
@@ -9,10 +7,9 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity, ORM\Table(name: "transactions")]
+#[ORM\Entity, ORM\Table(name: 'transactions')]
 class Transaction
 {
-
     public function __construct()
     {
         $this->receipts = new ArrayCollection();
@@ -20,35 +17,34 @@ class Transaction
 
     #[ORM\Id]
     #[ORM\GeneratedValue()]
-    #[ORM\Column(type: "integer", options: ["unsigned" => true])]
+    #[ORM\Column(type: 'integer', options: ['unsigned' => true])]
     private int $id;
 
-    #[ORM\Column(type: "string")]
+    #[ORM\Column(type: 'string')]
     private string $description;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 13, scale: 3)]
     private float $amount;
 
-    #[ORM\Column(type: "datetime")]
+    #[ORM\Column(type: 'datetime')]
     private \DateTime $date;
 
-    #[ORM\Column(name: "created_at", type: "datetime")]
+    #[ORM\Column(name: 'created_at', type: 'datetime')]
     private \DateTime $createdAt;
 
-    #[ORM\Column(name: "updated_at", type: "datetime")]
+    #[ORM\Column(name: 'updated_at', type: 'datetime')]
     private \DateTime $updatedAt;
 
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: "transactions")]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'transactions')]
     #[ORM\JoinColumn(nullable: false)]
     private User $user;
 
-    #[ORM\ManyToOne(targetEntity: Category::class, inversedBy: "transactions")]
+    #[ORM\ManyToOne(targetEntity: Category::class, inversedBy: 'transactions')]
     #[ORM\JoinColumn(nullable: false)]
     private Category $category;
 
-    #[ORM\OneToMany(targetEntity: Receipt::class, mappedBy: "transaction")]
+    #[ORM\OneToMany(targetEntity: Receipt::class, mappedBy: 'transaction')]
     private Collection $receipts;
-
 
     public function getId(): ?int
     {
@@ -72,7 +68,7 @@ class Transaction
         return $this->amount;
     }
 
-    public function setAmount(int $amount): self
+    public function setAmount(float $amount): self
     {
         $this->amount = $amount;
 
@@ -136,7 +132,6 @@ class Transaction
 
     public function setCategory(Category $category): Transaction
     {
-
         $category->addTransaction($this);
 
         $this->category = $category;
@@ -151,7 +146,6 @@ class Transaction
 
     public function addReceipt(Receipt $receipt): Transaction
     {
-
         $this->receipts->add($receipt);
 
         return $this;

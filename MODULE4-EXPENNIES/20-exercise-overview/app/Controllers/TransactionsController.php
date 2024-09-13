@@ -80,7 +80,12 @@ class TransactionsController
             return $response->withStatus(404);
         }
 
-        $data = ['id' => $transaction->getId(), 'description' => $transaction->getDescription()];
+        $data = ['id' => $transaction->getId(), 
+        'description' => $transaction->getDescription(), 
+        'amount' => $transaction->getAmount(),
+        'category' => $transaction->getCategory()->getName(), 
+        'category_id' => $transaction->getCategory()->getId()
+        ];
 
         return $this->responseFormatter->asJson($response, $data);
     }
@@ -98,7 +103,9 @@ class TransactionsController
             return $response->withStatus(404);
         }
 
-        $this->transactionService->update($transaction, $data['description']);
+        $transactionData = new TransactionData($data['description'], (int) $data['category'], (float) $data['amount'], $data['date'] ?? null );
+
+        $this->transactionService->update($transaction, $transactionData);
 
         return $response;
     }
@@ -113,16 +120,17 @@ class TransactionsController
 
         $transformer = function (Transaction $transaction) {
                     return [
+                            'id' => $transaction->getId(),
                             'description' => $transaction->getDescription(),
                             'amount' => $transaction->getAmount(),
                             'category' => $transaction->getCategory()->getName(),
-                            'date' => $transaction->getCreatedAt()->format('Y-m-d H:i:s')
+                            'date' => $transaction->getCreatedAt()->format('Y-m-d H:i:s'),
+                            'category_id' => $transaction->getCategory()->getId()
                         ];
         };
 
         $transactionsAmount = count($transactions);
 
-        // This is super wrong.
         return $this->responseFormatter->asDataTable(
                 $response,
                 array_map($transformer, (array) $transactions->getIterator()),

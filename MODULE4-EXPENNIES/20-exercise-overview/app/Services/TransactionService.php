@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Contracts\TransactionServiceInterface;
 use App\DTOs\DataTableFilters;
 use App\DTOs\TransactionData;
+use App\Entity\Category;
 use App\Entity\Transaction;
 use App\Entity\User;
 use Doctrine\ORM\EntityManager;
@@ -59,7 +60,11 @@ class TransactionService implements TransactionServiceInterface
 
     public function update(Transaction $transaction, TransactionData $transactionData): Transaction
     {
+        $category = $this->entityManager->find(Category::class, $transactionData->categoryId);
+
         $transaction->setDescription($transactionData->description);
+        $transaction->setAmount($transactionData->amount);
+        $transaction->setCategory($category);
 
         $this->entityManager->persist($transaction);
         $this->entityManager->flush();

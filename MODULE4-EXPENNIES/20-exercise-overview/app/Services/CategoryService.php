@@ -21,7 +21,17 @@ class CategoryService implements CategoryServiceInterface
 
     public function getAll(): array
     {
-        return $this->entityManager->getRepository(Category::class)->findAll();
+        $categories = $this->entityManager->getRepository(Category::class)->findAll();
+
+        $categories = array_map(function (Category $category) {
+            return [
+                'id' => $category->getId(),
+                'name' => $category->getName(),
+            ];
+        }, $categories);
+        
+        return $categories;
+
     }
 
 

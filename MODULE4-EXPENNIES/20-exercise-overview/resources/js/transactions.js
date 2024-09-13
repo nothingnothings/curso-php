@@ -7,12 +7,6 @@ window.addEventListener('DOMContentLoaded', function () {
     document.getElementById('editTransactionModal')
   );
 
-  this.fetch('/transactions/load')
-    .then((response) => response.json())
-    .then((response) => {
-      console.log(response);
-    });
-
   const table = new DataTable('#transactionsTable', {
     serverSide: true,
     ajax: '/transactions/load',
@@ -51,7 +45,8 @@ window.addEventListener('DOMContentLoaded', function () {
           .then((response) => response.json())
           .then((response) =>
             openEditTransactionModal(editTransactionModal, response)
-          );
+          )
+          .catch((error) => console.log(error));
       } else {
         const transactionId = deleteBtn.getAttribute('data-id');
 
@@ -73,14 +68,20 @@ window.addEventListener('DOMContentLoaded', function () {
       post(
         `/transactions/${transactionId}`,
         {
-          name: editTransactionModal._element.querySelector(
-            'input[name="name"]'
+          description: editTransactionModal._element.querySelector(
+            'textarea[name="description"]'
+          ).value,
+          amount: editTransactionModal._element.querySelector(
+            'input[name="amount"]'
+          ).value,
+          category: editTransactionModal._element.querySelector(
+            'select[name="category"]'
           ).value,
         },
         editTransactionModal._element
       ).then((response) => {
-        console.log(response, 'THE RESPONSE');
         if (response.ok) {
+          console.log(response, "THE RESPONSE");
           table.draw();
           editTransactionModal.hide();
         }
@@ -88,14 +89,38 @@ window.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-function openEditTransactionModal(modal, { id, name }) {
-  const nameInput = modal._element.querySelector('input[name="name"]');
+function openEditTransactionModal(
+  modal,
+  { id, description, amount, category, category_id }
+) {
+  const descriptionInput = modal._element.querySelector(
+    'textarea[name="description"]'
+  );
+  const amountInput = modal._element.querySelector('input[name="amount"]');
+  const categoryInput = modal._element.querySelector('select[name="category"]');
 
-  nameInput.value = name;
+  descriptionInput.value = description;
+  amountInput.value = amount;
 
-  modal._element
-    .querySelector('.save-transaction-btn')
-    .setAttribute('data-id', id);
+  get('/categories/all')
+    .then((response) => response.json())
+    .then((categories) => {
+      // Create select options programmatically
+      const selectOptions = categories.map((cat) => {
+        // Check if the current option should be selected
+        const isSelected = cat.id === category_id ? 'selected' : '';
+        return `<option value="${cat.id}" ${isSelected}>${cat.name}</option>`;
+      });
 
-  modal.show();
+      // Populate the select element with options
+      categoryInput.innerHTML = selectOptions.join('');
+
+      // Set the transaction ID on the save button
+      modal._element
+        .querySelector('.save-transaction-btn')
+        .setAttribute('data-id', id);
+
+      modal.show();
+    })
+    .catch((error) => console.error('Error fetching categories:', error));
 }
