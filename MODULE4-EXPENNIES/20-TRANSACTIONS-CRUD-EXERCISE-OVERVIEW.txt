@@ -82,3 +82,1385 @@ return function (App $app) {
 
 
 
+
+
+
+
+
+
+
+ACABEI... DEMOROU UMAS 7 HORAS...
+
+
+
+
+
+
+
+
+
+
+--> CONSEGUI...
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR VAI MOSTRAR COMO IMPLEMENTAR 
+DA MANEIRA DELE...
+
+
+
+
+
+
+
+
+
+
+
+--> HÁ VÁRIAS MANEIRAS DIFERENTES DE FAZER AS MESMAS COISAS...
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR JÁ CONSEGUE FAZER O LOAD DE TRANSACTIONS,
+
+ADD E DELETE TRANSACTIONS, ETC..
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR MOSTRA AS CODE CHANGES...
+
+
+
+
+
+
+
+
+
+
+--> AS NOVAS ROUTES PARA AS TRANSACTIONS,
+
+E O TRANSACTION CONTROLLER:
+
+
+
+
+
+
+
+
+    $app->group('/transactions', function (RouteCollectorProxy $transactions) {
+        $transactions->get('', [TransactionsController::class, 'index']);
+        $transactions->post('', [TransactionsController::class, 'store']);
+        $transactions->get('/load', [TransactionsController::class, 'load']);
+        // If the id is not an integer, this route won't be reached, because the route is defined, with a regular expression, as '/{id:[0-9]+}'.
+        $transactions->delete('/{id:[0-9]+}', [TransactionsController::class, 'delete']);
+        $transactions->get('/{id:[0-9]+}', [TransactionsController::class, 'get']);
+        $transactions->post('/{id:[0-9]+}', [TransactionsController::class, 'update']);
+    })->add(AuthMiddleware::class);
+
+
+
+
+
+
+
+
+
+--> ok... as routes são as mesmas 
+
+das categories,
+
+mas com 'transactions'...
+
+
+
+
+
+
+
+
+
+---> O CATEGORIES CONTROLLER FICOU ASSIM:
+
+
+
+
+
+
+    $app->group('/categories', function (RouteCollectorProxy $categories) {
+        $categories->get('', [CategoriesController::class, 'index']);
+        $categories->post('', [CategoriesController::class, 'store']);
+        $categories->get('/load', [CategoriesController::class, 'load']);
+        $categories->get('/all', [CategoriesController::class, 'getAll']);
+        // If the id is not an integer, this route won't be reached, because the route is defined, with a regular expression, as '/{id:[0-9]+}'.
+        $categories->delete('/{id:[0-9]+}', [CategoriesController::class, 'delete']);
+        $categories->get('/{id:[0-9]+}', [CategoriesController::class, 'get']);
+        $categories->post('/{id:[0-9]+}', [CategoriesController::class, 'update']);
+    })->add(AuthMiddleware::class); 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+
+
+OS METHODS DO PROFESSOR FICARAM ASSIM:
+
+
+
+
+
+    public function index(Request $request, Response $response): Response
+    {
+        return $this->twig->render($response, 
+        
+        'transactions/index.twig',
+        
+        ['categories'=> $this->categoryService->getCategoryNames()]
+        );
+    }
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+
+ELE PEGOU TODOS OS CATEGORYNAMES, PARA DISPLAYAR...
+
+
+
+
+
+
+--> LÁ NO CATEGORYSERVICE,
+
+
+
+O PROFESSOR ESCREVEU ASSIM:
+
+
+
+
+
+public function getCategoryNames(): array 
+{
+    return $this->entityManager->getRepository(Category::class)
+    ->createQueryBuilder('c')
+    ->select('c.id', 'c.name')
+    ->getQuery()
+    ->getArrayResult();
+}
+
+
+
+
+
+
+
+
+
+
+-> ELE FEZ ISSO PROVAVELMENTE PARA 
+DEIXAR 
+
+
+O LOAD DE CATEGORIES MAIS RÁPIDO...
+
+
+
+
+
+
+
+
+
+A PAGE DE TRANSACTIONS TAMBÉM FICOU 1 POUCO DIFERENTE,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+EM VEZ DISSO:
+
+
+		{% include 'transactions/edit_transaction_modal.twig' %}
+
+
+
+
+
+PROFESSOR USOU ISTO:
+
+
+
+
+		{% include 'transactions/transaction_modal.twig' with {modal: {title: 'Create Tranasction', id: 'newTransactionModal', isEdit: false}} %}
+    		{% include 'transactions/transaction_modal.twig' with {modal: {title: 'Create Tranasction', id: 'editTransactionModal', isEdit: true}} %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR FEZ ISSO PARA 
+TER UM CARÁTER DINAMICO NESSE TEMPLATE...
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR DIZ QUE VC PODERIA 
+
+TER SUBSTITUÍDO 
+
+O CONTEÚDO COM JAVASCRIPT 
+
+
+(que foi o que eu fiz)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR ESCREVEU OS FIELDS 
+SIMILARMENTE À MINHA VERSÃO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA A PARTE DAS CATEGORIES,
+
+
+
+ELE ESCREVEU ALGO ASSIM:
+
+
+
+
+
+
+				<select class="form-control form-control-lg" name="date">
+					<option value="">Select a date</option>
+					{% for date in dates %}
+						<option value="{{ date }}">{{ date }}</option>
+					{% endfor %}
+				</select>
+
+
+            
+
+        
+
+
+
+
+
+
+
+ou seja,
+
+
+
+
+ELE FEZ 1 SISTEMA EM  QUE LOOPA POR DENTRO 
+
+
+DAS CATEGORIES 
+
+
+QUE OBTEMOS 
+
+
+
+
+LÁ DO TRANSACTION CONTROLLER...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> UMA SOLUÇÃO MELHOR É USAR
+
+
+JAVASCRIPT PARA CARREGAR DINAMICAMENTE AS 
+
+CATEGORIES, POR MEIO DE AJAX CALLS (foi o que eu fiz)...
+
+
+
+
+
+
+
+
+--> ISSO É FINE SE VC 
+    N TIVER MILHARES DE CATEGORIES....
+
+
+
+
+
+
+
+
+
+
+
+
+--> ''IF YOU HAVE THOUSANDS OF CATEGORIES,
+    I SUGGEST YOU USE AN AJAX CALL,
+    TO LOAD THEM DYNAMICALLY''...
+
+
+
+
+
+
+
+
+--> FOI ISSO QUE FIZ...
+
+
+
+
+
+
+O PROFESSOR ESCREVEU DE FORMA PARECIDA COMO 
+
+EU ESCREVI,
+
+
+
+
+MAS ELE FORMATOU ALGUMAS COISAS 
+
+DE FORMA DIFERENTE,
+
+
+TIPO ASSIM:
+
+
+
+
+
+{data: 'description'},
+data: row => new Intl.NumberFormat(
+    'en-US',
+    {
+        style: 'currency',
+        currency: 'USD',
+        currencySign: 'accounting'
+    }
+).format(row.amount)
+
+
+
+
+
+
+
+
+O PROFESSOR USOU A INTERNALIZATION API 
+
+
+PARA REALIZAR O FORMAT DE ESSA CURRENCY...
+
+
+
+
+
+
+
+MAS É BASICAMENTE JAVASCRIPT, NADA DE MAIS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O EDIT E DELETE TAMBÉM FUNCIONOU...
+
+
+
+
+
+
+
+
+
+
+
+EM WEBPACK CONFIG,
+
+
+
+ADICIONAMOS 1 NOVA ENTRY  
+
+
+
+NO 'webpack.config.js',
+
+
+tipo assim:
+
+
+
+   * ENTRY CONFIG
+   *
+   * Each entry will result in one JavaScript file (e.g. app.js)
+   * and one CSS file (e.g. app.css) if your JavaScript imports CSS.
+   */
+  .addEntry('app', './resources/js/app.js')
+  .addEntry('dashboard', './resources/js/dashboard.js')
+  .addEntry('auth', './resources/js/auth.js')
+  .addEntry('categories', './resources/js/category.js')
+  .addEntry('transactions', './resources/js/transactions.js')
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+
+
+
+
+O PROFESSOR TAMBEḾ ESCREVEU OS METHODS DE 
+
+
+'store'
+
+
+
+
+
+no transactionController..
+
+
+
+
+
+
+
+
+
+
+
+AÍ O PROFESSOR ESCREVEU ASSIM, O VALIDATOR:
+
+
+
+        $v->rule('required', ['description', 'category', 'amount', 'date']);
+
+        $v->rule(
+            'lengthMax',
+            'description',
+            500
+        );
+
+        $v->rule(
+            'integer',
+            'category'
+        );
+
+        $v->rule(
+            'numeric',
+            'amount'
+        );
+
+        $v->rule(
+            'date',
+            'date'
+        );
+
+
+
+
+
+
+--> MAS O PROFESSOR TAMBÉM ADICIONOU 
+
+
+1 RULE CUSTOM, AQUI,
+
+
+EM QUE TAMBÉM FAZEMOS VALIDATE 
+
+DA CATEGORY..
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O CÓDIGO FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+$v->rule(
+    function($field, $value, $params, $fields) use (&$data) {
+
+        $id = (int) $value;
+
+        if (!$id) {
+            return false;
+        }
+
+        $category = $this->categoryService->getById($id);
+
+        if ($category) {
+            $data['category'] = $category;
+
+            return true;
+        }
+
+        return false;
+    }, 
+    'category'
+)->message('Category not found');
+
+
+
+
+
+
+
+
+
+QUER DIZER QUE FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\RequestValidators;
+
+use App\Contracts\RequestValidatorInterface;
+use App\Exception\ValidationException;
+use App\Services\CategoryService;
+use Valitron\Validator;
+
+class CreateTransactionRequestValidator implements RequestValidatorInterface
+{
+
+    public function __construct(
+        private readonly CategoryService $categoryService
+    ) {}
+
+
+    public function validate(array $data): array
+    {
+        $v = new Validator($data);
+
+        $v->rule('required', ['description', 'category', 'amount', 'date']);
+
+        $v->rule(
+            'lengthMax',
+            'description',
+            500
+        );
+
+        $v->rule(
+            'integer',
+            'category'
+        );
+
+        $v->rule(
+            'numeric',
+            'amount'
+        );
+
+        $v->rule(
+            'date',
+            'date'
+        );
+
+        $v->rule(
+            function ($field, $value, $params, $fields) use (&$data) {
+
+                $id = (int) $value;
+
+                if (!$id) {
+                    return false;
+                }
+
+                $category = $this->categoryService->getById($id);
+
+                if ($category) {
+                    $data['category'] = $category;
+
+                    return true;
+                }
+
+                return false;
+            },
+            'category'
+        )->message('Category not found');
+
+        if (!$v->validate()) {
+            throw new ValidationException($v->errors());
+        }
+
+        $dataArray = [
+            'description' => $data['description'],
+            'amount' => $data['amount'],
+            'category' => $data['category'],
+            'date' => $data['date']
+        ];
+
+        return $dataArray;
+    }
+}
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+nada de mais...
+
+
+
+
+
+
+HÁ 1 DETALHE IMPORTANTE...
+
+
+
+
+O PROFESSOR PERCEBEU QUE 
+
+
+
+OS ERRORS NÃO ESTAVAM SENDO LOGGADOS 
+
+APROPRIADAMENTE COM O DOCKER...
+
+
+
+
+
+
+
+
+POR ISSO, ELE FEZ 
+
+
+
+AJUSTES, EM 
+
+
+1 ARQUIVO CHAMADO DE 
+
+'local.ini',
+
+
+
+a local php configuration 
+file,
+
+
+lá 
+
+
+no folder do docker, no mesmo 
+
+nível da Dockerfile...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+fastcgi.logging = Off 
+error_reporting = E_ALL
+log_errors = On
+error_log = /var/www/storage/logs/php_errors.log
+
+
+
+
+
+
+
+
+ASSIM, SE HÁ QUALQUER 
+
+ERRO DE PHP,
+
+
+
+É MAIS FÁCIL DE DEBUGGAR,
+
+
+PQ
+
+AÍ OS LOGS SERÃO PRODUZIDOS 
+
+DENTRO DE 
+
+'storage>logs>php_errors.log'...
+
+
+
+
+
+
+
+
+--> SE VC ESTÁ USANDO 
+DOCKER, ISSO JÁ BASTA,
+
+
+MAS SE VC ESTÁ USANDO ALGO 
+
+COMO XAMPP OU LARAGON,
+
+VC DEVE AJUSTAR SEU ARQUIVO 'php.ini',
+
+
+para que esses logs sejam armazenados nesse folder...
+
+
+
+
+
+
+
+-> A OUTRA COISA QUE O PROFESSOR MUDOU 
+
+
+FOI O ARQUIVO DE 'ajax.js',
+
+
+
+em 
+
+QUE
+
+
+FEZ COM QUE APENAS 1 ÚNICA 
+
+ERROR MESSAGE APAREÇA 
+
+PARA CADA INPUT FIELD...
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR 
+
+SABE QUE TEMOS 
+
+
+ALGUM CÓDIGO QUE PODE 
+
+SER REFORMATADO,
+
+
+
+COMO 'TRANSFORMER' CALLBACKS...
+
+
+
+
+
+
+
+-> MAS O PROFESSOR QUER EVITAR 
+O OVERCOMPLICATE DAS COISAS....
+
+
+
+
+
+
+
+
+
+-> ÀS VEZES É BOM 
+TER 1 POUCO MAIS DE DUPLICATION,
+
+EM VEZ DE ABSTRACTIONS EXAGERADAS...
+
+
+
+
+
+
+
+
+--> O PROFESSOR 
+
+TINHA
+
+
+DESABILITADO O 'SORTING' 
+
+
+COM A COLUMN DE 'CATEGORY'...
+
+
+
+
+
+
+
+
+
+ISSO É PQ ELE QUER IMPLEMENTAR 
+ISSO CONOSCO...
+
+
+
+
+
+
+
+
+
+{sortable: 'false'}
+
+
+
+
+
+
+
+
+
+
+
+
+--> O QUE  O PROFESSOR QUER FAZER, AQUI,
+
+É O 'SORT BY CATEGORY NAME'...
+
+
+
+
+
+
+--> O PROBLEMA, AQUI,
+
+É QUE 
+
+
+'TRANSACTION'
+
+
+NÃO CONTÉM 
+
+
+O 'CATEGORY NAME',
+
+
+E SIM CONTÉM APENAS
+
+O CATEGORY ID...
+
+
+
+
+
+--> É POR ISSO QUE PRECISAMOS 
+'FIGURE OUT' 
+
+
+A MANEIRA PELA QUAL 
+
+PODEMOS FAZER
+
+
+SORTING PELO CATEGORY NAME,
+
+
+E NÃO PELA DESCRIPTION...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PRIMEIRAMENTE, NO BACKEND,
+
+
+PRECISAMOS COLOCAR 
+
+
+A 'category'
+
+
+na list do orderBy...
+
+
+
+
+
+
+
+
+
+MAS ISSO SÓ VAI FAZER 
+
+O SORT POR CATEGORY 
+ID,
+
+
+E NÃO POR CATEGORY NAME...
+
+
+
+
+
+
+
+
+--> PARA CONSEGUIR 
+
+ESSA DATA,
+
+
+PRECISAMOS JOINAR ESSA 
+
+RELATED TABLE,
+
+'CATEGORIES'
+
+
+
+A ESSA TABLE DE 'TRANSACTIONS'...
+
+
+
+
+
+
+
+
+
+
+-> CERTO, MAS COMO PODEMOS FAZER ISSO?
+
+
+
+
+
+
+
+O CÓDIGO, ATUALMENTE, TEM ESTE FORMATO:
+
+
+
+
+
+
+    // Used with pagination.
+    public function getPaginatedCategories(DataTableFilters $dataTableFilters): Paginator
+    {
+
+        $start = $dataTableFilters->start ?? 0;
+        $length = $dataTableFilters->length ?? 10;
+        $orderBy = $dataTableFilters->orderBy ?? 'description';
+        $dir = $dataTableFilters->orderDir ?? 'asc';
+        $searchTerm = $dataTableFilters->searchTerm ?? '';
+
+
+        $query = $this->entityManager->getRepository(Transaction::class)
+            ->createQueryBuilder('t')  // alias of the table will be 'c'.
+            ->setFirstResult($start) // offset. It is the number of rows to skip.
+            ->setMaxResults($length); // limit. It is the maximum number of rows to retrieve.
+
+        // We use these 'allow lists' to prevent SQL injection attacks.
+        $orderBy = in_array($orderBy, ['description', 'amount', 'category', 'date']) ? $orderBy : 'description';
+
+        $dir = strtolower($dir) === 'asc' ? 'asc' : 'desc';
+
+
+        if (!empty($searchTerm)) {
+            // We escape these special characters, so that they can be used as search terms in our filter/search bar.
+            // $searchTerm = str_replace(['%', '_'], ['\%', '\_'], $searchTerm);
+            $query->where('t.description LIKE :description')->setParameter('description', '%' . addcslashes($searchTerm, '%_') . '%');
+        }
+
+        $query->orderBy('t.' . $orderBy, $dir);
+
+        // return $query->getQuery()->getResult();
+        return new Paginator($query);
+    }
+
+
+
+
+
+
+
+
+
+PARA REALIZAR O JOIN,
+
+
+DEVEMOS ALTERAR ESTE TRECHO:
+
+
+
+
+
+
+        $query = $this->entityManager->getRepository(Transaction::class)
+            ->createQueryBuilder('t')  // alias of the table will be 'c'.
+            ->setFirstResult($start) // offset. It is the number of rows to skip.
+            ->setMaxResults($length); // limit. It is the maximum number of rows to retrieve.
+
+
+
+
+
+
+
+--> PRECISAMOS CHAMAR O METHOD 
+
+'leftJoin()',
+
+
+
+
+PARA ENTÃO 
+
+
+
+joinar em 
+
+'t.category' e 'c'....
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+        $query = $this->entityManager->getRepository(Transaction::class)
+            ->createQueryBuilder('t')  // alias of the table will be 'c'.
+            ->leftJoin('t.category', 'c') // LIKE THIS
+            ->setFirstResult($start) // offset. It is the number of rows to skip.
+            ->setMaxResults($length); // limit. It is the maximum number of rows to retrieve.
+
+
+
+
+
+
+
+
+
+
+E ISSO VAI JOINAR ESSA DATA...
+
+
+
+
+
+
+
+
+
+-> AÍ, LÁ NA PARTE DE 'orderBy',
+
+
+em vez de fazer 't.' . $orderBy' ,
+
+
+
+
+PODEMOS FAZER ALGO ASSIM:
+
+
+
+
+
+
+
+if ($orderBy === 'category') {
+    $query->orderBy('c.name', $orderDir );
+} else {
+    $query->orderBy('t.' . $orderBy, $orderDir);
+}
+
+
+
+
+
+
+
+
+
+
+quer dizer que fica TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+    // Used with pagination.
+    public function getPaginatedCategories(DataTableFilters $dataTableFilters): Paginator
+    {
+
+        $start = $dataTableFilters->start ?? 0;
+        $length = $dataTableFilters->length ?? 10;
+        $orderBy = $dataTableFilters->orderBy ?? 'description';
+        $dir = $dataTableFilters->orderDir ?? 'asc';
+        $searchTerm = $dataTableFilters->searchTerm ?? '';
+
+
+        $query = $this->entityManager->getRepository(Transaction::class)
+            ->createQueryBuilder('t')  // alias of the table will be 'c'.
+            ->leftJoin('t.category', 'c') // THIS EXECUTES A JOIN (so we can filter by category name, and not category id)
+            ->setFirstResult($start) // offset. It is the number of rows to skip.
+            ->setMaxResults($length); // limit. It is the maximum number of rows to retrieve.
+
+        // We use these 'allow lists' to prevent SQL injection attacks.
+        $orderBy = in_array($orderBy, ['description', 'amount', 'category', 'date']) ? $orderBy : 'description';
+
+        $dir = strtolower($dir) === 'asc' ? 'asc' : 'desc';
+
+
+        if (!empty($searchTerm)) {
+            // We escape these special characters, so that they can be used as search terms in our filter/search bar.
+            // $searchTerm = str_replace(['%', '_'], ['\%', '\_'], $searchTerm);
+            $query->where('t.description LIKE :description')->setParameter('description', '%' . addcslashes($searchTerm, '%_') . '%');
+        }
+
+        if ($orderBy === 'category') {
+            $query->orderBy('c.name', $dir );
+        } else {
+            $query->orderBy('t.' . $orderBy, $dir);
+        }
+
+        // return $query->getQuery()->getResult();
+        return new Paginator($query);
+    }
+
+
+
+
+
+
+
+
+
+
+
+CERTO....
+
+
+
+
+
+
+
+PARA HABILITAR ISSO NO FRONTEND,
+
+
+deixamos:
+
+{data: 'category'} 
+
+
+
+(sem o 'sortable: false')...
+
+
+
+
+
+
+
+
+CERTO... COM ISSO, CONSERTAMOS O SORTING,
+
+AGORA ELE SORTA AS EXPECTED...
+
+
+
+
+
+
+
+
