@@ -65,6 +65,7 @@ class TransactionService implements TransactionServiceInterface
         $transaction->setDescription($transactionData->description);
         $transaction->setAmount($transactionData->amount);
         $transaction->setCategory($category);
+        $transaction->setDate($transactionData->transactionDate);
 
         $this->entityManager->persist($transaction);
         $this->entityManager->flush();

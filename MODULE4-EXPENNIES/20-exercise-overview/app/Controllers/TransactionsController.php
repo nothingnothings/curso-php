@@ -13,6 +13,7 @@ use App\RequestValidators\UpdateTransactionRequestValidator;
 use App\ResponseFormatter;
 use App\Services\TransactionService;
 use App\Services\RequestService;
+use DateTime;
 use Psr\Http\Message\ResponseInterface;
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
@@ -40,19 +41,22 @@ class TransactionsController
 
 
         ['description' => $description] = $data;
-        ['category' => $category] = $data;
+        ['category' =>  $category] = $data;
         ['amount' => $amount] = $data;
-        ['date' => $date] = $data;
-  
+        ['date' => $date] = $data; // TODO: This is not working.
+        
+        // Format the date to the format that the database expects:
+        $date = DateTime::createFromFormat('Y-m-d', $date);
 
-
-
-        $transactionData = new TransactionData($description, $category, $amount, $date);
+        $transactionData = new TransactionData($description, (int) $category, (float) $amount, $date);
 
         $data = $this->requestValidatorFactory
             ->make(CreateTransactionRequestValidator::class)
             ->validate([
-                'description' => $description,
+                'description' => $transactionData->description,
+                'category' => $transactionData->categoryId,
+                'amount' => $transactionData->amount,
+                'date' => $transactionData->transactionDate
             ]);
 
         $user = $request->getAttribute('user');

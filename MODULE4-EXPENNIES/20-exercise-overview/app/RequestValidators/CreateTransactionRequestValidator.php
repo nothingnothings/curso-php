@@ -3,7 +3,7 @@
 namespace App\RequestValidators;
 
 use App\Contracts\RequestValidatorInterface;
-use App\DTOs\TransactionData;
+use App\Exception\ValidationException;
 use Valitron\Validator;
 
 class CreateTransactionRequestValidator implements RequestValidatorInterface
@@ -12,16 +12,38 @@ class CreateTransactionRequestValidator implements RequestValidatorInterface
     {
         $v = new Validator($data);
 
-        $v->rule('required', ['description']);
-        $v->rule('required', ['amount']);
+        $v->rule('required', ['description', 'category', 'amount', 'date']);
 
         $v->rule(
             'lengthMax',
-            'name',
+            'description',
+            500
         );
+
+        $v->rule(
+            'integer',
+            'category'
+        );
+
+        $v->rule(
+            'numeric',
+            'amount'
+        );
+
+        $v->rule(
+            'date',
+            'date'
+        );
+
+        if (!$v->validate()) {
+            throw new ValidationException($v->errors());
+        }
 
         $dataArray = [
             'description' => $data['description'],
+            'amount' => $data['amount'],
+            'category' => $data['category'],
+            'date' => $data['date']
         ];
 
         return $dataArray;
