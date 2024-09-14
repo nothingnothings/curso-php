@@ -1,0 +1,6699 @@
+
+
+
+
+
+
+
+
+
+
+
+NESSA AULA, ADICIONAREMOS A ABILIDADE DE 'UPLOAD RECEIPTS'
+
+A NOSSAS TRANSACTIONS...
+
+
+
+
+
+
+--> ISSO PQ FILE HANDLING É IMPORTANTE PARA QUALQUER APP DE VERDADE...
+
+
+
+
+
+
+
+
+
+
+
+--> PODERÍAMOS CONSTRUIR FILE SYSTEM HANDLING FROM SCRATCH,
+
+    MAS ISSO DEMORARIA MT TEMPO...
+
+
+
+
+
+
+
+
+
+-> PODEMOS USAR ALGUMA PACKAGE JÁ EXISTENTE, ALGUMA WELL-MAINTAINED,
+
+QUE SUPORTE DIFERENTES FILESYSTEMS, COMO S3, AZURE e etc...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> A PACKAGE QUE UTILIZAREMOS, NO CASO,
+    SERÁ 
+
+
+
+
+
+
+O 'FLYSYSTEM'...
+
+
+
+
+
+
+
+
+
+
+--> ELE BASICAMENTE  
+
+''OFFERS A SINGLE INTERFACE,
+WITH ITS SIMPLE TO USE AND CONSISTENT API,
+
+TO INTERACT WITH DIFFERENT FILE SYSTEMS'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OFERECE SUPORTE A DIFERENTES FILESYSTEMS:
+
+
+
+1) LOCAL 
+
+
+2) FTP 
+
+
+3) SFTP 
+
+
+4) MEMORY 
+
+5) AWS S3 
+
+6) ASYNCAWS S3 
+
+
+7) GOOGLE CLOUD STORAGE 
+
+
+8) AZURE BLOB STORAGE 
+
+
+9) WEB DAV 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> USAREMOS O ADAPTADOR 'LOCAL'
+
+POR ENQUANTO,
+
+
+MAS USAR QUALQUER 1 DESSES OUTROS ADAPTERS NÃO DEVE SER UM PROBLEMA...
+
+
+
+
+
+
+
+
+
+
+
+-> DEVEMOS RODAR 'composer require',
+
+para instalar essa package...
+
+
+
+
+
+
+o comando é 
+
+
+
+
+
+
+
+
+
+'composer require league/flysystem:^3.0'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> CERTO... AÍ ABRIMOS OS DOCS...
+
+
+
+
+
+
+
+
+
+
+TEMOS 2 SECTIONS:
+
+
+
+
+
+
+A) 'SIMPLE USAGE'
+
+
+
+
+
+
+B) 'ADVANCED USAGE'...
+
+
+
+
+
+
+
+
+
+
+
+
+-> VAMOS COMEÇAR COM A SIMPLE USAGE..
+
+
+
+
+
+
+--> COM ADVANCED USAGE, PODEMOS CUSTOMIZAR VÁRIAS COISAS...
+
+
+
+
+
+
+
+
+
+
+
+
+O CÓDIGO DA USAGE SIMPLES É ASSIM:
+
+
+
+
+
+
+
+https://flysystem.thephpleague.com/v1/docs/
+
+
+
+
+
+
+
+
+
+
+
+use League\Flysystem\Filesystem;
+use League\Flysystem\Adapter\Local;
+
+$adapter = new Local(__DIR__.'/path/to/root');
+$filesystem = new Filesystem($adapter);
+
+
+
+
+
+
+
+
+
+
+
+
+BASICAMENTE, VAMOS
+
+
+
+''INSTANTIATE THE ADAPTER INSTANCE,
+AND THEN PASS THAT OBJECT TO THE FILESYSTEM CONSTRUCTOR''...
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS O PROFESSOR NÃO QUER SER FORÇADO A INSTANTIATE 
+O FILESYSTEM DESSA FORMA AÍ...
+
+
+
+
+
+
+
+
+-> EM VEZ DISSO,
+
+ELE QUER SER CAPAZ DE __ INJECT__ O FILESYSTEM
+
+
+COMO DEPENDENCY,
+
+EM NOSSOS CONSTRUCTORS...
+
+
+
+
+
+
+
+
+
+
+--> PODERÍAMOS FAZER ISSO DE DIVERSAS MANEIRAS...
+
+
+
+
+
+
+MANEIRAS POSSÍVEIS:
+
+
+
+
+
+1) FACTORY PATTERN 
+
+
+        -> SERIA RESPONSÁVEL PELO CREATE 
+            DO PROPER FILESYSTEM INSTANCE PARA NÓS,
+
+
+            COM O ADAPTER APROPRIADO...
+
+
+
+
+
+2) POR MEIO DO ADD DE UMA ENTRY, NOS CONTAINER_BINDINGS.PHP,
+    PARA A CLASS DE 'FILESYSTEM'... 
+
+
+        --> ESSA É A SOLUTION MAIS SIMPLES PARA NOSSO USE-CASE...
+
+
+
+
+
+
+
+--> COPIAMOS O CÓDIGO  
+
+DO FILESYSTEM DO 'FLYSYSTEM',
+
+
+
+
+
+E AÍ ESCREVEMOS ASSIM, NAS CONTAINER_BINDINGS:
+
+
+
+
+
+
+
+    // The FileSystem service (to be able to handle file uploads):
+    \League\Flysystem\Filesystem::class => function () {
+        $adapter = new LocalFilesystemAdapter(__DIR__ . '/path/to/root');
+        $filesystem = new Filesystem($adapter);
+
+        return $filesystem;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, VAMOS RETORNAR ESSE FILESYSTEM...
+
+
+
+
+
+
+
+
+
+ 
+
+--> QUANTO AO DIRECTORY,
+
+USAREMOS O 'STORAGE_PATH',
+
+AQUELA CONSTANT QUE JÁ TEMOS...
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+   // The FileSystem service (to be able to handle file uploads):
+    \League\Flysystem\Filesystem::class => function () {
+        $adapter = new LocalFilesystemAdapter(STORAGE_PATH);
+        $filesystem = new Filesystem($adapter);
+
+        return $filesystem;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO PODE PARECER BOM,
+
+
+
+MAS O PARTE QUER DEIXAR ESSA PARTE CONFIGURÁVEL,
+
+
+
+
+''SO THAT WE CAN CREATE AN ADAPTER BASED ON SOME CONFIGURATION,
+    SO THAT, IN THE FUTURE, IT IS EASIER TO ADD SUPPORT TO ADDITIONAL 
+    ADAPTERS, LIKE S3''..
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE O PROFESSOR VAI QUERER INJETAR 1 VALUE DE '$config' (Config)
+
+NESSA FUNCTION,
+
+
+
+
+A CLASS DE CONFIG,
+
+
+
+PARA AÍ 
+
+
+EDITARMOS 
+
+
+
+O TIPO DE FILESYSTEM QUE VAMOS QUERER USAR...
+
+
+
+
+
+
+
+-> TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+    // The FileSystem service (to be able to handle file uploads):
+    \League\Flysystem\Filesystem::class => function (Config $config) {
+        $adapter = new LocalFilesystemAdapter(STORAGE_PATH);
+        $filesystem = new Filesystem($adapter);
+
+        return $filesystem;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO, LÁ NO arquivo config 'app.php',
+
+
+O PROFESSOR ESCREVE ASSIM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Enum\AppEnvironment;
+
+$appEnv = $_ENV['APP_ENV'] ?? AppEnvironment::Production->value;
+$appSnakeName = strtolower(str_replace(' ', '_', $_ENV['APP_NAME']));
+
+return [
+    'app_name' => $_ENV['APP_NAME'],
+    'app_version' => $_ENV['APP_VERSION'] ?? '1.0',
+    'app_environment' => $appEnv,
+    'display_error_details' => (bool) ($_ENV['APP_DEBUG'] ?? 0),
+    'log_errors' => true,
+    'log_error_details' => true,
+    'doctrine' => [
+        'dev_mode' => AppEnvironment::isDevelopment($appEnv),
+        'cache_dir' => STORAGE_PATH . '/cache/doctrine',
+        'entity_dir' => [APP_PATH . '/Entity'],
+        'connection' => [
+            'driver' => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
+            'host' => $_ENV['DB_HOST'] ?? 'localhost',
+            'port' => $_ENV['DB_PORT'] ?? 3306,
+            'dbname' => $_ENV['DB_NAME'],
+            'user' => $_ENV['DB_USER'],
+            'password' => $_ENV['DB_PASS'],
+        ],
+    ],
+    'session' => [
+        'name' => $appSnakeName . '_session',
+        'flash_name' => $appSnakeName . '_flash',
+        'secure' => true,
+        'httponly' => true,
+        'samesite' => 'lax',
+    ],
+    'storage' => [
+        'driver' => 'local'
+    ]
+];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA, ELE DEFINE O VALUE DE driver como 'local'...
+
+
+
+
+
+
+
+--> poderemos substituir esse value por 's3' no futuro,
+
+ou qualquer outro adapter...
+
+
+
+
+
+
+
+
+-> DE VOLTA AOS CONTAINER BINDINGS,
+
+
+O PROFESSOR 
+
+
+
+
+FAZ 1 ADAPTAÇAÕ, COM MATCH EXPRESSIONS, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+    // The FileSystem service (to be able to handle file uploads):
+    \League\Flysystem\Filesystem::class => function (Config $config) {
+        $adapter = match ($config->get('storage.driver')) {
+            'local' => new LocalFilesystemAdapter(STORAGE_PATH),
+        }; 
+        $filesystem = new Filesystem($adapter);
+
+        return $filesystem;
+    }
+
+
+
+
+
+
+
+
+
+
+
+-> MAIS TARDE, SE COLOCARMOS SUPORTE AO S3,
+
+PODEREMOS ADICIONAR 1 NOVA LINHA, E AÍ ESCREVER ASSIM:
+
+
+
+
+    // The FileSystem service (to be able to handle file uploads):
+    \League\Flysystem\Filesystem::class => function (Config $config) {
+        $adapter = match ($config->get('storage.driver')) {
+            'local' => new LocalFilesystemAdapter(STORAGE_PATH),
+            's3' => ...
+        }; 
+        $filesystem = new Filesystem($adapter);
+
+        return $filesystem;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO... COM ISSO, GANHAMOS MAIOR FLEXIBILIDADE...
+
+
+
+
+
+
+
+
+
+---> O PROFESSOR DEIXA ISSO COMO 1 'ENUM CLASS',
+
+EM VEZ DE UM HARDCODE DE 'local'...
+
+
+
+
+
+--> CRIAMOS ESSA ENUM CLASS,
+
+DE NOME 'StorageDriver',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Enum;
+
+enum StorageDriver
+{
+    case Local;
+}
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, LÁ EM CONFIG, FICOU ASSIM:
+
+
+
+
+
+
+    ],
+    'session' => [
+        'name' => $appSnakeName . '_session',
+        'flash_name' => $appSnakeName . '_flash',
+        'secure' => true,
+        'httponly' => true,
+        'samesite' => 'lax',
+    ],
+    'storage' => [
+        'driver' => StorageDriver::Local
+    ]
+
+
+
+
+
+
+
+
+
+
+
+
+LÁ NO CONTAINER BINDINGS, FICOU ASSIM:
+
+
+
+
+
+
+
+
+
+    // The FileSystem service (to be able to handle file uploads):
+    \League\Flysystem\Filesystem::class => function (Config $config) {
+        $adapter = match ($config->get('storage.driver')) {
+            StorageDriver::Local => new LocalFilesystemAdapter(STORAGE_PATH),
+        };
+        $filesystem = new Filesystem($adapter);
+
+        return $filesystem;
+    }
+
+
+
+
+
+
+
+--> AGORA VAMOS PODER INJETAR ESSE filesystem no nosso 'ReceiptController',
+
+
+PARA QUE ENTÃO 
+
+CONSIGAMOS UPLOADAR FILES...
+
+
+
+
+
+
+
+
+
+
+
+Ex:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use Psr\Http\Message\ResponseInterface;
+use Slim\Psr7\Request;
+use Slim\Psr7\Response;
+
+class ReceiptController
+{
+    public function store(Request $request, Response $response, array $args): ResponseInterface
+    {
+        $file = $request->getUploadedFiles()['receipt'];
+
+        return $response;
+    }
+}
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+MAS PRECISAMOS DO CONSTRUCTOR,
+
+
+PARA INJETAR 
+
+
+O FILESYSTEM...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use League\Flysystem\Filesystem;
+use Psr\Http\Message\ResponseInterface;
+use Slim\Psr7\Request;
+use Slim\Psr7\Response;
+
+class ReceiptController
+{
+
+    public function __construct(private readonly Filesystem $filesystem) {
+
+    }
+
+
+    public function store(Request $request, Response $response, array $args): ResponseInterface
+    {
+        $file = $request->getUploadedFiles()['receipt'];
+
+        return $response;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR MOSTRA ALGUMAS DAS CHANGES QUE ELE FEZ, POR TRÁS DAS CENAS...
+
+
+
+
+
+
+
+
+
+
+
+
+-> VAMOS ATÉ A PAGE DE TRANSACTIONS..
+
+
+
+
+
+
+
+--> O PROFESSOR ADICIONOU 1 NOVO BUTTON...
+
+
+
+
+
+
+
+QUANDO CLICAMOS NESSE BUTTON,
+
+
+É ABERTO 1 MODAL, QUE NOS DEIXA UPLOADAR 
+
+RECEIPTS...
+
+
+
+
+
+
+
+
+
+--> TENHO QUE PEGAR ESSE ARQUIVO, E INCLUIR NO MEU PROJETO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> inclui no meu projeto... 
+
+
+
+
+
+
+
+
+
+-> se tentamos enviar esse arquivo com o button de save,
+
+
+ficamos com 1 request de tipo POST 
+
+à url 
+
+
+
+'localhost:8000/transactions/{id}/receipts'..
+
+
+
+
+
+
+
+
+
+
+
+
+-> E O CONTENT-TYPE DE ESSA FORM É 'MULTIPART/FORM-DATA',
+
+
+como geralmente 
+
+
+esse tipo de requset possui...
+
+
+
+
+
+
+
+
+
+
+
+-> A PARTE DO CONTROLLER AINDA NÃO FAZ COISA ALGUMA...
+
+
+
+
+
+
+-> ELE APENAS RETORNA 1 RESPONSE DE '200 OK' --> E É POR ISSO QUE O MODAL FOI FECHADO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> A PARTE DO MODAL É REALMENTE ESTA:
+
+
+
+
+
+<div class="modal fade" id="uploadReceiptModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Upload Receipt</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-outline form-white mb-4">
+                    <input type="file" name="receipt" class="form-control form-control-lg">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i>
+                    Close
+                </button>
+                <button type="button" class="btn btn-success upload-receipt-btn">
+                    <i class="bi bi-check-circle me-1"></i>
+                    Upload
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OU SEJA, É UMA SIMPLES FORM COM 1 INPUT FIELD DE TIPO 'FILE',
+
+
+
+com name de 'receipt'...
+
+
+
+
+
+
+
+
+
+
+-> LÁ NA PARTE DE 'transactions.js',
+
+
+
+O PROFESSOR TAMBÉM ATUALIZOU O CÓDIGO, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import { Modal }          from "bootstrap"
+import { get, post, del } from "./ajax"
+import DataTable          from "datatables.net"
+
+window.addEventListener('DOMContentLoaded', function () {
+    const newTransactionModal  = new Modal(document.getElementById('newTransactionModal'))
+    const editTransactionModal = new Modal(document.getElementById('editTransactionModal'))
+    const uploadReceiptModal   = new Modal(document.getElementById('uploadReceiptModal'))
+
+    const table = new DataTable('#transactionsTable', {
+        serverSide: true,
+        ajax: '/transactions/load',
+        orderMulti: false,
+        columns: [
+            {data: "description"},
+            {
+                data: row => new Intl.NumberFormat(
+                    'en-US',
+                    {
+                        style: 'currency',
+                        currency: 'USD',
+                        currencySign: 'accounting'
+                    }
+                ).format(row.amount)
+            },
+            {data: "category"},
+            {data: "date"},
+            {
+                sortable: false,
+                data: row => `
+                    <div class="d-flex flex-">
+                        <button type="submit" class="btn btn-outline-primary delete-transaction-btn" data-id="${ row.id }">
+                            <i class="bi bi-trash3-fill"></i>
+                        </button>
+                        <button class="ms-2 btn btn-outline-primary edit-transaction-btn" data-id="${ row.id }">
+                            <i class="bi bi-pencil-fill"></i>
+                        </button>
+                        <button class="ms-2 btn btn-outline-primary open-receipt-upload-btn" data-id="${ row.id }">
+                            <i class="bi bi-upload"></i>
+                        </button>
+                    </div>
+                `
+            }
+        ]
+    });
+
+    document.querySelector('#transactionsTable').addEventListener('click', function (event) {
+        const editBtn          = event.target.closest('.edit-transaction-btn')
+        const deleteBtn        = event.target.closest('.delete-transaction-btn')
+        const uploadReceiptBtn = event.target.closest('.open-receipt-upload-btn')
+
+        if (editBtn) {
+            const transactionId = editBtn.getAttribute('data-id')
+
+            get(`/transactions/${ transactionId }`)
+                .then(response => response.json())
+                .then(response => openEditTransactionModal(editTransactionModal, response))
+        } else if (deleteBtn) {
+            const transactionId = deleteBtn.getAttribute('data-id')
+
+            if (confirm('Are you sure you want to delete this transaction?')) {
+                del(`/transactions/${ transactionId }`).then(response => {
+                    if (response.ok) {
+                        table.draw()
+                    }
+                })
+            }
+        } else if (uploadReceiptBtn) {
+            const transactionId = uploadReceiptBtn.getAttribute('data-id')
+
+            uploadReceiptModal._element
+                              .querySelector('.upload-receipt-btn')
+                              .setAttribute('data-id', transactionId)
+
+            uploadReceiptModal.show()
+        }
+    })
+
+    document.querySelector('.create-transaction-btn').addEventListener('click', function (event) {
+        post(`/transactions`, getTransactionFormData(newTransactionModal), newTransactionModal._element)
+            .then(response => {
+                if (response.ok) {
+                    table.draw()
+
+                    newTransactionModal.hide()
+                }
+            })
+    })
+
+    document.querySelector('.save-transaction-btn').addEventListener('click', function (event) {
+        const transactionId = event.currentTarget.getAttribute('data-id')
+
+        post(`/transactions/${ transactionId }`, getTransactionFormData(editTransactionModal), editTransactionModal._element)
+            .then(response => {
+                if (response.ok) {
+                    table.draw()
+                    editTransactionModal.hide()
+                }
+            })
+    })
+
+    document.querySelector('.upload-receipt-btn').addEventListener('click', function (event) {
+        const transactionId = event.currentTarget.getAttribute('data-id')
+        const formData      = new FormData();
+        const files         = uploadReceiptModal._element.querySelector('input[type="file"]').files;
+
+        for (let i = 0; i < files.length; i++) {
+            formData.append('receipt', files[i]);
+        }
+
+        post(`/transactions/${ transactionId }/receipts`, formData, uploadReceiptModal._element)
+            .then(response => {
+                if (response.ok) {
+                    table.draw()
+                    uploadReceiptModal.hide()
+                }
+            })
+    })
+})
+
+function getTransactionFormData(modal) {
+    let data     = {}
+    const fields = [
+        ...modal._element.getElementsByTagName('input'),
+        ...modal._element.getElementsByTagName('select')
+    ]
+
+    fields.forEach(select => {
+        data[select.name] = select.value
+    })
+
+    return data
+}
+
+function openEditTransactionModal(modal, {id, ...data}) {
+    for (let name in data) {
+        const nameInput = modal._element.querySelector(`[name="${ name }"]`)
+
+        nameInput.value = data[name]
+    }
+
+    modal._element.querySelector('.save-transaction-btn').setAttribute('data-id', id)
+
+    modal.show()
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ou seja,
+
+TEMOS AQUELA NOVA VARIABLE, DE 'uploadReceiptBtn':
+
+
+
+
+    document.querySelector('#transactionsTable').addEventListener('click', function (event) {
+        const editBtn          = event.target.closest('.edit-transaction-btn')
+        const deleteBtn        = event.target.closest('.delete-transaction-btn')
+        const uploadReceiptBtn = event.target.closest('.open-receipt-upload-btn')
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ, MAIS PARA BAIXO,
+
+
+TEMOS O BUTTON QUE ABRE AQUELE RECEIPT MODAL:
+
+
+          <button class="ms-2 btn btn-outline-primary open-receipt-upload-btn" data-id="${ row.id }">
+                            <i class="bi bi-upload"></i>
+                        </button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> DEPOIS DISSO, TEMOS O LISTENER 
+
+HANDLING PARA O BUTTON:
+
+
+    document.querySelector('.upload-receipt-btn').addEventListener('click', function (event) {
+        const transactionId = event.currentTarget.getAttribute('data-id')
+        const formData      = new FormData();
+        const files         = uploadReceiptModal._element.querySelector('input[type="file"]').files;
+
+        for (let i = 0; i < files.length; i++) {
+            formData.append('receipt', files[i]);
+        }
+
+        post(`/transactions/${ transactionId }/receipts`, formData, uploadReceiptModal._element)
+            .then(response => {
+                if (response.ok) {
+                    table.draw()
+                    uploadReceiptModal.hide()
+                }
+            })
+    })
+})
+
+
+
+
+
+
+
+-> ELE CRIA UMA NOVA FORM,
+
+
+E AÍ FAZ BASICAMENTE LOOP POR DENTRO DE TODAS AS FILES,
+
+no input field e aí faz append 
+
+
+no object 'formData'...
+
+
+
+
+
+
+
+
+
+--> NÓS ESTAMOS USANDO UM OBJECT 'FormData()"
+
+
+JUSTAMENTE PQ ESTAMOS FAZENDO UM 
+
+
+'MULTIPART FORM DATA REQUEST'...
+
+
+
+
+
+
+
+
+
+
+-> É CLARO QUE PODERÍAMOS 
+
+
+
+
+''JUST MAKE A FORM WITH ENCTYPE SET TO 
+
+MULTIPART/FORMDATA, BUT HERE WE ARE DOING THINGS 
+BY AJAX CALL''...
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR TEVE DE FAZER OUTRO AJUSTE, no arquivo de 'ajax.js',
+
+
+
+na function de 'ajax',
+
+
+
+
+para que FOSSEM PROCESSADOS ADEQUADAMENTE 
+
+
+
+O CSRF E OUTRA POST DATA,
+
+
+JUNTO COM A FILE,
+
+
+
+NAS VEZES EM QUE 
+
+
+
+
+
+O DATA OBJECT É DE TIPO 
+
+'FORMDATA'...
+
+
+ 
+
+
+
+
+-> É POR ISSO QUE TEMOS ESTE CHECK:
+
+
+
+
+
+
+
+        if (data instanceof FormData) {
+            for (const additionalField in additionalFields) {
+                data.append(additionalField, additionalFields[additionalField])
+            }
+
+            delete options.headers['Content-Type'];
+
+            options.body = data
+        } else {
+            options.body = JSON.stringify({...data, ...additionalFields})
+        }
+
+
+
+
+
+
+
+
+
+
+--> SE A DATA É DE TIPO 'FormData',
+
+
+NÓS FAZEMOS LOOP POR DENTRO DOS FIELDS ADICIONAIS,
+
+
+E AÍ FAZEMOS APPEND DE DATA EXTRA...
+
+
+
+
+
+
+
+
+
+-> DEPOIS DISSO,
+
+
+REMOVEMOS O HEADER DE 'Content-Type',
+
+
+COM 
+
+
+''             delete options.headers['Content-Type']; ''
+
+
+
+
+
+ISSO PQ QUEREMOS USAR O DEFAULT ONE, PARA REQUESTS DE TIPO 'MULTIPART'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> POR FIM, O PROFESSOR DEFINE A PROPRIEDADE DE 'body' de 'options'
+
+
+
+com sendo 'data'....
+
+
+
+EX:
+
+
+
+
+        if (data instanceof FormData) {
+            for (const additionalField in additionalFields) {
+                data.append(additionalField, additionalFields[additionalField])
+            }
+
+            delete options.headers['Content-Type'];
+
+            options.body = data
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CASO CONTRÁRIO, FAZEMOS O QUE FARÍAMOS NOS CASOS EM QUE 
+
+
+O OBJECT NÃO É 1 INSTANCE DE FORMDATA:
+
+
+
+
+else {
+            options.body = JSON.stringify({...data, ...additionalFields})
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+    -> LÁ NA PARTE DE 'web.php',
+
+
+
+
+O PROFESSOR COLOCOU A NOVA ROUTE,
+
+
+
+DE 'post',
+
+
+
+para a url de 
+
+
+'/transactions/id/receipts':
+
+
+
+
+
+
+
+
+    $app->group('/transactions', function (RouteCollectorProxy $transactions) {
+        $transactions->get('', [TransactionController::class, 'index']);
+        $transactions->get('/load', [TransactionController::class, 'load']);
+        $transactions->post('', [TransactionController::class, 'store']);
+        $transactions->delete('/{id:[0-9]+}', [TransactionController::class, 'delete']);
+        $transactions->get('/{id:[0-9]+}', [TransactionController::class, 'get']);
+        $transactions->post('/{id:[0-9]+}', [TransactionController::class, 'update']);
+        $transactions->post('/{id:[0-9]+}/receipts', [ReceiptController::class, 'store']);
+    })->add(AuthMiddleware::class);
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISO VAI INVOCAR O METHOD DE 'store',
+
+LÁ NO CONTROLLER DE 'ReceiptController'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK, MAS PQ CRIAR 1 NOVO CONTROLLER PARA 'RECEIPTCONTROLLER'?
+
+
+
+
+
+
+
+
+
+
+--> É PQ O TRANSACTIONCONTROLLER JÁ ESTAVA BLOATED...
+
+
+
+
+
+
+
+
+
+
+
+-> NA PARTE DE 'STORE()',
+
+o professor deixou este código:
+
+
+
+
+
+
+
+    public function store(Request $request, Response $response, array $args): ResponseInterface
+    {
+        $file = $request->getUploadedFiles()['receipt'];
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É ASSIM QUE ACESSAMOS A FILE QUE FOI UPLOADADA,
+
+NO NOSSO BACKEND...
+
+
+
+
+
+
+
+
+
+
+
+-> É ESSE METHOD DE 'getUploadedFiles()'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESTAMOS USANDO O REQUEST OBJECT QUE VEM COM O SLIM PHP FRAMEWORK... 
+
+
+
+
+
+
+
+
+
+--> ESSE METHOD RETORNA UM 
+
+
+
+ARRAY DE 'UPLOADEDFILEINTERFACE' OBJECTS... --> AÍ BASTA ACESSARMOS O QUE 
+                                                QUEREMOS PEGAR,
+
+                                                COM BASE NO NOME...
+
+
+
+                                                NO CASO, USAMOS O NAME DE 'receipt',
+
+                                                passado pelo attribute do INPUT FIELD...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, FICAMOS COM 1 OBJECT 
+
+
+DE TIPO 
+
+
+
+'UploadedFileInterface',
+
+
+
+
+
+
+
+
+
+QUE É REALMENTE UMA INTERFACE DO PSR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--------> ok...  AGORA DEVEMOS ACTUALLY FAZER UPLOAD 
+            DO ARQUIVO RECEIPT..
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, PODEMOS  USAR O METHOD DE 'write()',
+
+diretamente 
+
+
+no object '$filesystem' que foi injetado nesse controller...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+    public function store(Request $request, Response $response, array $args): ResponseInterface
+    {
+        $file = $request->getUploadedFiles()['receipt'];
+
+        $this->filesystem->write();
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE ESSE METHOD EXIGE VÁRIOS PARAMETERS...
+
+
+
+
+
+
+
+
+
+
+
+--> O PRIMEIRO DELES É 'O LOCAL EM QUE VC QUER FAZER ESSE WRITE'...
+
+
+
+
+
+
+
+
+
+
+-> colocamos o directory de 'receipts/'  + $fileName 
+
+
+
+
+
+
+(ou seja, vamos criar essa file dentro do folder de 'receipts')...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+    public function store(Request $request, Response $response, array $args): ResponseInterface
+    {
+        $file = $request->getUploadedFiles()['receipt'];
+
+        $fileName = $file->getClientFilename();
+
+        $this->filesystem->write('receipts/' . $fileName, );
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    INICIALMENTE, VAMOS COLOCAR O NAME DA FILE COMO O NAME DA PRÓPRIA FILE,
+
+    MAS, NO FUTURO,
+
+
+    VAMOS COLOCAR O NAME + UM RANDOM UNIQUE ID,
+
+    para que nenhuma file tenha o mesmo nome, quando for criada nessa pasta...
+
+
+
+
+
+
+
+
+
+--> DEPOIS DISSO, TEMOS O SEGUNDO PARAMETER...
+
+
+
+O SEGUNDO PARAMETER É __ O 'CONTENT' DA FILE...
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS OBTER O CONTENT DO OBJECT 'UploadedFile'
+
+
+
+    POR MEIO 
+
+
+
+    DO METHOD '->getStream()',
+
+
+    e, depois, '->getContent()'...
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+    public function store(Request $request, Response $response, array $args): ResponseInterface
+    {
+        $file = $request->getUploadedFiles()['receipt'];
+
+        $fileName = $file->getClientFilename();
+
+        $this->filesystem->write('receipts/' . $fileName, $file->getStream()->getContents());
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR NOS EXPLICA QUE PODERÍAMOS TER USADO 
+
+
+'writeStream()'
+
+
+SE O NOSSO CONTENT FOSSE DE TIPO 'RESOURCE',
+
+
+
+
+MAS _ VAMOS ESCREVER 'write()', nesse caso...
+
+
+
+
+
+
+
+
+
+
+
+-> MAS SE VC FOSSE UPLOADAR FILES IMENSAS,
+
+
+USAR 'write()' com 'getContents()' TALVEZ NÃO 
+
+SEJA TÃO EFICIENTE... AÍ, NESSES CASOS, 
+VC FARIA O UPLOAD USANDO 'writeStream()'...
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+    public function store(Request $request, Response $response, array $args): ResponseInterface
+    {
+        $file = $request->getUploadedFiles()['receipt'];
+
+        $fileName = $file->getClientFilename();
+
+        // * 'write()' + 'getContents()' is GOOD for small files, but bad for large files
+        $this->filesystem->write('receipts/' . $fileName, $file->getStream()->getContents());
+
+        // * If you want to save large files, you should use 'writeStream()' instead of 'write()'.
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AGORA VAMOS TESTAR SE ISSO FUNCIONA...
+
+
+
+
+
+
+ABRIMOS AS PASTAS,
+
+
+
+NO CASO, 'storage' --> 
+
+
+
+SE TUDO DER CERTO,
+
+
+VEREMOS O FOLDER DE 'receipts' sendo criado dentro dele,
+
+
+com a file no interior...
+
+
+
+
+
+
+OK... TESTAMOS ISSO...
+
+
+
+
+
+
+
+-> E FUNCIONOU, O FOLDER DE 'receipts' foi criado,
+
+e ficamos com nossa file lá dentro..
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... QUER DIZER QUE O UPLOAD ESTÁ FUNCIONANDO...
+
+
+
+
+
+
+
+
+MAS É CLARO QUE AINDA NÃO ACABAMOS...
+
+
+
+
+
+
+
+PRECISAMOS VALIDATE A FILE QUE FOI UPLOADADA...
+
+
+
+
+
+
+
+
+
+
+--> QUEREMOS TER ALGUMA VALIDATION...
+
+
+
+
+
+
+
+
+
+-> PARA CONSEGUIRMOS VALIDATE O REQUEST COM FILE CONTENT,
+
+    PRECISAMOS DE UMA NOVA CLASS DE 'REQUESTVALIDATOR'...
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+-> A PRIMEIRA COISA QUE FAZEMOS É O INJECT DO 'RequestValidatorFactoryInterface'
+    NESSE  CONTROLLER, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Contracts\RequestValidatorFactoryInterface;
+use League\Flysystem\Filesystem;
+use Psr\Http\Message\ResponseInterface;
+use Slim\Psr7\Request;
+use Slim\Psr7\Response;
+
+class ReceiptController
+{
+
+    public function __construct(
+    private readonly Filesystem $filesystem, 
+    private readonly RequestValidatorFactoryInterface $requestValidatorFactory
+    ) {}
+
+
+    public function store(Request $request, Response $response, array $args): ResponseInterface
+    {
+        $file = $request->getUploadedFiles()['receipt'];
+
+        $fileName = $file->getClientFilename();
+
+        // * 'write()' + 'getContents()' is GOOD for small files, but bad for large files
+        $this->filesystem->write('receipts/' . $fileName, $file->getStream()->getContents());
+
+        // * If you want to save large files, you should use 'writeStream()' instead of 'write()'.
+
+        return $response;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO,
+
+PODEMOS USAR ESSA VARIABLE,
+
+com o call do method de make,
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+$file = $this->requestValidatorFactory
+             ->make(UploadReceiptRequestValidator::class)
+             ->validate($request->getUploadedFiles());
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, VAMOS CRIAR ESSE 'UploadReceiptRequestValidator',
+
+
+
+e aí vamos VALIDATE esse content aí,
+
+de '$request->getUploadedFiles()'..
+
+
+
+
+
+
+
+-> OK... MAS AGORA PRECISAMOS DE ESSA CLASS, 'UploadReceiptRequestValidator'...
+
+
+
+
+
+
+
+
+
+
+
+PODEMOS COMEÇAR COM ALGO ASSIM:
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\RequestValidators;
+
+use App\Contracts\RequestValidatorInterface;
+use Slim\Psr7\UploadedFile as Psr7UploadedFile;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+
+class UploadReceiptRequestValidator implements RequestValidatorInterface
+{
+    public function validate(array $data): Psr7UploadedFile {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS AÍ O PROFESSOR 
+
+
+APONTA ALGO:
+
+
+''WE ARE NOT GOING TO USE VALITRON FOR THIS VALIDATION,
+BECAUSE VALITRON __ DOES _ NOT _ HAVE A BUILT-IN WAY TO 
+HANDLE THE VALIDATION OF FILES''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE VAMOS TER QUE CONSTRUIR 
+ALGUM TIPO DE 
+
+'CUSTOM VALIDATION'... 
+
+
+
+
+
+
+-> A PRIMEIRA COISA QUE TEMOS QUE FAZER É 
+
+''EXTRACT THE UPLODADED FILE FROM THE 'data' ARGUMENT, THAT IS 
+PASSED HERE''..
+
+
+
+
+
+
+
+
+
+
+-> fazemos isso com 
+
+
+
+'$uploadedFile = $data['receipt'] ?? null;' 
+
+
+
+
+
+
+
+SE ESSE CONTENT NÃO ESTÁ SETTADO/NÃO FOI ENVIADO,
+
+VAMOS QUERER DEFINIR COMO 'null' o seu value, portanto...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\RequestValidators;
+
+use App\Contracts\RequestValidatorInterface;
+
+class UploadReceiptRequestValidator implements RequestValidatorInterface
+{
+    public function validate(array $data): array
+    {
+        $file = $data['receipt'] ?? null;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... NESSE VALIDATOR, ESTAMOS EXTRAINDO 
+
+ESSA FILE DE RECEIPT...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO...
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR COLOCA 1 ANNOTATION DE 'UploadedFileInterface' 
+
+em cima de essa variable, para indicar que será uma uploadedFileInterface...
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\RequestValidators;
+
+use App\Contracts\RequestValidatorInterface;
+use Psr\Http\Message\UploadedFileInterface;
+
+class UploadReceiptRequestValidator implements RequestValidatorInterface
+{
+    public function validate(array $data): array
+    {
+        /** @var UploadedFileInterface $uploadedFile */
+        $uploadedFile = $data['receipt'] ?? null;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, MAIS PARA BAIXO, VAMOS FAZER O RETURN DE '$data',
+
+
+como normalmente fazemos...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\RequestValidators;
+
+use App\Contracts\RequestValidatorInterface;
+use Psr\Http\Message\UploadedFileInterface;
+
+class UploadReceiptRequestValidator implements RequestValidatorInterface
+{
+    public function validate(array $data): array
+    {
+        /** @var UploadedFileInterface $uploadedFile */
+        $uploadedFile = $data['receipt'] ?? null;
+
+        return $data;
+    }
+}
+
+
+
+
+
+
+
+
+
+CERTO... MAS AINDA TEMOS QUE PREENCHER NOSSAS 
+
+CUSTOM VALIDATIONS, NA PARTE DO MEIO...
+
+
+
+
+
+
+MAS O QUE QUEREMOS VALIDATE, EXATAMENTE?
+
+
+
+
+
+
+
+
+
+1) MAKE SURE THAT THE FILE WAS UPLOADED SUCCESSFULLY 
+    TO THE '/temp' directory... (Validate the uploaded file)
+
+
+    -> O SLIM PHP FORNECE 1 WRAPPER AO REDOR DO '$_FILE' SUPERGLOBAL,
+        TUDO PARA QUE NÃO TENHAMOS QUE DEAL COM ELE DIRETAMENTE...
+ 
+
+    -> ISSO PQ, QUANDO FILES SÃO UPLOADADAS,
+        
+
+
+
+
+2) VALIDATE THE MAXIMUM FILESIZE...
+
+
+
+
+
+
+
+
+3) Validate the File NAME 
+
+
+
+
+
+
+4) Validate the MIMETYPE / extension,
+    to ensure that the file that was uploaded 
+    is in one of the supported formats...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ANTES DE MAIS NADA, CHECAMOS SE A UPLOADED FILE NÃO ESTÁ COMO NULL...
+
+
+
+
+
+
+
+-> PQ SE O RECEIPT NÃO ESTÁ PRESENTE,
+
+ISSO PODE SIGNIFICAR QUE 
+
+'FILE WAS NOT UPLOADED, FILE WAS NOT SELECTED,
+FILE WAS UPLOADED UNDER A DIFFERENT INPUT NAME'...
+
+
+
+
+
+
+
+-> É POR ISSO QUE VAMOS FAZER THROW DE 
+
+
+'ValidationException',
+
+
+com 
+
+
+
+ALGO TIPO ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\RequestValidators;
+
+use App\Contracts\RequestValidatorInterface;
+use Psr\Http\Message\UploadedFileInterface;
+
+class UploadReceiptRequestValidator implements RequestValidatorInterface
+{
+    public function validate(array $data): array
+    {
+        /** @var UploadedFileInterface $uploadedFile */
+        $uploadedFile = $data['receipt'] ?? null;
+
+
+        // 1. Validate Uploaded File
+        if (!$uploadedFile) {
+            throw new ValidationException(['receipt' => ['Please select a receipt file']]);
+        }
+
+        return $data;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, QUEREMOS VALIDATE QUE 
+
+
+''THERE WERE NO UPLOAD ERRORS''..
+
+
+
+
+
+
+
+-> PODEMOS FAZER ISSO COM 
+
+
+
+
+'$uploadedFile->getErrors()'...
+
+
+
+
+-> SE ISSO NÃO RESULTAR EM 'UPLOAD_ERR_OK',
+
+VAMOS QUERER FAZER O THROW DE UMA NOVA EXCEPTION,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+class UploadReceiptRequestValidator implements RequestValidatorInterface
+{
+    public function validate(array $data): array
+    {
+        /** @var UploadedFileInterface $uploadedFile */
+        $uploadedFile = $data['receipt'] ?? null;
+
+        // 1. Validate Uploaded File (check if it was created in the /tmp/ folder)
+        if (!$uploadedFile) {
+            throw new ValidationException(['receipt' => ['Please select a receipt file']]);
+        }
+
+        if ($uploadedFile->getError() !== UPLOAD_ERR_OK) {
+            throw new ValidationException(['receipt' => ['Failed to upload the receipt file']]);
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> na descrição de ''getError()'',
+
+
+TEMOS ISTO:
+
+
+
+
+
+
+''Retrieve the error associated with the uploaded file.
+The return value must be one of PHP's UPLOAD_ERR_XXX constants...
+
+If the file was uploaded successfully, this method MUST return UPLOAD_ERR_OK...
+
+
+Implementations should return the value stored in the 'error' key of the file,
+in the $_FILES array''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO QUER DIZER, EM OUTRAS PALAVRAS,
+
+QUE A MAIOR PARTE DOS METHODS DE 
+
+
+''UploadedFileInterface''
+
+
+ACABAM FAZENDO O RETURN 
+
+DE DATA 
+
+LÁ 
+
+DO ARRAY DE '$_FILES'...
+
+
+
+
+
+
+ 
+
+
+
+-> SE INSPECIONAMOS 
+
+A CONSTANT 
+
+
+DE 
+'UPLOAD_ERR_OK',
+
+
+
+encontramos os outros values possíveis:
+
+
+
+
+
+
+
+define('PHP_FLOAT_MIN', 2.2250738585072e-308);
+define('ZEND_MULTIBYTE', 0);
+define('PHP_OUTPUT_HANDLER_START', 1);
+define('PHP_OUTPUT_HANDLER_CONT', 2);
+define('PHP_OUTPUT_HANDLER_END', 4);
+define('UPLOAD_ERR_OK', 0);
+define('UPLOAD_ERR_INI_SIZE', 1);
+define('UPLOAD_ERR_FORM_SIZE', 2);
+define('UPLOAD_ERR_PARTIAL', 3);
+define('UPLOAD_ERR_NO_FILE', 4);
+define('UPLOAD_ERR_NO_TMP_DIR', 6);
+define('UPLOAD_ERR_CANT_WRITE', 7);
+define('UPLOAD_ERR_EXTENSION', 8);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> TEMOS OUTRAS CONSTANTS, QUE PODEMOS USAR PARA CHECAR 
+    DIFERENTES TIPOS DE ERRORS,
+
+    SE QUISERMOS 
+    ERROR MESSAGES MAIS ESPECÍFICAS....
+
+
+
+
+
+
+
+
+
+-> COM ISSO, TERMINAMOS A PRIMEIRA VALIDATION STEP...
+
+
+
+
+
+
+
+
+
+
+
+-> DEVEMOS CONTINUAR COM A PRÓXIMA,
+
+
+EM QUE FAZEMOS 
+
+
+
+
+
+2) VALIDATE THE MAXIMUM FILESIZE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--. O PROFESSOR DESTACA QUE 
+
+
+''THE SERVER ALSO BLOCKS FILE UPLOADS''...
+
+
+
+
+
+
+
+
+
+-> MAS É CLARO QUE ESSA NÃO DEVE SER NOSSA ÚNICA FONTE DE VALIDATION,
+    POIS É MT FRACA...
+
+
+
+
+
+
+
+--> É POR ISSO QUE ESTAMOS ADICIONANDO 
+
+
+VALIDATION EXTRA NO CÓDIGO PHP,
+
+E NÃO ESTAMOS RELYING 
+
+
+NAS SERVER SETTINGS...
+
+
+
+
+
+
+
+
+
+
+POR EXEMPLO:
+
+
+
+O PROFESSOR ABRE O ARQUIVO 'nginx.conf',
+
+
+E AÍ 
+
+
+MOSTRA A LINHA DE 
+
+
+
+''
+
+
+server {
+
+    ...
+    client_max_body_size 20m;
+
+    ... 
+
+}
+
+
+'',
+
+
+
+
+
+
+É UMA LINHA QUE RESTRINGE O UPLOAD DE FILES 
+
+
+ATÉ 20MB...
+
+
+
+
+
+
+
+
+
+
+
+
+-> LÁ EM 'local.ini',
+
+
+
+O PROFESSOR TAMBÉM DEIXOU 
+
+
+
+O SEND DE FILES 
+
+MÁXIMO COMO 20MB,
+
+
+como podemos ler aqui:
+
+
+
+
+
+
+fastcgi.logging = Off
+error_reporting = E_ALL
+log_errors = On
+error_log = /var/www/storage/logs/php_errors.log
+upload_max_filesize = 20M
+post_max_size = 20M
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SEM ESSAS SETTINGS, SE VC TENTA UPLOADAR 1 FILE QUE É MAIOR 
+
+DO QUE O 'DEFAULT FILESIZE', DEFINIDO 
+
+NAS CONFIG FILES DO SERVER,
+
+
+ISSO VAI RESULTAR EM 1 ERROR MSM ASSIM...
+
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE O PROFESSOR MODIFICOU 
+    ESSES ARQUIVOS, 
+
+
+    o 'local.ini' 
+
+
+    e 
+
+
+    o 
+
+    'nginx.conf',
+
+
+
+
+    PARA PERMITIR 
+
+
+    UNS FILE UPLOADS UM POUCO MAIS LARGOS...
+
+
+
+
+
+
+
+
+
+-> ''JUST BECAUSE WE HAVE THIS LIMITATION SET GLOBALLY,
+    MEANING THAT WE ALLOW FILE UPLOADS OF UP TO 20 MB ALL 
+    OVER OUR APP,
+
+    WE MAY WANT TO LIMIT __ SPECIFIC FILE __ UPLOADS... IN THIS 
+    CASE,
+     WE WANT TO LIMIT  THE RECEIPT FILE UPLOAD SIZE''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... VOLTANDO AO VALIDATE DO FILESIZE NA PARTE DO CÓDIGO PHP..
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> primeiramente, definimos isso em 1 variable...
+
+
+
+
+
+
+$maxFileSize = 5;
+
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA, VAMOS PERMITIR O UPLOAD DE RECEIPTS DE ATÉ 5 megabytes,
+
+e nada mais do que isso...
+
+
+
+
+5MB --> é pq o professor acha que receipts NÃO PODEM SER MAIORES DO QUE ISSO...
+
+
+
+
+
+
+
+
+
+
+
+--> PODERÍAMOS AJUSTAR ISSO DE ACORDO COM NOSSAS NECESSIDADES FUTURAS,
+
+MAS É BOM, POR ENQUANTO...
+
+
+
+
+
+
+
+
+
+
+
+-> DEPOIS DISSO, PODEMOS USAR O METHOD DE 'getSize()',
+
+PARA COMPARAR COM O TAMANHO...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\RequestValidators;
+
+use App\Contracts\RequestValidatorInterface;
+use App\Exception\ValidationException;
+use Psr\Http\Message\UploadedFileInterface;
+
+class UploadReceiptRequestValidator implements RequestValidatorInterface
+{
+    public function validate(array $data): array
+    {
+        /** @var UploadedFileInterface $uploadedFile */
+        $uploadedFile = $data['receipt'] ?? null;
+
+        // 1. Validate Uploaded File (check if it was created in the /tmp/ folder)
+        if (!$uploadedFile) {
+            throw new ValidationException(['receipt' => ['Please select a receipt file']]);
+        }
+
+        if ($uploadedFile->getError() !== UPLOAD_ERR_OK) {
+            throw new ValidationException(['receipt' => ['Failed to upload the receipt file']]);
+        }
+
+        // 2. Validate File Size (check if the file is less than 5MB)
+        $maxFileSize = 5;
+
+        if ($uploadedFile->getSize() > $maxFileSize * 1024 * 1024) {
+            throw new ValidationException(['receipt' => ['Maximum allowed file size is 5 MB']]);
+        }
+
+        return $data;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+OK... COM ISSO, TERMINAMOS A SEGUNDA VALIDATION STEP... 
+
+
+
+
+
+
+
+
+
+
+
+
+A TERCEIRA STEP É 
+
+'VALIDATE THE FILE NAME'...
+
+
+
+
+
+
+
+
+
+
+
+
+3) Validate the File NAME 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VAMOS ARMAZENAR O FILENAME EM 1 VARIABLE,
+
+
+COM O METHOD DE '->getClientFilename()'...
+
+
+
+
+
+
+
+
+
+
+''as far as the validation goes,
+YOU CAN BE __ AS _ STRICT__ AS YOU WANT''..
+
+
+
+
+
+
+
+
+-> O PROFESSOR GOSTA DE SER STRICT...
+
+
+
+
+
+
+
+-> O PROFESSOR FAZ ERROR OUT 
+    DURANTE O UPLOAD, SE O FILENAME É INVALID,
+
+    OU ENTÃO ELE FAZ 'SANITIZE' DO FILENAME,
+
+    ANTES DE FAZER STORE 
+
+    DA FILE NA STORAGE...
+
+
+
+
+
+
+
+
+---> COMO ESTAMOS FAZENDO VALIDATION AQUI,
+    PODEMOS FAZER THROW DE 
+
+
+    1 VALIDATIONEXCEPTION COM INVALID FILENAMES...
+
+
+    --> MAS SE ISSO CAUSA UX PROBLEMS,
+    VC PODE SIMPLESMENTE SANITIZAR ESSE FILENAME,
+
+    E REMOVER ALGUNS SPECIAL CHARACTERS DE ESSE FILENAME..
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, SANITIZE, O PROFESSOR USA O METHOD DE 
+
+
+'preg_match()'...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+       if (!preg_match('/^[a-zA-Z0-9_\-\.]+$/', $fileName)) {
+            throw new ValidationException(['receipt' => ['Invalid file name']]);
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+CHECAMOS POR ALPHANUMERIC STRINGS...
+
+
+
+https://regexr.com/
+
+
+
+
+
+
+
+
+
+COM ISSO, NÃO DEIXAMOS SÍMBOLOS ESPECIAIS...
+
+
+
+
+
+
+
+
+
+
+
+-> ESSA PARTE PODE SER OVERKILL... 
+
+
+
+
+
+
+
+
+ISSO PQ ''WE WON'T REALLY BE USING 
+        FILENAMES TO STORE THE PHYSICAL FILES...
+        BECAUSE WE WILL BE USING, INSTEAD, GENERATED UNIQUE IDs''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA A PARTE 4,
+
+TEMOS QUE VALIDATE FILE TYPES...
+
+
+
+
+
+
+--> ESSA É A PARTE TRICKY E FUN DO PROCESSO..
+
+
+
+
+
+
+
+''WE CAN GET THE MIME TYPE SENT BY 
+THE CLIENT,
+
+
+WITH THE 
+
+
+'->getClientMediaType()' METHOD...'
+
+
+
+
+
+
+TIPO ASSIM 
+
+
+
+if (!in_array($uploadedFile->getClientMediaType(), ));
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> COMO SEGUNDO PARAMETER DE 'in_array',
+
+colocamos um ARRAY DE 
+
+'$allowedMimeTypes',
+
+ou algo assim...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+$allowedMimeTypes = [];
+
+
+if (!in_array($uploadedFile->getClientMediaType(), $allowedMimeTypes));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ALGO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\RequestValidators;
+
+use App\Contracts\RequestValidatorInterface;
+use App\Exception\ValidationException;
+use Psr\Http\Message\UploadedFileInterface;
+
+class UploadReceiptRequestValidator implements RequestValidatorInterface
+{
+    public function validate(array $data): array
+    {
+        /** @var UploadedFileInterface $uploadedFile */
+        $uploadedFile = $data['receipt'] ?? null;
+
+        // 1. Validate Uploaded File (check if it was created in the /tmp/ folder)
+        if (!$uploadedFile) {
+            throw new ValidationException(['receipt' => ['Please select a receipt file']]);
+        }
+
+        if ($uploadedFile->getError() !== UPLOAD_ERR_OK) {
+            throw new ValidationException(['receipt' => ['Failed to upload the receipt file']]);
+        }
+
+        // 2. Validate File Size (check if the file is less than 5MB)
+        $maxFileSize = 5;
+
+        if ($uploadedFile->getSize() > $maxFileSize * 1024 * 1024) {
+            throw new ValidationException(['receipt' => ['Maximum allowed file size is 5 MB']]);
+        }
+
+        // 3. Validate File Name (check if the file name is valid, no invalid characters)
+        $fileName = $uploadedFile->getClientFilename();
+
+        if (!preg_match('/^[a-zA-Z0-9_\-\.]+$/', $fileName)) {
+            throw new ValidationException(['receipt' => ['Invalid file name']]);
+        }
+
+        // 4. Validate File Extension (check if the file extension is valid... mime type is valid or not)
+        $allowedMimeTypes = [];
+
+        if (!in_array($uploadedFile->getClientMediaType(), $allowedMimeTypes)) {
+            throw new ValidationException(['receipt' => ['Invalid file extension']]);
+        }
+
+        return $data;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS O PROFESSOR COLOCA 1 
+
+
+MESSAGE DE 
+
+
+'Receipt has to be either an image or a pdf document.'
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\RequestValidators;
+
+use App\Contracts\RequestValidatorInterface;
+use App\Exception\ValidationException;
+use Psr\Http\Message\UploadedFileInterface;
+
+class UploadReceiptRequestValidator implements RequestValidatorInterface
+{
+    public function validate(array $data): array
+    {
+        /** @var UploadedFileInterface $uploadedFile */
+        $uploadedFile = $data['receipt'] ?? null;
+
+        // 1. Validate Uploaded File (check if it was created in the /tmp/ folder)
+        if (!$uploadedFile) {
+            throw new ValidationException(['receipt' => ['Please select a receipt file']]);
+        }
+
+        if ($uploadedFile->getError() !== UPLOAD_ERR_OK) {
+            throw new ValidationException(['receipt' => ['Failed to upload the receipt file']]);
+        }
+
+        // 2. Validate File Size (check if the file is less than 5MB)
+        $maxFileSize = 5;
+
+        if ($uploadedFile->getSize() > $maxFileSize * 1024 * 1024) {
+            throw new ValidationException(['receipt' => ['Maximum allowed file size is 5 MB']]);
+        }
+
+        // 3. Validate File Name (check if the file name is valid, no invalid characters)
+        $fileName = $uploadedFile->getClientFilename();
+
+        if (!preg_match('/^[a-zA-Z0-9_\-\.]+$/', $fileName)) {
+            throw new ValidationException(['receipt' => ['Invalid file name']]);
+        }
+
+        // 4. Validate File Extension (check if the file extension is valid... mime type is valid or not)
+        $allowedMimeTypes = [];
+
+        if (!in_array($uploadedFile->getClientMediaType(), $allowedMimeTypes)) {
+            throw new ValidationException(['receipt' => ['Receipt must be either an image or a pdf document.']]);
+        }
+
+        return $data;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+--> AÍ COLOCAMOS OS TYPES COMO 
+
+'image/jpeg',
+
+
+'image/png'
+
+'application/pdf'...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\RequestValidators;
+
+use App\Contracts\RequestValidatorInterface;
+use App\Exception\ValidationException;
+use Psr\Http\Message\UploadedFileInterface;
+
+class UploadReceiptRequestValidator implements RequestValidatorInterface
+{
+    public function validate(array $data): array
+    {
+        /** @var UploadedFileInterface $uploadedFile */
+        $uploadedFile = $data['receipt'] ?? null;
+
+        // 1. Validate Uploaded File (check if it was created in the /tmp/ folder)
+        if (!$uploadedFile) {
+            throw new ValidationException(['receipt' => ['Please select a receipt file']]);
+        }
+
+        if ($uploadedFile->getError() !== UPLOAD_ERR_OK) {
+            throw new ValidationException(['receipt' => ['Failed to upload the receipt file']]);
+        }
+
+        // 2. Validate File Size (check if the file is less than 5MB)
+        $maxFileSize = 5;
+
+        if ($uploadedFile->getSize() > $maxFileSize * 1024 * 1024) {
+            throw new ValidationException(['receipt' => ['Maximum allowed file size is 5 MB']]);
+        }
+
+        // 3. Validate File Name (check if the file name is valid, no invalid characters)
+        $fileName = $uploadedFile->getClientFilename();
+
+        if (!preg_match('/^[a-zA-Z0-9_\-\.]+$/', $fileName)) {
+            throw new ValidationException(['receipt' => ['Invalid file name']]);
+        }
+
+        // 4. Validate File Extension (check if the file extension is valid... mime type is valid or not)
+        $allowedMimeTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+
+        if (!in_array($uploadedFile->getClientMediaType(), $allowedMimeTypes)) {
+            throw new ValidationException(['receipt' => ['Receipt must be either an image or a pdf document.']]);
+        }
+
+        return $data;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS, AQUI, TEMOS 1 DETALHE...
+
+
+
+
+
+
+
+
+
+
+
+-> ESSES MIME TYPES ESTÃO SENDO CHECADOS, SIM...
+
+
+
+
+
+
+
+
+
+-> MAS O PROBLEMA, AQUI,
+
+É QUE 
+
+O METHOD É 
+
+
+'getClientMediaType()'...
+
+
+
+
+
+
+
+
+--> E, COMO ISSO É OBTIDO DO CLIENT,
+
+ESSA INFO PODERIA SER __ SPOOFED, E ALTERADA...
+
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE NÃO PODEMOS 
+    DEPENDER __SOMENTE__ DE ESSE CHECK AÍ...
+
+
+
+
+
+-> É UM BOM CHECK COMO UM 'FIRST TYPE OF CHECK',
+
+PARA APENAS 'ERROR OUT' IMEDIATAMENTE SE O 
+
+MIME TYPE DO CLIENT NÃO MATCHEIA... MAS AINDA PRECISAMOS 
+
+DE ALGUNS 
+
+CHECKS ADICIONAIS,
+
+PARA __REALMENTE__ GARANTIR _ QUE 
+
+
+
+O MIME TYPE 
+
+
+DO FILE _ É REALMENTE_ UM DOS ALLOWED MIME TYPES...
+
+
+
+
+
+
+
+
+
+-> SE INSPECIONAMOS OS DOCS DE 'getClientMediaType()',
+
+
+encontramos ESSA INFO ATÉ MESMO LÁ:
+
+
+
+
+
+
+
+''''Retrieve the media type sent by the client.
+
+Do not trust the value returned by this method. A client could send a MALICIOUS media type 
+with the intention to corrupt or hack your application.
+
+Implementations should return the value stored in the 'type' key of the file in the $_FILES array.
+
+''
+
+
+
+
+
+
+
+
+CERTO...  BASICAMENTE, O VALUE DE ESSE NEGÓCIO É 
+
+
+
+A KEY DE 'type',
+
+no array de 
+
+'$_FILES'... E NÃO PODEMOS DEPENDER APENAS DISSO...
+
+
+
+
+
+
+
+
+
+É POR ISSO QUE PRECISAMOS, AQUI, DE 2 CHECKS DIFERENTES...
+
+
+
+
+
+
+
+
+1o check -> CHECA A EXTENSION...
+
+
+
+
+
+
+
+
+2o check -> CHECA O _ MIME TYPE,
+            USANDO AS FUNCTIONS 
+
+            'PHPFILEINFO' DO PHP
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, CHECAMOS OS DOCS...
+
+
+
+
+
+
+
+
+
+
+
+
+OS DOCS:
+
+
+
+
+''The functions in this module TRY TO GUESS THE CONTENT TYPE AND ENCODING 
+OF A FILE BY LOOKING FOR CERTAIN __MAGIC BYTE__ SEQUENCES,
+AT SPECIFIC POSITIONS WITHIN THE FILE. WHILE THIS IS NOT A BULLET PROOF 
+APPROACH, THE HEURISTICS DO A VERY GOOD JOB''...
+
+
+
+
+
+
+
+
+-> OK... E ISSO DEVE ESTAR INSTALADO POR DEFAULT...
+
+    MAS SE VC ESTÁ USANDO WINDOWS COM XAMPP,
+
+    VC TALVEZ TENHA QUE HABILITAR ESSA EXTENSION... 
+
+
+
+
+
+
+
+
+-> SE VC RECEBER ERRORS RELACIONADOS COM 'FILEINFO DOES NOT EXIST',
+
+
+vc DEVE TENTAR ADICIONAR 
+
+
+
+A ENTRY DE 'php_fileinfo.dll' 
+
+
+NA CONFIG FILE DO 'php.ini'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK, MAS COMO PODEMOS USAR ESSAS FUNCTIONS?
+
+
+
+
+
+
+
+
+
+
+
+
+ --> DEVEMOS usar os objects 'finfo',
+
+                e aí usar os methods contidos dentro deles...
+
+
+
+
+
+            
+        
+
+
+
+
+-> FAZEMOS ISSO COM ESTE CÓDIGO:
+
+
+
+
+
+
+$fileInfo = new finfo();
+
+
+
+
+
+
+
+
+
+
+
+-> DENTRO DO CONSTRUCTOR,
+
+DEVEMOS PASSAR 
+
+A FLAG... ESSA FLAG VAI INDICAR A 'INFO DE QUE PRECISAMOS'...
+
+
+
+
+
+
+
+
+
+
+-> NO CASO, O PROFESSOR VAI PASSAR 'FILEINFO_EXTENSION'...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+        // * With this, we can validate the file extensions with more confidence:
+        $fileExtension = new finfo(FILEINFO_EXTENSION);
+
+
+
+
+
+
+
+
+
+
+
+
+ASSIM QUE TEMOS ESSE OBJECT,
+
+PODEMOS 
+
+
+
+CHAMAR O METHOD DE FILE NELE,
+
+E AÍ PASSAR O PATH À FILE...
+
+
+
+
+
+
+
+
+
+
+
+-> FAZEMOS ISSO COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+        // * With this, we can validate the file extensions with more confidence:
+        $fileInfo = new finfo(FILEINFO_EXTENSION);
+
+        $extension = $fileInfo->file($tmpFilePath);
+
+
+
+
+
+
+
+
+
+
+
+
+NO CASO, 
+
+
+'tmpFilePath'
+
+
+SERÁ O PATH ATÉ AS FILES...
+
+
+
+
+
+
+
+-> para conseguirmos 'tmpFilePath',
+
+
+
+
+
+PODEMOS OBTER ISSO 
+
+
+
+DO UPLOADEDFILE OBJECT...
+
+
+
+
+
+
+
+-> COM ESTE METHOD:
+
+
+
+$tmpFilePath = $uploadedFile->getStream()->getMetadata('uri');
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+        // * With this, we can validate the file extensions with more confidence:
+        $fileInfo = new finfo(FILEINFO_EXTENSION);
+        $tmpFilePath = $uploadedFile->getStream()->getMetadata('uri');
+
+
+
+
+
+
+
+
+
+
+-> DEPOIS DISSO,
+
+
+PRECISAMOS DEFINIR AS EXTENSIONS QUE SÃO PERMITIDAS...
+
+
+
+
+
+
+
+
+
+-. PARA ISSO,
+
+
+
+ADICIONAMOS 1 NOVA VARIABLE,
+
+
+
+DE 
+
+
+'$allowedExtensions = ['pdf', 'png', 'jpeg', 'jpg'];'
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, CHECAMOS SE A GIVEN EXTENSION FAZ PARTE 
+
+DAS EXTENSIONS PERMITIDAS...
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\RequestValidators;
+
+use App\Contracts\RequestValidatorInterface;
+use App\Exception\ValidationException;
+use Psr\Http\Message\UploadedFileInterface;
+use finfo;
+
+class UploadReceiptRequestValidator implements RequestValidatorInterface
+{
+    public function validate(array $data): array
+    {
+        /** @var UploadedFileInterface $uploadedFile */
+        $uploadedFile = $data['receipt'] ?? null;
+
+        // 1. Validate Uploaded File (check if it was created in the /tmp/ folder)
+        if (!$uploadedFile) {
+            throw new ValidationException(['receipt' => ['Please select a receipt file.']]);
+        }
+
+        if ($uploadedFile->getError() !== UPLOAD_ERR_OK) {
+            throw new ValidationException(['receipt' => ['Failed to upload the receipt file.']]);
+        }
+
+        // 2. Validate File Size (check if the file is less than 5MB)
+        $maxFileSize = 5;
+
+        if ($uploadedFile->getSize() > $maxFileSize * 1024 * 1024) {
+            throw new ValidationException(['receipt' => ['Maximum allowed file size is 5 MB.']]);
+        }
+
+        // 3. Validate File Name (check if the file name is valid, no invalid characters)
+        $fileName = $uploadedFile->getClientFilename();
+
+        if (!preg_match('/^[a-zA-Z0-9_\-\.]+$/', $fileName)) {
+            throw new ValidationException(['receipt' => ['Invalid file name.']]);
+        }
+
+        // 4. Validate File Extension (check if the file extension is valid... mime type can be invalid)
+        $allowedMimeTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+        $allowedExtensions = ['pdf', 'png', 'jpeg', 'jpg'];
+
+        // ! We must not trust only the file extension sent by the client, because it can be easily spoofed.
+        if (!in_array($uploadedFile->getClientMediaType(), $allowedMimeTypes)) {
+            throw new ValidationException(['receipt' => ['Receipt must be either an image or a pdf document.']]);
+        }
+
+        // * With this, we can validate the file extensions with more confidence:
+        $fileInfo = new finfo(FILEINFO_EXTENSION);
+        $tmpFilePath = $uploadedFile->getStream()->getMetadata('uri');
+        $extension = $fileInfo->file($tmpFilePath);
+
+        if (!in_array($extension, $allowedExtensions)) {
+            throw new ValidationException(['receipt' => ['Receipt has to be either "pdf", "png", "jpg" or "jpeg".']]);
+        }
+
+        return $data;
+    }
+}
+
+
+
+
+
+
+
+
+
+certo..
+
+
+
+
+
+
+
+
+O PROFESSOR ENTÃO 
+
+INSPECIONA AQUELA CONSTANT DE 
+
+
+'FILEINFO_EXTENSION'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OS DOCS NOS DIZEM:
+
+
+
+
+
+''Returns the extension appropriate for the MIME type detected in the file. For types 
+that commonly have multiple file extensions, such as JPEG images, then the return value 
+is multiple extensions separated by a forward slash e.g. "jpeg/jpg/jpe/jfif"". For unknown 
+types not available in the magic.mime database, the return value is "???" ''
+
+
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE '???'
+
+serão retornados para unknown types...
+
+
+
+
+E ISSO É BOM... PQ SE A EXTENSION NÃO PODE SER DETECTADA, POR QUALQUER RAZÃO,
+
+ISSO VAI 'FAIL' NA NOSSA VALIDATION,
+
+
+ISSO PQ 
+
+
+AS allowedExtensions SÃO APENAS 
+
+
+''  ['pdf', 'png', 'jpeg', 'jpg']'' 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+E PODEMOS ADICIONAR AINDA OUTRA VALIDATION,
+
+
+PARA CHECAR O MIMETYPE 
+
+USANDO 
+
+O OBJECT DE 'finfo'...
+
+
+
+
+
+
+
+
+->  MAS, ANTES DISSO, O PROFESSOR 
+QUER MOVER 
+
+
+ESSA LÓGICA TODA PARA 1 METHOD PRÓPRIO, CHAMADO DE 'getExtension()',
+
+
+PARA N TER TUDO NESSE METHOD AÍ...
+
+
+
+
+
+
+
+
+
+-> PODEMOS ESCREVER TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\RequestValidators;
+
+use App\Contracts\RequestValidatorInterface;
+use App\Exception\ValidationException;
+use Psr\Http\Message\UploadedFileInterface;
+use finfo;
+
+class UploadReceiptRequestValidator implements RequestValidatorInterface
+{
+    public function validate(array $data): array
+    {
+        /** @var UploadedFileInterface $uploadedFile */
+        $uploadedFile = $data['receipt'] ?? null;
+
+        // 1. Validate Uploaded File (check if it was created in the /tmp/ folder)
+        if (!$uploadedFile) {
+            throw new ValidationException(['receipt' => ['Please select a receipt file.']]);
+        }
+
+        if ($uploadedFile->getError() !== UPLOAD_ERR_OK) {
+            throw new ValidationException(['receipt' => ['Failed to upload the receipt file.']]);
+        }
+
+        // 2. Validate File Size (check if the file is less than 5MB)
+        $maxFileSize = 5;
+
+        if ($uploadedFile->getSize() > $maxFileSize * 1024 * 1024) {
+            throw new ValidationException(['receipt' => ['Maximum allowed file size is 5 MB.']]);
+        }
+
+        // 3. Validate File Name (check if the file name is valid, no invalid characters)
+        $fileName = $uploadedFile->getClientFilename();
+
+        if (!preg_match('/^[a-zA-Z0-9_\-\.]+$/', $fileName)) {
+            throw new ValidationException(['receipt' => ['Invalid file name.']]);
+        }
+
+        // 4. Validate File Extension (check if the file extension is valid... mime type can be invalid)
+        $allowedMimeTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+        $allowedExtensions = ['pdf', 'png', 'jpeg', 'jpg'];
+        $tmpFilePath = $uploadedFile->getStream()->getMetadata('uri');
+
+        // ! We must not trust only the file extension sent by the client, because it can be easily spoofed.
+        if (!in_array($uploadedFile->getClientMediaType(), $allowedMimeTypes)) {
+            throw new ValidationException(['receipt' => ['Receipt must be either an image or a pdf document.']]);
+        }
+
+        if (!in_array($this->getExtension($tmpFilePath), $allowedExtensions)) {
+            throw new ValidationException(['receipt' => ['Receipt has to be either "pdf", "png", "jpg" or "jpeg".']]);
+        }
+
+        return $data;
+    }
+
+    private function getExtension(mixed $tmpFilePath): string
+    {
+        // * With this, we can validate the file extensions with more confidence:
+        $fileInfo = new finfo(FILEINFO_EXTENSION);
+        $extension = $fileInfo->file($tmpFilePath);
+
+        return $extension;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> certo...  mas o method de '->file()" RETORNA 
+
+
+OU 'string' ou 'false'...
+
+
+
+
+
+
+
+
+
+--> SE ISSO FOR RETORNAR UM FALSY VALUE,
+
+VAMOS QUERER RETORNAR UMA EMPTY STRING,
+
+POR ISSO ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+    private function getExtension(mixed $tmpFilePath): string
+    {
+        // * With this, we can validate the file extensions with more confidence:
+        $fileInfo = new finfo(FILEINFO_EXTENSION);
+        $extension = $fileInfo->file($tmpFilePath);
+
+        return $extension ?: '';
+    }
+
+
+
+
+
+
+
+
+
+-> o PROFESSOR FAZ A MESMA COISA COM O MIMETYPE,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\RequestValidators;
+
+use App\Contracts\RequestValidatorInterface;
+use App\Exception\ValidationException;
+use Psr\Http\Message\UploadedFileInterface;
+use finfo;
+
+class UploadReceiptRequestValidator implements RequestValidatorInterface
+{
+    public function validate(array $data): array
+    {
+        /** @var UploadedFileInterface $uploadedFile */
+        $uploadedFile = $data['receipt'] ?? null;
+
+        // 1. Validate Uploaded File (check if it was created in the /tmp/ folder)
+        if (!$uploadedFile) {
+            throw new ValidationException(['receipt' => ['Please select a receipt file.']]);
+        }
+
+        if ($uploadedFile->getError() !== UPLOAD_ERR_OK) {
+            throw new ValidationException(['receipt' => ['Failed to upload the receipt file.']]);
+        }
+
+        // 2. Validate File Size (check if the file is less than 5MB)
+        $maxFileSize = 5;
+
+        if ($uploadedFile->getSize() > $maxFileSize * 1024 * 1024) {
+            throw new ValidationException(['receipt' => ['Maximum allowed file size is 5 MB.']]);
+        }
+
+        // 3. Validate File Name (check if the file name is valid, no invalid characters)
+        $fileName = $uploadedFile->getClientFilename();
+
+        if (!preg_match('/^[a-zA-Z0-9_\-\.]+$/', $fileName)) {
+            throw new ValidationException(['receipt' => ['Invalid file name.']]);
+        }
+
+        // 4. Validate File Extension (check if the file extension is valid... mime type can be invalid)
+        $allowedMimeTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+        $allowedExtensions = ['pdf', 'png', 'jpeg', 'jpg'];
+        $tmpFilePath = $uploadedFile->getStream()->getMetadata('uri');
+
+        // ! We must not trust only the file extension sent by the client, because it can be easily spoofed.
+        if (!in_array($uploadedFile->getClientMediaType(), $allowedMimeTypes)) {
+            throw new ValidationException(['receipt' => ['Receipt must be either an image or a pdf document.']]);
+        }
+
+        if (!in_array($this->getExtension($tmpFilePath), $allowedExtensions)) {
+            throw new ValidationException(['receipt' => ['Receipt has to be either "pdf", "png", "jpg" or "jpeg".']]);
+        }
+
+        if (!in_array($this->getMimeType($tmpFilePath), $allowedMimeTypes)) {
+            throw new ValidationException(['receipt' => ['Receipt must be either an image or a pdf document.']]);
+        }
+
+        return $data;
+    }
+
+    private function getExtension(mixed $tmpFilePath): string
+    {
+        // * With this, we can validate the file extensions with more confidence:
+        $fileInfo = new finfo(FILEINFO_EXTENSION);
+        $extension = $fileInfo->file($tmpFilePath);
+
+        return $extension ?: '';
+    }
+
+    private function getMimeType(mixed $tmpFilePath): string
+    {
+        // * With this, we can validate the mime types with more confidence:
+        $fileInfo = new finfo(FILEINFO_MIME_TYPE);
+        $mimeType = $fileInfo->file($tmpFilePath);
+
+        return $mimeType ?: '';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+
+
+
+ISSO ESTÁ GOOD ENOUGH.
+
+
+
+
+
+
+
+
+NÃO É BULLETPROOF,
+
+
+MAS É BOM O SUFICIENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR PROVAVELMENTE 
+TERIA GENERIC ERROR MESSAGES,
+
+EM VEZ 
+
+
+DE SER TÃO ESPECÍFICO ASSIM...
+
+
+
+
+
+
+
+
+-> O PROFESSOR GOSTA DE SER BEM GENÉRICO PARA O USER...
+    E APENAS LOG INFORMATION, AS NEEDED...
+
+
+
+
+
+
+
+
+-> MAS, POR ENQUANTO, ELE QUER DEIXAR 
+
+ESSES DIFERENTES VALIDATION ERROR CASES,
+
+PARA TESTAR ISSO NO BROWSER..
+
+
+
+
+
+
+
+
+
+
+--> NO BROWSER,
+
+O PROFESSOR TENTA UPLOADAR OS INVALID FILE TYPES...
+
+
+
+
+
+
+
+
+
+
+
+-> COM O SEND DE 'INVALID RECEIPT DOC.PDF',
+
+ficamos com 'invalid file'...
+
+
+
+
+
+
+
+
+
+-> ISSO ACONTECEU PQ 
+
+
+O FILENAME POSSUI SPACES....
+
+E NÃO PERMITIMOS SPACES...
+
+
+
+
+
+
+-> PARA PERMITIR SPACES,
+
+DEIXAMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+        if (!preg_match('/^[a-zA-Z0-9\s._-]+$/', $fileName)) {
+            throw new ValidationException(['receipt' => ['Invalid file name.']]);
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+UPLOADAMOS, FICAMOS COM OUTRO TIPO DE ERROR:
+
+
+
+
+
+'Receipt has to be either "pdf", "png", "jpg" or "jpeg"...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NOSSO FILE ESTÁ COM A EXTENSION CORRETA,
+
+
+MAS __ O CONTENT ESTÁ RUIM... O CONTENT NÃO ESTÁ VÁLIDO...
+
+
+
+
+
+
+
+
+
+-> ISSO É PQ 
+
+
+A EXTENSION QUE FOI DETECTADA NÃO FOI UMA DAS EXTENSIONS 
+
+PERMITIDAS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> E É POR ISSO QUE SEMPRE É BOM USAR 'finfo()',
+
+E NÃO DEPENDER DA EXTENSION QUE VEM JUNTO COM A FILENAME...
+
+
+
+
+
+
+
+--> PODERÍAMOS TER VALIDADO A EXTENSION POR MEIO DO EXTRACT 
+
+DO FILENAME,
+
+COM 'explode()',
+
+MAS ISSO 
+
+NÃO SERIA BOM,
+
+NÃO SERIA A MANEIRA CORRETA DE VALIDATE,
+
+
+JUSTAMENTE PQ O CLIENT PODE MUDAR A FILE EXTENSION,
+
+EXATAMENTE COMO O PROFESSOR FEZ, AQUI...
+
+
+
+
+
+
+
+
+
+-> DEPOIS DISSO, O PROFESSOR 
+    ENVIA 1 ARQUIVO COM MAIS DE 5 MB...
+
+
+
+
+    FICAMOS COM O ERROR CORRESPONDENTE...
+
+
+
+
+
+
+
+
+
+
+-> DEPOIS DISSO, ELE TENTA ENVIAR 1 FILE DE TIPO CSV... -> E ISSO 
+    TAMBÉM RETORNA 1 ERROR,
+
+    POR CONTA DESTE TRECHO:
+
+
+
+
+        // ! We must not trust only the file extension sent by the client, because it can be easily spoofed.
+        if (!in_array($uploadedFile->getClientMediaType(), $allowedMimeTypes)) {
+            throw new ValidationException(['receipt' => ['Receipt must be either an image or a pdf document.']]);
+        } 
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ O PROFESSOR COMENTA PARA FORA A PARTE DE 
+
+
+''
+
+
+if (!in_array($this->getExtension($tmpFilePath), $allowedExtensions)) {
+    throw new ValidationException(['receipt' => ['Receipt has to be either "pdf", "png", "jpg" or "jpeg".']]);
+}
+
+
+''
+
+
+
+
+
+
+
+
+
+-> se tentamos UPLOADAR NADA,
+
+FICAMOS COM 'PLEASE SELECT A RECEIPT FILE'...
+
+
+
+
+
+-> QUER DIZER QUE NOSSA VALIDATION DEU CERTO....
+
+
+
+
+
+
+
+
+
+
+-> MAS O PROFESSOR APONTA QUE 
+
+O 'flysystem'
+
+ POSSUI 1 MANEIRA BUILT-IN DE CHECAR POR MIME TYPES...
+
+
+
+
+
+
+
+
+
+ --> ABRIMOS A PARTE DOS DOCS,
+
+ E CLICAMOS 
+
+ EM 
+
+
+ 'Mime-type detection'....
+
+
+
+
+
+ -> ESSA PARTE NOS MOSTRA O INSTALL DA DEPENDENCY DO COMPOSER,
+
+
+ Com 
+
+
+
+
+
+ 'composer require league/mime-type-detection'
+
+
+
+
+
+
+
+
+
+
+ ---> NO CASO,
+    ESSE PACOTE 
+
+    DETECTA O MIME TYPE 
+
+    COM BASE NO CONTENT...
+
+
+
+
+
+    O CÓDIGO TIPO ASSIM:
+
+
+
+
+
+
+
+
+Detectors
+Finfo with extension fallback:
+
+$detector = new League\MimeTypeDetection\FinfoMimeTypeDetector();
+
+// Detect by contents, fall back to detection by extension.
+$mimeType = $detector->detectMimeType('some/path.php', 'string contents');
+
+// Detect by contents only, no extension fallback.
+$mimeType = $detector->detectMimeTypeFromBuffer('string contents');
+
+// Detect by actual file, no extension fallback.
+$mimeType = $detector->detectMimeTypeFromFile('existing/path.php');
+
+// Only detect by extension
+$mimeType = $detector->detectMimeTypeFromPath('any/path.php');
+
+
+
+
+
+
+
+
+
+
+
+-> PEGAMOS ISSO AÍ,
+
+E COLAMOS NO TERMINAL...
+
+
+
+
+
+
+
+
+
+-> AÍ VAMOS CRIAR ESSE OBJECT 'detector'...
+
+
+
+
+
+
+
+
+
+
+
+
+->  VAMOS UTILIZÁ-LO COM A VALIDATION QUE 
+
+JÁ CRIAMOS...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+        // 4. Validate File Extension (check if the file extension is valid... mime type can be invalid)
+        $allowedMimeTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+        $allowedExtensions = ['pdf', 'png', 'jpeg', 'jpg'];
+        $tmpFilePath = $uploadedFile->getStream()->getMetadata('uri');
+        $detector = new \League\MimeTypeDetection\FinfoMimeTypeDetector();
+
+
+    
+
+
+
+
+
+
+
+
+
+
+-> DEPOIS DISSO, ESCREVEMOS '$detector->detectMimeType()',
+
+
+E AÍ 
+
+
+PASSAMOS O FILEPATH ('tmpFilePath')...
+
+
+
+
+
+
+
+
+
+
+
+COMO SEGUNDO PARAMETER, COLOCAMOS OS CONTENTS DA FILE,
+
+
+
+
+QUE VÃO SER ANALISADOS...
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS CONSEGUIR ESSE CONTENT 
+
+com 
+
+$uploadedFile->getStream()->getContents()'..
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+class UploadReceiptRequestValidator implements RequestValidatorInterface
+{
+    public function validate(array $data): array
+    {
+        /** @var UploadedFileInterface $uploadedFile */
+        $uploadedFile = $data['receipt'] ?? null;
+
+        // 1. Validate Uploaded File (check if it was created in the /tmp/ folder)
+        if (!$uploadedFile) {
+            throw new ValidationException(['receipt' => ['Please select a receipt file.']]);
+        }
+
+        if ($uploadedFile->getError() !== UPLOAD_ERR_OK) {
+            throw new ValidationException(['receipt' => ['Failed to upload the receipt file.']]);
+        }
+
+        // 2. Validate File Size (check if the file is less than 5MB)
+        $maxFileSize = 5;
+
+        if ($uploadedFile->getSize() > $maxFileSize * 1024 * 1024) {
+            throw new ValidationException(['receipt' => ['Maximum allowed file size is 5 MB.']]);
+        }
+
+        // 3. Validate File Name (check if the file name is valid, no invalid characters)
+        $fileName = $uploadedFile->getClientFilename();
+
+        if (!preg_match('/^[a-zA-Z0-9\s._-]+$/', $fileName)) {
+            throw new ValidationException(['receipt' => ['Invalid file name.']]);
+        }
+
+        // 4. Validate File Extension (check if the file extension is valid... mime type can be invalid)
+        $allowedMimeTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+        $allowedExtensions = ['pdf', 'png', 'jpeg', 'jpg'];
+        $tmpFilePath = $uploadedFile->getStream()->getMetadata('uri');
+
+        // ! We must not trust only the file extension sent by the client, because it can be easily spoofed.
+        if (!in_array($uploadedFile->getClientMediaType(), $allowedMimeTypes)) {
+            throw new ValidationException(['receipt' => ['Receipt must be either an image or a pdf document.']]);
+        }
+
+        if (!in_array($this->getExtension($tmpFilePath), $allowedExtensions)) {
+            throw new ValidationException(['receipt' => ['Receipt has to be either "pdf", "png", "jpg" or "jpeg".']]);
+        }
+
+        $detector = new FinfoMimeTypeDetector();
+        $mimeType = $detector->detectMimeType($tmpFilePath, $uploadedFile->getStream()->getContents());
+
+        if (!in_array($mimeType, $allowedExtensions)) {
+            throw new ValidationException(['receipt' => ['Receipt must be either an image or a pdf document.']]);
+        }
+
+        if (!in_array($this->getMimeType($tmpFilePath), $allowedMimeTypes)) {
+            throw new ValidationException(['receipt' => ['Receipt must be either an image or a pdf document.']]);
+        }
+
+        return $data;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+class UploadReceiptRequestValidator implements RequestValidatorInterface
+{
+    public function validate(array $data): array
+    {
+        /** @var UploadedFileInterface $uploadedFile */
+        $uploadedFile = $data['receipt'] ?? null;
+
+        // 1. Validate Uploaded File (check if it was created in the /tmp/ folder)
+        if (!$uploadedFile) {
+            throw new ValidationException(['receipt' => ['Please select a receipt file.']]);
+        }
+
+        if ($uploadedFile->getError() !== UPLOAD_ERR_OK) {
+            throw new ValidationException(['receipt' => ['Failed to upload the receipt file.']]);
+        }
+
+        // 2. Validate File Size (check if the file is less than 5MB)
+        $maxFileSize = 5;
+
+        if ($uploadedFile->getSize() > $maxFileSize * 1024 * 1024) {
+            throw new ValidationException(['receipt' => ['Maximum allowed file size is 5 MB.']]);
+        }
+
+        // 3. Validate File Name (check if the file name is valid, no invalid characters)
+        $fileName = $uploadedFile->getClientFilename();
+
+        if (!preg_match('/^[a-zA-Z0-9\s._-]+$/', $fileName)) {
+            throw new ValidationException(['receipt' => ['Invalid file name.']]);
+        }
+
+        // 4. Validate File Extension (check if the file extension is valid... mime type can be invalid)
+        $allowedMimeTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+        $allowedExtensions = ['pdf', 'png', 'jpeg', 'jpg'];
+        $tmpFilePath = $uploadedFile->getStream()->getMetadata('uri');
+
+        // ! We must not trust only the file extension sent by the client, because it can be easily spoofed.
+        if (!in_array($uploadedFile->getClientMediaType(), $allowedMimeTypes)) {
+            throw new ValidationException(['receipt' => ['Receipt must be either an image or a pdf document.']]);
+        }
+
+        // if (!in_array($this->getExtension($tmpFilePath), $allowedExtensions)) {
+        //     throw new ValidationException(['receipt' => ['Receipt has to be either "pdf", "png", "jpg" or "jpeg".']]);
+        // }
+
+        $detector = new FinfoMimeTypeDetector();
+        $mimeType = $detector->detectMimeType($tmpFilePath, $uploadedFile->getStream()->getContents());
+
+        if (!in_array($mimeType, $allowedExtensions)) {
+            throw new ValidationException(['receipt' => ['Receipt must be either an image or a pdf document.']]);
+        }
+
+        // if (!in_array($this->getMimeType($tmpFilePath), $allowedMimeTypes)) {
+        //     throw new ValidationException(['receipt' => ['Receipt must be either an image or a pdf document.']]);
+        // }
+
+        return $data;
+    }
+
+
+
+
+
+
+
+
+
+
+com isso, tiramos a validation custom que tínhamos escrito anteriormente,
+
+e ficamos com essa validation do flysystem...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO..
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE VER,
+
+
+
+APRENDEMOS A FAZER A VALIDATION COM:
+
+
+
+1) NOSSOS CUSTOM VALIDATORS 
+
+
+
+
+
+
+
+
+2) COM A VERSÃO DO 'FLYSYSTEM',
+    QUE É MELHOR....
+
+
+
+
+
+
+
+
+
+
+-. A VERSÃO DO FLYSYSTEM 
+
+TEM VÁRIOS METHODS QUE VC PODE USAR... 
+
+'fromBuffer,
+
+'fromFile',
+
+etc...
+
+
+
+
+
+
+
+-> MAS O QUE INTERESSA É QUE VC 
+
+SABE COMO FAZER ISSO COM OS 2 APPROACHES...
+
+
+
+
+
+
+
+
+-> CERTO... MAS AGORA QUE TERMINAMOS NOSSOS VALIDATORS,
+
+
+DEVEMOS VOLTAR AO RECEIPTCONTROLLER
+
+
+E CRIAR 
+
+
+
+
+
+UMA ENTITY PARA OS RECEIPTS...
+
+
+
+
+
+
+
+--> ''CREATE THE RECEIPT ENTITY RECORD''
+
+
+
+
+-> ALÉM DISSO, PRECISAMOS FAZER STORE DA FILE COM 1 PROPER FILENAME,
+    E NÃO COM O FILENAME 
+
+     IDENTICO AO DA FILE QUE FOI UPLOADADA..
+
+
+
+
+
+
+
+
+NÃO É BOM USAR O MESMO FILENAME DA FILE QUE FOI UPLOADADA, POR VÁRIAS RAZÕES..
+
+
+
+
+
+
+
+
+
+
+1a razao:
+
+
+''IT CAN CONFLICT AND OVERWRITE FILES WITH THE SAME NAMES'''
+
+
+
+
+
+2a razao:
+
+''easier to steal data, from the outside''..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA FAZER ISSO,
+ 
+ PRIMEIRAMENTE PRECISAMOS
+ 
+
+
+
+
+''ACTUALLY GET THE TRANSACTION ENTITY, FROM THE TRANSACTIONID 
+THAT WE GET, AS PART OF THE ROUTE ARGUMENT''...
+
+
+
+
+
+
+
+--> O CÓDIGO INICIAL É ESTE:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Contracts\RequestValidatorFactoryInterface;
+use App\RequestValidators\UploadReceiptRequestValidator;
+use League\Flysystem\Filesystem;
+use Psr\Http\Message\ResponseInterface;
+use Slim\Psr7\Request;
+use Slim\Psr7\Response;
+
+class ReceiptController
+{
+
+    public function __construct(
+    private readonly Filesystem $filesystem, 
+    private readonly RequestValidatorFactoryInterface $requestValidatorFactory
+    ) {}
+
+
+    public function store(Request $request, Response $response, array $args): ResponseInterface
+    {
+        $file = $this->requestValidatorFactory->make(UploadReceiptRequestValidator::class)->validate($request->getUploadedFiles());
+
+        $fileName = $file->getClientFilename();
+
+        // * 'write()' + 'getContents()' is GOOD for small files, but bad for large files
+        $this->filesystem->write('receipts/' . $fileName, $file->getStream()->getContents());
+
+        // * If you want to save large files, you should use 'writeStream()' instead of 'write()'.
+
+        return $response;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VAMOS PEGAR O TRANSACTIONID 
+
+COM 1 CÓDIGO SIMILAR 
+AO USADO 
+
+EM 'TransactionController',
+
+ESTE CÓDIGO AQUI:
+
+
+
+
+
+
+
+        $id = (int) $data['id'];
+
+        if (! $id || ! ($transaction = $this->transactionService->getById($id))) {
+            return $response->withStatus(404);
+        }
+
+
+
+
+
+
+
+
+
+-> vamos pegar esse id, com esse código..
+
+
+
+
+
+
+
+
+
+-> MAS PRECISAMOS TROCAR 'data' por 'args',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+class ReceiptController
+{
+
+    public function __construct(
+    private readonly Filesystem $filesystem, 
+    private readonly RequestValidatorFactoryInterface $requestValidatorFactory,
+    private readonly TransactionServiceInterface $transactionService
+    ) {}
+
+
+    public function store(Request $request, Response $response, array $args): ResponseInterface
+    {
+        $file = $this->requestValidatorFactory->make(UploadReceiptRequestValidator::class)->validate($request->getUploadedFiles());
+
+        $fileName = $file->getClientFilename();
+
+        $id = (int) $args['id'];
+
+        if (! $id || ! ($transaction = $this->transactionService->getById($id))) {
+            return $response->withStatus(404);
+        }
+
+        // * 'write()' + 'getContents()' is GOOD for small files, but bad for large files
+        $this->filesystem->write('receipts/' . $fileName, $file->getStream()->getContents());
+
+        // * If you want to save large files, you should use 'writeStream()' instead of 'write()'.
+
+        return $response;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+''now that we have the ___ TRANSACTION ENTITY,
+
+WE CAN PASS THAT, AS AN ARGUMENT,
+
+TO A METHOD, TO __ CREATE THE RECEIPT ENTITY''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, PODEMOOS CRIAR ALGO COMO 1 'RECEIPTSERVICE',
+
+    PARA CRIAR ESSA ENTITY...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+$this->receiptService->create($transaction, $fileName);
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+VAMOS PASSAR, COMO ARGUMENTS,
+
+A ENTITY DE 'transaction'
+
+
+
+e 
+
+o filename 
+
+
+da file...
+
+
+
+
+
+
+o 'fileName' 
+
+será o NAME DECIDIDO PELO CLIENT,
+
+AO TER UPLOADADO A FILE...
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO... AÍ PRECISAMOS CRIAR ESSE 'ReceiptService',
+
+E AÍ CRIAR ESSE METHOD DE 'CREATE',
+
+tipO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Contracts\ReceiptServiceInterface;
+use App\Entity\Transaction;
+use Doctrine\ORM\EntityManagerInterface;
+
+class ReceiptService implements ReceiptServiceInterface
+{
+    public function __construct(private readonly EntityManagerInterface $entityManager) {}
+
+    public function create(Transaction $transaction, string $filename): void
+    {
+
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS ESSE METHOD VAI RETORNAR A ENTITY DE 'Receipt',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Contracts\ReceiptServiceInterface;
+use App\Entity\Receipt;
+use App\Entity\Transaction;
+use Doctrine\ORM\EntityManagerInterface;
+
+class ReceiptService implements ReceiptServiceInterface
+{
+    public function __construct(private readonly EntityManagerInterface $entityManager) {}
+
+    public function create(Transaction $transaction, string $filename): Receipt
+    {
+
+        $receipt = new Receipt();
+
+        $receipt->setTransaction($transaction);
+        $receipt->setFilename($filename);
+
+        $this->entityManager->persist($receipt);
+        $this->entityManager->flush();
+
+        return $receipt;
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+CERTO....
+
+
+
+
+
+isso faz sentido...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Contracts\ReceiptServiceInterface;
+use App\Entity\Receipt;
+use App\Entity\Transaction;
+use Doctrine\ORM\EntityManagerInterface;
+
+class ReceiptService implements ReceiptServiceInterface
+{
+    public function __construct(private readonly EntityManagerInterface $entityManager) {}
+
+    public function create(Transaction $transaction, ?string $filename): Receipt
+    {
+
+        $receipt = new Receipt();
+
+        $receipt->setTransaction($transaction);
+        $receipt->setFilename($filename);
+        $receipt->setCreatedAt(new \DateTime());
+
+        $this->entityManager->persist($receipt);
+        $this->entityManager->flush();
+
+        return $receipt;
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AGORA QUE TEMOS O RECEIPTSERVICE,
+
+
+PRECISAMOS 'FIGURE OUT'
+
+
+COMO PODEMOS GENERATE O FILENAME...
+
+
+
+
+
+
+
+
+
+
+-> NO CASO, VAMOS:
+
+
+
+
+1) WRITE THE FILE TO THE FILESYSTEM 
+
+
+
+2) CREATE THE RECORD OF THE FILE/RECEIPT...
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Contracts\ReceiptServiceInterface;
+use App\Contracts\RequestValidatorFactoryInterface;
+use App\Contracts\TransactionServiceInterface;
+use App\RequestValidators\UploadReceiptRequestValidator;
+use League\Flysystem\Filesystem;
+use Psr\Http\Message\ResponseInterface;
+use Slim\Psr7\Request;
+use Slim\Psr7\Response;
+
+class ReceiptController
+{
+
+    public function __construct(
+    private readonly Filesystem $filesystem, 
+    private readonly RequestValidatorFactoryInterface $requestValidatorFactory,
+    private readonly TransactionServiceInterface $transactionService,
+    private readonly ReceiptServiceInterface $receiptService
+    ) {}
+
+
+    public function store(Request $request, Response $response, array $args): ResponseInterface
+    {
+        $file = $this->requestValidatorFactory->make(UploadReceiptRequestValidator::class)->validate($request->getUploadedFiles());
+
+        $fileName = $file->getClientFilename();
+
+        $id = (int) $args['id'];
+
+        if (! $id || ! ($transaction = $this->transactionService->getById($id))) {
+            return $response->withStatus(404);
+        }
+
+        // * 'write()' + 'getContents()' is GOOD for small files, but bad for large files
+        // * If you want to save large files, you should use 'writeStream()' instead of 'write()'.
+        $this->filesystem->write('receipts/' . $fileName, $file->getStream()->getContents());
+
+        $this->receiptService->create($transaction, $fileName);
+
+        return $response;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+QUANTO AO FILENAME,
+ 
+
+
+''SOME LIKE TO USE UUIDS''
+
+
+
+''SOME LIKE TO USE HASHES''
+
+
+
+
+''SOME HAVE OTHER STRATEGIES''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+''WE COULD ALSO USE THE RANDOMIZER CLASS,
+WHICH WAS INTRODUCED IN PHP 8.2''..
+
+
+
+
+
+
+
+
+--> EM VEZ DISSO, USAREMOS 1 FUNCTION CHAMADA DE 
+
+'random_bytes()',
+
+QUE VAI 
+
+
+
+'GENERATE CRYPTOGRAPHIC-SECURE PSEUDORANDOM BYTES,
+FOR THE GIVEN LENGTH'...
+
+
+
+
+
+
+
+-> TIPO ASSIM:
+
+
+
+
+
+'$randomFilename = bin2hex(random_bytes(25));'
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Contracts\ReceiptServiceInterface;
+use App\Contracts\RequestValidatorFactoryInterface;
+use App\Contracts\TransactionServiceInterface;
+use App\RequestValidators\UploadReceiptRequestValidator;
+use League\Flysystem\Filesystem;
+use Psr\Http\Message\ResponseInterface;
+use Slim\Psr7\Request;
+use Slim\Psr7\Response;
+
+class ReceiptController
+{
+
+    public function __construct(
+    private readonly Filesystem $filesystem, 
+    private readonly RequestValidatorFactoryInterface $requestValidatorFactory,
+    private readonly TransactionServiceInterface $transactionService,
+    private readonly ReceiptServiceInterface $receiptService
+    ) {}
+
+
+    public function store(Request $request, Response $response, array $args): ResponseInterface
+    {
+        $file = $this->requestValidatorFactory->make(UploadReceiptRequestValidator::class)->validate($request->getUploadedFiles());
+
+        $fileName = $file->getClientFilename();
+
+        $id = (int) $args['id'];
+
+        if (! $id || ! ($transaction = $this->transactionService->getById($id))) {
+            return $response->withStatus(404);
+        }
+
+        $randomFilename = bin2hex(random_bytes(25));
+        
+
+        // * 'write()' + 'getContents()' is GOOD for small files, but bad for large files
+        // * If you want to save large files, you should use 'writeStream()' instead of 'write()'.
+        $this->filesystem->write('receipts/' . $randomFilename, $file->getStream()->getContents());
+
+
+        $this->receiptService->create($transaction, $randomFilename);
+
+        return $response;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AINDA ESTOU FICANDO COM 1 ERROR DE TYPE (array vs object), mas logo o consertarei...
+
+
+
+
+
+
+
+-> AGORA ENVIAMOS 1 NOVA FILE,
+
+PARA VER O RESULTADO 
+
+
+
+DO UPLOAD...
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR TENTA O ENVIO DO FILE,
+MAS FICAMOS COM 1 ERROR,
+
+
+
+O QUE QUER DIZER QUE ALGO N DEU CERTO..
+
+
+
+
+
+
+
+
+
+
+
+ERA ISTO AQUI:
+
+
+
+        $file = $this->requestValidatorFactory->make(UploadReceiptRequestValidator::class)->validate($request->getUploadedFiles())['receipt'];
+
+
+
+
+
+
+
+precisei acessar o object  dentro do array, 
+
+com 
+
+'['receipt']'
+
+
+
+
+
+
+
+
+
+-> NOSSA FILE, COM ISSO, FOI CRIADA COM 
+
+UM 
+ NOME TIPO 
+
+
+
+
+
+ ASD120ASI9-F0UI9PO12H3JTIOASHGSAZXKJNCZKLXQ
+
+
+
+
+
+
+
+
+
+
+ MAS ELA FOI CRIADA SEM EXTENSION ALGUMA...
+
+
+
+
+
+
+
+
+
+--> MAS ISSO É FINE,
+
+NÃO IMPORTA... PODEMOS ADICIONAR A EXTENSION 
+
+NO MOMENTO DO DOWNLOAD DA FILE,
+
+OU QUANDO ESTIVERMOS FAZENDO LOAD DELA...
+
+
+
+
+
+
+
+
+
+
+
+
+certo...
+ 
+
+ faz sentido...
+
+
+
+CHECAMOS A DATABASE...
+
+
+
+
+
+
+
+NOSSO RECORD DE 'RECEIPT' TAMBÉM FOI CREATED..
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS AQUI ESTAMOS 
+
+COM 1 PROBLEMA...
+
+
+
+
+
+
+
+
+-> O file_name armazenado 
+na database foi o file_name original,
+
+
+E NÃO O FILENAME RANDOMIZADO... E PRECISAMOS DE ESSE FILENAME
+RANDOMIZADO PARA CONSEGUIRMOS INCLUÍ-LO NO 'PATH' MAIS TARDE,
+
+PARA 
+
+FAZER LOAD DE ESSA FILE, MAIS TARDE..
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODERÍAMOS ARMAZENAR OUTRAS INFOS NA DATABASE,
+
+COMO 'MIMETYPE', 'EXTENSIONS',
+
+ETC... MAS NÃO PRECISAMOS DISSO, NO MOMENTO..
+
+
+
+
+
+
+
+
+--> PARA ADICIONAR NOVAS COLUMNS,
+
+    TEMOS QUE MODIFICAR A ENTITY E RODAR O COMMAND DE 
+    'DIFF',
+
+
+    PARA CRIAR A MIGRATION APROPRIADA...
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE O PROFESSOR CRIA 
+
+
+1 NOVA PROPERTY EM 'Receipt.php',
+
+
+a nossa entity,
+
+
+
+de nome 
+
+
+'$storageFilename'..
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+    #[Column]
+    private string $filename;
+
+    #[Column(name: 'storage_filename')]
+    private string $storageFilename;
+
+
+
+
+
+
+
+
+
+
+certo..
+
+
+
+
+
+
+
+
+
+
+AÍ, LÁ EM 'create',
+
+
+SETTAMOS A STORAGEFILENAME TAMBÉM,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+    public function store(Request $request, Response $response, array $args): ResponseInterface
+    {
+
+        $file = $this->requestValidatorFactory->make(UploadReceiptRequestValidator::class)->validate($request->getUploadedFiles())['receipt'];
+
+        $filename = $file->getClientFilename();
+
+        $id = (int) $args['id'];
+
+        if (! $id || ! ($transaction = $this->transactionService->getById($id))) {
+            return $response->withStatus(404);
+        }
+
+        $randomFilename = bin2hex(random_bytes(25));
+        
+
+        // * 'write()' + 'getContents()' is GOOD for small files, but bad for large files
+        // * If you want to save large files, you should use 'writeStream()' instead of 'write()'.
+        $this->filesystem->write('receipts/' . $randomFilename, $file->getStream()->getContents());
+
+
+        $this->receiptService->create($transaction, $filename, $randomFilename);
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, 
+
+RODAMOS 
+
+'php expennies diff'
+
+
+no terminal,
+
+
+
+para gerar as migrations,
+
+
+para que seja aplicada essa change da column de 'storageFilename'
+
+
+
+lá na table de 'receipts'...
+
+
+
+
+
+
+
+
+
+-. OK....
+
+
+AGORA BASTA RODAR 
+
+
+
+
+
+php expennies migrate
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA TERMINAMOS....

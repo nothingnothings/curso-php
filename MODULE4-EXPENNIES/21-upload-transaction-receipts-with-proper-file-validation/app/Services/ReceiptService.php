@@ -1,20 +1,19 @@
-<?php
-
-declare(strict_types = 1);
+<?php declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Contracts\ReceiptServiceInterface;
 use App\Entity\Receipt;
-use Doctrine\ORM\EntityManager;
+use App\Entity\Transaction;
+use Doctrine\ORM\EntityManagerInterface;
 
-class ReceiptService
+class ReceiptService implements ReceiptServiceInterface
 {
-    public function __construct(private readonly EntityManager $entityManager)
-    {
-    }
+    public function __construct(private readonly EntityManagerInterface $entityManager) {}
 
-    public function create($transaction, string $filename, string $storageFilename): Receipt
+    public function create(Transaction $transaction, string $filename, string $storageFilename): Receipt
     {
+
         $receipt = new Receipt();
 
         $receipt->setTransaction($transaction);
@@ -27,4 +26,6 @@ class ReceiptService
 
         return $receipt;
     }
+
+
 }
