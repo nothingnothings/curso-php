@@ -1,0 +1,317 @@
+
+
+VAMOS CONTINUAR COM O TÓPICO DO FILE UPLOAD 
+
+E TRABALHAR NA HABILIDADE DE 'UPLOAD FILES'....
+
+
+
+
+
+
+
+
+
+
+
+-> ANTES DISSO, O PROFESSOR QUER MENCIONAR 1 BUG 
+
+
+QUE FOI INTRODUZIDO NO FINAL DO VIDEO,
+
+
+EM QUE 
+
+
+FIZEMOS O REFACTOR 
+
+
+
+PARA USAR O FLYSYSTEM, PARA DETECTAR O MIME TYPE...
+
+
+
+
+
+
+
+--> COM ESSA ISSUE, A FILE QUE UPLOADAMOS ACABAVA SENDO UPLOADADA 
+
+COMO 1 FILE VAZIA...
+
+
+
+
+
+
+
+
+-> O PROFESSOR NOS MOSTRARÁ COMO PODEMOS CONSERTAR ESSE 
+    BUG...
+
+
+
+
+
+
+
+
+
+--> ELE TAMBÉM ADICIONOU 1 NOVA COLUMN NA INTERFACE,
+
+
+
+UMA COLUMN EM QUE TEMOS 'RECEIPTS',
+
+
+com os vários receipts de cada transaction...
+
+
+
+
+
+
+
+-> devo pegar o conteúdo dessa mudança,
+
+e colar na view desta aula...
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR TAMBÉM REFORMATOU O CÓDIGO JAVASCRIPT,
+
+
+PARA CONSEGUIR FAZER COM QUE ESSA NOVA FEATURE FUNCIONASSE 
+
+
+(novos ícones de receipt aparecendo, para cada transaction)...
+
+
+
+
+
+
+
+
+
+A PARTE RESPONSÁVEL POR ESSES ÍCONES É ESTA:
+
+
+
+
+
+
+
+
+
+
+         {
+                data: row => {
+                    let icons = []
+
+                    for (let i = 0; i < row.receipts.length; i++) {
+                        const receipt = row.receipts[i]
+
+                        const span       = document.createElement('span')
+                        const anchor     = document.createElement('a')
+                        const icon       = document.createElement('i')
+                        const deleteIcon = document.createElement('i')
+
+                        deleteIcon.role = 'button'
+
+                        span.classList.add('position-relative')
+                        icon.classList.add('bi', 'bi-file-earmark-text', 'download-receipt', 'text-primary', 'fs-4')
+                        deleteIcon.classList.add('bi', 'bi-x-circle-fill', 'delete-receipt', 'text-danger', 'position-absolute')
+
+                        anchor.href   = `/transactions/${ row.id }/receipts/${ receipt.id }`
+                        anchor.target = 'blank'
+                        anchor.title  = receipt.name
+
+                        deleteIcon.setAttribute('data-id', receipt.id)
+                        deleteIcon.setAttribute('data-transactionId', row.id)
+
+                        anchor.append(icon)
+                        span.append(anchor)
+                        span.append(deleteIcon)
+
+                        icons.push(span.outerHTML)
+                    }
+
+                    return icons.join('')
+                }
+            },
+
+    
+
+
+
+
+-> PERCEBEMOS QUE O UPLOAD ESTÁ FUNCIONANDO, MAS AS FILES ESTÃO FICANDO VAZIAS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO ESTÁ ACONTECENDO POR CONTA DESTA LINHA:
+
+
+
+
+
+
+$mimeType = $detector->detectMimeType($tmpFilePath, $uploadedFile->getStream()->getContents());
+
+
+
+
+
+
+
+
+
+
+
+DENTRO DESSE
+ REQUEST VALIDATOR,
+
+
+
+
+ COM '$uploadedFile->getStream()'
+
+
+ ESTAMOS _ _ ABRINDO__ A STREAM....
+
+
+
+
+
+ AÍ, COM 
+
+
+
+ ''->getContents()'',
+ 
+
+
+
+ estamos obtendo os contents... 
+
+
+
+
+ isso coloca o 'POINTER' no final da file,
+
+ pq estamos ESSENCIALMENTE PEGANDO TODOS OS CONTENTS DA FILE...
+
+
+
+
+
+
+
+
+
+ O PROBLEMA É QUE, LÁ NA PARTE DE 'store()',
+
+
+ ESTAMOS RODANDO O MESMO CÓDIGO NOVAMENTE,
+
+
+
+ COM ISTO:
+
+
+
+
+
+
+
+         // * 'write()' + 'getContents()' is GOOD for small files, but bad for large files
+        // * If you want to save large files, you should use 'writeStream()' instead of 'write()'.
+$this->filesystem->write('receipts/' . $randomFilename, $file->getStream()->getContents());
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESTAMOS TENTANDO LER A STREAM E PEGAR OS CONTENTS MAIS UMA VEZ...
+
+
+
+
+--> O PROBLEMA, NESSE CASO, É QUE QUANDO TENTAMOS FAZER O 'getContents()'
+    de essa stream MAIS UMA VEZ,
+
+
+    '''THERE IS NO MORE CONTENT TO BE READ, FROM THE STREAM''..
+
+
+
+
+
+OU SEJA, A STREAM FICA EM BRANCO...
+
+
+
+
+
+
+
+
+PARA CONSERTAR O PROBLEMA, 2 POSSIBILIDADES:
+
+
+
+
+1) 'REWIND THE STREAM', 
+    PARA QUE O POINTER SEJA COLOCADO NO INÍCIO DA STREAM MAIS UMA VEZ...
+
+
+OU
+
+
+2) ''NOT READ THE CONTENTS OF THE STREAM, IN THE REQUESTVALIDATOR''...
+
+
+
+
+
+
+
+
+
+
+-> QUALQUER FORMA FUNCIONARIA, MAS O PROFESSOR 
+    PENSA QUE É SIMPLESMENTE MELHOR APENAS 
+
+    TROCAR 
+
+    o call do method 'detectMimeType()' 
