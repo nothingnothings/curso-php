@@ -75,4 +75,9 @@ class CategoryService
             ->getQuery()
             ->getArrayResult();
     }
+
+    public function getByName(string $name): ?Category
+    {
+        return $this->entityManager->getRepository(Category::class)->findOneBy(['name' => $name]);
+    }
 }

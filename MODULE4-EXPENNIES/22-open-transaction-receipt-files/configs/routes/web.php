@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types = 1);
+<?php declare(strict_types=1);
 
 use App\Controllers\AuthController;
 use App\Controllers\CategoryController;
@@ -9,8 +7,8 @@ use App\Controllers\ReceiptController;
 use App\Controllers\TransactionController;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\GuestMiddleware;
-use Slim\App;
 use Slim\Routing\RouteCollectorProxy;
+use Slim\App;
 
 return function (App $app) {
     $app->get('/', [HomeController::class, 'index'])->add(AuthMiddleware::class);
@@ -41,5 +39,8 @@ return function (App $app) {
         $transactions->get('/{id:[0-9]+}', [TransactionController::class, 'get']);
         $transactions->post('/{id:[0-9]+}', [TransactionController::class, 'update']);
         $transactions->post('/{id:[0-9]+}/receipts', [ReceiptController::class, 'store']);
+        $transactions->get('/{transactionId:[0-9]+}/receipts/{receiptId:[0-9]+}', [ReceiptController::class, 'download']);
+        $transactions->delete('/{transactionId:[0-9]+}/receipts/{receiptId:[0-9]+}', [ReceiptController::class, 'delete']);
+        $transactions->post('/upload', [TransactionController::class, 'upload']);
     })->add(AuthMiddleware::class);
 };

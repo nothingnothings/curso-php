@@ -7,5 +7,7 @@ use App\Entity\Transaction;
 
 interface ReceiptServiceInterface
 {
-    public function create(Transaction $transaction, string $filename, string $storageFilename): Receipt;
+    public function create(Transaction $transaction, string $filename, string $storageFilename, string $mediaType): Receipt;
+
+    public function getById(int $id): ?Receipt;
 }

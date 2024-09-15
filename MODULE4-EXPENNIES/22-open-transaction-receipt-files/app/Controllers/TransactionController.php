@@ -6,8 +6,11 @@ namespace App\Controllers;
 
 use App\Contracts\RequestValidatorFactoryInterface;
 use App\DataObjects\TransactionData;
+use App\Entity\Receipt;
 use App\Entity\Transaction;
+use App\Exception\ValidationException;
 use App\RequestValidators\TransactionRequestValidator;
+use App\RequestValidators\UploadTransactionRequestValidator;
 use App\ResponseFormatter;
 use App\Services\CategoryService;
 use App\Services\RequestService;
@@ -119,6 +122,12 @@ class TransactionController
                 'amount'      => $transaction->getAmount(),
                 'date'        => $transaction->getDate()->format('m/d/Y g:i A'),
                 'category'    => $transaction->getCategory()->getName(),
+                'receipts' => $transaction->getReceipts()->map(function (Receipt $receipt) {
+                    return [
+                        'id' => $receipt->getId(),
+                        'name' => $receipt->getFilename(),
+                    ];
+                })->toArray(),
             ];
         };
 
@@ -130,5 +139,51 @@ class TransactionController
             $params->draw,
             $totalTransactions
         );
+    }
+
+    public function upload(Request $request, Response $response): Response
+    {
+        $data = $this->requestValidatorFactory->make(UploadTransactionRequestValidator::class)->validate(
+            $request->getParsedBody()
+        );
+
+        // Transactions will be in a csv. We need to read the csv's contents, using fgetcsv(), to create a single transaction for each row
+        $csvContent = $data['importFile'];
+
+        // Convert CSV string to an array
+        $rows = array_map('str_getcsv', explode("\n", $csvContent));
+
+        $user = $request->getAttribute('user');
+
+
+        // Process each row
+        foreach ($rows as $index => $row) {
+            // Skip empty rows
+            if (empty(array_filter($row))) {
+                continue;
+            }
+
+            // Skip the header line if present
+            if ($index === 0 && $row[0] === 'transaction_id') {
+                continue;
+            }
+
+            // Extract data from the row
+            $amount = $row[1] ?? '';
+            $description = $row[2] ?? '';
+
+            // Process the data
+            $this->transactionService->create(
+                new TransactionData(
+                    $description,
+                    (float) $amount,
+                    new DateTime(),
+                    $this->categoryService->getByName(($row[3]) ?? null)
+                ),
+                $user
+            );
+        }
+
+        return $response;
     }
 }

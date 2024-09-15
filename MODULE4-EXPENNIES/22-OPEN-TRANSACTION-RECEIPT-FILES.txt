@@ -314,4 +314,2172 @@ OU
 
     TROCAR 
 
-    o call do method 'detectMimeType()' 
+    o call do method '->detectMimeType()'  
+
+
+
+    pelo method alternativo 
+
+
+
+    '->detectMimeTypeFromFile()'...
+
+
+
+
+
+->  AÍ TEMOS O MESMO CÓDIGO DE ANTES,
+
+
+
+MAS COM ESTE FORMATO:
+
+
+
+
+
+
+
+class UploadReceiptRequestValidator implements RequestValidatorInterface
+{
+    public function validate(array $data): array
+    {
+        /** @var UploadedFileInterface $uploadedFile */
+        $uploadedFile = $data['receipt'] ?? null;
+
+        // 1. Validate Uploaded File (check if it was created in the /tmp/ folder)
+        if (!$uploadedFile) {
+            throw new ValidationException(['receipt' => ['Please select a receipt file.']]);
+        }
+
+        if ($uploadedFile->getError() !== UPLOAD_ERR_OK) {
+            throw new ValidationException(['receipt' => ['Failed to upload the receipt file.']]);
+        }
+
+        // 2. Validate File Size (check if the file is less than 5MB)
+        $maxFileSize = 5;
+
+        if ($uploadedFile->getSize() > $maxFileSize * 1024 * 1024) {
+            throw new ValidationException(['receipt' => ['Maximum allowed file size is 5 MB.']]);
+        }
+
+        // 3. Validate File Name (check if the file name is valid, no invalid characters)
+        $fileName = $uploadedFile->getClientFilename();
+
+        if (!preg_match('/^[a-zA-Z0-9\s._-]+$/', $fileName)) {
+            throw new ValidationException(['receipt' => ['Invalid file name.']]);
+        }
+
+        // 4. Validate File Extension (check if the file extension is valid... mime type can be invalid)
+        $allowedMimeTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+        $allowedExtensions = ['pdf', 'png', 'jpeg', 'jpg'];
+        $tmpFilePath = $uploadedFile->getStream()->getMetadata('uri');
+
+        // ! We must not trust only the file extension sent by the client, because it can be easily spoofed.
+        if (!in_array($uploadedFile->getClientMediaType(), $allowedExtensions)) {
+            throw new ValidationException(['receipt' => ['Receipt must be either an image or a pdf document.']]);
+        }
+
+        // if (!in_array($this->getExtension($tmpFilePath), $allowedExtensions)) {
+        //     throw new ValidationException(['receipt' => ['Receipt has to be either "pdf", "png", "jpg" or "jpeg".']]);
+        // }
+
+        $detector = new FinfoMimeTypeDetector();
+        $mimeType = $detector->detectMimeTypeFromFile($tmpFilePath, $uploadedFile->getStream()->getContents());
+
+        if (!in_array($mimeType, $allowedExtensions)) {
+            throw new ValidationException(['receipt' => ['Invalid file type.']]);
+        }
+
+        // if (!in_array($this->getMimeType($tmpFilePath), $allowedMimeTypes)) {
+        //     throw new ValidationException(['receipt' => ['Receipt must be either an image or a pdf document.']]);
+        // }
+
+        return $data;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+COM ISSO, NÃO FICAMOS COM 2 CALLS DE '->getContents()',
+
+
+
+o que faz com que 
+
+nossa file realmente seja uploadada 
+
+
+(sem o final '.pdf', mas ainda funciona, é uma file válida, só precisa dessa 
+extensão )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR MENCIONA QUE 
+
+NÃO ADICIONAMOS NENHUMA CLIENTSIDE VALIDATION 
+
+PQ 
+
+
+ELE QUER FOCAR APENAS NO PHP...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... AGORA DEVEMOS PROSSEGUIR.
+
+
+
+
+
+
+
+
+
+-> O PROF FEZ ALGUMAS CHANGES, POR TRÁS DAS CENAS,
+
+
+NO FRONTEND..
+
+
+
+
+
+
+
+
+
+
+
+-> QUANDO UPLOADAMOS 1 NOVA FILE,
+
+
+
+1 NOVO ÍCONE É ADICIONADO 
+
+
+
+NA COLUMN DE 'RECEIPTS'...
+
+
+
+
+
+
+
+
+-> ESSA É UMA NOVA COLUMN, QUE ADICIONAMOS NA TABLE,
+QUE 
+
+MOSTRA OS RECEIPT FILES...
+
+
+
+
+
+
+
+
+-> SE VC CLICA NO ÍCONE 
+
+DE 1 DOS RECEIPTS, VC VAI PARA  1 PAGE QUE 
+SUPOSTAMENTE 
+
+CARREGARIA 
+
+O ARQUIVO DO RECEIPT..
+
+
+
+
+
+
+
+-> NO MOMENTO, ESSA PAGE NÃO NOS MOSTRA COISA ALGUMA,
+
+ESTÁ EM BRANCO,
+ 
+ MAS VAMOS IMPLEMENTAR ESSA FUNCTIONALITY AGORA...
+
+
+
+
+
+
+
+
+
+--> OK... MAS O PROFESSOR MOSTRA RAPIDAMENTE AS CODE CHANGES...
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR MOSTRA
+
+
+AS CHANGES NO 'TRANSACTIONCONTROLLER'...
+
+
+
+
+
+
+
+
+--> ANTES, O METHOD DE 'load' estava assim:
+
+
+
+
+
+
+
+    public function load(Request $request, Response $response): Response
+    {
+        $params       = $this->requestService->getDataTableQueryParameters($request);
+        $transactions = $this->transactionService->getPaginatedTransactions($params);
+        $transformer  = function (Transaction $transaction) {
+            return [
+                'id'          => $transaction->getId(),
+                'description' => $transaction->getDescription(),
+                'amount'      => $transaction->getAmount(),
+                'date'        => $transaction->getDate()->format('m/d/Y g:i A'),
+                'category'    => $transaction->getCategory()->getName(),
+            ];
+        };
+
+        $totalTransactions = count($transactions);
+
+        return $this->responseFormatter->asDataTable(
+            $response,
+            array_map($transformer, (array) $transactions->getIterator()),
+            $params->draw,
+            $totalTransactions
+        );
+    }
+
+
+
+
+
+
+
+
+
+    --> COMO VC PODE VER,
+        TEMOS 1 NOVA KEY,
+
+        DE NOME 'receipts',
+
+
+        1 ARRAY DE OBJECTS 
+
+
+        COM FORMATO 
+
+        {
+            'name' 
+            'id'...
+        }
+
+
+
+
+
+
+
+NO CASO, O CÓDIGO FICOU ASSIM:
+
+
+
+
+
+
+
+
+
+       $transformer  = function (Transaction $transaction) {
+            return [
+                'id'          => $transaction->getId(),
+                'description' => $transaction->getDescription(),
+                'amount'      => $transaction->getAmount(),
+                'date'        => $transaction->getDate()->format('m/d/Y g:i A'),
+                'category'    => $transaction->getCategory()->getName(),
+                'receipts' => $transaction->getReceipts()->map(function (Receipt $receipt) {
+                    return [
+                        'id' => $receipt->getId(),
+                        'name' => $receipt->getFilename(),
+                    ];
+                })->toArray(),
+            ];
+        };
+
+
+
+
+
+
+
+
+
+ISSO FAZ MAP DE TODOS OS RECEIPTS,
+E AÍ 
+
+
+RETORNA APENAS O 'NAME' E 'ID' 
+
+DE CADA RECEIPT...
+
+
+
+
+
+
+
+
+-->  NA PARTE DE TRANSACTION.JS
+
+    CÓDIGO FRONTEND,
+
+
+    TEMOS 1 TRECHO QUE FAZ O RENDER DA COLUMN DE RECEIPTS,
+
+    COM ISTO:
+
+
+
+
+
+
+
+
+
+      {
+        data: (row) => {
+          let icons = [];
+
+          for (let i = 0; i < row.receipts.length; i++) {
+            const receipt = row.receipts[i];
+
+            const span = document.createElement('span');
+            const anchor = document.createElement('a');
+            const icon = document.createElement('i');
+            const deleteIcon = document.createElement('i');
+
+            deleteIcon.role = 'button';
+
+            span.classList.add('position-relative');
+            icon.classList.add(
+              'bi',
+              'bi-file-earmark-text',
+              'download-receipt',
+              'text-primary',
+              'fs-4'
+            );
+            deleteIcon.classList.add(
+              'bi',
+              'bi-x-circle-fill',
+              'delete-receipt',
+              'text-danger',
+              'position-absolute'
+            );
+
+            anchor.href = `/transactions/${row.id}/receipts/${receipt.id}`;
+            anchor.target = 'blank';
+            anchor.title = receipt.name;
+
+            deleteIcon.setAttribute('data-id', receipt.id);
+            deleteIcon.setAttribute('data-transactionId', row.id);
+
+            anchor.append(icon);
+            span.append(anchor);
+            span.append(deleteIcon);
+
+            icons.push(span.outerHTML);
+          }
+
+          return icons.join('');
+        },
+      },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    --> TAMBÉM TEMOS UM EVENT HANDLER DE CLICK,
+
+    MAIS ABAIXO,
+
+
+
+O CASE DO 'deleteReceiptBtn',
+
+
+COMO VISTO AQUI:
+
+
+
+
+
+
+
+  document
+    .querySelector('#transactionsTable')
+    .addEventListener('click', function (event) {
+      const editBtn = event.target.closest('.edit-transaction-btn');
+      const deleteBtn = event.target.closest('.delete-transaction-btn');
+      const uploadReceiptBtn = event.target.closest('.open-receipt-upload-btn');
+      const deleteReceiptBtn = event.target.closest('.delete-receipt');
+
+      if (editBtn) {
+        const transactionId = editBtn.getAttribute('data-id');
+
+        get(`/transactions/${transactionId}`)
+          .then((response) => response.json())
+          .then((response) =>
+            openEditTransactionModal(editTransactionModal, response)
+          );
+      } else if (deleteBtn) {
+        const transactionId = deleteBtn.getAttribute('data-id');
+
+        if (confirm('Are you sure you want to delete this transaction?')) {
+          del(`/transactions/${transactionId}`).then((response) => {
+            if (response.ok) {
+              table.draw();
+            }
+          });
+        }
+      } else if (uploadReceiptBtn) {
+        const transactionId = uploadReceiptBtn.getAttribute('data-id');
+
+        uploadReceiptModal._element
+          .querySelector('.upload-receipt-btn')
+          .setAttribute('data-id', transactionId);
+
+        uploadReceiptModal.show();
+      } else if (deleteReceiptBtn) {
+        const receiptId = deleteReceiptBtn.getAttribute('data-id');
+        const transactionId =
+          deleteReceiptBtn.getAttribute('data-transactionid');
+
+        if (confirm('Are you sure you want to delete this receipt?')) {
+          del(`/transactions/${transactionId}/receipts/${receiptId}`).then(
+            (response) => {
+              if (response.ok) {
+                table.draw();
+              }
+            }
+          );
+        }
+      }
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO N FAZ MT COISA NO MOMENTO,
+
+
+MAS VAI FAZER 1 DELETE REQUEST AO 
+
+
+ENDPOINT 
+
+
+'' del(`/transactions/${transactionId}/receipts/${receiptId}`) '',
+
+
+
+
+E AÍ RECARREGA A TABLE (table.draw()),
+
+
+
+SE A RESPONSE FOI OK..
+
+
+
+
+
+
+
+
+
+
+
+-> LÁ EM RECEIPTCONTROLLER,
+
+
+TEMOS MAIS 2 ENDPOINTS,
+
+
+'DOWNLOAD' E  'DELETE',
+
+
+QUE IMPLEMENTAREMOS NESTA AULA...
+
+
+
+
+
+
+
+
+
+Ex:
+
+
+
+
+
+
+    public function delete(Request $request, Response $response, array $args): Response
+    {
+
+    }
+
+    public function load(Request $request, Response $response, array $args): Response
+    {
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> A PRIMEIRA COISA QUE TEMOS QUE FAZER, AQUI, É 
+
+
+FAZER GET 
+
+DO 'RECEIPT ID ' E  'TRANSACTION ID',
+
+
+
+
+LÁ DOS ARGUMENTS...
+
+
+
+
+
+
+
+
+
+
+--> AÍ, COM ISSO, VAMOS CHECAR SE 
+
+ESSAS TRANSACTIONS E RECEIPTS REALMENTE EXISTEM...
+
+
+
+
+
+
+
+
+
+
+LÁ NO ARQUIVO WEB.PHP,
+
+das nossas routes,
+
+ficamos com isto:
+
+
+
+
+
+
+
+
+
+    $app->group('/transactions', function (RouteCollectorProxy $transactions) {
+        $transactions->get('', [TransactionController::class, 'index']);
+        $transactions->get('/load', [TransactionController::class, 'load']);
+        $transactions->post('', [TransactionController::class, 'store']);
+        $transactions->delete('/{id:[0-9]+}', [TransactionController::class, 'delete']);
+        $transactions->get('/{id:[0-9]+}', [TransactionController::class, 'get']);
+        $transactions->post('/{id:[0-9]+}', [TransactionController::class, 'update']);
+        $transactions->post('/{id:[0-9]+}/receipts', [ReceiptController::class, 'store']);
+        $transactions->get('/{transactionId:[0-9]+}/receipts/{receiptId:[0-9]+}', [ReceiptController::class, 'download']);
+        $transactions->delete('/{transactionId:[0-9]+}/receipts/{receiptId:[0-9]+}', [ReceiptController::class, 'delete']);
+    })->add(AuthMiddleware::class);
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA, ESSAS 2 ROUTES...
+
+
+
+
+
+
+
+
+--> NAS 2, PASSAMOS O TRANSACTIONID COMO PRIMEIRO ARGUMENT,
+
+
+E RECEIPTID COMO SEGUNDO ARGUMETN...
+
+
+
+
+
+
+
+-> É POR ISSO QUE VAMOS OBTER ESSES ARGUMENTS,
+
+TIPO ASSIM,
+
+
+NO CONTROLLER:
+
+
+
+
+
+
+
+
+
+
+    public function download(Request $request, Response $response, array $args): Response
+    {
+
+        $transactionId = (int) $args['transactionId'];
+        $receiptId     = (int) $args['receiptId'];
+
+
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO,
+
+
+VAMOS REUTILIZAR AQUELE CHECK DE TRANSACTION ID...
+
+
+
+
+
+FAZEMOS A MESMA COISA COM O RECEIPT ID,
+
+CHECAR SE ELE EXISTE...
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+    public function download(Request $request, Response $response, array $args): Response
+    {
+
+        $transactionId = (int) $args['transactionId'];
+        $receiptId     = (int) $args['receiptId'];
+
+        if (! $transactionId || ! ($transaction = $this->transactionService->getById($transactionId))) {
+            return $response->withStatus(404);
+        }
+
+        if (! $receiptId || ! ($receipt = $this->receiptService->getById($receiptId))) {
+            return $response->withStatus(404);
+        }
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+  certo... mas precisamos de 1 method de 'getById'
+
+
+  no receiptService...
+
+
+
+
+
+
+
+
+  Ex:
+
+
+
+
+
+
+
+
+    public function download(Request $request, Response $response, array $args): Response
+    {
+
+        $transactionId = (int) $args['transactionId'];
+        $receiptId     = (int) $args['receiptId'];
+
+        if (! $transactionId || ! ($transaction = $this->transactionService->getById($transactionId))) {
+            return $response->withStatus(404);
+        }
+
+        if (! $receiptId || ! ($receipt = $this->receiptService->getById($receiptId))) {
+            return $response->withStatus(404);
+        }
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  CERTO... DEPOIS DISSO, PRECISAMOS GARANTIR QUE 
+
+  O RECEIPT QUE O USER ESTÁ TENTANDO BAIXAR REALMENTE PERTENCE 
+
+A ESSA TRANSACTION..
+
+
+
+
+
+
+
+
+-> SE N PERTENCE A ESSA TRANSACTION,
+  VAMOS QUERER RESPONDER COM ALGUM TIPO DE ERROR...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+    public function download(Request $request, Response $response, array $args): Response
+    {
+
+        $transactionId = (int) $args['transactionId'];
+        $receiptId     = (int) $args['receiptId'];
+
+        if (!$transactionId || ! ($transaction = $this->transactionService->getById($transactionId))) {
+            return $response->withStatus(404);
+        }
+
+        if (!$receiptId || ! ($receipt = $this->receiptService->getById($receiptId))) {
+            return $response->withStatus(404);
+        }
+
+        if ($receipt->getTransaction()->getId() !== $transactionId) {
+            return $response->withStatus(401);
+        }
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... COM ISSO, FINALMENTE PODEMOS USAR O FILESYSTEM PARA 
+
+'READ THE STREAM',
+
+
+USANDO O 'storageFileName',
+
+
+que temos 
+
+
+NA ENTITY DE 'Receipt'...
+
+
+
+
+
+
+
+--> ISSO FEITO, PODEMOS RETORNAR 
+
+ESSA STREAM, COMO PARTE DO BODY...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+        // read the stream, using the storageFileName as the filename:
+        $file = $this->filesystem->readStream('receipts/' . $receipt->getStorageFilename());
+
+
+        return $response->withBody();
+
+
+
+
+
+
+
+
+
+--> CERTO... AÍ QUEREMOS PASSAR 
+
+
+
+
+
+
+
+    A NOSSA FILE NO BODY DE ESSA RESPONSE...
+
+
+
+
+
+
+
+
+
+
+  --> MAS, PARA ISSO,
+
+  PRECISAMOS __ INSTANCIAR 1 NOVO 
+
+
+
+
+  OBJECT 'STREAM'...
+
+
+
+
+
+
+
+
+
+- para isso, escrevemos 
+
+
+
+'new Stream()'....
+
+
+
+
+
+
+
+
+
+'Stream' -> EXIGE O FILE RESOURCE, COMO ARGUMENT...
+
+ 
+
+
+
+
+
+ -> TAMBÉM TEMOS QUE PASSAR ALGUNS HEADERS,
+
+
+
+ COMO 'CONTENT-TYPE' E 'CONTENT-DISPOSITION'..
+
+
+
+
+
+
+
+
+
+
+-> DEVEMOS FAZER ISSO PARA GARANTIR QUE O BROWSER COMPREENDA
+ 
+ O TIPO DE RESPONSE QUE ESTAMOS TENTANDO MANDAR DE VOLTA...
+
+
+
+
+
+
+
+
+ -> É POR ISSO QUE O PROFESSOR ESCREVE ASSIM:
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+    public function download(Request $request, Response $response, array $args): Response
+    {
+
+        $transactionId = (int) $args['transactionId'];
+        $receiptId     = (int) $args['receiptId'];
+
+        if (!$transactionId || ! ($transaction = $this->transactionService->getById($transactionId))) {
+            return $response->withStatus(404);
+        }
+
+        if (!$receiptId || ! ($receipt = $this->receiptService->getById($receiptId))) {
+            return $response->withStatus(404);
+        }
+
+        if ($receipt->getTransaction()->getId() !== $transactionId) {
+            return $response->withStatus(401);
+        }
+
+        // read the stream, using the storageFileName as the filename:
+        $file = $this->filesystem->readStream('receipts/' . $receipt->getStorageFilename());
+
+
+        return $response->withHeader('Content-Type', 'application/pdf')
+                        ->withHeader('Content-Disposition', 'attachment; filename=' . $receipt->getFilename())
+                        ->withBody(new Stream($file));
+    }
+
+
+
+
+
+
+
+
+ok.. mas o que é o header de 
+
+'Content-Disposition'?
+
+
+
+
+
+
+
+
+--> É BASICAMENTE 
+
+
+
+''A HEADER USED TO SPECIFY 
+THE PRESENTATION STYLE OF THE CONTENTS 
+
+THAT WE ARE RETURNING,
+
+SO THAT THE BROWSER KNOWS HOW TO HANDLE IT''...
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE O RESULTADO FICOU TIPO ASSIM:
+
+
+
+   return $response->withHeader('Content-Type', 'application/pdf')
+                        ->withHeader('Content-Disposition', 'attachment; filename=' . $receipt->getFilename())
+                        ->withBody(new Stream($file));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS, AQUI, TEMOS 2 OPÇÕES:
+
+
+
+
+
+
+1) deixar o value como 'attachment'  (para que a file seja baixada)
+
+
+
+
+2) inline --> (para que a file seja mostrada DIRETAMENTE NA BROWSER WINDOW)...
+
+
+
+
+
+
+
+
+
+
+
+-> certo, finalmente entendi... então é isso que 
+decide,
+
+se a file vai ser BAIXADA ou MOSTRADA INLINE,
+no browser...
+
+
+
+
+
+
+Ex:
+
+
+
+
+
+
+
+
+        return $response->withHeader('Content-Type', 'application/pdf')
+                        ->withHeader('Content-Disposition', 'attachment; filename=' . $receipt->getFilename()) // 'attachment' will make it so the file is downloaded directly. 'inline' will display the file in the browser window.
+                        ->withBody(new Stream($file));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA:
+
+
+
+''inline'' é ÚTIL PARA COISAS COMO PDFS E IMAGES,
+
+
+
+
+
+PQ ELE VAI ABRIR ESSAS IMAGES DIRETAMENTE NO SEU BROWSER,
+
+
+EM VEZ DE FORÇAR O DOWNLOAD...
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR VAI USAR A OPTION DE 'inline' PARA O NOSSO USE-CASE...
+
+
+
+
+EX:
+
+
+
+
+
+
+
+        return $response->withHeader('Content-Type', 'application/pdf')
+                        ->withHeader('Content-Disposition', 'inline; filename=' . $receipt->getFilename()) // 'attachment' will make it so the file is downloaded directly. 'inline' will display the file in the browser window.
+                        ->withBody(new Stream($file));
+
+
+
+
+
+
+
+
+
+
+
+
+O PRÓXIMO HEADER ERA O CONTENT-TYPE,
+
+PARA INDICAR QUAL TIPO DE CONTENT 
+
+O SERVER QUER 'SERVE'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> DEPOIS DISSO,
+
+O PROFESSOR APONTA QUE 
+
+
+PRECISAMOS 
+
+
+
+DEFINIR O 'Content-Type' como 
+
+sendo o '$mediaType' de nossa file...
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+        return $response->withHeader('Content-Type', $mediaType)
+                        ->withHeader('Content-Disposition', 'inline; filename=' . $receipt->getFilename()) // 'attachment' will make it so the file is downloaded directly. 'inline' will display the file in the browser window.
+                        ->withBody(new Stream($file));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS 1 PROBLEMA, AQUI, É QUE NÃO TEMOS 
+
+__ O VALUE DO MEDIA TYPE ARMAZENADO NESSA VARIABLE...
+
+
+
+
+
+
+
+
+''ONE WAY TO GET THIS VALUE IS 
+TO DETECT IT, AGAIN, USING THE FILESYSTEM''
+
+
+
+
+MAS O PROFESSOR ACHA QUE NÃO DEVEMOS FAZER ISSO MAIS UMA VEZ,
+PQ  NÓS JÁ FIZEMOS O VALIDATE DA FILE QUANDO ELA TINHA SIDO UPLOADADA...
+
+
+
+
+O QUE QUER  DIZER QUE 
+
+
+O PROFESSOR 
+
+''THINKS IT IS SAFE TO STORE IT AS ANOTHER COLUMN 
+  IN THE RECEIPTS TABLE, THAT WE CAN REFERENCE LATER ON....''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ABRIMOS A ENTITY DE 'Receipt',
+
+E AÍ CRIAMOS 
+
+
+1 NOVA PROPERTY 
+ 
+
+DE 
+
+nome 
+
+
+'$mediaType'...
+
+
+
+
+
+
+
+
+-> ELA SERÁ UMA COLUMN,
+
+COM NAME DE 'media_type'...
+
+
+
+
+
+
+
+
+
+-> FEITA ESSA ALTERAÇÃO, PRECISAMOS RODAR O COMANDO DE 
+
+
+
+'php expennies diff'',
+
+
+PARA GERAR ESSA MIGRATION...
+
+
+
+
+
+Ex:
+
+
+
+
+
+
+
+
+    #[Column(name: 'media_type')]
+    private string $mediaType;
+
+
+
+
+
+
+
+
+  CERTO...
+
+
+
+
+
+
+
+
+
+GERADA ESSA MIGRATION,
+
+EXECUTAMOS COM 
+
+
+
+
+php expennies migrate
+
+
+
+
+
+
+
+
+A MIGRATION, DEPOIS DE UM LEVE EDIT (com 'AFTER' no SQL),
+
+fica assim:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace Migrations;
+
+use Doctrine\DBAL\Schema\Schema;
+use Doctrine\Migrations\AbstractMigration;
+
+/**
+ * Auto-generated Migration: Please modify to your needs!
+ */
+final class Version20240915184346 extends AbstractMigration
+{
+    public function getDescription(): string
+    {
+        return '';
+    }
+
+    public function up(Schema $schema): void
+    {
+        // this up() migration is auto-generated, please modify it to your needs
+        $this->addSql('ALTER TABLE receipts ADD media_type VARCHAR(255) NOT NULL AFTER storage_filename');
+    }
+
+    public function down(Schema $schema): void
+    {
+        // this down() migration is auto-generated, please modify it to your needs
+        $this->addSql('ALTER TABLE receipts DROP media_type');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+aí rodamos 
+
+
+
+'php expennies migrate'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... AÍ VAMOS ATÉ 
+
+
+
+
+
+O 'Receipt.php'
+
+
+
+E CRIAMOS GETTERS E SETTERS PARA 
+
+ESSA PROPERTY DE 'storageFileName',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+    public function getMediaType(): string
+    {
+        return $this->mediaType;
+    }
+
+    public function setMediaType(string $mediaType): Receipt
+    {
+        $this->mediaType = $mediaType;
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  CERTO...
+
+
+
+
+
+
+
+
+
+
+
+  ISSO FEITO,
+
+  PRECISAMOS 
+
+
+  'SET THE MEDIA TYPE, WHENEVER WE ARE UPLOADING THE RECEIPT'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> E FAZEMOS ISSO LÁ NO METHOD DE 'store' 
+  do receiptController...
+
+
+   
+
+
+
+
+
+
+
+
+  --> PARA ISSO, TEMOS ESTA LINHA:
+
+
+
+
+
+$this->receiptService->create($transaction, $filename, $randomFilename, $file->getClientMediaType());
+
+
+
+
+
+
+
+
+-> VAMOS COLOCAR '$file->getClientMediaType()'
+
+
+
+COMO ÚLTIMO PARAMETER...
+
+
+
+
+
+
+
+
+
+CERTO... AÍ VAMOS ATÉ O METHOD DE 'create',
+
+e definimos esse novo parameter..
+
+
+
+
+
+
+
+-> COM ISSO, VAMOS FAZER SAVE DO 'media_type'
+
+  NA TABLE DE RECEIPTS, TAMBÉM...
+
+
+
+
+
+
+
+-> AÍ ESCREVEMOS ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Contracts\ReceiptServiceInterface;
+use App\Entity\Receipt;
+use App\Entity\Transaction;
+use Doctrine\ORM\EntityManagerInterface;
+
+class ReceiptService implements ReceiptServiceInterface
+{
+    public function __construct(private readonly EntityManagerInterface $entityManager) {}
+
+    public function create(Transaction $transaction, string $filename, string $storageFilename, string $mediaType): Receipt
+    {
+
+        $receipt = new Receipt();
+
+        $receipt->setTransaction($transaction);
+        $receipt->setFilename($filename);
+        $receipt->setStorageFilename($storageFilename);
+        $receipt->setMediaType($mediaType);
+        $receipt->setCreatedAt(new \DateTime());
+
+        $this->entityManager->persist($receipt);
+        $this->entityManager->flush();
+
+        return $receipt;
+    }
+
+    public function getById(int $id): ?Receipt
+    {
+        return $this->entityManager->find(Receipt::class, $id);
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... COM ISSO, O MEDIA TYPE ESTÁ SENDO SALVO CORRETAMENTE...
+
+
+
+
+
+
+
+FINALMENTE,
+
+COM ESSA INFO,
+
+
+PODEMOS,
+LÁ EM 'download()',
+
+
+
+PEGAR A INFO DO 'mediaType'
+
+
+
+
+DE ESSE GIVEN RECEIPT,
+
+
+com 
+
+
+'$receipt->getMediaType()'...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+        // read the stream, using the storageFileName as the filename:
+        $file = $this->filesystem->readStream('receipts/' . $receipt->getStorageFilename());
+
+
+        return $response->withHeader('Content-Type', $receipt->getMediaType())
+                        ->withHeader('Content-Disposition', 'inline; filename=' . $receipt->getFilename()) // 'attachment' will make it so the file is downloaded directly. 'inline' will display the file in the browser window.
+                        ->withBody(new Stream($file));
+
+
+
+
+
+
+
+
+
+
+ESTA LINHA:
+
+
+        return $response->withHeader('Content-Type', $receipt->getMediaType())
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... MAS É CLARO QUE ISSO NÃO FUNCIONARÁ 
+
+PARA OS RECORDS QUE JÁ TEMOS,
+
+
+PQ ESSES RECORDS ESTÃO COM 
+
+A COLUMN DE 'MEDIA_TYPE'
+
+DEFINIDA COMO NULL...
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR PREENCHE ESSES VALUES MANUALMENTE,
+
+
+MAS TODOS OS RECEIPTS POSTERIORES VÃO FUNCIONAR NORMALMENTE,
+
+
+TERÃO ESSA COLUMN PREENCHIDA, POR CONTA DA NOSSA LÓGICA DE 
+
+'store()'...
+
+
+
+
+
+
+
+
+
+
+-> OS VALUES DE ESSA COLUMN FICAM 
+
+COM COISAS COMO 
+
+'application/pdf'
+
+
+'image/png',
+
+
+etc...
+
+
+
+
+
+
+
+FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+    public function download(Request $request, Response $response, array $args): Response
+    {
+
+        $transactionId = (int) $args['transactionId'];
+        $receiptId     = (int) $args['receiptId'];
+
+        if (!$transactionId || ! ($transaction = $this->transactionService->getById($transactionId))) {
+            return $response->withStatus(404);
+        }
+
+        if (!$receiptId || ! ($receipt = $this->receiptService->getById($receiptId))) {
+            return $response->withStatus(404);
+        }
+
+        if ($receipt->getTransaction()->getId() !== $transactionId) {
+            return $response->withStatus(401);
+        }
+
+        // read the stream, using the storageFileName as the filename:
+        $file = $this->filesystem->readStream('receipts/' . $receipt->getStorageFilename());
+
+
+        return $response->withHeader('Content-Type', $receipt->getMediaType())
+                        ->withHeader('Content-Disposition', 'inline; filename=' . $receipt->getFilename()) // 'attachment' will make it so the file is downloaded directly. 'inline' will display the file in the browser window.
+                        ->withBody(new Stream($file));
+    }
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+OK.. COM ISSO, FUNCIONOU,
+
+E CONSEGUIMOS VISUALIZAR O RECEIPT FILE...
+
+
+
+
+
+
+
+
+
+(MAS MINHA VERSÃO AINDA NÃO FUNCIONOU...).
+
+
+
+
+
+
+
+
+
+ok, agora funcionou...
+
+
+
+
+
+
+
+
+
+O PROFESSOR NOS PASSA 1 TAREFA:
+
+
+
+
+
+
+
+
+
+''IN  SECTION 1, WE BUILT A 
+
+BASIC TRANSACTION IMPORTER,
+USING PHP... THEN, WE CONVERTED IT TO OOP 
+PHP''.
+
+
+
+
+
+
+
+
+
+
+''NOW I WANT YOU TO IMPLEMENT THE SAME FEATURE,
+  BUT WITH THIS PROJECT''..
+
+
+
+
+
+
+
+
+
+-> NÃO PODEMOS SIMPLESMNETE COPIAR E COLAR AQUELE CÓDIGO,
+PQ ELE N VAI FUNCIONAR...
+
+
+
+
+
+
+
+
+-> TEMOS QUE IMPLEMENTAR A MESMA IDEIA,
+
+
+MAS COM ESTE PROJECT...
+
+
+
+
+
+
+
+
+
+AS INSTRUCTIONS:
+
+
+
+
+
+
+
+1) ADD A NEW BUTTON 
+  NEXT TO THE 'NEW TRANSACTION',
+  CALLED 
+
+  'IMPORT TRANSACTIONS'...
+
+
+
+
+
+
+2) WHEN CLICKED,  THIS SHOULD SHOW A MODAL,
+   WHERE YOU CAN SELECT A CSV FILE
+
+   (similar to the receipt file upload modal)...
+
+
+
+
+3) YOU NEED TO IMPLEMENT THE PROPER FILE VALIDATION,
+    SO THAT ONLY CSV FILES ARE ALLOWED...
+
+
+
+
+
+
+4) YOU CAN ASSUME THAT THE USERS WILL USE SOME SORT OF TEMPLATE 
+  TO DO THEIR IMPORTS...
+
+
+
+
+
+
+
+5) YOU SHOULD READ THE UPLOADED FILE 
+
+
+
+
+6) PARSE THE FILE 
+
+
+
+7) CREATE TRANSACTION RECORDS, WITH THE ROWS...
+
+
+
+
+
+
+
+
+
+
+
+-> OK... MAS ALGUNS DETALHES:
+
+
+
+
+''THE CSV TEMPLATE FILE CONTAINS A CATEGORY COLUMN...
+
+THIS MEANS THAT, WHEN CREATING TRANSACTIONS, YOU NEED TO ASSOCIATE THEM 
+WITH THE PROPER CATEGORY''..
+
+
+
+''YOU CAN ASSUME THAT THE CATEGORY CELLS 
+  CONTAIN THE CATEGORY NAME... SO YOU CAN FIND THE PROPER CATEGORY,
+  USING THE CATEGORY NAME''
+
+
+
+
+''IF CATEGORY IS NOT FOUND BY THE NAME,
+JUST CREATE THE TRANSACTION WITHOUT ANY CATEGORY'''
+
+
+
+
+''YOU DON'T NEED TO ACTUALLY STORE THE UPLOADED CSV FILE,
+
+BECAUSE WE DON'T HAVE AN ENTITY OR TABLE, LIKE WE HAVE FOR RECEIPTS''
+
+
+
+
+
+
+
+
+''IF YOU WANT TO CHALLENGE YOURSELF, FEEL FREE TO CREATE A NEW ENTITY/TABLE''
+
+
+
+
+
+
+
+''if you want to challenge yourself even more,
+  add the ability to DELETE THESE RECEIPTS'' (ainda não foi criada essa abilidade)...
+
+
+
+
+
+  

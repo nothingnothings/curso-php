@@ -44,43 +44,35 @@ class UploadReceiptRequestValidator implements RequestValidatorInterface
         $tmpFilePath = $uploadedFile->getStream()->getMetadata('uri');
 
         // ! We must not trust only the file extension sent by the client, because it can be easily spoofed.
-        if (!in_array($uploadedFile->getClientMediaType(), $allowedExtensions)) {
+        if (!in_array($uploadedFile->getClientMediaType(), $allowedMimeTypes)) {
             throw new ValidationException(['receipt' => ['Receipt must be either an image or a pdf document.']]);
         }
 
-        // if (!in_array($this->getExtension($tmpFilePath), $allowedExtensions)) {
-        //     throw new ValidationException(['receipt' => ['Receipt has to be either "pdf", "png", "jpg" or "jpeg".']]);
-        // }
-
         $detector = new FinfoMimeTypeDetector();
-        $mimeType = $detector->detectMimeType($tmpFilePath, $uploadedFile->getStream()->getContents());
+        $mimeType = $detector->detectMimeTypeFromFile($tmpFilePath);
 
-        if (!in_array($mimeType, $allowedExtensions)) {
+        if (!in_array($mimeType, $allowedMimeTypes)) {
             throw new ValidationException(['receipt' => ['Invalid file type.']]);
         }
-
-        // if (!in_array($this->getMimeType($tmpFilePath), $allowedMimeTypes)) {
-        //     throw new ValidationException(['receipt' => ['Receipt must be either an image or a pdf document.']]);
-        // }
 
         return $data;
     }
 
-    private function getExtension(mixed $tmpFilePath): string
-    {
-        // * With this, we can validate the file extensions with more confidence:
-        $fileInfo = new finfo(FILEINFO_EXTENSION);
-        $extension = $fileInfo->file($tmpFilePath);
+    // private function getExtension(mixed $tmpFilePath): string
+    // {
+    //     // * With this, we can validate the file extensions with more confidence:
+    //     $fileInfo = new finfo(FILEINFO_EXTENSION);
+    //     $extension = $fileInfo->file($tmpFilePath);
 
-        return $extension ?: '';
-    }
+    //     return $extension ?: '';
+    // }
 
-    private function getMimeType(mixed $tmpFilePath): string
-    {
-        // * With this, we can validate the mime types with more confidence:
-        $fileInfo = new finfo(FILEINFO_MIME_TYPE);
-        $mimeType = $fileInfo->file($tmpFilePath);
+    // private function getMimeType(mixed $tmpFilePath): string
+    // {
+    //     // * With this, we can validate the mime types with more confidence:
+    //     $fileInfo = new finfo(FILEINFO_MIME_TYPE);
+    //     $mimeType = $fileInfo->file($tmpFilePath);
 
-        return $mimeType ?: '';
-    }
+    //     return $mimeType ?: '';
+    // }
 }
