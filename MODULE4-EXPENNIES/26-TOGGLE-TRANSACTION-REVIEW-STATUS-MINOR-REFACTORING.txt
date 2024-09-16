@@ -1,0 +1,2217 @@
+
+
+
+
+
+
+NA ÚLTIMA AULA,
+
+VIMOS ALGUMAS OPTIMIZATIONS PARA 
+
+
+'SPEED UP OUR TRANSACTION IMPORT PROCESS'',
+
+
+
+AO MESMO TEMPO 
+
+
+REDUZINDO A MEMORY USAGE, POR MEIO DO 
+
+
+
+REMOVE DOS CALLS DE 'flush()' para cada 'persist()' 
+
+
+das operations de insert...
+
+
+
+
+
+
+
+
+
+
+
+
+-> POR CONTA DISSO,
+
+
+NOSSO PROCESSO DE CRIAÇÃO DE 
+
+TRANSACTIONS __ MANUAL_ ESTÁ QUEBRADO...
+
+
+(as routes de create e update estão quebradas),
+
+
+
+ISSO PQ ESSAS ROUTES DEPENDEM DO CALL DE '->flush()',
+
+
+
+e agora 
+
+ESTAMOS APENAS 
+
+'PERSISTING' (com 'persist()'),
+
+
+e não estamos mais 'flushing()'...
+
+
+
+
+
+
+
+
+
+
+
+
+O PROBLEMA, BASICAMENTE, É O METHOD DE 'update()', em 'TransactionService',
+
+que é onde TÍNHAMOS AQUELE CALL DE '->flush()',
+
+que foi REMOVIDO:
+
+
+
+
+
+
+
+    public function update(Transaction $transaction, TransactionData $transactionData): Transaction
+    {
+        $transaction->setDescription($transactionData->description);
+        $transaction->setAmount($transactionData->amount);
+        $transaction->setDate($transactionData->date);
+        $transaction->setCategory($transactionData->category);
+
+        $this->entityManager->persist($transaction);
+        // $this->entityManager->flush();
+
+        return $transaction;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> e esse method de 'update()'
+
+é CHAMADO POR 'create()', também...
+
+
+
+
+
+
+
+
+
+
+-> removemos esse 'flush()'
+PARA MELHORAR 
+
+A PERFORMANCE 
+
+
+DO IMPORT DE TRANSACTIONS, como visto na última aula....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> HÁ MÚLTIPLAS MANEIRAS DE REFACTOR ISSO, PARA CONSERTAR O PROBLEMA...
+
+
+
+
+
+
+
+
+
+
+
+
+MANEIRAS:
+
+
+
+
+
+
+
+1) WE COULD CREATE A MIDDLEWARE THAT BASICALLY 
+    ''WRAPS THE ENTIRE REQUEST WITHIN 
+        A __ DATABASE_ TRANSACTION, AND THEN 
+        DOES THE FLUSH AT THE END...'''
+
+
+
+
+        ->> MAS ESSE APPROACH TALVEZ NÃO SEJA IDEAL,
+            PQ  '''WE MAY NOT WANT TO RUN DATABASE TRANSACTIONS 
+                    AND RUN flush() for EVERY SINGLE REQUEST... THIS 
+                    is because NOT ALL REQUESTS WILL NEED/DO NEED TO 
+                    SYNC TO THE DATABASE... this would be OVERKILL...'' 
+
+
+
+
+
+
+
+
+
+
+
+2) WE COULD ''INJECT THE ENTITYMANAGER IN THE CONSTRUCTOR 
+                OF THE 'TransactionController', and then 
+                CALL THE 'flush()' method  AFTER THE 
+
+                CREATE AND UPDATE METHOD CALLS...'''
+
+
+
+
+
+                --> ''THIS WOULD WORK, BUT THEN THE 
+                CONTROLLER WOULD NO LONGER BE PURE, WOULD 
+                NO LONGER HAVE ABSTRACTION... BECAUSE THEN IT 
+                WOULD KNOW ABOUT THE PERSISTENCE AND ABOUT THE 
+                DATABASE...''  --> E O PROFESSOR QUER __eVITAR_  iSSO...
+
+
+
+
+
+
+
+
+
+HÁ MAIS ALGUMAS OPTIONS...
+
+
+
+
+
+
+
+
+
+A SOLUTION BASICAMENTE DEPENDE DE SUAS PREFERENCES...
+
+
+
+
+
+
+
+
+3) WE COULD ''CREATE A BASE
+                ENTITYSERVICE CLASS,
+
+                WITHIN THE 'Services' DIRECTORY''....
+
+
+
+            
+
+
+            --> OU SEJA, CRIAMOS UMA BASE CLASS,
+            'EntityService', QUE VAI TER UM METHOD QUE FARÁ 
+            'flush()', E ENTÃO FAZEMOS IMPLEMENT DE ESSA CLASS 
+
+            NOS OUTROS SERVICES, QUE ENTÃO TERÃO ESSE METHOD... 
+
+
+
+
+
+
+
+-> CHAMAREMOS ESSA CLASS DE 
+
+'EntityManagerService'...
+
+
+
+
+
+
+
+
+
+
+podemos escrever tipo assim:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use Doctrine\ORM\EntityManager;
+
+class EntityManagerService
+{
+    public function __construct(private readonly EntityManager $entityManager)
+    {
+    }
+
+    public function flush(): void
+    {
+        $this->entityManager->flush();
+    }
+
+}
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+PODEMOS INJETAR ESSE SERVICE DIRETAMENTE 
+
+
+
+
+NO CONTROLLER DE 'TransactionController'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+ERREI... NO CASO, SERÁ 
+
+
+O SERVICE de 'TransactionService'
+
+
+QUE FARÁ O EXTEND DE ESSA CLASS..
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+class TransactionService extends EntityManagerService
+{
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+FICA TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use App\DataObjects\DataTableQueryParams;
+use App\DataObjects\TransactionData;
+use App\Entity\Transaction;
+use App\Entity\User;
+use Doctrine\ORM\Tools\Pagination\Paginator;
+
+class TransactionService extends EntityManagerService
+{
+    public function create(TransactionData $transactionData, User $user): Transaction
+    {
+        $transaction = new Transaction();
+
+        $transaction->setUser($user);
+
+        return $this->update($transaction, $transactionData);
+    }
+
+    public function getPaginatedTransactions(DataTableQueryParams $params): Paginator
+    {
+        $query = $this
+            ->entityManager
+            ->getRepository(Transaction::class)
+            ->createQueryBuilder('t')
+            ->select('t', 'c', 'r')  // This is to eager load the category-transaction-receipt relationship. Fixes N+1 problem.
+            ->leftJoin('t.category', 'c')
+            ->leftJoin('t.receipts', 'r')
+            ->setFirstResult($params->start)
+            ->setMaxResults($params->length);
+
+        $orderBy = in_array($params->orderBy, ['description', 'amount', 'date', 'category'])
+            ? $params->orderBy
+            : 'date';
+        $orderDir = strtolower($params->orderDir) === 'asc' ? 'asc' : 'desc';
+
+        if (!empty($params->searchTerm)) {
+            $query
+                ->where('t.description LIKE :description')
+                ->setParameter('description', '%' . addcslashes($params->searchTerm, '%_') . '%');
+        }
+
+        if ($orderBy === 'category') {
+            $query->orderBy('c.name', $orderDir);
+        } else {
+            $query->orderBy('t.' . $orderBy, $orderDir);
+        }
+
+        return new Paginator($query);
+    }
+
+    public function delete(int $id): void
+    {
+        $transaction = $this->entityManager->find(Transaction::class, $id);
+
+        $this->entityManager->remove($transaction);
+        $this->entityManager->flush();
+    }
+
+    public function getById(int $id): ?Transaction
+    {
+        return $this->entityManager->find(Transaction::class, $id);
+    }
+
+    public function update(Transaction $transaction, TransactionData $transactionData): Transaction
+    {
+        $transaction->setDescription($transactionData->description);
+        $transaction->setAmount($transactionData->amount);
+        $transaction->setDate($transactionData->date);
+        $transaction->setCategory($transactionData->category);
+
+        $this->entityManager->persist($transaction);
+        // $this->entityManager->flush();
+
+        return $transaction;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+AÍ, LÁ EM 'TransactionController.php',
+
+
+
+
+COLOCAMOS O CALL DE ESSE method
+
+
+
+
+'flush()'
+
+
+
+pegando pelo '$transactionService',
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+    public function store(Request $request, Response $response): Response
+    {
+        $data = $this->requestValidatorFactory->make(TransactionRequestValidator::class)->validate(
+            $request->getParsedBody()
+        );
+
+        $this->transactionService->create(
+            new TransactionData(
+                $data['description'],
+                (float) $data['amount'],
+                new DateTime($data['date']),
+                $data['category']
+            ),
+            $request->getAttribute('user')
+        );
+
+        $this->transactionService->flush();
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> FAZEMOS A MESMA COISA NO UPDATE:
+
+
+
+
+
+
+
+    public function update(Request $request, Response $response, array $args): Response
+    {
+        $data = $this->requestValidatorFactory->make(TransactionRequestValidator::class)->validate(
+            $args + $request->getParsedBody()
+        );
+
+        $id = (int) $data['id'];
+
+        if (! $id || ! ($transaction = $this->transactionService->getById($id))) {
+            return $response->withStatus(404);
+        }
+
+        $this->transactionService->update(
+            $transaction,
+            new TransactionData(
+                $data['description'],
+                (float) $data['amount'],
+                new DateTime($data['date']),
+                $data['category']
+            )
+        );
+
+        $this->transactionService->flush();
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+e no delete:
+
+
+
+
+
+
+
+    public function delete(Request $request, Response $response, array $args): Response
+    {
+        $this->transactionService->delete((int) $args['id']);
+
+        $this->transactionService->flush();
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> FAZEMOS O MESMO PARA AS SERVICE CLASSES DE 
+
+'ReceiptService' 
+
+e 
+
+'TransactionService'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... FIZ TODOS OS AJUSTES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE TUDO ISSO VAI DEPENDER DA ESTRUTURA DO SEU APP...
+
+
+
+
+ 
+
+
+PODERÍAMOS TAMBÉM PASSAR 1 FLAG INDICANDO SE 'FAZEMOS FLUSH OU NAO',
+dentro do method.... 
+
+
+
+
+
+
+
+MAS O PROFESSOR PREFERE NÃO FAZER ISSO EM METHODS, PQ AÍ 
+PRECISAMOS TER ESSE PARAMETER EXTRA EM TODOS OS METHODS 
+
+
+
+QUE PRECISAM FAZER 'PERSIST' E 'FLUSH' TAMBÉM...
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR PREFERE DESSA FORMA
+
+
+PQ ENTÃO 
+
+O 
+
+'flush' 
+
+
+É KINDOF DECOUPLED 
+
+
+
+DAS OPERAÇÕES DE 
+
+
+'CREATE, DELETE E UPDATE' 
+
+
+METHODS, DENTRO DOS SERVICES...
+
+
+
+
+
+
+
+
+
+-> VC TAMBÉM PODERIA TER 
+
+
+1 ESTRUTURA LEVEMENTE DIFERENTE...
+
+
+
+
+
+
+POR EXEMPLO, REPOSITORIES, 
+
+OU ENTAO USAR O ENTITYMANAGER DIRETAMENTE NO CONTROLLER...
+
+(aí vc chamaria esse flush diretamente no entityManager)...
+
+
+
+
+
+
+
+
+
+-> TUDO DEPENDE DO SEU APP, E DE SUAS PRÓPRIAS PREFERENCES...
+
+
+
+
+
+
+
+
+
+-> MAS ANTES DE TESTARMOS TUDO,
+E ANTES DE  INJETARMOS O 'entityManager'
+
+
+DENTRO DO 
+
+
+SERVICE 
+
+
+de 
+
+'EntityManagerService',
+
+
+
+O PROFESSOR QUER FAZER O INJECT 
+
+
+de 
+
+
+'EntityManagerInterface',
+
+
+
+
+PQ O PROFESSOR SEMPRE PREFERE INTERFACES,
+
+EM VEZ DE CLASSES CONCRETAS...
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE ELE ESCREVE ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use Doctrine\ORM\EntityManagerInterface;
+
+class EntityManagerService
+{
+    public function __construct(private readonly EntityManagerInterface $entityManager)
+    {
+    }
+
+    public function flush(): void
+    {
+        $this->entityManager->flush();
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+AÍ, NOS CONTAINER BINDINGS,
+
+
+FAZEMOS 
+
+
+O BIND DE 'EntityManagerInterface' para o 'EntityManager'.
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+    EntityManagerInterface::class => fn(Config $config) => EntityManager::create(
+        $config->get('doctrine.connection'),
+        ORMSetup::createAttributeMetadataConfiguration(
+            $config->get('doctrine.entity_dir'),
+            $config->get('doctrine.dev_mode')
+        )
+    ),
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ TROCAMOS TODOS OS types de 'EntityManager'
+
+por 
+
+
+
+'EntityManagerInterface'...
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+FIZ ESSA MUNDANÇA...
+
+
+ERAM BASTANTES ARQUIVOS...
+
+
+
+
+
+
+
+
+
+--> TENTAMOS CRIAR A TRANSACTION MAIS UMA VEZ, E AGORA FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+
+-> CRIAMOS UMA TRANSACTION, E TAMBÉM FUNCIONA...
+
+
+
+
+
+
+NOSSO REFACTOR FOI BEM SUCEDIDO...
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR QUERIA NOS MOSTRAR COMO FAZER O REFACTOR USANDO INHERITANCE,
+
+PARA COLOCAR EM PRÁTICA...
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS O QUE MAIS PODEMOS REFACTOR?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> BEM, NO SERVICE 
+
+de 
+
+
+'TransactionImportservice',
+
+
+
+TEMOS ESTE CÓDIGO:
+
+
+
+
+
+
+
+            // If the current count/row is a multiple of the batchsize (250, 500, 750, etc), we flush a single time.
+            if ($count % $batchSize === 0) {
+                // Call flush, then reset the counter, every time we reach 250, 500, 750, etc.
+                $this->entityManager->flush();
+                $this->entityManager->clear(Transaction::class);
+
+                $count = 1;
+            } else {
+                $count++; 
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OU SEJA,
+
+
+ESTAMOS CHAMANDO ESSE METHOD DE 'clear()',
+
+
+E AÍ PASSANDO A CLASS DE 'Transaction',
+
+como ARGUMENT...
+
+
+
+
+
+
+
+
+
+
+-> E ISSO FUNCIONA, É CLARO...
+
+
+
+
+
+
+---> E NÃO É UMA ISSUE NA VERSION 
+    DO DOCTRINE ORM QUE ESTAMOS USANDO...
+
+
+    ENTRETANTO,
+
+    ESSA SINTAXE __ FOI DEPRECADA,
+
+    E NÃO VAI MAIS SER SUPORTADA,
+
+
+    NO DOCTRINE ORM VERSION 3.0...
+
+
+
+
+
+
+
+-> A ALTERNATIVA MAIS SUGERIDA É 
+
+
+
+'''TO DETACH THE ENTITIES___ DIRECTLY __ FROM THE 
+UNIT OF WORK''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA VER MAIS DETALHES SOBRE ISSO,
+
+ABRIMOS A CLASS DE 
+
+'EntityManager.php'...
+
+
+
+
+
+
+
+-> DENTRO DELA, LÁ NO METHOD DE 'clear()',
+
+
+TEMOS ISTO:
+
+
+
+
+
+
+
+
+    /**
+     * Clears the EntityManager. All entities that are currently managed
+     * by this EntityManager become detached.
+     *
+     * @param string|null $entityName if given, only entities of this type will get detached
+     *
+     * @return void
+     *
+     * @throws ORMInvalidArgumentException If a non-null non-string value is given.
+     * @throws MappingException            If a $entityName is given, but that entity is not
+     *                                     found in the mappings.
+     */
+    public function clear($entityName = null)
+    {
+        if ($entityName !== null && ! is_string($entityName)) {
+            throw ORMInvalidArgumentException::invalidEntityName($entityName);
+        }
+
+        if ($entityName !== null) {
+            Deprecation::trigger(
+                'doctrine/orm',
+                'https://github.com/doctrine/orm/issues/8460',
+                'Calling %s() with any arguments to clear specific entities is deprecated and will not be supported in Doctrine ORM 3.0.',
+                __METHOD__
+            );
+        }
+
+        $this->unitOfWork->clear(
+            $entityName === null
+                ? null
+                : $this->metadataFactory->getMetadataFor($entityName)->getName()
+        );
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... DENTRO DELE,
+
+
+TEMOS ISTO:
+
+
+
+
+
+''''
+
+        if ($entityName !== null) {
+            Deprecation::trigger(
+                'doctrine/orm',
+                'https://github.com/doctrine/orm/issues/8460',
+                'Calling %s() with any arguments to clear specific entities is deprecated and will not be supported in Doctrine ORM 3.0.',
+                __METHOD__
+            );
+        }
+
+
+
+
+''
+
+
+
+
+OU SEJA,
+
+SE O 'entityName' 
+
+É __ GIVEN,
+
+
+ELE VAI _ TRIGGAR ESSE DEPRECATION WARNING...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SE ABRIMOS O LINK DO GITHUB,
+
+
+ENCONTRAMOS A ALTERNATIVA,
+QUE É ESTA:
+
+
+
+
+
+
+$unitOfWork = $entityManager->getUnitOfWork();
+$entities = $unitOfWork->getIdentityMap()[Entity::class] ?? [];
+
+foreach  ($entities as $entity) {
+    $entityManager->detach($entity);
+}
+
+
+
+
+
+
+
+
+
+ESSE CÓDIGO É UMA CONFUSÃO,
+
+MAS FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... EM VEZ DE CHAMARMOS O METHOD DE 'clear(Transaction::class)'
+
+
+DIRETAMENTE NO ENTITYMANAGER,
+
+DEVEMOS RODAR TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+            // If the current count/row is a multiple of the batchsize (250, 500, 750, etc), we flush a single time.
+            if ($count % $batchSize === 0) {
+                // Call flush, then reset the counter, every time we reach 250, 500, 750, etc.
+                $this->entityManager->flush();
+                // $this->entityManager->clear(Transaction::class); // ! This was DEPRECATED; we must use the version seen on the line below.
+                $unitOfWork = $this->entityManager->getUnitOfWork(); // * This is not deprecated: https://github.com/doctrine/orm/issues/8460 
+                $entities = $unitOfWork->getIdentityMap()[Transaction::class] ?? [];
+
+                foreach  ($entities as $entity) {
+                    $this->entityManager->detach($entity);
+                }
+
+                $count = 1;
+            } else {
+                $count++; 
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EU ESCREVI ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+    public function importFromFile(string $file, User $user): void
+    {
+
+
+        $resource = fopen($file, 'r');
+        $categories = $this->categoryService->getAllKeyedByName(); // * This is MUCH BETTER than trying to find each category by name, individually.
+
+        // Discard the header row
+        fgetcsv($resource);
+
+        // Log memory and unit of work usage and detect memory leaks:
+        $this->clockwork->log(LogLevel::DEBUG, 'Memory Usage Before: ' . memory_get_usage(true));
+        $this->clockwork->log(LogLevel::DEBUG, 'Unit of Work Before: ' . $this->entityManager->getUnitOfWork()->size());
+
+        $count = 1;
+        $batchSize = 250;
+        while (($row = fgetcsv($resource)) !== false) {
+            [$date, $description, $category, $amount] = $row;
+
+            $date     = new \DateTime($date);
+            $category = $categories[strtolower($category)] ?? null;
+            // $category = $this->categoryService->findByName($category); // ! This is BAD, n+1 problem. Unecessary queries, one for each row, instead of a single query returning all categories, beforehand.
+            $amount   = str_replace(['$', ','], '', $amount);
+
+            $transactionData = new TransactionData($description, (float) $amount, $date, $category);
+
+            $this->transactionService->create($transactionData, $user);
+
+            // If the current count/row is a multiple of the batchsize (250, 500, 750, etc), we flush a single time.
+            if ($count % $batchSize === 0) {
+                // Call flush, then reset the counter, every time we reach 250, 500, 750, etc.
+                $this->entityManagerService->flush();
+                // $this->entityManagerService->clear(Transaction::class); // ! This was DEPRECATED; we must use the version seen on the line below.
+                $unitOfWork = $this->entityManagerService->getUnitOfWork(); // * This is not deprecated: https://github.com/doctrine/orm/issues/8460 
+                $entities = $unitOfWork->getIdentityMap()[Transaction::class] ?? [];
+
+                foreach  ($entities as $entity) {
+                    $this->entityManagerService->detach($entity);
+                }
+
+                $count = 1;
+            } else {
+                $count++; 
+            }
+
+        }
+
+        if ($count > 1) {
+            $this->entityManager->flush();
+            $this->entityManager->clear();
+        }
+
+        // gc_collect_cycles(); // This will allocate the memory that was not yet garbage collected. (but this is done automaticallly by PHP)
+
+        // Log memory usage and detect memory leaks:
+        $this->clockwork->log(LogLevel::DEBUG, 'Memory Usage After: ' . memory_get_usage(true));
+        $this->clockwork->log(LogLevel::DEBUG, 'Unit of Work After: ' . $this->entityManager->getUnitOfWork()->size());
+        
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS O PROFESSOR 
+
+
+DECIDIU ABSTRAIR ESSE CÓDIGO TODO,
+
+DEIXÁ-LO COMO 1 METHOD DE 'clear()',
+
+e aí colocar a lógica no interior,
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use Doctrine\ORM\EntityManagerInterface;
+
+class EntityManagerService
+{
+    public function __construct(private readonly EntityManagerInterface $entityManager)
+    {
+    }
+
+    public function flush(): void
+    {
+        $this->entityManager->flush();
+    }
+
+    public function clear(string $entityName = null): void
+    {
+        if ($entityName === null) {
+            $this->entityManager->clear();
+            return;
+        }
+
+        $unitOfWork = $this->entityManager->getUnitOfWork();
+
+        $entities = $unitOfWork->getIdentityMap()[$entityName] ?? [];
+
+        foreach ($entities as $entity) {
+          $this->entityManager->detach($entity);
+        }
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR DEIXA 1 VALUE DEFAULT DE 'entityName' como 
+
+
+'null',
+
+
+PQ NEM SEMPRE TEREMOS 1 ARGUMENT SENDO PASSADO A ESSE METHOD...
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AÍ TESTAMOS ISSO...
+
+
+
+
+
+
+
+
+
+-> MAS ANTES DE TERMINARMOS,
+
+
+    O PROFESSOR QUER FAZER UMA PEQUENA MELHORIA NA TABLE DE 
+
+    'TRANSACTIONS'...
+
+
+
+
+
+
+
+
+
+
+-> ''WE WANT A NEW COLUMN,
+    AND A NEW __ PROPERTY ON THE __ TRANSACTION ENTITY''...
+
+
+
+
+
+--> ''RIGHT NOW, WE HAVE NO WAY OF KNOWING 
+    IF THE TRANSACTION WAS REVIEWED BY THE USER OR NOT..'''
+
+
+    
+
+
+
+--> USER SHOULD BE ABLE TO MARK TRANSACTIONS AS REVIEWED 
+OR NOT REVIEWED... 
+
+
+
+
+-> MAYBE THEY WANT TO EDIT THE TRANSACTION AND MARK IT AS NOT REVIEWED,
+ETC...
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE ADICIONAMOS ESSA NOVA PROPERTY...
+
+
+
+
+
+
+-> ADICIONAMOS ELA LÁ NA ENTITY DE 'Transaction.php',
+
+
+
+
+E ELA SERÁ BOOLEAN....
+
+
+
+
+
+
+
+ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+    #[Column(name: 'was_reviewed', options: ['default' => 0])]
+    private bool $wasReviewed;
+
+
+
+
+
+
+
+
+
+
+
+
+
+O VALUE DEFAULT SERÁ DE '0',
+
+como FALSE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ CRIAMOS OS GETTER E SETTER METHODS 
+
+DISSO,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+    public function wasReviewed(): bool
+    {
+        return $this->wasReviewed;
+    }
+
+    public function setWasReviewed(bool $wasReviewed): Transaction
+    {
+        $this->wasReviewed = $wasReviewed;
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO,
+
+
+
+ADICIONAMOS 1 NOVO CONTROLLER METHOD,
+
+EM TRANSACTIONCONTROLLER,
+
+
+PARA 
+
+
+FAZER TOGGLE 
+
+
+DE ESSE VALUE...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+    public function toggleReviewed(Request $request, Response $response, array $args): Response
+    {
+        $id = (int) $args['id'];
+
+        if (! $id || ! ($transaction = $this->transactionService->getById($id))) {
+            return $response->withStatus(404);
+        }
+
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS PRECISAMOS CRIAR 1 METHOD EM 'transactionService'
+
+
+QUE FAÇA O TOGGLE ENTRE REVIEWED E NOT REVIEWED...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use App\DataObjects\DataTableQueryParams;
+use App\DataObjects\TransactionData;
+use App\Entity\Transaction;
+use App\Entity\User;
+use Doctrine\ORM\Tools\Pagination\Paginator;
+
+class TransactionService extends EntityManagerService
+{
+    public function create(TransactionData $transactionData, User $user): Transaction
+    {
+        $transaction = new Transaction();
+
+        $transaction->setUser($user);
+
+        return $this->update($transaction, $transactionData);
+    }
+
+    public function getPaginatedTransactions(DataTableQueryParams $params): Paginator
+    {
+        $query = $this
+            ->entityManager
+            ->getRepository(Transaction::class)
+            ->createQueryBuilder('t')
+            ->select('t', 'c', 'r')  // This is to eager load the category-transaction-receipt relationship. Fixes N+1 problem.
+            ->leftJoin('t.category', 'c')
+            ->leftJoin('t.receipts', 'r')
+            ->setFirstResult($params->start)
+            ->setMaxResults($params->length);
+
+        $orderBy = in_array($params->orderBy, ['description', 'amount', 'date', 'category'])
+            ? $params->orderBy
+            : 'date';
+        $orderDir = strtolower($params->orderDir) === 'asc' ? 'asc' : 'desc';
+
+        if (!empty($params->searchTerm)) {
+            $query
+                ->where('t.description LIKE :description')
+                ->setParameter('description', '%' . addcslashes($params->searchTerm, '%_') . '%');
+        }
+
+        if ($orderBy === 'category') {
+            $query->orderBy('c.name', $orderDir);
+        } else {
+            $query->orderBy('t.' . $orderBy, $orderDir);
+        }
+
+        return new Paginator($query);
+    }
+
+    public function delete(int $id): void
+    {
+        $transaction = $this->entityManager->find(Transaction::class, $id);
+
+        $this->entityManager->remove($transaction);
+    }
+
+    public function getById(int $id): ?Transaction
+    {
+        return $this->entityManager->find(Transaction::class, $id);
+    }
+
+    public function update(Transaction $transaction, TransactionData $transactionData): Transaction
+    {
+        $transaction->setDescription($transactionData->description);
+        $transaction->setAmount($transactionData->amount);
+        $transaction->setDate($transactionData->date);
+        $transaction->setCategory($transactionData->category);
+
+        $this->entityManager->persist($transaction);
+
+        return $transaction;
+    }
+
+    public function toggleReviewed(Transaction $transaction): void
+    {
+        $transaction->setWasReviewed(!$transaction->wasReviewed());
+
+        $this->entityManager->persist($transaction);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+    public function toggleReviewed(Transaction $transaction): void
+    {
+        $transaction->setWasReviewed(!$transaction->wasReviewed());
+
+        $this->entityManager->persist($transaction);
+    }
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+
+
+
+    public function toggleReviewed(Request $request, Response $response, array $args): Response
+    {
+        $id = (int) $args['id'];
+
+        if (! $id || ! ($transaction = $this->transactionService->getById($id))) {
+            return $response->withStatus(404);
+        }
+
+        $this->transactionService->toggleReviewed($transaction);
+
+        $this->transactionService->flush();
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+O PROFESSOR ESCREVEU A MESMA COISA QUE EU...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PRÓXIMO PASSO:
+
+
+
+
+
+
+
+'''WE ALSO NEED TO PASS THE WAS_REVIEWED FLAG 
+TO OUR UI, WHENEVER WE ARE LOADING TRANSACTIONS''...
+
+
+
+
+
+
+
+
+
+--> basta editar o method de 'load':
+
+
+
+
+
+
+
+    public function load(Request $request, Response $response): Response
+    {
+        $params       = $this->requestService->getDataTableQueryParameters($request);
+        $transactions = $this->transactionService->getPaginatedTransactions($params);
+        $transformer  = function (Transaction $transaction) {
+            return [
+                'id'          => $transaction->getId(),
+                'description' => $transaction->getDescription(),
+                'amount'      => $transaction->getAmount(),
+                'date'        => $transaction->getDate()->format('m/d/Y g:i A'),
+                'category'    => $transaction->getCategory()?->getName(),
+                'wasReviewed' => $transaction->wasReviewed(),
+                'receipts' => $transaction->getReceipts()->map(function (Receipt $receipt) {
+                    return [
+                        'id' => $receipt->getId(),
+                        'name' => $receipt->getFilename(),
+                    ];
+                })->toArray(),
+            ];
+        };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ ADICIONAMOS UMA NOVA ROUTE,
+PARA ESSE METHOD DE 
+
+
+'toggleReviewed'..
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+    $app->group('/transactions', function (RouteCollectorProxy $transactions) {
+        $transactions->get('', [TransactionController::class, 'index']);
+        $transactions->get('/load', [TransactionController::class, 'load']);
+        $transactions->post('', [TransactionController::class, 'store']);
+        $transactions->delete('/{id:[0-9]+}', [TransactionController::class, 'delete']);
+        $transactions->get('/{id:[0-9]+}', [TransactionController::class, 'get']);
+        $transactions->post('/{id:[0-9]+}', [TransactionController::class, 'update']);
+        $transactions->post('/{id:[0-9]+}/receipts', [ReceiptController::class, 'store']);
+        $transactions->get('/{transactionId:[0-9]+}/receipts/{receiptId:[0-9]+}', [ReceiptController::class, 'download']);
+        $transactions->delete('/{transactionId:[0-9]+}/receipts/{receiptId:[0-9]+}', [ReceiptController::class, 'delete']);
+        $transactions->post('/import', [TransactionImporterController::class, 'import']);
+        $transactions->post('/{id:[0-9]+}/review', [TransactionController::class, 'toggleReviewed']);
+    })->add(AuthMiddleware::class);
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO....
+
+
+
+
+
+
+ISSO FEITO, FAZEMOS GENERATE DA MIGRATION,
+
+
+
+com 
+
+'php expennies diff',
+
+
+PARA AÍ PODERMOS 
+
+EXECUTÁ-LA E 
+
+
+FAZER COM QUE 
+
+
+ESSE FIELD SEJA ADICIONADO A TABLE DE 'transactions'..
+
+
+
+
+
+
+
+
+
+
+
+
+
+php expennies diff 
+
+
+php expennies migrate...
+
+
+
+
+
+
+
+-> MAS TEMOS QUE ADICIONAR O 'AFTER id',
+
+lá na migration, para garantir que o 'was_reviewed'
+
+seja adicionado como SEGUNDA COLUMN DA TABLE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA CONSEGUIMOS ADICIONAR ESSA COLUMN,
+
+E O VALUE DEFAULT SERÁ DE 0...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ''OK... AGORA A FINAL STEP É 
+
+BUILD THE UI COMPONENT TO BASICALLY LOAD THE NEW COLUMN, IN THE TABLE''...
+
+
+
+
+
+
+
+
+
+
+''AND MAYBE ADD A NEW BUTTON, TO BE ABLE TO TOGGLE THE 
+TRANSACTION BETWEEN REVIEWED AND NOT REVIEWED'...
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR VAI FAZER ISSO OFFSCREEN,
+E NOS MOSTRAR O RESULT...
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR MUDOU BASTANTE A UI...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... AGORA A UI FICOU BEM DIFERENTE...
+
+
+TENHO QUE PEGAR AS FILES...
+
+
+
+
+
+
+-> AÍ TEMOS 1 NOVO BUTTON,
+
+
+DE ✔️,
+
+
+
+QUE NOS DEIXA TOGGLAR ENTRE REVIEWED E NOT REVIEWED...
+
+
+
+
+
+
+
+
+
+
+--> temos render condicional de coisas, a partir do state de reviewed 
+
+ou não...
+
+
+
+
+--> ok... acabamos com este video...
+
+
+
+
+
+
+
+-> MAS TENHO QUE IMPLEMENTAR ESSAS CHANGES, NA PRÓXIMA AULA...

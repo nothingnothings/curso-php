@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types = 1);
+<?php declare(strict_types=1);
 
 namespace App\Services;
 
@@ -8,15 +6,10 @@ use App\DataObjects\DataTableQueryParams;
 use App\DataObjects\TransactionData;
 use App\Entity\Transaction;
 use App\Entity\User;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 
-class TransactionService
+class TransactionService extends EntityManagerService
 {
-    public function __construct(private readonly EntityManager $entityManager)
-    {
-    }
-
     public function create(TransactionData $transactionData, User $user): Transaction
     {
         $transaction = new Transaction();
@@ -28,23 +21,25 @@ class TransactionService
 
     public function getPaginatedTransactions(DataTableQueryParams $params): Paginator
     {
-        $query = $this->entityManager
+        $query = $this
+            ->entityManager
             ->getRepository(Transaction::class)
             ->createQueryBuilder('t')
-            ->select('t', 'c', 'r') // This is to eager load the category-transaction-receipt relationship. Fixes N+1 problem.
+            ->select('t', 'c', 'r')  // This is to eager load the category-transaction-receipt relationship. Fixes N+1 problem.
             ->leftJoin('t.category', 'c')
             ->leftJoin('t.receipts', 'r')
             ->setFirstResult($params->start)
             ->setMaxResults($params->length);
 
-        $orderBy  = in_array($params->orderBy, ['description', 'amount', 'date', 'category'])
+        $orderBy = in_array($params->orderBy, ['description', 'amount', 'date', 'category'])
             ? $params->orderBy
             : 'date';
         $orderDir = strtolower($params->orderDir) === 'asc' ? 'asc' : 'desc';
 
-        if (! empty($params->searchTerm)) {
-            $query->where('t.description LIKE :description')
-                  ->setParameter('description', '%' . addcslashes($params->searchTerm, '%_') . '%');
+        if (!empty($params->searchTerm)) {
+            $query
+                ->where('t.description LIKE :description')
+                ->setParameter('description', '%' . addcslashes($params->searchTerm, '%_') . '%');
         }
 
         if ($orderBy === 'category') {
@@ -61,7 +56,6 @@ class TransactionService
         $transaction = $this->entityManager->find(Transaction::class, $id);
 
         $this->entityManager->remove($transaction);
-        $this->entityManager->flush();
     }
 
     public function getById(int $id): ?Transaction
@@ -77,9 +71,14 @@ class TransactionService
         $transaction->setCategory($transactionData->category);
 
         $this->entityManager->persist($transaction);
-        // $this->entityManager->flush();
 
         return $transaction;
     }
 
+    public function toggleReviewed(Transaction $transaction): void
+    {
+        $transaction->setWasReviewed(!$transaction->wasReviewed());
+
+        $this->entityManager->persist($transaction);
+    }
 }
