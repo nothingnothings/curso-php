@@ -1,0 +1,2093 @@
+
+
+
+
+
+
+
+
+HOJE VEREMOS E FALAREMOS SOBRE 
+
+
+
+
+
+
+'''' N + 1 PROBLEMS''...
+
+
+
+
+
+
+
+
+VEREMOS COMO SPOTTAR ESSE TIPO DE PROBLEMA,
+
+E SOBRE COMO PODEMOS OS CONSERTAR..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSE TIPO DE PROBLEMA ACONTECE 
+
+
+SEMPRE QUE 
+
+UMA 
+
+
+
+'''ORM, FOR EXAMPLE, EXECUTES TOO MANY SQL QUERIES 
+    TO RETRIEVE DATA FROM RELATIONS,
+    INSTEAD OF _ FETCHING __ ALL NECESSARY DATA IN 
+    A SINGLE QUERY...'''
+
+
+
+
+
+
+
+
+
+
+
+
+
+''THIS CAN LEAD TO PERFORMANCE ISSUES, 
+    SPECIALLY WHEN DEALING WITH LARGE DATA SETS,
+    OR COMPLEX OBJECT GRAPHS'''..
+
+
+
+
+
+
+
+
+
+
+-> SOMETIMES, THEY ARE EASY TO SPOT,
+
+BUT SOMETIMES ARE HARD TO TRACK DOWN... THIS IS SPECIALLY 
+TRUE WHEN 
+WORKING WITH ORMs that ABSTRACT A LOT OF THE THINGS AWAY (como a nossa)...
+
+
+
+
+
+
+
+
+
+
+
+POR EXEMPLO, JÁ TEMOS 1 PROBLEMA DE 'N + 1' NA TABLE DE TRANSACTIONS,
+
+PQ 
+
+
+
+
+''FOR EACH TRANSACTION, WE ARE LOADING THE _ CATEGORY__ NAME ('Category') 
+  AND WE ARE ALSO _ LOADING THE RECEIPT FILES, IF THERE ARE ANY,
+   FOR THAT TRANSACTION'''...
+
+
+
+
+
+
+''THIS MEANS THAT, FOR EVERY TRANSACTION ROW,
+    WE COULD BE EXECUTING  __ TWO __ ADDITIONAL QUERIES...'''
+
+
+
+
+
+
+
+''SOME N+1 PROBLEMS WON'T BE THAT OBVIOUS TO SPOT...
+    THAT IS WHY IT IS BETTER TO USE SOME TOOL,
+     LIKE A PROFILER,
+      TO ANALYZE THE APPLICATION RUNTIME...''
+
+
+
+
+
+
+
+
+
+
+
+
+--> ''''WE WILL BE USING AN APPLICATION CALLED 
+        ___ CLOCKWORK__ (php dev tools), BUT 
+        SOME OTHER FRAMEWORKS HAVE OTHER 
+        TOOLS AVAILABLE AS WELL'''...
+
+
+
+
+
+
+
+
+
+
+
+
+-> O SYMFONY, POR EXEMPLO, TEM 1 ÓTIMO PROFILER...
+
+
+
+
+
+
+
+
+-> O LARAVEL TEM O 'DEBUG BAR' E O FIRST-PARTY PACKAGE, 'TELESCOPE'...
+
+
+
+
+
+--> TAMBÉM HÁ O PROFILER DO XDEBUG, E OUTROS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O CLOCKWORK, QUE É O PACKAGE QUE UTILIZAREMOS, TAMBÉM 
+TEM SUPORTE PARA ESSES FRAMEWORKS...
+
+
+ELE TAMBÉM FUNCIONA COM O SLIM PHP FRAMEWORK, DOCTRINE,
+
+E ATÉ MESMO VANILLA PHP...
+
+
+
+
+
+
+
+
+
+
+
+-> O CLOCKWORK TAMBÉM TEM INTEGRAÇÃO DIRETA COM O BROWSER,
+
+
+E NOS DÁ INSIGHT NO RUNTIME DE NOSSO APP...
+
+
+
+
+
+
+
+
+ELE CONSEGUE TRACK:
+
+
+
+
+1) REQUEST DATA 
+
+
+
+
+2) PERFORMANCE METRICS 
+
+
+
+
+3) LOGS 
+
+
+
+
+4) DATABASE QUERIES 
+
+
+
+
+ETC...
+
+
+
+
+
+
+
+
+----> PARA INSTALAR O CLOCKWORK,
+
+DEVEMOS USAR 
+
+O 
+
+
+COMPOSER,
+
+E RODAR ESTE COMANDO:
+
+
+
+
+
+
+
+composer require itsgoingd/clockwork
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DE INSTALAR O PACOTE,
+
+ 
+ DEVEMOS SEGUIR, NOS DOCS,
+
+ A PARTE APROPRIADA AO NOSSO FRAMEWORK:
+
+
+
+
+https://underground.works/clockwork/#docs-installation-slim
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PRECISAMOS, BASICAMENTE,
+
+
+ADICIONAR O MIDDLEWARE DO CLOCKWORK LÁ NO NOSSO STACK DE MIDDLEWARES 
+
+DO NOSSO APP....
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+$app = AppFactory::create();
+$app->add(new Clockwork\Support\Slim\ClockworkMiddleware($app, __DIR__ . '/storage/clockwork'));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR NOS EXPLICA QUE VAMOS FAZER ISSO, SIM,
+
+
+MAS QUE ANTES ELE QUER FAZER 
+
+ALGO DIFERENTE, ALGO EXTRA, PARA FAZER COM QUE ISSO FUNCIONE 
+
+ADEQUADAMENTE...
+
+
+
+
+
+
+
+
+
+
+''IF WE WANT THIS TO WORK PROPERLY,
+
+WE NEED TO _ ADD _A NEW DATA SOURCE,
+
+SO THAT DOCTRINE ORM QUERIES CAN BE TRACKED CORRECTLY'''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE VAMOS CRIAR 1 NOVA ENTRY LÁ 
+
+
+NOS 'container_bindings.php',
+
+
+PARA 
+
+CONFIGURAR COISAS DO CLOCKWORK,
+
+CONFORME o NECESSÁRIO...
+
+
+
+
+
+
+
+
+
+
+
+
+OBS: O PROFESSOR UPDATOU ALGUMAS DAS DEPENDENCIES,
+    POR TRÁS DAS CENAS...
+
+
+
+
+
+
+
+
+
+--> PARA UPDATAR TUDO, RODE 'composer install'...
+
+
+
+
+
+
+
+
+
+
+
+adicionamos uma nova entry, com este código:
+
+
+
+
+
+
+    Clockwork::class => function () {
+        $clockwork = new Clockwork();
+    }
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO,
+
+PRECISAMOS DEFINIR A STORAGE DO CLOCKWORK...
+
+
+
+fazemos isso com este código:
+
+
+
+
+
+
+
+
+    Clockwork::class => function () {
+        $clockwork = new Clockwork();
+
+        $clockwork->storage(new FileStorage(STORAGE_PATH . '/clockwork'));
+    }
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, TODA A DATA QUE O CLOCKWORK COLETAR 
+
+FICARÁ 
+ARMAZENADA DENTRO DE ESSE FOLDER,
+
+
+dentro de esse path aí....
+
+
+
+
+
+
+
+
+--> depois disso,
+
+o PROFESSOR 
+
+
+QUER ADICIONAR O 'DOCTRINE DATA SOURCE',
+
+
+
+ISSO PQ ESTAMOS USANDO DOCTRINE,
+E PQ 
+
+QUEREMOS 'SEE THE QUERIES THAT ARE BEING EXECUTED'...
+
+
+
+
+
+
+
+
+
+-> POR ISSO ELE ESCREVE ASSIM:
+
+
+
+
+
+    Clockwork::class => function () {
+        $clockwork = new Clockwork();
+
+        $clockwork->storage(new FileStorage(STORAGE_PATH . '/clockwork'));
+
+        // We add the Doctrine data source here, so that we can profile every query fired by the doctrine ORM.
+        $clockwork->addDataSource(DoctrineDataSource());
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ENTRETANTO,
+
+dentro de 'DoctrineDataSource()',
+
+
+É NECESSÁRIO PASSAR O PRÓPRIO ENTITYMANAGER 
+
+DO DOCTRINE...
+
+
+
+
+
+
+
+--> PRECISAMOS INJETAR O ENTITYMANAGER NESSA FUNCTION, E ENTÃO 
+PASSÁ-LO COMO ARGUMENT DO CONSTRUCTOR,
+TIPO ASSIM:
+
+
+
+
+
+
+    Clockwork::class => function (EntityManager $entityManager) {
+        $clockwork = new Clockwork();
+
+        $clockwork->storage(new FileStorage(STORAGE_PATH . '/clockwork'));
+
+        // We add the Doctrine data source here, so that we can profile every query fired by the doctrine ORM.
+        $clockwork->addDataSource(new DoctrineDataSource($entityManager));
+    }
+
+
+
+
+
+
+
+
+
+
+
+CERTO... ISSO FEITO,
+
+
+PODEMOS RETORNAR O '$clockwork' object, como value de esse binding...
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+    Clockwork::class => function (EntityManager $entityManager) {
+        $clockwork = new Clockwork();
+
+        $clockwork->storage(new FileStorage(STORAGE_PATH . '/clockwork'));
+
+        // We add the Doctrine data source here, so that we can profile every query fired by the doctrine ORM.
+        $clockwork->addDataSource(new DoctrineDataSource($entityManager));
+
+        return $clockwork;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AÍ, LÁ EM 'middleware.php',
+
+
+
+VAMOS 
+
+
+
+
+
+ADICIONAR ESSE CLOCKWORK AÍ,
+
+JÁ CONFIGURADO/BINDADO...
+
+
+
+
+
+
+
+
+
+
+
+-> MAS COMO PODEMOS ADICIONAR ESSE NEGÓCIO, COMO MIDDLEWARE?
+
+
+
+
+
+
+
+
+
+-> BASTA USAR ESTE CÓDIGO:
+
+ 
+
+
+
+
+
+
+ <?php declare(strict_types=1);
+
+use App\Middleware\CsrfFieldsMiddleware;
+use App\Middleware\OldFormDataMiddleware;
+use App\Middleware\StartSessionsMiddleware;
+use App\Middleware\ValidationErrorsMiddleware;
+use App\Middleware\ValidationExceptionMiddleware;
+use App\Config;
+use Clockwork\Support\Slim\ClockworkMiddleware;
+use Clockwork\Clockwork;
+use Slim\Middleware\MethodOverrideMiddleware;
+use Slim\Views\Twig;
+use Slim\Views\TwigMiddleware;
+use Slim\App;
+
+return function (App $app) {
+    $container = $app->getContainer();
+    $config = $container->get(Config::class);
+
+    $app->add(MethodOverrideMiddleware::class);
+    $app->add(CsrfFieldsMiddleware::class);
+    $app->add('csrf');
+    $app->add(TwigMiddleware::create($app, $container->get(Twig::class)));
+    $app->add(ValidationExceptionMiddleware::class);
+    $app->add(ValidationErrorsMiddleware::class);
+    $app->add(OldFormDataMiddleware::class);
+    $app->add(StartSessionsMiddleware::class);
+    $app->add(new ClockworkMiddleware($app, $container->get(Clockwork::class)));
+    $app->addBodyParsingMiddleware();
+    $app->addErrorMiddleware(
+        (bool) $config->get('display_error_details'),
+        (bool) $config->get('log_errors'),
+        (bool) $config->get('log_error_details')
+    );
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK...
+
+
+
+
+
+
+
+
+MAS O PROFESSOR APONTA ISTO:
+
+
+
+
+
+
+
+''CLOCKWORK, THIS MIDDLEWARE,
+    IT SHOULD ONLY BE ADDED FOR THE DEV ENVIRONMENT,
+
+    BECAUSE IT COLLECTS SENSITIVE DATA, AND WE DON'T WANT 
+    IT TO RUN IN PRODUCTION''...
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE COLOCAMOS 1 SIMPLES CHECK AQUI,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+    if (AppEnvironment::isDevelopment($config->get('app_environment'))) {
+        $app->add(new ClockworkMiddleware($app, $container->get(Clockwork::class)));
+    }
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+COM ISSO, CONFIGURAMOS O CLOCKWORK COM SUCESSO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> A PRÓXIMA ETAPA, NO CASO,
+
+É 
+
+'INSTALL THE BROWSER EXTENSION,
+
+CALLED 'CLOCKWORK'''..
+
+
+
+
+
+
+
+
+
+PEGAMOS ESSA EXTENSION NA CHROME STORE...
+
+
+
+
+
+
+
+
+
+
+
+-> OK...
+
+
+
+AÍ, QUANDO ABRIMOS AS DEVTOOLS,
+
+FICAMOS COM 1 NOVA ABA,
+
+COM NOME DE 'CLOCKWORK'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK.. FUNCIONOU...
+
+
+
+
+
+ 
+
+
+
+
+ISSO MOSTRA 1 MONTE DE INFO... 
+
+
+
+
+
+
+
+
+
+
+''HOW LONG THE REQUEST TOOK,
+HOW MANY QUERIES IT EXECUTED, AND SO ON...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> TEMOS O ENDPOINT AJAX USADO PARA CARREGAR AS TRANSACTIONS...
+
+
+
+
+
+
+
+
+
+
+
+
+EU VI QUE ACONTECERAM '15 EVENTS'..
+
+
+
+
+
+
+
+
+
+
+-> NA PARTE DO USER, FORAM 21 EVENTS...
+
+
+
+
+
+
+
+
+
+
+-> SE CLICAMOS ALI,
+
+
+
+PERCEBEMOS QUE 
+
+
+FOI 25 QUERIES...
+
+
+
+
+
+
+
+
+-> SE TIRAMOS A PARTE DE 'CONDENSE',
+
+
+FICAMOS COM AS QUERIES MAIS VISÍVEIS...
+
+
+
+
+--> EX:
+
+
+
+
+
+
+ SELECT FROM users 4 ms
+ SELECT FROM SELECT 7 ms
+ SELECT FROM SELECT 3 ms
+ SELECT FROM transactions 13 ms
+ SELECT FROM categories <1 ms
+ SELECT FROM receipts 2 ms
+ SELECT FROM receipts <1 ms
+ SELECT FROM receipts <1 ms
+ SELECT FROM receipts <1 ms
+ SELECT FROM receipts <1 ms
+ SELECT FROM receipts <1 ms
+ SELECT FROM receipts <1 ms
+ SELECT FROM receipts <1 ms
+ SELECT FROM receipts <1 ms
+ SELECT FROM receipts <1 ms
+
+
+
+
+
+
+
+
+-> OU SEJA,
+
+PODEMOS VER TODAS AS QUERIES QUE FORAM EXECUTADAS..
+
+
+
+
+
+
+
+
+-> ''WE CAN SEE THAT 21 QUERIES WERE EXECUTED''...
+
+
+
+
+
+
+
+
+''OUT OF THOSE 21 QUERIES, 
+THE FIRST FOUR ARE OK... BUT THE REST 
+ARE _ NOT __ OK, WE SHOULDN'T BE EXECUTING 
+THAT MANY QUERIES''...
+
+
+
+
+
+
+
+
+
+''THIS IS WHAT THE N+1 PROBLEM LOOKS LIKE...
+
+BECAUSE, FOR EVERY TRANSACTION ROW,
+WE ARE EXECUTING A QUERY FOR:
+
+1) GET THE CATEGORY NAME 
+2) RETRIEVE THE RECEIPT ID AND THE NAME, FROM THE RECEIPTS TABLE...
+
+
+
+
+
+''
+
+
+
+
+
+
+
+
+
+--> EM ALGUNS CASES, O DOCTRINE HANDLA DATA REPETIDA...
+
+(ex: 'Entertainment' foi repetido 2x... e isso é handlado 
+pelo doctrine ORM)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK, MAS COMO PODEMOS CONSERTAR ESSE PROBLEMA?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> 'TO FIX THIS, WE NEED TO BASICALLY 
+
+""EAGER LOAD"" THE RELATIONSHIPS...'''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA, TEMOS QUE __ CARREGAR A DATA 
+    DAS COISAS/TABLES__ ANTERIORMENTE,
+
+
+    E AÍ 
+
+    RODAR OS SEARCHES COM A DATA JÁ CARREGADA NA MEMÓRIA DE NOSSO APP....
+
+
+
+
+
+
+
+-> NESSE CASO, PRECISAMOS CARREGAR TODAS AS 'CATEGORIES' DISTINTAS,
+ANTERIORMENTE...
+
+
+
+
+
+
+
+
+-> E PRECISAMOS CARREGAR TODOS OS RECEIPTS, TAMBÉM...
+
+
+
+
+
+
+
+-> ''IN OTHER WORDS,
+    EAGER LOADING  ALLOWS __ US __ TO LOAD ALL THE DATA THAT 
+    WE NEED __ IN A SINGLE QUERY, IN A SINGLE GO,
+    RATHER THAN ISSUING MULTIPLE QUERIES TO __ OBTAIN THE SAME DATA''...
+
+
+
+
+
+
+
+
+
+
+
+-> VC PODE PENSAR EM 'eager loading' 
+
+COMO JOINS,
+
+BASICAMENTE... PQ SÃO BEM MAIS EFETIVOS...
+
+
+
+
+
+
+
+
+
+
+
+''WE CAN ADD EAGER LOADING TO OUR APP,
+HERE, IN A VARIETY OF WAYS'....
+
+
+
+
+
+
+
+
+
+
+
+1a maneira --> adicionar EAGER LOADING 
+
+
+                ''AT THE ENTITY-LEVEL'''
+
+
+
+                --> COMO ASSIM?
+
+
+
+
+                ''WE CAN SPECIFY A __FETCH__ PARAM 
+                 ON THE CATEGORY AND RECEIPT RELATIONSHIPS,
+
+                 A PARAM WHOSE VALUE WILL BE SET AS 'eager''....
+
+
+    
+
+    --> MAS ISSO QUASE NUNCA É IDEAL... --> ''ITS NOT IDEAL, IN SOME CASES...
+
+                                                ITS NOT IDEAL BECAUSE 
+                                                IT WILL BASICALLY
+
+                                                EAGER LOAD __ EVERY SINGLE__  
+                                                TIME, AND YOU MAY NOT WANT 
+                                                TO DO THAT''
+
+
+
+
+
+
+--> 2a maneira --> '' DO IT AT THE __ QUERY LEVEL''...      
+
+
+
+
+
+                        ---> COM ESSE APPROACH, FAZEMOS 'EAGER LOADING'
+                            APENAS NAS QUERIES QUE REALMENTE POSSUEM
+                             ESSE PROBLEMA DE 'N+1', e que precisam de essa 
+                             data...
+
+
+
+ 
+
+
+
+
+
+
+
+
+--> É ESSE APPROACH QUE UTILIZAREMOS...
+
+
+
+
+
+
+
+-> NOSSO EXEMPLO É ESTE:
+
+
+
+
+
+
+
+
+LÁ NO METHOD DE 'load', em TransactionController,
+
+
+
+TEMOS ISTO:
+
+
+
+
+
+
+
+
+    public function load(Request $request, Response $response): Response
+    {
+        $params       = $this->requestService->getDataTableQueryParameters($request);
+        $transactions = $this->transactionService->getPaginatedTransactions($params);
+        $transformer  = function (Transaction $transaction) {
+            return [
+                'id'          => $transaction->getId(),
+                'description' => $transaction->getDescription(),
+                'amount'      => $transaction->getAmount(),
+                'date'        => $transaction->getDate()->format('m/d/Y g:i A'),
+                'category'    => $transaction->getCategory()?->getName(),
+                'receipts' => $transaction->getReceipts()->map(function (Receipt $receipt) {
+                    return [
+                        'id' => $receipt->getId(),
+                        'name' => $receipt->getFilename(),
+                    ];
+                })->toArray(),
+            ];
+        };
+
+
+
+
+
+
+
+
+
+-> A PARTE EM QUE TEMOS ESSE PROBLEMA É ESTA:
+
+
+
+
+                'category'    => $transaction->getCategory()?->getName(),
+
+
+
+
+
+
+E 
+
+
+ESTA AQUI:
+
+
+
+
+
+
+
+
+
+                'receipts' => $transaction->getReceipts()->map(function (Receipt $receipt) {
+                    return [
+                        'id' => $receipt->getId(),
+                        'name' => $receipt->getFilename(),
+                    ];
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+        -> ESTAMOS PEGANDO O CATEGORY (id/entity),
+        E ENTÃO 
+
+
+        O CATEGORY NAME, com a ajuda de 1 join..
+
+
+
+
+
+--> JÁ NA PARTE DOS RECEIPTS,
+
+    ESTAMOS PEGANDO 
+
+    TODOS OS RECEIPTS DE ESSA TRANSACTION,
+
+    COM OUTRO JOIN...
+
+
+
+
+
+
+
+--> AS TRANSACTIONS ESTÃO SENDO TODAS ELAS FETCHEADAS LÁ DO METHOD 
+
+
+de 
+
+'getPaginatedTransactions()'...
+
+
+
+
+
+
+
+
+
+-> DENTRO DESSE METHOD, TEMOS ISTO:
+
+
+
+
+
+
+    public function getPaginatedTransactions(DataTableQueryParams $params): Paginator
+    {
+        $query = $this->entityManager
+            ->getRepository(Transaction::class)
+            ->createQueryBuilder('t')
+            ->leftJoin('t.category', 'c')
+            ->setFirstResult($params->start)
+            ->setMaxResults($params->length);
+
+
+
+
+
+
+
+
+
+
+
+-> COMO VC PODE VER,
+
+
+
+TEMOS 
+
+
+1 METHOD DE 'leftJoin' 
+
+
+em cima da 'category'...
+
+
+
+
+
+
+
+
+-> MAS O PROBLEMA, AQUI,
+
+
+É QUE _ NÃO ESTAMOS REALMENTE joinando 
+
+
+essas 2 tables...
+
+
+
+
+
+
+
+-> o problem é que NÃO ESTAMOS SELECIONANDO 
+
+OS FIELDS  A SEREM RETORNADOS,
+
+COM ESSE JOIN...
+
+
+
+
+''WE ARE NOT SELECTING THE CATEGORY INFORMATION''...
+
+
+
+
+
+
+
+
+-> O FIX PARA ISSO 
+
+É ADICIONAR 1 SELECT,
+
+PARA SELECIONAR TUDO DE 't' e 'de 'c' (das transactions e das categories)...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+    public function getPaginatedTransactions(DataTableQueryParams $params): Paginator
+    {
+        $query = $this->entityManager
+            ->getRepository(Transaction::class)
+            ->createQueryBuilder('t')
+            ->select('t', 'c') // This is to eager load the category relationship. Fixes N+1 problem.
+            ->leftJoin('t.category', 'c')
+            ->setFirstResult($params->start)
+            ->setMaxResults($params->length);
+
+        $orderBy  = in_array($params->orderBy, ['description', 'amount', 'date', 'category'])
+            ? $params->orderBy
+            : 'date';
+        $orderDir = strtolower($params->orderDir) === 'asc' ? 'asc' : 'desc';
+
+        if (! empty($params->searchTerm)) {
+            $query->where('t.description LIKE :description')
+                  ->setParameter('description', '%' . addcslashes($params->searchTerm, '%_') . '%');
+        }
+
+        if ($orderBy === 'category') {
+            $query->orderBy('c.name', $orderDir);
+        } else {
+            $query->orderBy('t.' . $orderBy, $orderDir);
+        }
+
+        return new Paginator($query);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, REDUZIMOS O NÚMERO DE QUERIES PARA '14',
+
+EM VEZ DE 21...
+
+
+
+
+
+
+
+
+
+
+
+''AS A RESULT,
+    WE ARE NO LONGER RUNNING ANY QUERIES 
+    FOR THE CATEGORIES...
+
+    BUT WE ARE STILL EXECUTING THE RECEIPTS' QUERIES''..
+
+
+
+
+
+
+
+-> PARA CONSERTAR A PARTE DOS RECEIPTS,
+
+BASTA ADICIONAR UM OUTRO LEFT JOIN,
+
+DESSA VEZ JOINANDO COM OS RECEIPTS,
+TIPO ASSIM:
+
+
+
+
+
+
+        $query = $this->entityManager
+            ->getRepository(Transaction::class)
+            ->createQueryBuilder('t')
+            ->select('t', 'c', 'r') // This is to eager load the category-transaction-receipt relationship. Fixes N+1 problem.
+            ->leftJoin('t.category', 'c')
+            ->leftJoin('t.receipts', 'r')
+            ->setFirstResult($params->start)
+            ->setMaxResults($params->length);
+
+
+
+
+
+
+
+
+
+VOLTAMOS AO BROWSER,
+
+
+RECARREGAMOS A PAGE,
+
+E FICAMOS COM APENAS 4 QUERIES... O QUE QUER DIZER QUE CONSERTAMOS ESSE PROBLEMA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE ESTIVÉSSEMOS CARREGANDO MT MAIS DATA NESSA TABLE,
+COMO  1000 TRANSACTIONS,
+
+
+
+
+
+VC FICARIA COM O RUN DE MILHARES DE QUERIES...
+
+
+
+
+
+
+
+
+''EAGER LOADING CATEGORY AND RECEIPTS 
+
+TREMENDOUSLY REDUCES THE NUMBER OF QUERIES THAT NEED TO BE EXECUTED''...
+
+
+
+
+
+
+
+
+
+
+-> OK...
+
+
+
+
+
+-> MAS O OUTRO LADO DISSO É QUE 
+
+
+
+'''DEPENDING ON WHAT SORT OF DATA YOU ARE STORING 
+IN YOUR TABLE AND THE SIZE OF YOUR ENTITIES,
+
+DOING EAGER LOADING THIS WAY CAN ALSO __ CAUSE OTHER 
+TYPES OF ISSUES''...
+
+
+
+
+
+
+
+
+''BECAUSE DOING IT THIS WAY MEANS 
+    THAT WE ARE ESSENTIALLY HYDRATING/LOADING DATA 
+    FROM ALL THESE TABLES, EVEN IF WE ONLY NEED THE CATEGORY 
+    NAME, RECEIPT AND THE NAME''...
+
+
+
+
+
+
+-> UMA MANEIRA DE CONSERTAR ISSO É 
+
+''SELECT ONLY THE PROPERTIES THAT YOU NEED, HERE''...
+
+
+
+
+
+-> MAS, SE VC FIZER ISSO,
+
+''IT WILL NO LONGER HYDRATE AND RETURN THE RECORDS AS OBJECTS...
+    THE RECORDS WILL BE RETURNED AS ARRAYS...''
+
+
+
+
+
+(isso quer dizer que vc teria de realizar alguns ajustes no seu código,
+nas partes que fazem 'expect' de objects... como NOSSO 
+
+'$transformer', lá no 
+
+controller de 'TransactionController':
+
+
+
+
+       $transactions = $this->transactionService->getPaginatedTransactions($params);
+        $transformer  = function (Transaction $transaction) {
+            return [
+                'id'          => $transaction->getId(),
+                'description' => $transaction->getDescription(),
+                'amount'      => $transaction->getAmount(),
+                'date'        => $transaction->getDate()->format('m/d/Y g:i A'),
+                'category'    => $transaction->getCategory()?->getName(),
+                'receipts' => $transaction->getReceipts()->map(function (Receipt $receipt) {
+                    return [
+                        'id' => $receipt->getId(),
+                        'name' => $receipt->getFilename(),
+                    ];
+                })->toArray(),
+            ];
+        };
+
+
+
+
+
+
+
+
+ESSE TRANSFORMER TERIA DE TER O TYPE DE 'Transaction' trocado para um 'array',
+ou algo assim...
+
+
+
+
+ )
+
+
+
+
+
+
+
+
+
+
+ -> OUTRA MANEIRA SERIA USAR CUSTOM DTOs,
+
+ e aí fazer 
+ HYDRATE DE ESSES objects, em vez disso...
+
+
+
+
+
+
+
+
+
+
+
+ -> AINDA NÃO TEMOS QUE NOS IMPORTAR COM ISSO...
+
+
+
+
+
+ SE ENFRENTARMOS PERFORMANCE ISSUES RELACIONADAS COM ISSO,
+
+PODEMOS OPTIMIZE...
+
+
+
+
+
+
+
+
+MAS VC SEMPRE DEVE TER EM MENTE QUE EAGER LOADING PODE CAUSAR 
+
+PROBLEMS MESMO ASSIM... E AÍ, MESMO VC CARREGANDO ALGUMAS QUERIES 
+
+ADICIONAIS,
+
+ISSO AINDA PODERÁ SER MELHOR DO QUE FAZER EAGER LOAD DE EVERYTHING...
+
+
+
+
+
+
+
+
+
+
+
+-> POR ISSO QUE É TÃO IMPORTANTE INSPECIONAR E PROFILAR 
+
+SEU APP,
+PARA VER O QUE 
+
+PODE SER IMPROVED E OPTIMIZED...
+
+
+
+
+
+
+
+
+
+-> AGORA VAMOS VER O QUE MAIS PRECISA SER OPTIMIZADO...
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR FAZ 1 IMPORT, DE MIL TRANSACTIONS,
+
+COM 1 FILE CSV...
+
+
+
+
+
+
+-> DEMORA 1 POUCO PARA INSERIR TODAS AS ROWS...
+
+
+
+
+
+
+45 SECONDS PARA REALIZAR ESSE IMPORT...
+
+
+
+
+
+-> 4001 EVENTS FORAM EXECUTADOS...
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO ACONTECEU PQ O PROFESSOR 
+
+
+
+USOU 
+
+
+'getCategoryById',
+
+ou algo assim,
+
+
+EM VEZ DE CARREGAR TODAS AS CATEGORIES DE 1 VEZ SÓ,
+
+E AÍ 
+
+RODAR OS FINDS NO BACKEND, com regex ou algo assim...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---> O PROBLEMA, NA VERDADE,
+
+É QUE CADA _ OPERAÇÃO DE 'INSERT'
+
+ESTÁ ACONTECENDO 
+
+DENTRO 
+
+
+DE UMA TRANSACTION...
+
+
+
+
+
+
+
+ESTÃO SENDO EXECUTADOS SEMPRE ASSIM:
+
+
+
+
+
+BEGIN TRANSACTION
+INSERT INTO 
+COMMIT 
+
+UM MONTE DE VEZES...
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS O SELECT DAS CATEGORIES TAMBÉM ESTÁ ACONTECENDO MTAS VEZES...
+
+
+
+
+
+
+
+
+-> O PROBLEMA É ESTA LINHA:
+
+
+
+'$category = $this->categoryService->findByName($category);'
+
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+   public function import(Request $request, Response $response): Response
+    {
+         /** @var UploadedFileInterface $file */
+         $file = $this->requestValidatorFactory->make(UploadTransactionRequestValidator::class)->validate(
+            $request->getUploadedFiles()
+        )['importFile'];
+
+        $user = $request->getAttribute('user');
+        $resource = fopen($file->getStream()->getMetadata('uri'), 'r');
+        $categories = $this->categoryService->getAllKeyedByName(); // * This is MUCH BETTER than trying to find each category by name, individually.
+
+        // Discard the header row
+        fgetcsv($resource);
+
+        while (($row = fgetcsv($resource)) !== false) {
+            [$date, $description, $category, $amount] = $row;
+
+            $date     = new \DateTime($date);
+            $category = $categories[strtolower($category)] ?? null;
+            // $category = $this->categoryService->findByName($category); // ! This is BAD, n+1 problem. Unecessary queries, one for each row, instead of a single query returning all categories, beforehand.
+            $amount   = str_replace(['$', ','], '', $amount);
+
+            $transactionData = new TransactionData($description, (float) $amount, $date, $category);
+
+            $this->transactionService->create($transactionData, $user);
+        }
+
+        return $response;
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> o 'getAllKeyedByName'
+
+
+
+VAI RETORNAR 1 ARRAY EM QUE 
+
+
+
+
+AS KEYS SÃO OS 'CATEGORY NAMES'...
+
+
+
+
+
+
+
+    public function getAllKeyedByName(): array
+    {
+        $categories  = $this->entityManager->getRepository(Category::class)->findAll();
+        $categoryMap = [];
+
+        foreach ($categories as $category) {
+            $categoryMap[strtolower($category->getName())] = $category;
+        }
+
+        return $categoryMap;
+    }
+
+
+
+
+
+
+
+
+
+
+    OK...
+
+
+
+
+
+
+     E ISSO FUNCIONOU...
+
+
+
+
+
+
+
+
+    MAS AINDA ESTAMOS COM O PROBLEMA DE 'CALL FLUSH FOR EVERY INSERT' (
+        o que está tratando cada negócio como 1 transaction na database...
+
+        queremos que tudo seja considerado 1 transaction só, ou poucas transactions... (como se fosse apenas 1 único par de 'BEGIN TRANSACTION' e 'COMMIT')
+    )
