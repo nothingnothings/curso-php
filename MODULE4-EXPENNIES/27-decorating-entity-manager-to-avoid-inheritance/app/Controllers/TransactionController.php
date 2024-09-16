@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Contracts\EntityManagerServiceInterface;
 use App\Contracts\RequestValidatorFactoryInterface;
 use App\DataObjects\TransactionData;
 use App\Entity\Receipt;
 use App\Entity\Transaction;
-use App\Entity\User;
 use App\RequestValidators\TransactionRequestValidator;
-use App\RequestValidators\UploadTransactionRequestValidator;
 use App\ResponseFormatter;
 use App\Services\CategoryService;
 use App\Services\RequestService;
@@ -28,7 +27,8 @@ class TransactionController
         private readonly TransactionService $transactionService,
         private readonly ResponseFormatter $responseFormatter,
         private readonly RequestService $requestService,
-        private readonly CategoryService $categoryService
+        private readonly CategoryService $categoryService,
+        private readonly EntityManagerServiceInterface $entityManager
     ) {}
 
     public function index(Request $request, Response $response): Response
@@ -46,7 +46,7 @@ class TransactionController
             $request->getParsedBody()
         );
 
-        $this->transactionService->create(
+      $transaction = $this->transactionService->create(
             new TransactionData(
                 $data['description'],
                 (float) $data['amount'],
@@ -56,16 +56,20 @@ class TransactionController
             $request->getAttribute('user')
         );
 
-        $this->transactionService->flush();
-
+        $this->entityManager->sync($transaction);
+        
         return $response;
     }
 
     public function delete(Request $request, Response $response, array $args): Response
     {
-        $this->transactionService->delete((int) $args['id']);
+       $transaction = $this->transactionService->getById((int) $args['id']);
 
-        $this->transactionService->flush();
+       if (! $transaction) {
+           return $response->withStatus(404);
+       }
+
+       $this->entityManager->delete($transaction, true); // 'true' to sync/flush, so changes are applied.
 
         return $response;
     }
@@ -101,7 +105,7 @@ class TransactionController
             return $response->withStatus(404);
         }
 
-        $this->transactionService->update(
+       $transaction = $this->transactionService->update(
             $transaction,
             new TransactionData(
                 $data['description'],
@@ -111,7 +115,8 @@ class TransactionController
             )
         );
 
-        $this->transactionService->flush();
+        $this->entityManager->sync($transaction);
+
 
         return $response;
     }
@@ -157,7 +162,7 @@ class TransactionController
 
         $this->transactionService->toggleReviewed($transaction);
 
-        $this->transactionService->flush();
+        $this->entityManager->sync($transaction);
 
         return $response;
     }

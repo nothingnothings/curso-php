@@ -1,6 +1,7 @@
 <?php declare(strict_types=1);
 
 use App\Contracts\AuthInterface;
+use App\Contracts\EntityManagerServiceInterface;
 use App\Contracts\RequestValidatorFactoryInterface;
 use App\Contracts\SessionInterface;
 use App\Contracts\UserProviderServiceInterface;
@@ -13,6 +14,7 @@ use App\Services\UserProviderService;
 use App\Auth;
 use App\Config;
 use App\Csrf;
+use App\Services\EntityManagerService;
 use App\Session;
 use Clockwork\DataSource\DoctrineDataSource;
 use Clockwork\Storage\FileStorage;
@@ -130,5 +132,6 @@ return [
         $clockwork->addDataSource(new DoctrineDataSource($entityManager));
 
         return $clockwork;
-    }
+    },
+    EntityManagerServiceInterface::class => fn(EntityManagerInterface $entityManager) => new EntityManagerService($entityManager)
 ];

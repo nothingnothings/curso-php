@@ -31,3 +31,3187 @@ O CÓDIGO ESTÁ TODO BUGADO...
 
 -> ok... consegui consertar... não ficou o código mais bonito,
 mas funcionou.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VOLTO PARA A AULA DO PROFESSOR....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> HÁ 1 COISA QUE ESTÁ INCOMODANDO O PROFESSOR...
+
+
+
+
+
+
+
+
+-> O QUE INCOMODA O PROFESSOR É ESTA INHERITANCE AQUI:
+
+
+
+
+
+class CategoryService extends EntityManagerService
+{
+
+
+
+
+
+
+
+
+
+
+
+-> SE VC PENSA BEM SOBRE ISSO,
+    NÃO FAZ SENTIDO USAR INHERITANCE AQUI...
+
+
+
+
+
+
+
+
+
+
+
+ISSO É PQ 
+
+
+''CategoryService''
+
+NÃO É 
+
+
+UMA 'EntityManagerService''...
+
+
+
+
+
+
+POR ISSO FAZER INHERITANCE AQUI É 
+
+
+UM USO RUIM DE INHERITANCE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE VAMOS FAZER REFACTOR DISSO AÍ,
+PARA 
+
+CLEAN THIS UP...
+
+
+
+
+
+
+
+
+VC PODERIA REFACTOR ISSO DE DIFERENTES MANEIRAS...
+
+
+
+
+
+
+
+MANEIRAS:
+
+
+
+
+
+
+
+
+1) ''WE COULD GET RID OF THE INHERITANCE,
+    AND THEN JUST INJECT THE __ SERVICES, FROM WITHIN THE CONTROLLERS'''...
+
+
+
+
+
+
+2) 'ANOTHER WAY WOULD BE TO RENAME THIS EntityManagerService
+
+    to something like 'BaseServiceClass', and make it ABSTRACT...
+
+
+    THAT WAY, WE CAN PROVIDE SOME USEFUL BASE METHODS TO ALL OUR
+    SERVICE CLASSES  THAT WORK WITH ENTITIES AND WITH THE ENTITY MANAGER...
+    ' 
+
+
+
+
+
+
+
+
+
+NÃO HÁ 1 ÚNICA RESPOSTA CORRETA, AQUI...
+
+
+
+
+
+
+O PROFESSOR  QUER EVITAR MT ABSTRACTION AQUI,
+
+PARA EVITAR OVERCOMPLICATE DAS COISAS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NÓS NÃO VAMOS FAZER INJECT DO EntityManager
+    DIRETAMENTE NO CONSTRUCTOR DOS NOSSOS CONTROLLERS...
+
+
+
+
+
+
+
+
+--> EM VEZ DISSO, O QUE VAMOS FAZER É:
+
+
+
+
+
+
+
+
+3) INJECT SOME SORT OF 'ENTITY MANAGER SERVICE',
+
+    ''AND THEN BUILD _ THAT ENTITY MANAGER SERVICE IN A WAY 
+    THAT IT WRAPS ___ AROUND THE_ INTERNAL ENTITY MANAGER IN 
+    A NICE WAY''..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> POR ISSO, ABRIMOS O METHOD DE 'EntityManagerService',
+
+QUE TEM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use Doctrine\ORM\EntityManagerInterface;
+
+class EntityManagerService
+{
+    public function __construct(private readonly EntityManagerInterface $entityManager)
+    {
+    }
+
+    public function flush(): void
+    {
+        $this->entityManager->flush();
+    }
+
+    public function clear(string $entityName = null): void
+    {
+        if ($entityName === null) {
+            $this->entityManager->clear();
+            return;
+        }
+
+        $unitOfWork = $this->entityManager->getUnitOfWork();
+        $entities = $unitOfWork->getIdentityMap()[$entityName] ?? [];
+
+        foreach ($entities as $entity) {
+          $this->entityManager->detach($entity);
+        }
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+INICIALMENTE,
+
+
+TROCAMOS O NOME DO METHOD 'flush()'
+
+para algo MAIS DEVELOPER-FRIENDLY,
+
+como 'sync()'... isso pq,
+
+
+essencialmente,
+
+estamos fazendo o SYNC com a database...
+
+
+
+
+
+
+
+
+
+
+
+-> TIPO ASSIM:
+
+
+
+
+
+
+    public function sync(): void
+    {
+        $this->entityManager->flush();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+E PODEMOS DEIXAR ESSE METHOD 1 POUCO MAIS FLEXÍVEL,
+
+COM O ACCEPT OPCIONAL DE 1 ENTITY, COMO ARGUMENT...
+
+
+
+AÍ, SE ESSE ARGUMENT É PROVIDENCIADO, PODEMOS FAZER 
+
+o 'persist()' dele, antes de realizar o flush...
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+    public function sync($entity = null): void
+    {
+        if ($entity) {
+            $this->entityManager->persist($entity);
+        }
+        
+        $this->entityManager->flush();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+''THIS WAY, WE CAN PERSIST AND FLUSH AT THE SAME TIME,
+    FOR SIMPLE OPERATIONS'''....
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR TAMBÉM ADICIONA UM METHOD DE 'delete()',
+
+aqui,
+
+
+PQ 
+
+ELE ACHA QUE ISSO VAI DEIXAR AS COISAS MAIS FLEXÍVEIS...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+    public function delete($entity): void
+    {
+        $this->entityManager->remove($entity);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    ELE VAI ACEITAR 'entity' como 1 primeiro parameter,
+
+
+    e 1 segundo parameter OPCIONAL 
+
+
+    de 
+
+    '$sync'... --> se settado como TRUE,
+                    PASSADO COMO TRUE,
+
+
+                    ESSE METHOD DE 'delete()'
+
+
+                    vai chamar também o 'flush()'...
+        
+
+
+    
+
+
+
+EX:
+
+
+
+
+
+
+
+
+    public function delete($entity, bool $sync = false): void
+    {
+        $this->entityManager->remove($entity);
+        
+        if($sync) {
+            $this->entityManager->flush();
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... 
+
+
+MAS PARA EVITAR CONSTRUIR WRAPPERS EM VOLTA DE TODOS OS OUTROS 
+
+ENTITY METHODS NECESSÁRIOS A NÓS NO FUTURO,
+
+
+
+
+O QUE PODEMOS FAZER, AQUI,
+
+É 
+
+'PROXY' 
+
+
+METHOD CALLS A CALLS AINDA NÃO DEFINIDOS, NESSE WRAPPER,
+
+
+
+AO entityManager de verdade (que foi wrappado)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS FAZER ISSO COM A AJUDA DO MAGIC METHOD '__call()'
+
+do php...
+
+
+
+
+
+
+
+
+
+
+
+-> TIPO ASSIM:
+
+
+
+
+
+    public function __call(string $name,  array $args)
+    {
+        if (method_exists($this->entityManager, $name)) {
+            return call_user_func_array([$this->entityManager, $name], $args);
+        }
+
+        throw new \BadMethodCallException("Method $name does not exist on EntityManagerService");
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO VAI CHAMAR ESSE METHOD, 
+
+se ele existir..
+
+
+
+
+
+
+
+--> SE O METHOD NÃO EXISTE,
+
+
+
+SERÁ FEITO O THROW DAQUELA EXCEPTION...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+''WITH THIS, WE ARE BASICALLY 
+
+_DECORATING__ the entitymanager object/class, 
+
+by ADDING __ BEHAVIORS AND FUNCTIONALITY...'''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> THIS APPROACH HAS ITS PROS AND CONS...
+
+
+
+
+
+
+
+--> AND YOU HAVE TO WEIGH YOUR OPTIONS,
+    AND MAKE A DECISION BASED ON YOUR APP 
+    AND YOUR PREFERENCES...
+
+
+
+
+
+
+--> ISSO VAI QUEBRAR O AUTOCOMPLETE DO IDE,
+
+EM ALGUNS CASES,
+
+ISSO PQ 
+
+
+
+
+OS METHODS DO 'EntityManager' 
+
+NÃO FICARÃO DISPONÍVEIS 
+
+
+
+NO 'EntityManagerService' object,
+
+quando conseguimos o autocomplete no IDE...
+
+
+
+
+
+
+
+-> PARA CONSERTAR ISSO, 
+    O AUTOCOMPLETE,
+
+    PODEMOS USAR 1 DOCBLOCK DE ANNOTATION,
+
+
+
+
+    E DECLARAR QUE 'EntityManagerInterface' 
+
+    é um mixin de essa class...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use Doctrine\ORM\EntityManagerInterface;
+
+
+/**
+ * @mixin EntityManagerInterface
+ */
+class EntityManagerService
+{
+    public function __construct(private readonly EntityManagerInterface $entityManager)
+    {
+    }
+
+    public function __call(string $name,  array $args)
+    {
+        if (method_exists($this->entityManager, $name)) {
+            return call_user_func_array([$this->entityManager, $name], $args);
+        }
+
+        throw new \BadMethodCallException("Method $name does not exist on EntityManagerService");
+    }
+
+    public function sync($entity = null): void
+    {
+        if ($entity) {
+            $this->entityManager->persist($entity);
+        }
+
+        $this->entityManager->flush();
+    }
+
+    public function delete($entity, bool $sync = false): void
+    {
+        $this->entityManager->remove($entity);
+
+        if($sync) {
+            $this->entityManager->flush();
+        }
+    }
+
+    public function clear(string $entityName = null): void
+    {
+        if ($entityName === null) {
+            $this->entityManager->clear();
+            return;
+        }
+
+        $unitOfWork = $this->entityManager->getUnitOfWork();
+        $entities = $unitOfWork->getIdentityMap()[$entityName] ?? [];
+
+        foreach ($entities as $entity) {
+          $this->entityManager->detach($entity);
+        }
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ex:
+
+
+
+/**
+ * @mixin EntityManagerInterface
+ */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ DESSA FORMA, O AUTOCOMPLETE DO IDE DEVE FUNCIONAR,
+
+
+ E OS METHODS DO 'entityManager'
+
+ devem ser mostrados como existindo dentro 
+
+
+ do 'EntityManagerService'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ --> PARA MELHORAR AINDA MAIS,
+
+
+ O PROFESSOR ACHA QUE DEVEMOS 
+
+ 'CREATE OUR OWN INTERFACE',
+
+
+ E AÍ 
+ ADICIONAR ESSA ANNOTATION DE MIXIN A ELA...
+
+
+
+
+
+
+
+
+
+
+
+
+ -> PODEMOS criar 
+
+
+
+ 'EntityManagerServiceInterface'...
+
+
+
+
+
+
+
+
+
+
+ AÍ ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+ <?php declare(strict_types=1);
+
+namespace App\Contracts;
+
+/**
+ * @mixin EntityManagerServiceInterface
+ */
+class EntityManagerServiceInterface
+{
+    public function __call(string $name, array $args);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+COMEÇAMOS COM ESSE CÓDIGO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ O PROFESSOR VAI ESCREVENDO ITPO ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Contracts;
+
+/**
+ * @mixin EntityManagerServiceInterface
+ */
+interface EntityManagerServiceInterface
+{
+    public function __call(string $name, array $args);
+
+    public function sync($entity = null): void;
+
+    public function delete($entity, bool $sync = false): void;
+
+    public function clear(string $entityName = null): void;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS É CLARO QUE, PARA QUE ISSO FUNCIONE,
+AINDA PRECISAMOS ADICIONAR  UMA ENTRY PARA 
+
+
+'EntityManagerServiceInterface',
+lá nas container_bindings...
+
+
+
+
+
+
+
+
+PRECISAMOS DISSO PARA QUE O NOSSO APP 
+
+
+''KNOWS HOW TO RESOLVE EntityManagerServiceInterface,
+whenever we are INJECTING THAT IN CONTROLLERS OR IN OTHER 
+SERVICE CLASSES''...
+
+
+
+
+
+
+
+
+
+
+
+
+-> por isso vamos até os container_bindings,
+
+e escrevemos assim:
+
+
+
+
+
+    EntityManagerServiceInterface::class => fn(EntityManagerInterface $entityManager) => new EntityManagerService($entityManager)
+
+
+
+
+
+
+
+
+
+
+
+
+PORTANTO, ISSO VAI SIMPLESMENTE 
+
+
+
+RETORNAR 
+
+
+
+UMA CLASS DE 'EntityManagerService',
+
+
+sempre que referenciado...
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ISSO FEITO,
+
+FAZEMOS O REFACTOR NAS CLASSES DE 
+
+
+SERVICES E CONTROLLERS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> EM CATEGORYSERVICE, NOS LIVRAMOS DO INHERITANCE 
+
+
+E INJETAMOS A INTERFACE DE 
+
+
+
+'EntityManagerServiceInterface'
+
+diretamente no constructor...
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Contracts\EntityManagerServiceInterface;
+use App\DataObjects\DataTableQueryParams;
+use App\Entity\Category;
+use App\Entity\User;
+use Doctrine\ORM\Tools\Pagination\Paginator;
+use Doctrine\ORM\EntityManagerInterface;
+
+// class CategoryService extends EntityManagerService
+class CategoryService 
+{
+    public function __construct(private readonly EntityManagerServiceInterface $entityManager) {}
+
+    public function create(string $name, User $user): Category
+    {
+        $category = new Category();
+
+        $category->setUser($user);
+
+        return $this->update($category, $name);
+    }
+
+    public function getPaginatedCategories(DataTableQueryParams $params): Paginator
+    {
+        $query = $this
+            ->entityManager
+            ->getRepository(Category::class)
+            ->createQueryBuilder('c')
+            ->setFirstResult($params->start)
+            ->setMaxResults($params->length);
+
+        $orderBy = in_array($params->orderBy, ['name', 'createdAt', 'updatedAt']) ? $params->orderBy : 'updatedAt';
+        $orderDir = strtolower($params->orderDir) === 'asc' ? 'asc' : 'desc';
+
+        if (!empty($params->searchTerm)) {
+            $query->where('c.name LIKE :name')->setParameter('name', '%' . addcslashes($params->searchTerm, '%_') . '%');
+        }
+
+        $query->orderBy('c.' . $orderBy, $orderDir);
+
+        return new Paginator($query);
+    }
+
+    public function delete(int $id): void
+    {
+        $category = $this->entityManager->find(Category::class, $id);
+
+        $this->entityManager->remove($category);
+    }
+
+    public function getById(int $id): ?Category
+    {
+        return $this->entityManager->find(Category::class, $id);
+    }
+
+    public function update(Category $category, string $name): Category
+    {
+        $category->setName($name);
+
+        $this->entityManager->persist($category);
+
+        return $category;
+    }
+
+    public function getCategoryNames(): array
+    {
+        return $this
+            ->entityManager
+            ->getRepository(Category::class)
+            ->createQueryBuilder('c')
+            ->select('c.id', 'c.name')
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    public function getAllKeyedByName(): array
+    {
+        $categories = $this->entityManager->getRepository(Category::class)->findAll();
+        $categoryMap = [];
+
+        foreach ($categories as $category) {
+            $categoryMap[strtolower($category->getName())] = $category;
+        }
+
+        return $categoryMap;
+    }
+}
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok, mas aí ficamos com o problema do autocomplete, em todos os method calls 
+em cima de essa interface:
+
+
+
+
+        $query = $this
+            ->entityManager
+            ->getRepository(Category::class)
+            ->createQueryBuilder('c')
+            ->setFirstResult($params->start)
+            ->setMaxResults($params->length);
+
+
+
+
+
+
+
+
+
+        o IDE diz que 'getRepository'
+
+        não existe...
+
+
+
+
+
+
+
+
+ISSO ACONTECEU PQ AINDA NÃO ADICIONAMOS O MIXIN 
+
+LÁ NO 'EntityManagerServiceInterface'...
+
+
+
+
+
+
+
+
+
+--> TIPO ASSIM:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Contracts;
+
+/**
+ * @mixin EntityManagerServiceInterface
+ */
+interface EntityManagerServiceInterface
+{
+    public function __call(string $name, array $args);
+
+    public function sync($entity = null): void;
+
+    public function delete($entity, bool $sync = false): void;
+
+    public function clear(string $entityName = null): void;
+}
+
+
+
+
+
+
+
+
+
+
+
+MAS MESMO COM ISSO ADICIONADO,
+
+
+
+NÓS AINDA NÃO TEMOS AUTOCOMPLETE,
+
+
+NO VSCODE...
+
+
+
+
+
+
+
+
+certo... deixando isso de lado,
+
+o professor aponta que podemos 
+
+NOS LIVRAR DO METHOD DE 'delete()',
+
+lá 
+
+
+em 
+
+'CategoryService'...
+
+
+
+
+
+
+
+
+
+
+
+--> ''WE SHOULD BE ABLE TO REFACTOR THE CONTROLLER SIDE,
+    SO THAT WE DON'T NEED TO HAVE TO CALL THIS METHOD, IN THE CATEGORY 
+    SERVICE''...
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR QUER FAZER DECOUPLE DAS PARTES  DE 'find()' 
+
+
+e 'deleting', que estão ocorrendo em 1 mesmo method,
+
+no method de delete:
+
+
+
+
+
+
+
+
+'''''
+
+
+
+    public function delete(int $id): void
+    {
+        $category = $this->entityManager->find(Category::class, $id);
+
+        $this->entityManager->remove($category);
+    }
+
+
+
+
+'''''
+
+
+
+
+
+
+PORTANTO, REMOVEMOS ISSO AÍ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ, LÁ NO CATEGORYCONTROLLER,
+
+NO METHOD DE DELETE,
+
+
+
+NÓS 
+
+
+
+VAMOS 
+
+TROCAR AQUELE 
+
+'$this->categoryService->delete()'
+
+
+
+
+POR 1 USAGE DIRETA DE 'EntityManagerService',
+
+que será injetado no constructor do controller,
+
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+
+    public function delete(Request $request, Response $response, array $args): Response
+    {
+
+        
+        $this->entityManagerService->delete();
+
+        $this->categoryService->flush();
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+MAS, COMO ARGUMENTO DE ESSE METHOD,
+
+DEVEMOS, EM VEZ DE PASSAR 1 INTEGER,
+
+
+ENCONTRAR A ENTITY E ENTÃO PASSÁ-LA... A ENTITY DE 'CATEGORY'...
+
+
+
+
+
+
+
+
+    public function delete(Request $request, Response $response, array $args): Response
+    {
+        $category = $this->categoryService->getById((int) $args['id']);
+
+        $this->entityManagerService->delete($category, true);
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... com isso, pudemos nos livrar 
+
+do call de '->flush()',
+
+
+pq 
+
+
+PODEMOS SIMPLESMENTE PASSAR A FLAG DE 'true' como segundo parameter,
+
+
+que isso fará 
+
+
+com que a lógica de esse method,
+
+dentro do 'entityManagerService',
+
+
+FAÇA 
+
+O FLUSH DEPOIS DE APLICAR O REMOVE/DELETE...
+
+
+
+
+
+EX:
+
+
+
+
+
+
+    public function delete(Request $request, Response $response, array $args): Response
+    {
+        $category = $this->categoryService->getById((int) $args['id']);
+
+        $this->entityManagerService->delete($category, true);
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+    public function delete(Request $request, Response $response, array $args): Response
+    {
+        $category = $this->categoryService->getById((int) $args['id']);
+
+        $this->entityManagerService->delete($category, true); // 'true' to sync/flush, so changes are applied.
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+OK... DEPOIS DISSO, DEVEMOS AJUSTAR OS OUTROS METHODS...
+
+
+
+
+
+
+
+
+NO METHOD DE STORE, ESTAVA ASSIM:
+
+
+
+
+
+
+
+    public function store(Request $request, Response $response): Response
+    {
+        $data = $this->requestValidatorFactory->make(CreateCategoryRequestValidator::class)->validate(
+            $request->getParsedBody()
+        );
+
+        $this->categoryService->create($data['name'], $request->getAttribute('user'));
+
+        $this->categoryService->flush();
+
+        return $response->withHeader('Location', '/categories')->withStatus(302);
+    }
+
+
+
+
+
+
+
+
+
+    E FICA ASSIM:
+
+
+
+
+
+
+
+
+    public function store(Request $request, Response $response): Response
+    {
+        $data = $this->requestValidatorFactory->make(CreateCategoryRequestValidator::class)->validate(
+            $request->getParsedBody()
+        );
+
+        $category = $this->categoryService->create($data['name'], $request->getAttribute('user'));
+
+        $this->entityManagerService->sync($category);
+
+        return $response->withHeader('Location', '/categories')->withStatus(302);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PRECISAMOS TIRAR O METHOD CALL DE 'persist()',
+
+dentro do 'update()'...
+
+
+
+
+
+
+
+
+
+FICA TIPO ASSIM:
+
+
+
+
+
+    public function update(Category $category, string $name): Category
+    {
+        $category->setName($name);
+
+        return $category;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ COLOCAMOS O CALL DE 'persist()'
+
+DENTRO 
+
+
+
+DO 'EntityManagerService',
+
+
+
+
+PQ, DENTRO DO CATEGORYCONTROLLER,
+
+QUANDO CHAMAMOS 'SYNC',
+
+
+JÁ ESTAMOS PASSANDO AQUELA ENTITY DE 'Category'...
+
+
+
+
+
+
+
+
+
+E ISSO, QUANDO É PASSADA 1 ENTITY, O PERSIST JÁ É CHAMADO AUTOMATICAMENTE,
+
+
+POR CONTA DO METHOD DE SYNC,
+
+
+COMO VISTO AQUI:
+
+
+
+
+
+    public function sync($entity = null): void
+    {
+        if ($entity) {
+            $this->entityManager->persist($entity);
+        }
+
+        $this->entityManager->flush();
+    }
+
+
+
+
+
+
+
+
+
+
+
+E ISSO FUNCIONA BEM, PQ 
+NÃO PRECISAMOS CHAMAR 'flush()' separadamente... o 'sync()'
+
+
+
+se encarrega disso...
+
+
+
+
+
+
+
+
+-> o 'sync()' também pode ser usado com loops... basta 
+vc chamá-lo DEPOIS DE 
+
+'X amount of categories have been persisted' 
+
+
+
+(o que quer dizer que ele funciona para ambos cases,
+tanto para updates/inserts/deletes individuais, como 
+
+em massa, com loops...)
+
+
+
+
+
+
+
+
+
+
+
+
+-> A ÚLTIMA COISA QUE TEM DE SER AJUSTADA, AQUI,
+
+
+    É O METHOD DE 'update()'
+
+    de categoryController...
+
+
+
+
+
+
+-> ELE ESTAVA ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public function update(Request $request, Response $response, array $args): Response
+    {
+        $data = $this->requestValidatorFactory->make(UpdateCategoryRequestValidator::class)->validate(
+            $args + $request->getParsedBody()
+        );
+
+        $category = $this->categoryService->getById((int) $data['id']);
+
+        if (! $category) {
+            return $response->withStatus(404);
+        }
+
+        $this->categoryService->update($category, $data['name']);
+
+        $this->categoryService->flush();
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+    EM VEZ DE fazer call de 'flush()",
+
+    NÓS FAZEMOS 'sync',
+
+
+    PASSANDO O CATEGORY SERVICE COMO ARGUMENT, TIPO ASSIM:
+
+
+
+
+
+
+
+
+    public function update(Request $request, Response $response, array $args): Response
+    {
+        $data = $this->requestValidatorFactory->make(UpdateCategoryRequestValidator::class)->validate(
+            $args + $request->getParsedBody()
+        );
+
+        $category = $this->categoryService->getById((int) $data['id']);
+
+        if (! $category) {
+            return $response->withStatus(404);
+        }
+
+        $category = $this->categoryService->update($category, $data['name']);
+
+        $this->entityManagerService->sync($category);
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... COM ISSO, O PROFESSOR ACHA QUE TERMINAMOS COM CATEGORIES..
+
+
+
+
+
+
+
+
+-> DEVEMOS FAZER A MESMA COISA COM 'TransactionService'
+
+
+e o transactionCONTROLLER...
+
+
+
+
+
+
+
+
+
+
+ 
+
+-> tiramos o method de delete...
+
+
+
+
+
+
+
+-> aí removemos a inheritance...
+
+
+
+
+
+
+
+-> injetamos a EntityManagerServiceInterface
+no constructor...
+
+
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Contracts\EntityManagerServiceInterface;
+use App\DataObjects\DataTableQueryParams;
+use App\DataObjects\TransactionData;
+use App\Entity\Transaction;
+use App\Entity\User;
+use Doctrine\ORM\Tools\Pagination\Paginator;
+
+class TransactionService
+{
+
+    public function __construct(private readonly EntityManagerServiceInterface $entityManager) {}
+    
+    
+    public function create(TransactionData $transactionData, User $user): Transaction
+    {
+        $transaction = new Transaction();
+
+        $transaction->setUser($user);
+
+        return $this->update($transaction, $transactionData);
+    }
+
+    public function getPaginatedTransactions(DataTableQueryParams $params): Paginator
+    {
+        $query = $this
+            ->entityManager
+            ->getRepository(Transaction::class)
+            ->createQueryBuilder('t')
+            ->select('t', 'c', 'r')  // This is to eager load the category-transaction-receipt relationship. Fixes N+1 problem.
+            ->leftJoin('t.category', 'c')
+            ->leftJoin('t.receipts', 'r')
+            ->setFirstResult($params->start)
+            ->setMaxResults($params->length);
+
+        $orderBy = in_array($params->orderBy, ['description', 'amount', 'date', 'category'])
+            ? $params->orderBy
+            : 'date';
+        $orderDir = strtolower($params->orderDir) === 'asc' ? 'asc' : 'desc';
+
+        if (!empty($params->searchTerm)) {
+            $query
+                ->where('t.description LIKE :description')
+                ->setParameter('description', '%' . addcslashes($params->searchTerm, '%_') . '%');
+        }
+
+        if ($orderBy === 'category') {
+            $query->orderBy('c.name', $orderDir);
+        } else {
+            $query->orderBy('t.' . $orderBy, $orderDir);
+        }
+
+        return new Paginator($query);
+    }
+
+    public function getById(int $id): ?Transaction
+    {
+        return $this->entityManager->find(Transaction::class, $id);
+    }
+
+    public function update(Transaction $transaction, TransactionData $transactionData): Transaction
+    {
+        $transaction->setDescription($transactionData->description);
+        $transaction->setAmount($transactionData->amount);
+        $transaction->setDate($transactionData->date);
+        $transaction->setCategory($transactionData->category);
+
+        $this->entityManager->persist($transaction);
+
+        return $transaction;
+    }
+
+    public function toggleReviewed(Transaction $transaction): void
+    {
+        $transaction->setWasReviewed(!$transaction->wasReviewed());
+
+        $this->entityManager->persist($transaction);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+nós também nos livramos do 'persist()' chamado lá no method 'update()',
+
+e também em 'toggleReviewed':
+
+
+
+
+
+
+
+    public function update(Transaction $transaction, TransactionData $transactionData): Transaction
+    {
+        $transaction->setDescription($transactionData->description);
+        $transaction->setAmount($transactionData->amount);
+        $transaction->setDate($transactionData->date);
+        $transaction->setCategory($transactionData->category);
+
+
+
+        return $transaction;
+    }
+
+    public function toggleReviewed(Transaction $transaction): void
+    {
+        $transaction->setWasReviewed(!$transaction->wasReviewed());
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO, VAMOS ATÉ O CONTROLLER,
+
+
+
+E AÍ 
+
+
+
+NOS LIVRAMOS DOS CALLS DE 'flush()',
+
+
+pq colocaremos 'sync' no seu lugar...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ANTES ESTAVA ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Contracts\RequestValidatorFactoryInterface;
+use App\DataObjects\TransactionData;
+use App\Entity\Receipt;
+use App\Entity\Transaction;
+use App\Entity\User;
+use App\RequestValidators\TransactionRequestValidator;
+use App\RequestValidators\UploadTransactionRequestValidator;
+use App\ResponseFormatter;
+use App\Services\CategoryService;
+use App\Services\RequestService;
+use App\Services\TransactionService;
+use DateTime;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Message\ResponseInterface as Response;
+use Slim\Views\Twig;
+
+class TransactionController
+{
+    public function __construct(
+        private readonly Twig $twig,
+        private readonly RequestValidatorFactoryInterface $requestValidatorFactory,
+        private readonly TransactionService $transactionService,
+        private readonly ResponseFormatter $responseFormatter,
+        private readonly RequestService $requestService,
+        private readonly CategoryService $categoryService
+    ) {}
+
+    public function index(Request $request, Response $response): Response
+    {
+        return $this->twig->render(
+            $response,
+            'transactions/index.twig',
+            ['categories' => $this->categoryService->getCategoryNames()]
+        );
+    }
+
+    public function store(Request $request, Response $response): Response
+    {
+        $data = $this->requestValidatorFactory->make(TransactionRequestValidator::class)->validate(
+            $request->getParsedBody()
+        );
+
+        $this->transactionService->create(
+            new TransactionData(
+                $data['description'],
+                (float) $data['amount'],
+                new DateTime($data['date']),
+                $data['category']
+            ),
+            $request->getAttribute('user')
+        );
+
+        $this->transactionService->flush();
+
+        return $response;
+    }
+
+    public function delete(Request $request, Response $response, array $args): Response
+    {
+        $this->transactionService->delete((int) $args['id']);
+
+        $this->transactionService->flush();
+
+        return $response;
+    }
+
+    public function get(Request $request, Response $response, array $args): Response
+    {
+        $transaction = $this->transactionService->getById((int) $args['id']);
+
+        if (! $transaction) {
+            return $response->withStatus(404);
+        }
+
+        $data = [
+            'id'          => $transaction->getId(),
+            'description' => $transaction->getDescription(),
+            'amount'      => $transaction->getAmount(),
+            'date'        => $transaction->getDate()->format('Y-m-d\TH:i'),
+            'category'    => $transaction->getCategory()->getId(),
+        ];
+
+        return $this->responseFormatter->asJson($response, $data);
+    }
+
+    public function update(Request $request, Response $response, array $args): Response
+    {
+        $data = $this->requestValidatorFactory->make(TransactionRequestValidator::class)->validate(
+            $args + $request->getParsedBody()
+        );
+
+        $id = (int) $data['id'];
+
+        if (! $id || ! ($transaction = $this->transactionService->getById($id))) {
+            return $response->withStatus(404);
+        }
+
+        $this->transactionService->update(
+            $transaction,
+            new TransactionData(
+                $data['description'],
+                (float) $data['amount'],
+                new DateTime($data['date']),
+                $data['category']
+            )
+        );
+
+        $this->transactionService->flush();
+
+        return $response;
+    }
+
+    public function load(Request $request, Response $response): Response
+    {
+        $params       = $this->requestService->getDataTableQueryParameters($request);
+        $transactions = $this->transactionService->getPaginatedTransactions($params);
+        $transformer  = function (Transaction $transaction) {
+            return [
+                'id'          => $transaction->getId(),
+                'description' => $transaction->getDescription(),
+                'amount'      => $transaction->getAmount(),
+                'date'        => $transaction->getDate()->format('m/d/Y g:i A'),
+                'category'    => $transaction->getCategory()?->getName(),
+                'wasReviewed' => $transaction->wasReviewed(),
+                'receipts' => $transaction->getReceipts()->map(function (Receipt $receipt) {
+                    return [
+                        'id' => $receipt->getId(),
+                        'name' => $receipt->getFilename(),
+                    ];
+                })->toArray(),
+            ];
+        };
+
+        $totalTransactions = count($transactions);
+
+        return $this->responseFormatter->asDataTable(
+            $response,
+            array_map($transformer, (array) $transactions->getIterator()),
+            $params->draw,
+            $totalTransactions
+        );
+    }
+
+    public function toggleReviewed(Request $request, Response $response, array $args): Response
+    {
+        $id = (int) $args['id'];
+
+        if (! $id || ! ($transaction = $this->transactionService->getById($id))) {
+            return $response->withStatus(404);
+        }
+
+        $this->transactionService->toggleReviewed($transaction);
+
+        $this->transactionService->flush();
+
+        return $response;
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS, FICOU ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Contracts\RequestValidatorFactoryInterface;
+use App\DataObjects\TransactionData;
+use App\Entity\Receipt;
+use App\Entity\Transaction;
+use App\Entity\User;
+use App\RequestValidators\TransactionRequestValidator;
+use App\RequestValidators\UploadTransactionRequestValidator;
+use App\ResponseFormatter;
+use App\Services\CategoryService;
+use App\Services\RequestService;
+use App\Services\TransactionService;
+use DateTime;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Message\ResponseInterface as Response;
+use Slim\Views\Twig;
+
+class TransactionController
+{
+    public function __construct(
+        private readonly Twig $twig,
+        private readonly RequestValidatorFactoryInterface $requestValidatorFactory,
+        private readonly TransactionService $transactionService,
+        private readonly ResponseFormatter $responseFormatter,
+        private readonly RequestService $requestService,
+        private readonly CategoryService $categoryService
+    ) {}
+
+    public function index(Request $request, Response $response): Response
+    {
+        return $this->twig->render(
+            $response,
+            'transactions/index.twig',
+            ['categories' => $this->categoryService->getCategoryNames()]
+        );
+    }
+
+    public function store(Request $request, Response $response): Response
+    {
+        $data = $this->requestValidatorFactory->make(TransactionRequestValidator::class)->validate(
+            $request->getParsedBody()
+        );
+
+        $this->transactionService->create(
+            new TransactionData(
+                $data['description'],
+                (float) $data['amount'],
+                new DateTime($data['date']),
+                $data['category']
+            ),
+            $request->getAttribute('user')
+        );
+
+
+        return $response;
+    }
+
+    public function delete(Request $request, Response $response, array $args): Response
+    {
+        $this->transactionService->delete((int) $args['id']);
+
+        return $response;
+    }
+
+    public function get(Request $request, Response $response, array $args): Response
+    {
+        $transaction = $this->transactionService->getById((int) $args['id']);
+
+        if (! $transaction) {
+            return $response->withStatus(404);
+        }
+
+        $data = [
+            'id'          => $transaction->getId(),
+            'description' => $transaction->getDescription(),
+            'amount'      => $transaction->getAmount(),
+            'date'        => $transaction->getDate()->format('Y-m-d\TH:i'),
+            'category'    => $transaction->getCategory()->getId(),
+        ];
+
+        return $this->responseFormatter->asJson($response, $data);
+    }
+
+    public function update(Request $request, Response $response, array $args): Response
+    {
+        $data = $this->requestValidatorFactory->make(TransactionRequestValidator::class)->validate(
+            $args + $request->getParsedBody()
+        );
+
+        $id = (int) $data['id'];
+
+        if (! $id || ! ($transaction = $this->transactionService->getById($id))) {
+            return $response->withStatus(404);
+        }
+
+        $this->transactionService->update(
+            $transaction,
+            new TransactionData(
+                $data['description'],
+                (float) $data['amount'],
+                new DateTime($data['date']),
+                $data['category']
+            )
+        );
+
+
+        return $response;
+    }
+
+    public function load(Request $request, Response $response): Response
+    {
+        $params       = $this->requestService->getDataTableQueryParameters($request);
+        $transactions = $this->transactionService->getPaginatedTransactions($params);
+        $transformer  = function (Transaction $transaction) {
+            return [
+                'id'          => $transaction->getId(),
+                'description' => $transaction->getDescription(),
+                'amount'      => $transaction->getAmount(),
+                'date'        => $transaction->getDate()->format('m/d/Y g:i A'),
+                'category'    => $transaction->getCategory()?->getName(),
+                'wasReviewed' => $transaction->wasReviewed(),
+                'receipts' => $transaction->getReceipts()->map(function (Receipt $receipt) {
+                    return [
+                        'id' => $receipt->getId(),
+                        'name' => $receipt->getFilename(),
+                    ];
+                })->toArray(),
+            ];
+        };
+
+        $totalTransactions = count($transactions);
+
+        return $this->responseFormatter->asDataTable(
+            $response,
+            array_map($transformer, (array) $transactions->getIterator()),
+            $params->draw,
+            $totalTransactions
+        );
+    }
+
+    public function toggleReviewed(Request $request, Response $response, array $args): Response
+    {
+        $id = (int) $args['id'];
+
+        if (! $id || ! ($transaction = $this->transactionService->getById($id))) {
+            return $response->withStatus(404);
+        }
+
+        $this->transactionService->toggleReviewed($transaction);
+
+
+        return $response;
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+aí preicsamos começar pelos ajustes no method de 'store()"...
+
+
+
+
+
+
+
+
+
+    public function store(Request $request, Response $response): Response
+    {
+        $data = $this->requestValidatorFactory->make(TransactionRequestValidator::class)->validate(
+            $request->getParsedBody()
+        );
+
+      $transaction = $this->transactionService->create(
+            new TransactionData(
+                $data['description'],
+                (float) $data['amount'],
+                new DateTime($data['date']),
+                $data['category']
+            ),
+            $request->getAttribute('user')
+        );
+
+        $this->entityManager->sync($transaction);
+        
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+TAMBÉM AJUSTAMOS O DELETE,
+
+
+TIPO ASSIM:
+
+
+
+
+
+    public function delete(Request $request, Response $response, array $args): Response
+    {
+       $transaction = $this->transactionService->getById((int) $args['id']);
+
+       if (! $transaction) {
+           return $response->withStatus(404);
+       }
+
+       $this->entityManager->delete($transaction, true); // 'true' to sync/flush, so changes are applied.
+
+        return $response;
+    }
+    
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+O METHOD DE UPDATE TAMBÉM É AJUSTADO...
+
+
+
+
+
+
+
+ANTES ESTAVA ASSIM:
+
+
+
+
+
+
+
+
+
+    public function update(Request $request, Response $response, array $args): Response
+    {
+        $data = $this->requestValidatorFactory->make(TransactionRequestValidator::class)->validate(
+            $args + $request->getParsedBody()
+        );
+
+        $id = (int) $data['id'];
+
+        if (! $id || ! ($transaction = $this->transactionService->getById($id))) {
+            return $response->withStatus(404);
+        }
+
+        $this->transactionService->update(
+            $transaction,
+            new TransactionData(
+                $data['description'],
+                (float) $data['amount'],
+                new DateTime($data['date']),
+                $data['category']
+            )
+        );
+
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+AÍ DEIXAMOS ASSIM:
+
+
+
+
+
+
+
+  public function update(Request $request, Response $response, array $args): Response
+    {
+        $data = $this->requestValidatorFactory->make(TransactionRequestValidator::class)->validate(
+            $args + $request->getParsedBody()
+        );
+
+        $id = (int) $data['id'];
+
+        if (! $id || ! ($transaction = $this->transactionService->getById($id))) {
+            return $response->withStatus(404);
+        }
+
+       $transaction = $this->transactionService->update(
+            $transaction,
+            new TransactionData(
+                $data['description'],
+                (float) $data['amount'],
+                new DateTime($data['date']),
+                $data['category']
+            )
+        );
+
+        $this->entityManager->sync($transaction);
+
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+FINALMENTE, PRECISAMOS AJUSTAR O METHOD DE 'toggleReviewed':
+
+
+
+
+
+
+    public function toggleReviewed(Request $request, Response $response, array $args): Response
+    {
+        $id = (int) $args['id'];
+
+        if (! $id || ! ($transaction = $this->transactionService->getById($id))) {
+            return $response->withStatus(404);
+        }
+
+        $this->transactionService->toggleReviewed($transaction);
+
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+ELE FICA TIPO ASSIM:
+
+
+
+
+    public function toggleReviewed(Request $request, Response $response, array $args): Response
+    {
+        $id = (int) $args['id'];
+
+        if (! $id || ! ($transaction = $this->transactionService->getById($id))) {
+            return $response->withStatus(404);
+        }
+
+        $this->transactionService->toggleReviewed($transaction);
+
+        $this->entityManager->sync($transaction);
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR QUER QUE AJUSTEMOS 
+
+O CÓDIGO DO RECEIPTSERVICE E RECEIPTCONTROLLER 
+
+POR CONTA PRÓPRIA...
+
+
+
+
+
+
+-> ASSIM CONSEGUIMOS PRATICAR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ficou tipo assim:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Contracts\EntityManagerServiceInterface;
+use App\Contracts\RequestValidatorFactoryInterface;
+use App\RequestValidators\UploadReceiptRequestValidator;
+use App\Services\ReceiptService;
+use App\Services\TransactionService;
+use League\Flysystem\Filesystem;
+use Psr\Http\Message\ResponseInterface;
+use Slim\Psr7\Request;
+use Slim\Psr7\Response;
+use Slim\Psr7\Stream;
+
+class ReceiptController
+{
+
+    public function __construct(
+    private readonly Filesystem $filesystem, 
+    private readonly RequestValidatorFactoryInterface $requestValidatorFactory,
+    private readonly TransactionService $transactionService,
+    private readonly ReceiptService $receiptService,
+    private readonly EntityManagerServiceInterface $entityManager
+    ) {}
+
+
+    public function store(Request $request, Response $response, array $args): ResponseInterface
+    {
+
+        $file = $this->requestValidatorFactory->make(UploadReceiptRequestValidator::class)->validate($request->getUploadedFiles())['receipt'];
+
+        $filename = $file->getClientFilename();
+
+        $id = (int) $args['id'];
+
+        if (! $id || ! ($transaction = $this->transactionService->getById($id))) {
+            return $response->withStatus(404);
+        }
+
+        $randomFilename = bin2hex(random_bytes(25));
+        
+
+        // * 'write()' + 'getContents()' is GOOD for small files, but bad for large files
+        // * If you want to save large files, you should use 'writeStream()' instead of 'write()'.
+        $this->filesystem->write('receipts/' . $randomFilename, $file->getStream()->getContents());
+
+        $receipt =  $this->receiptService->create($transaction, $filename, $randomFilename, $file->getClientMediaType());
+
+        $this->entityManager->sync($receipt);
+
+        return $response;
+    }
+
+    public function download(Request $request, Response $response, array $args): Response
+    {
+
+        $transactionId = (int) $args['transactionId'];
+        $receiptId     = (int) $args['receiptId'];
+
+        if (!$transactionId || ! ($transaction = $this->transactionService->getById($transactionId))) {
+            return $response->withStatus(404);
+        }
+
+        if (!$receiptId || ! ($receipt = $this->receiptService->getById($receiptId))) {
+            return $response->withStatus(404);
+        }
+
+        if ($receipt->getTransaction()->getId() !== $transactionId) {
+            return $response->withStatus(401);
+        }
+
+        // read the stream, using the storageFileName as the filename:
+        $file = $this->filesystem->readStream('receipts/' . $receipt->getStorageFilename());
+
+
+        return $response->withHeader('Content-Type', $receipt->getMediaType())
+                        ->withHeader('Content-Disposition', 'inline; filename=' . $receipt->getFilename()) // 'attachment' will make it so the file is downloaded directly. 'inline' will display the file in the browser window.
+                        ->withBody(new Stream($file));
+    }
+
+    public function delete(Request $request, Response $response, array $args): Response
+    {
+
+        $transactionId = (int) $args['transactionId'];
+        $receiptId     = (int) $args['receiptId'];
+
+        if (!$transactionId || ! ($transaction = $this->transactionService->getById($transactionId))) {
+            return $response->withStatus(404);
+        }
+
+        if (!$receiptId || ! ($receipt = $this->receiptService->getById($receiptId))) {
+            return $response->withStatus(404);
+        }
+
+        if ($receipt->getTransaction()->getId() !== $transactionId) {
+            return $response->withStatus(401);
+        }
+
+        $this->filesystem->delete('receipts/' . $receipt->getStorageFilename());
+
+        $this->entityManager->delete($receipt, true); // 'true' to sync/flush, so changes are applied.
+
+        return $response;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+E O RECEIPTSERVICE FICOU ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Contracts\ReceiptServiceInterface;
+use App\Entity\Receipt;
+use App\Entity\Transaction;
+
+class ReceiptService extends EntityManagerService implements ReceiptServiceInterface
+{
+    public function create(Transaction $transaction, string $filename, string $storageFilename, string $mediaType): Receipt
+    {
+        $receipt = new Receipt();
+
+        $receipt->setTransaction($transaction);
+        $receipt->setFilename($filename);
+        $receipt->setStorageFilename($storageFilename);
+        $receipt->setMediaType($mediaType);
+        $receipt->setCreatedAt(new \DateTime());
+
+        return $receipt;
+    }
+
+    public function getById(int $id): ?Receipt
+    {
+        return $this->entityManager->find(Receipt::class, $id);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS O PROFESSOR TAMBÉM AJUSTOU 
+
+
+O SERVICE DE 'TRANSACTIONIMPORTSERVICE'
+
+
+
+
+E 'TRANSACTIONIMPORTCONTROLLER'...
+
+
+
+
+
+
+
+
+ELE FEZ TAMBÉM PARA OS OUTROS CONTROLLERS, TAMBÉM....
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Contracts\EntityManagerServiceInterface;
+use App\DataObjects\TransactionData;
+use App\Entity\Transaction;
+use App\Entity\User;
+use Clockwork\Clockwork;
+use Clockwork\Request\LogLevel;
+
+class TransactionImportService
+{
+
+    public function __construct(
+        private readonly TransactionService $transactionService,
+        private readonly CategoryService $categoryService,
+        private readonly EntityManagerServiceInterface $entityManagerService,
+        private readonly Clockwork $clockwork,
+    ) {
+
+    }
+
+    public function importFromFile(string $file, User $user): void
+    {
+
+
+        $resource = fopen($file, 'r');
+        $categories = $this->categoryService->getAllKeyedByName(); // * This is MUCH BETTER than trying to find each category by name, individually.
+
+        // Discard the header row
+        fgetcsv($resource);
+
+        // Log memory and unit of work usage and detect memory leaks:
+        $this->clockwork->log(LogLevel::DEBUG, 'Memory Usage Before: ' . memory_get_usage(true));
+        $this->clockwork->log(LogLevel::DEBUG, 'Unit of Work Before: ' . $this->entityManager->getUnitOfWork()->size());
+
+        $count = 1;
+        $batchSize = 250;
+        while (($row = fgetcsv($resource)) !== false) {
+            [$date, $description, $category, $amount] = $row;
+
+            $date     = new \DateTime($date);
+            $category = $categories[strtolower($category)] ?? null;
+            // $category = $this->categoryService->findByName($category); // ! This is BAD, n+1 problem. Unecessary queries, one for each row, instead of a single query returning all categories, beforehand.
+            $amount   = str_replace(['$', ','], '', $amount);
+
+            $transactionData = new TransactionData($description, (float) $amount, $date, $category);
+
+            $transaction = $this->transactionService->create($transactionData, $user);
+
+            $this->entityManagerService->persist($transaction);
+
+            // If the current count/row is a multiple of the batchsize (250, 500, 750, etc), we flush a single time.
+            if ($count % $batchSize === 0) {
+                // Call flush, then reset the counter, every time we reach 250, 500, 750, etc.
+                $this->entityManagerService->sync();
+                // $this->entityManagerService->clear(Transaction::class); // ! This was DEPRECATED; we must use the version seen on the line below.
+                $this->entityManagerService->clear(Transaction::class); // * The logic seen in this method, in our custom service class, is not deprecated: https://github.com/doctrine/orm/issues/8460 
+
+                $count = 1;
+            } else {
+                $count++; 
+            }
+
+        }
+
+        if ($count > 1) {
+            $this->entityManagerService->sync();
+            $this->entityManagerService->clear();
+        }
+
+        // gc_collect_cycles(); // This will allocate the memory that was not yet garbage collected. (but this is done automaticallly by PHP)
+
+        // Log memory usage and detect memory leaks:
+        $this->clockwork->log(LogLevel::DEBUG, 'Memory Usage After: ' . memory_get_usage(true));
+        $this->clockwork->log(LogLevel::DEBUG, 'Unit of Work After: ' . $this->entityManager->getUnitOfWork()->size());
+        
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+OK.... CONSEGUI FAZER TODOS...
+
+
+
+
+
+
+
+
+--> o professor também fez 1 ajuste na entity de 'transaction.php':
+
+
+
+
+
+
+
+
+
+--> ESTÁVAMOS FICANDO COM 1 ERROR QUANDO TENTÁVAMOS CRIAR 1 TRANSACTION 
+
+MANUALMENTE E DURANTE O IMPORT... ERA PQ O REVIEW STATUS (wasReviewed)
+
+não estava sendo settado...
+
+
+
+
+
+
+-_> PARA CONSERTAR ISSO,
+
+
+O PROFESSOR SETTOU ESSA PROPRIEDAED, NO CONSTRUCTOR:
+
+
+
+
+
+
+
+
+#[Entity, Table('transactions')]
+#[HasLifecycleCallbacks]
+class Transaction
+{
+    use HasTimestamps;
+
+    #[Id, Column(options: ['unsigned' => true]), GeneratedValue]
+    private int $id;
+
+    #[Column(name: 'was_reviewed', options: ['default' => 0])]
+    private bool $wasReviewed;
+
+    #[Column]
+    private string $description;
+
+    #[Column]
+    private \DateTime $date;
+
+    #[Column(type: Types::DECIMAL, precision: 13, scale: 3)]
+    private float $amount;
+
+    #[ManyToOne(inversedBy: 'transactions')]
+    private User $user;
+
+    #[ManyToOne(inversedBy: 'transactions')]
+    private ?Category $category;
+
+    #[OneToMany(mappedBy: 'transaction', targetEntity: Receipt::class)]
+    private Collection $receipts;
+
+    public function __construct()
+    {
+        $this->receipts = new ArrayCollection();
+        $this->wasReviewed = false;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+COM ISSO, TERMINAMOS ESSE REFACTOR...
+
+
+
+
+
+
+NA PRÓXIMA AULA, VAMOS IMPORTAR ALGO DO 'MUNDO DO LARAVEL',
+
+
+CHAMADO DE 
+
+'ROUTE MODEL BINDING'... -> FAREMOS ISSO PARA 
+                            REMOVER UM POUCO DE CÓDIGO DUPLICADO...

@@ -18,18 +18,11 @@ class ReceiptService extends EntityManagerService implements ReceiptServiceInter
         $receipt->setMediaType($mediaType);
         $receipt->setCreatedAt(new \DateTime());
 
-        $this->entityManager->persist($receipt);
-
         return $receipt;
     }
 
     public function getById(int $id): ?Receipt
     {
         return $this->entityManager->find(Receipt::class, $id);
-    }
-
-    public function delete(Receipt $receipt): void
-    {
-        $this->entityManager->remove($receipt);
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Controllers;
 
-
+use App\Contracts\EntityManagerServiceInterface;
 use App\Contracts\RequestValidatorFactoryInterface;
 use App\RequestValidators\UploadReceiptRequestValidator;
 use App\Services\ReceiptService;
@@ -20,7 +20,8 @@ class ReceiptController
     private readonly Filesystem $filesystem, 
     private readonly RequestValidatorFactoryInterface $requestValidatorFactory,
     private readonly TransactionService $transactionService,
-    private readonly ReceiptService $receiptService
+    private readonly ReceiptService $receiptService,
+    private readonly EntityManagerServiceInterface $entityManager
     ) {}
 
 
@@ -44,9 +45,9 @@ class ReceiptController
         // * If you want to save large files, you should use 'writeStream()' instead of 'write()'.
         $this->filesystem->write('receipts/' . $randomFilename, $file->getStream()->getContents());
 
-        $this->receiptService->create($transaction, $filename, $randomFilename, $file->getClientMediaType());
+        $receipt =  $this->receiptService->create($transaction, $filename, $randomFilename, $file->getClientMediaType());
 
-        $this->receiptService->flush();
+        $this->entityManager->sync($receipt);
 
         return $response;
     }
@@ -98,9 +99,7 @@ class ReceiptController
 
         $this->filesystem->delete('receipts/' . $receipt->getStorageFilename());
 
-        $this->receiptService->delete($receipt);
-
-        $this->receiptService->flush();
+        $this->entityManager->delete($receipt, true); // 'true' to sync/flush, so changes are applied.
 
         return $response;
     }

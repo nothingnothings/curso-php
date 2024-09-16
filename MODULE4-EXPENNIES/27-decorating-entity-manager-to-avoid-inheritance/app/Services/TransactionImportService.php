@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Contracts\EntityManagerServiceInterface;
 use App\DataObjects\TransactionData;
 use App\Entity\Transaction;
 use App\Entity\User;
@@ -14,8 +15,8 @@ class TransactionImportService
     public function __construct(
         private readonly TransactionService $transactionService,
         private readonly CategoryService $categoryService,
-        private readonly EntityManagerService $entityManagerService,
-        private readonly Clockwork $clockwork
+        private readonly EntityManagerServiceInterface $entityManagerService,
+        private readonly Clockwork $clockwork,
     ) {
 
     }
@@ -46,12 +47,14 @@ class TransactionImportService
 
             $transactionData = new TransactionData($description, (float) $amount, $date, $category);
 
-            $this->transactionService->create($transactionData, $user);
+            $transaction = $this->transactionService->create($transactionData, $user);
+
+            $this->entityManagerService->persist($transaction);
 
             // If the current count/row is a multiple of the batchsize (250, 500, 750, etc), we flush a single time.
             if ($count % $batchSize === 0) {
                 // Call flush, then reset the counter, every time we reach 250, 500, 750, etc.
-                $this->entityManagerService->flush();
+                $this->entityManagerService->sync();
                 // $this->entityManagerService->clear(Transaction::class); // ! This was DEPRECATED; we must use the version seen on the line below.
                 $this->entityManagerService->clear(Transaction::class); // * The logic seen in this method, in our custom service class, is not deprecated: https://github.com/doctrine/orm/issues/8460 
 
@@ -63,7 +66,7 @@ class TransactionImportService
         }
 
         if ($count > 1) {
-            $this->entityManagerService->flush();
+            $this->entityManagerService->sync();
             $this->entityManagerService->clear();
         }
 
