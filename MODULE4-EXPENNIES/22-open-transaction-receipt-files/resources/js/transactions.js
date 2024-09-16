@@ -16,6 +16,8 @@ window.addEventListener('DOMContentLoaded', function () {
     document.getElementById('importTransactionsModal')
   );
 
+  console.log(importTransactionsModal);
+
   const table = new DataTable('#transactionsTable', {
     serverSide: true,
     ajax: '/transactions/load',
@@ -215,18 +217,25 @@ window.addEventListener('DOMContentLoaded', function () {
           'input[type="file"]'
         ).files;
 
+      console.log(files);
+
       for (let i = 0; i < files.length; i++) {
-        formData.append('receipt', files[i]);
+        formData.append('importFile', files[i]);
+      }
+
+      for (var pair of formData.entries()) {
+        console.log(pair[0] + ', ' + pair[1]);
       }
 
       post(
         `/transactions/upload`,
         formData,
-        uploadReceiptModal._element
+        importTransactionsModal._element
       ).then((response) => {
+        console.log(response);
         if (response.ok) {
           table.draw();
-          uploadReceiptModal.hide();
+          importTransactionsModal.hide();
         }
       });
     });

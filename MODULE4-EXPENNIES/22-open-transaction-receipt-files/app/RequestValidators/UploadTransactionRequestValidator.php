@@ -13,6 +13,8 @@ class UploadTransactionRequestValidator implements RequestValidatorInterface
         /** @var UploadedFileInterface $uploadedFile */
         $uploadedFile = $data['importFile'] ?? null;
 
+        var_dump($uploadedFile);
+
         // 1. Validate Uploaded File (check if it was created in the /tmp/ folder)
         if (!$uploadedFile) {
             throw new ValidationException(['transactions' => ['Please select a transactions file.']]);

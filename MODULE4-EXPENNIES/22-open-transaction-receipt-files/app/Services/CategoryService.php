@@ -76,8 +76,20 @@ class CategoryService
             ->getArrayResult();
     }
 
-    public function getByName(string $name): ?Category
+    public function getCategoryIdByName(string $name): ?int
     {
-        return $this->entityManager->getRepository(Category::class)->findOneBy(['name' => $name]);
+        // Get the Category repository
+        $categoryRepository = $this->entityManager->getRepository(Category::class);
+
+        // Use QueryBuilder to find the Category by name
+        $category = $categoryRepository->createQueryBuilder('c')
+            ->where('c.name = :name')
+            ->setParameter('name', $name)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        // Return the Category ID if found, otherwise null
+        return $category ? $category->getId() : null;
     }
+
 }

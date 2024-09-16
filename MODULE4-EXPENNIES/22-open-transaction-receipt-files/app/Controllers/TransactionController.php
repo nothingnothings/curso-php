@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Controllers;
 
@@ -8,7 +8,6 @@ use App\Contracts\RequestValidatorFactoryInterface;
 use App\DataObjects\TransactionData;
 use App\Entity\Receipt;
 use App\Entity\Transaction;
-use App\Exception\ValidationException;
 use App\RequestValidators\TransactionRequestValidator;
 use App\RequestValidators\UploadTransactionRequestValidator;
 use App\ResponseFormatter;
@@ -29,8 +28,7 @@ class TransactionController
         private readonly ResponseFormatter $responseFormatter,
         private readonly RequestService $requestService,
         private readonly CategoryService $categoryService
-    ) {
-    }
+    ) {}
 
     public function index(Request $request, Response $response): Response
     {
@@ -121,7 +119,7 @@ class TransactionController
                 'description' => $transaction->getDescription(),
                 'amount'      => $transaction->getAmount(),
                 'date'        => $transaction->getDate()->format('m/d/Y g:i A'),
-                'category'    => $transaction->getCategory()->getName(),
+                'category'    => $transaction->getCategory()?->getName(),
                 'receipts' => $transaction->getReceipts()->map(function (Receipt $receipt) {
                     return [
                         'id' => $receipt->getId(),
@@ -143,18 +141,22 @@ class TransactionController
 
     public function upload(Request $request, Response $response): Response
     {
-        $data = $this->requestValidatorFactory->make(UploadTransactionRequestValidator::class)->validate(
-            $request->getParsedBody()
-        );
+
+        $data = $this->requestValidatorFactory->make(UploadTransactionRequestValidator::class)->validate($request->getUploadedFiles());
 
         // Transactions will be in a csv. We need to read the csv's contents, using fgetcsv(), to create a single transaction for each row
         $csvContent = $data['importFile'];
+
+        // Csv file will be in stream format, so we need to convert it to a string
+        $csvContent = stream_get_contents($csvContent->getStream()->detach());
 
         // Convert CSV string to an array
         $rows = array_map('str_getcsv', explode("\n", $csvContent));
 
         $user = $request->getAttribute('user');
 
+        // Skip first line:
+        array_shift($rows);
 
         // Process each row
         foreach ($rows as $index => $row) {
@@ -163,26 +165,26 @@ class TransactionController
                 continue;
             }
 
-            // Skip the header line if present
-            if ($index === 0 && $row[0] === 'transaction_id') {
-                continue;
-            }
-
             // Extract data from the row
-            $amount = $row[1] ?? '';
-            $description = $row[2] ?? '';
+            $description = $row[1] ?? '';
+            $amount = preg_replace('/[^\d.-]/', '', $row[3]) ?? '';
+            $date = $row[0] ?? '';
+            $categoryId = $this->categoryService->getCategoryIdByName($row[2] ?? '');
+            $category = $categoryId ? $this->categoryService->getById($categoryId) : null;
 
-            // Process the data
             $this->transactionService->create(
                 new TransactionData(
                     $description,
                     (float) $amount,
-                    new DateTime(),
-                    $this->categoryService->getByName(($row[3]) ?? null)
+                    new DateTime($date),
+                    $category
                 ),
                 $user
             );
         }
+
+
+        // $this->transactionService->importTransactions($user, $rows);
 
         return $response;
     }

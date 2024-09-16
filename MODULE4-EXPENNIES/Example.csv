@@ -1,0 +1,13 @@
+date,description,category,amount
+2023-01-15 11:24:18,Transaction 1,Daycare,$690.22
+2023-02-20 09:15:00,Transaction 2,Groceries,$150.75
+2023-03-10 16:00:00,Transaction 3,Utilities,$85.00
+2023-04-05 13:30:00,Transaction 4,Entertainment,$120.50
+2023-05-25 07:45:00,Transaction 5,Health,$200.00
+2023-06-14 10:00:00,Transaction 6,Transportation,$60.30
+2023-07-22 14:15:00,Transaction 7,Education,$350.00
+2023-08-30 18:45:00,Transaction 8,Travel,$500.00
+2023-09-10 11:00:00,Transaction 9,Books,$45.90
+2023-10-05 20:30:00,Transaction 10,Subscriptions,$75.40
+,,,
+,,,
