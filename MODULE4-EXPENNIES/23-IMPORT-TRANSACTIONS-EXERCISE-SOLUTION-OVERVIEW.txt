@@ -1,0 +1,1118 @@
+
+
+
+
+
+
+
+NO ÚLTIMO VIDEO, O PROFESSOR 
+
+
+PEDIU PARA TRABALHARMOS COM 1 EXERCISE EM QUE CONSTRUÍMOS 
+
+
+
+
+1 'TRANSACTION IMPORTER'...
+
+
+
+
+
+
+
+
+
+
+
+-> CONSEGUI FAZER ISSO SOZINHO...
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR IMPLEMENTOU 1 SOLUTION POR TRÁS DAS CENAS...
+
+
+
+
+
+
+
+
+
+-> DEVEMOS VER A VERSÃO DO PROFESSOR...
+
+
+
+
+
+
+
+-> ELE CRIOU O NOVO BUTTON, EXATAMENTE COMO EU FIZ...
+
+
+
+
+
+-> AÍ PODEMOS ESCOLHER 
+    A FILE,
+
+    E AÍ IMPORTAR A FILE..
+
+
+
+
+
+
+
+
+
+
+-> É AQUELE BUTTON NORMALZINHO,
+
+QUE ABRE O MODAL DE TRANSACTIONS:
+
+
+
+
+
+{% block content %}
+	<div class="transactions container content-body">
+		<div class="text-end mb-4">
+			<button type="button" class="mx-2 btn btn-primary" data-bs-toggle="modal" data-bs-target="#newTransactionModal">
+				<i class="bi bi-plus-circle me-1"></i>
+				New Transaction
+			</button>
+			<button type="button" class="mx-2 btn btn-primary" data-bs-toggle="modal" data-bs-target="#importTransactionsModal">
+				<i class="bi bi-upload me-1"></i>
+				Import Transactions
+			</button>
+		</div>
+
+		{% include 'transactions/transaction_modal.twig' with {modal: {title: 'Create Transaction', id: 'newTransactionModal', isEdit: false}} %}
+		{% include 'transactions/transaction_modal.twig' with {modal: {title: 'Edit Transaction', id: 'editTransactionModal', isEdit: true}} %}
+		{% include 'transactions/upload_receipt_modal.twig' %}
+		{% include 'transactions/import_transactions_modal.twig' %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+em 
+
+
+'transactions.js',
+
+
+O PROFESSOR 
+
+
+
+DEIXOU OS HANDLERS 
+
+PARA 
+
+
+
+ENVIAR A FILE...
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR COLOCOU 1 SPINNER FANCY,
+
+
+    PARA MOSTRAR LOADING ENQUANTO A FILE ESTÁ SENDO ENVIADA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR ADICIONOU UMA NOVA ROUTE,
+
+
+LÁ EM 'web.php',
+
+EXATAMENTE COMO EU FIZ..
+
+
+
+
+
+SÓ QUE O NOME DA ROUTE É '/import',
+
+em vez de '/upload'...
+
+
+
+
+
+
+
+
+
+CERTO..
+
+
+
+
+
+e isso invoce o method de 'import'
+
+no controller de 'TransactionImporterController' (ou seja,
+ 
+ é OUTRO CONTROLLER)...
+
+
+
+
+
+
+
+
+
+
+
+
+ -> O PROFESSOR CRIOU 1 NOVO REQUESTVALIDATOR,
+
+
+ EXATAMENTE COMO EU FIZ....
+
+
+
+
+
+
+
+ ISSO FEITO,
+
+
+
+
+ O PROFESSOR FAZ READ DA FILE,
+
+ LINE BY LINE...
+
+
+
+
+
+
+
+
+
+MAS O CÓDIGO DELE, PARA ISSO, FICOU 1 POUCO DIFERENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Contracts\RequestValidatorFactoryInterface;
+use App\DataObjects\TransactionData;
+use App\RequestValidators\RequestValidatorFactory;
+use App\RequestValidators\UploadTransactionRequestValidator;
+use App\Services\CategoryService;
+use App\Services\TransactionService;
+use Slim\Psr7\Request;
+use Slim\Psr7\Response;
+
+class TransactionImporterController
+{
+
+    public function __construct(
+        private readonly CategoryService $categoryService,
+        private readonly TransactionService $transactionService,
+        private readonly RequestValidatorFactoryInterface $requestValidatorFactory
+
+    ) {
+
+    }
+
+
+    public function import(Request $request, Response $response): Response
+    {
+         /** @var UploadedFileInterface $file */
+         $file = $this->requestValidatorFactory->make(UploadTransactionRequestValidator::class)->validate(
+            $request->getUploadedFiles()
+        )['importFile'];
+
+        $user = $request->getAttribute('user');
+        $resource = fopen($file->getStream()->getMetadata('uri'), 'r');
+        $categories = $this->categoryService->getAllKeyedByName();
+
+        fgetcsv($resource);
+
+        while (($row = fgetcsv($resource)) !== false) {
+            [$date, $description, $category, $amount] = $row;
+
+            $date     = new \DateTime($date);
+            $category = $categories[strtolower($category)] ?? null;
+            $amount   = str_replace(['$', ','], '', $amount);
+
+            $transactionData = new TransactionData($description, (float) $amount, $date, $category);
+
+            $this->transactionService->create($transactionData, $user);
+        }
+
+        return $response;
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+esse method de 'getAllKeyedByName',
+
+isso eu não utilizei...
+
+
+
+
+
+
+
+ok...
+
+
+
+
+ELE FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+    public function getAllKeyedByName(): array
+    {
+        $categories  = $this->entityManager->getRepository(Category::class)->findAll();
+        $categoryMap = [];
+
+        foreach ($categories as $category) {
+            $categoryMap[strtolower($category->getName())] = $category;
+        }
+
+        return $categoryMap;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+LEMOS A FILE LINE-BY-LINE,
+
+
+MAS PRIMEIRAMENTE DESCARTAMOS A PRIMEIRA LINE (o header),
+
+com este código:
+
+
+
+
+         /** @var UploadedFileInterface $file */
+         $file = $this->requestValidatorFactory->make(UploadTransactionRequestValidator::class)->validate(
+            $request->getUploadedFiles()
+        )['importFile'];
+
+        $user = $request->getAttribute('user');
+        $resource = fopen($file->getStream()->getMetadata('uri'), 'r');
+        $categories = $this->categoryService->getAllKeyedByName();
+
+        // Discard the header row
+        fgetcsv($resource);
+
+
+
+
+
+
+
+
+
+    
+
+    depois disso,
+
+    lemos o negócio line por line:
+
+
+
+
+
+
+
+        while (($row = fgetcsv($resource)) !== false) {
+            [$date, $description, $category, $amount] = $row;
+
+            $date     = new \DateTime($date);
+            $category = $categories[strtolower($category)] ?? null;
+            $amount   = str_replace(['$', ','], '', $amount);
+
+            $transactionData = new TransactionData($description, (float) $amount, $date, $category);
+
+            $this->transactionService->create($transactionData, $user);
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> INICIALMENTE, O PROFESSOR HAVIA CRIADO 1 METHOD 
+
+
+DE 
+
+'findByName()',
+
+
+
+MAS AÍ 
+
+ELE VAI NOS DIZER QUE ESSE METHOD É INEFETIVO (pq 
+
+teremos que rodar centenas de consultas, em vez de apenas 1 consulta só)...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+    public function import(Request $request, Response $response): Response
+    {
+         /** @var UploadedFileInterface $file */
+         $file = $this->requestValidatorFactory->make(UploadTransactionRequestValidator::class)->validate(
+            $request->getUploadedFiles()
+        )['importFile'];
+
+        $user = $request->getAttribute('user');
+        $resource = fopen($file->getStream()->getMetadata('uri'), 'r');
+        $categories = $this->categoryService->getAllKeyedByName(); // * This is MUCH BETTER than trying to find each category by name, individually.
+
+        // Discard the header row
+        fgetcsv($resource);
+
+        while (($row = fgetcsv($resource)) !== false) {
+            [$date, $description, $category, $amount] = $row;
+
+            $date     = new \DateTime($date);
+            $category = $categories[strtolower($category)] ?? null;
+            $amount   = str_replace(['$', ','], '', $amount);
+
+            $transactionData = new TransactionData($description, (float) $amount, $date, $category);
+
+            $this->transactionService->create($transactionData, $user);
+        }
+
+        return $response;
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> TRANSACTIONDATA:
+
+
+
+TIVEMOS DE DEIXAR CATEGORY NULLABLE:
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+namespace App\DataObjects;
+
+use App\Entity\Category;
+use DateTime;
+
+class TransactionData
+{
+    public function __construct(
+        public readonly string $description,
+        public readonly float $amount,
+        public readonly DateTime $date,
+        public readonly ?Category $category
+    ) {
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+LÁ EM 'Transaction.php',
+
+
+
+
+A PROPRIEDADE DE 'category' da transaction também 
+
+
+
+agora é nullable:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Entity;
+
+use App\Entity\Traits\HasTimestamps;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\GeneratedValue;
+use Doctrine\ORM\Mapping\HasLifecycleCallbacks;
+use Doctrine\ORM\Mapping\Id;
+use Doctrine\ORM\Mapping\ManyToOne;
+use Doctrine\ORM\Mapping\OneToMany;
+use Doctrine\ORM\Mapping\Table;
+
+#[Entity, Table('transactions')]
+#[HasLifecycleCallbacks]
+class Transaction
+{
+    use HasTimestamps;
+
+    #[Id, Column(options: ['unsigned' => true]), GeneratedValue]
+    private int $id;
+
+    #[Column]
+    private string $description;
+
+    #[Column]
+    private \DateTime $date;
+
+    #[Column(type: Types::DECIMAL, precision: 13, scale: 3)]
+    private float $amount;
+
+    #[ManyToOne(inversedBy: 'transactions')]
+    private User $user;
+
+    #[ManyToOne(inversedBy: 'transactions')]
+    private ?Category $category;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR TAMBÉM TEVE QUE AJUSTAR OS 
+
+
+
+GETTER E SETTER METHODS DA TRANSACTION,
+
+QUE AGORA ACEITAM NULLABLE:
+
+
+
+
+
+
+
+
+
+    public function getCategory(): ?Category
+    {
+        return $this->category ?? null;
+    }
+
+    public function setCategory(?Category $category): Transaction
+    {
+        if ($category) {
+            $category->addTransaction($this);
+
+            $this->category = $category;
+        } else {
+            $this->category = null;
+        }
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+    OK...
+
+
+
+
+
+
+É BASICAMENTE ISSO...
+
+
+
+
+
+
+
+
+
+
+
+EM 'LOAD',
+
+TAMBÉM TIVEMOS QUE FAZER ESTA CHANGE, de nullable:
+
+
+
+
+
+
+
+    public function load(Request $request, Response $response): Response
+    {
+        $params       = $this->requestService->getDataTableQueryParameters($request);
+        $transactions = $this->transactionService->getPaginatedTransactions($params);
+        $transformer  = function (Transaction $transaction) {
+            return [
+                'id'          => $transaction->getId(),
+                'description' => $transaction->getDescription(),
+                'amount'      => $transaction->getAmount(),
+                'date'        => $transaction->getDate()->format('m/d/Y g:i A'),
+                'category'    => $transaction->getCategory()?->getName(),
+                'receipts' => $transaction->getReceipts()->map(function (Receipt $receipt) {
+                    return [
+                        'id' => $receipt->getId(),
+                        'name' => $receipt->getFilename(),
+                    ];
+                })->toArray(),
+            ];
+        };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo... e isso realmente funcionou,
+
+
+as transactions são importadas com sucesso...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FUNCIONA, EM GERAL..
+
+
+
+
+
+
+
+
+
+MAS ASSUMIMOS ALGUMAS COISAS:
+
+
+
+
+
+1) THE USER WILL USE THE TEMPLATE PROVIDED BY US 
+
+
+
+
+
+2) IF YOU WANT TO MAKE THE IMPORTER 
+    MORE USER FRIENDLY,
+
+
+
+    YOU WOULD NEED A 'HELPER PAGE' 
+
+    (WHERE USER SELECTS A FILE, CLICKS IMPORT,
+    
+    THEN 
+    
+    TAKE THE USER TO A DIFFERENT PAGE,
+
+    WHERE YOU SHOW THE FIRST ROW OF THE FILE, AS 
+
+    INDIVIDUAL DROPDOWN FIELDS, AND THEN 
+    LET THE USER MAP 
+
+
+    EACH ONE OF THEM, TO THE APPROPRIATE IMPORTABLE FIELDS...
+    
+    )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O OUTRO EXERCISE ERA ''ADD THE ABILITY TO DELETE THE RECEIPTS''..
+
+
+
+
+
+
+
+
+
+
+-> ESSE EXERCISE EU NÃO FIZ...
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR VAI MOSTRAR A VERSÃO DELE...
+
+
+
+
+
+--> ELE CLICA NO ICON DE DELETE DO RECEIPT...
+
+
+
+
+
+
+
+
+-> O RECEIPT SOME DO RECORD DE 'TRANSACTION'...
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR VAI ATÉ O CONTROLLER DE 'RECEIPT',
+
+
+NA PARTE DE 'DELETE'...
+
+
+
+
+
+
+
+
+
+
+-> O CÓDIGO FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+    public function delete(Request $request, Response $response, array $args): Response
+    {
+
+        $transactionId = (int) $args['transactionId'];
+        $receiptId     = (int) $args['receiptId'];
+
+        if (!$transactionId || ! ($transaction = $this->transactionService->getById($transactionId))) {
+            return $response->withStatus(404);
+        }
+
+        if (!$receiptId || ! ($receipt = $this->receiptService->getById($receiptId))) {
+            return $response->withStatus(404);
+        }
+
+        if ($receipt->getTransaction()->getId() !== $transactionId) {
+            return $response->withStatus(401);
+        }
+
+        $this->filesystem->delete('receipts/' . $receipt->getStorageFilename());
+
+        $this->receiptService->delete($receipt);
+
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ou seja, nós vamos:
+
+
+
+
+
+
+
+
+1) checar se a transaction realmente existe,
+    e se o receipt existe...
+
+
+
+
+
+
+2) checar se a transaction realmente pertence àquele receipt..
+
+
+
+
+
+3) depois disso, DELETAMOS ESSE RECEIPT,
+    DE NOSSO FILESYSTEM, com 'filesystem->delete' 
+
+
+
+
+
+4) DEPOIS DISSO, DELETAMOS ESSE RECEIPT 
+    DA DATABASE,
+
+
+    com '$this->receiptService->delete($receipt)'
+
+
+
+
+
+
+
+
+
+
+
+TIPO ALGO ASSIM:
+
+
+
+
+
+
+
+
+    public function delete(Receipt $receipt): void
+    {
+        $this->entityManager->remove($receipt);
+        $this->entityManager->flush();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR FINALMENTE FALA 
+
+
+
+DO METHOD DE 'findByName()',
+
+
+LÁ 
+
+
+
+NO LOOP DE 'import' --> isso é super ruim...
+
+
+
+
+
+e também é ruim pq 
+
+
+ESTAMOS 
+
+
+''CALLING THE __ FLUSH__ METHOD __ FOR __ EVERY SINGLE 
+TRANSACTION RECORD THAT WE CREATE''..
+
+
+(e isso não é nada eficiente)... 
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO ESTÁ ACONTECENDO POR CONTA DA LÓGICA DE 'update()',
+
+
+que é chamada dentro de 'create()'...
+
+
+
+
+E, DENTRO DE 'update()',
+
+temos o call de 'flush()'... e é exatamente por isso que 
+
+'flush'
+
+ESTÁ SENDO CHAMADO 'FOR EVERY SINGLE ROW, IN THE FILE'....
+
+
+
+
+
+
+
+
+
+
+
+--> É BEM MELHOR FAZER ESSA OPERAÇÃO 
+
+''IN BATCHES'',
+
+
+
+PARA QUE FAÇAMOS O __PERSIST___  DE ''A BUNCH OF TRANSACTIONS FIRST'',
+
+
+E AÍ 
+
+APENAS DEPOIS CHAMAMOS 'FLUSH' (depois de 1 certo número de transactions,
+                                a depender de nossa implementation)...
+
+
+
+
+
+
+
+
+
+
+
+
+--> FAREMOS OPTIMIZING E REFACTORING NOS PRÓXIMOS VIDEOS,
+
+PARA CONSERTAR ESSE PROBLEMA...
