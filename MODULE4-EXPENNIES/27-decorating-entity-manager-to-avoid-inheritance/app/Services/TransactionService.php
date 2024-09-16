@@ -6,10 +6,15 @@ use App\DataObjects\DataTableQueryParams;
 use App\DataObjects\TransactionData;
 use App\Entity\Transaction;
 use App\Entity\User;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 
 class TransactionService extends EntityManagerService
 {
+
+    public function __construct(private readonly EntityManagerInterface $entityManager) {}
+    
+    
     public function create(TransactionData $transactionData, User $user): Transaction
     {
         $transaction = new Transaction();

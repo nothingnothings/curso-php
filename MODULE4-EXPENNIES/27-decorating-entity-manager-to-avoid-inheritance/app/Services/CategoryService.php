@@ -6,9 +6,12 @@ use App\DataObjects\DataTableQueryParams;
 use App\Entity\Category;
 use App\Entity\User;
 use Doctrine\ORM\Tools\Pagination\Paginator;
+use Doctrine\ORM\EntityManagerInterface;
 
 class CategoryService extends EntityManagerService
 {
+    public function __construct(private readonly EntityManagerInterface $entityManager) {}
+
     public function create(string $name, User $user): Category
     {
         $category = new Category();

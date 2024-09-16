@@ -23,7 +23,6 @@ class EntityManagerService
         }
 
         $unitOfWork = $this->entityManager->getUnitOfWork();
-
         $entities = $unitOfWork->getIdentityMap()[$entityName] ?? [];
 
         foreach ($entities as $entity) {

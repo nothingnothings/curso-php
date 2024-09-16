@@ -17,6 +17,7 @@ use App\Session;
 use Clockwork\DataSource\DoctrineDataSource;
 use Clockwork\Storage\FileStorage;
 use Clockwork\Clockwork;
+use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMSetup;
@@ -58,13 +59,17 @@ return [
     Config::class => create(Config::class)->constructor(
         require CONFIG_PATH . '/app.php'
     ),
-    EntityManagerInterface::class => fn(Config $config) => EntityManager::create(
-        $config->get('doctrine.connection'),
-        ORMSetup::createAttributeMetadataConfiguration(
+    EntityManagerInterface::class => function (Config $config) {
+        $ormConfig = ORMSetup::createAttributeMetadataConfiguration(
             $config->get('doctrine.entity_dir'),
             $config->get('doctrine.dev_mode')
-        )
-    ),
+        );
+
+        return new EntityManager(
+            DriverManager::getConnection($config->get('doctrine.connection'), $ormConfig),
+            $ormConfig
+        );
+    },
     Twig::class => function (Config $config, ContainerInterface $container) {
         $twig = Twig::create(VIEW_PATH, [
             'cache' => STORAGE_PATH . '/cache/templates',
