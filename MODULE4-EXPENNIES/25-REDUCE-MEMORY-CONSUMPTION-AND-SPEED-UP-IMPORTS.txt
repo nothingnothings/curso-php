@@ -1,0 +1,3197 @@
+ 
+
+
+
+
+
+ NA ÚLTIMA AULA, FIZEMOS 1 POUCO DE OPTIMIZATION...
+
+
+
+
+
+
+
+ ADICIONAMOS EAGER LOADING, TUDO PARA NOS LIVRARMOS DE QUERIES DESNECESSÁRIAS...
+
+
+
+
+
+
+
+
+
+ -> PARA OBTER O EAGER LOADING, ESCREVEMOS ESTE TRECHO:
+
+
+
+
+
+
+
+ 
+    public function getAllKeyedByName(): array
+    {
+        $categories  = $this->entityManager->getRepository(Category::class)->findAll();
+        $categoryMap = [];
+
+        foreach ($categories as $category) {
+            $categoryMap[strtolower($category->getName())] = $category;
+        }
+
+        return $categoryMap;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Esse method faz com que todas as categories sejam fetcheadas 
+previamente, o que 
+
+
+previne o call de coisas como 'getCategoryByName', calls individuais,
+
+por exemplo...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS HOJE VAMOS CONTINUAR COM A OPTIMIZATION...
+
+
+
+
+
+
+
+
+-> DEVEMOS RESOLVER O PROBLEMA DO 
+
+
+
+CALL DE '->flush()'
+
+
+PARA CADA OPERAÇÃO DE INSERT DE TRANSACTION....
+
+
+
+
+
+
+
+
+
+
+-> O FLUSH SERVE PARA 'COMMIT' A TRANSACTION,
+    mas, no nosso caso,
+
+    queremos que ele seja chamado APENAS 1 ÚNICA VEZ,
+    AO FINAL 
+
+
+    DA INSERT OPERATION...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> POR EXEMPLO, SE TENTAMOS IMPORTAR MIL TRANSACTIONS,
+
+    PODEMOS VISUALIZAR ESSE IMPORT COM O CLOCKWORK...
+
+
+
+
+
+
+--> O IMPORT LEVOU 43 SEGUNDOS..
+
+
+
+
+
+
+
+
+--> SE INSPECIONAMOS, COM O CLOCKWORK,
+
+ESSAS OPERATIONS DE INSERT,
+
+PERCEBEMOS QUE 
+
+ELAS OCORRERAM ASSIM:
+
+
+
+
+
+1) START TRANSACTION 
+
+2) INSERT INTO 
+
+3) COMMIT 
+
+
+
+
+
+
+
+
+
+
+ISSO UM MONTE DE VEZES...
+
+
+
+
+
+
+
+-> NESSE CASO, O BOTTLENECK É O CALL DE '->flush()',
+
+
+
+que está deixando tudo mais lento...
+
+
+
+
+
+
+
+
+
+--> PARA CONSERTAR ISSO, A MANEIRA IDEAL É 
+
+''GROUP THESE INSERT STATEMENTS AND THEN 
+CALL FLUSH ONLY A FEW TIMES...''
+
+
+
+
+
+
+
+
+
+
+
+-> POR EXEMPLO:
+
+
+
+'''PERSIST A BUNCH (250) 
+  OF ITEMS AT A TIME, THEN FLUSH THEM... THEN, REPEAT 
+  THE PROCESS, WITH ANOTHER 250 TRANSACTIONS, ETC...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... MAS ANTES DE IMPLEMENTARMOS A SOLUTION,
+    O PROFESSOR APONTA QUE 
+
+
+    EXISTIA 1 BUG NA ÚLTIMA AULA....
+
+
+
+
+
+
+
+
+--> ELE ESQUECEU UMA PARTE DE 'strtolower()',
+
+
+
+
+    QUE PRECISAVA SER ADICIONADA....
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+        while (($row = fgetcsv($resource)) !== false) {
+            [$date, $description, $category, $amount] = $row;
+
+            $date     = new \DateTime($date);
+            $category = $categories[strtolower($category)] ?? null;
+            $amount   = str_replace(['$', ','], '', $amount);
+
+            $transactionData = new TransactionData($description, (float) $amount, $date, $category);
+
+            $this->transactionService->create($transactionData, $user);
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO FORA DO CAMINHO, DEVEMOS TENTAR CONSERTAR NOSSO PROBLEMA DE 'FLUSH'...
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+ ''AS WE WILL BE DOING OUR INSERTS IN __ BATCHES,
+
+    WE WILL __ NEED __ SOME SORT OF __ COUNTER,
+    TO __ COUNT __ HOW MANY TRANSACTIONS HAVE BEEN INSERTED SO FAR...''
+
+
+
+
+
+
+
+-> É POR  ISSO QUE ADICIONAMOS UMA VARIABLE DE '$count'
+antes do loop,
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+    public function import(Request $request, Response $response): Response
+    {
+         /** @var UploadedFileInterface $file */
+         $file = $this->requestValidatorFactory->make(UploadTransactionRequestValidator::class)->validate(
+            $request->getUploadedFiles()
+        )['importFile'];
+
+        $user = $request->getAttribute('user');
+        $resource = fopen($file->getStream()->getMetadata('uri'), 'r');
+        $categories = $this->categoryService->getAllKeyedByName(); // * This is MUCH BETTER than trying to find each category by name, individually.
+
+        // Discard the header row
+        fgetcsv($resource);
+
+        $count = 1;
+        while (($row = fgetcsv($resource)) !== false) {
+            [$date, $description, $category, $amount] = $row;
+
+            $date     = new \DateTime($date);
+            $category = $categories[strtolower($category)] ?? null;
+            $amount   = str_replace(['$', ','], '', $amount);
+
+            $transactionData = new TransactionData($description, (float) $amount, $date, $category);
+
+            $this->transactionService->create($transactionData, $user);
+        }
+
+        return $response;
+
+    }
+
+
+
+
+
+
+
+
+
+AÍ, DENTRO DO CALL DE WHILE, VAMOS INCREMENTANDO ESSE COUNT,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+    public function import(Request $request, Response $response): Response
+    {
+         /** @var UploadedFileInterface $file */
+         $file = $this->requestValidatorFactory->make(UploadTransactionRequestValidator::class)->validate(
+            $request->getUploadedFiles()
+        )['importFile'];
+
+        $user = $request->getAttribute('user');
+        $resource = fopen($file->getStream()->getMetadata('uri'), 'r');
+        $categories = $this->categoryService->getAllKeyedByName(); // * This is MUCH BETTER than trying to find each category by name, individually.
+
+        // Discard the header row
+        fgetcsv($resource);
+
+        $count = 1;
+        while (($row = fgetcsv($resource)) !== false) {
+            [$date, $description, $category, $amount] = $row;
+
+            $date     = new \DateTime($date);
+            $category = $categories[strtolower($category)] ?? null;
+            // $category = $this->categoryService->findByName($category); // ! This is BAD, n+1 problem. Unecessary queries, one for each row, instead of a single query returning all categories, beforehand.
+            $amount   = str_replace(['$', ','], '', $amount);
+
+            $transactionData = new TransactionData($description, (float) $amount, $date, $category);
+
+            $this->transactionService->create($transactionData, $user);
+
+            $count ++;
+        }
+
+        return $response;
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+-> TAMBÉM PRECISAMOS DE UM 'BATCHSIZE'...
+
+OU SEJA,
+
+'HOW MANY OPERATIONS ARE WE GONNA PROCESS IN A SINGLE GO'...
+
+
+
+
+
+
+
+-> colocamos um batchSize de 250....
+
+
+
+
+
+
+
+
+
+Ex:
+
+
+
+
+
+
+
+
+
+
+    public function import(Request $request, Response $response): Response
+    {
+         /** @var UploadedFileInterface $file */
+         $file = $this->requestValidatorFactory->make(UploadTransactionRequestValidator::class)->validate(
+            $request->getUploadedFiles()
+        )['importFile'];
+
+        $user = $request->getAttribute('user');
+        $resource = fopen($file->getStream()->getMetadata('uri'), 'r');
+        $categories = $this->categoryService->getAllKeyedByName(); // * This is MUCH BETTER than trying to find each category by name, individually.
+
+        // Discard the header row
+        fgetcsv($resource);
+
+        $count = 1;
+        $batchSize = 250;
+        while (($row = fgetcsv($resource)) !== false) {
+            [$date, $description, $category, $amount] = $row;
+
+            $date     = new \DateTime($date);
+            $category = $categories[strtolower($category)] ?? null;
+            // $category = $this->categoryService->findByName($category); // ! This is BAD, n+1 problem. Unecessary queries, one for each row, instead of a single query returning all categories, beforehand.
+            $amount   = str_replace(['$', ','], '', $amount);
+
+            $transactionData = new TransactionData($description, (float) $amount, $date, $category);
+
+            $this->transactionService->create($transactionData, $user);
+
+            $count ++;
+        }
+
+        return $response;
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESSE NÚMERO DEVE SER JUST RIGHT... NÃO PODE SER ALTO DEMAIS,
+E NÃO PODE SER BAIXO DEMAIS...  
+
+
+
+
+QUAO MAIOR FOR O NÚMERO, ''THE MORE WORK THE FLUSH METHOD HAS TO DO'',
+
+
+
+E PODE ACTUALLY CAUSAR MEMORY ISSUES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO... MAS, ANTES DO INCREMENT,
+
+    DEVEMOS CHECAR SE O NÚMERO DE TRANSACTIONS
+    IMPORTADAS ATÉ O MOMENTO É UM __ MÚLTIPLO
+
+
+    DO VALUE DE 'BATCHSIZE'...
+
+
+
+
+
+
+
+-> PARA ISSO, DEVEMOS USAR 'MODULO'...
+
+
+
+
+
+
+
+
+
+'MULTIPLO' -> 'A NUMBER THAT CAN BE EVENLY DIVIDED 
+                BY THE BATCHSIZE'...
+
+
+
+
+
+
+
+
+-> POR ISSO VAMOS USAR O MODULUS OPERATOR...
+
+
+
+
+
+
+
+-> PODEMOS ESCREVER TIPO ASSIM:
+
+
+
+
+
+if ($count % $batchSize === 0) {
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+FICA TIPO ASSIM:
+
+
+
+
+
+
+
+
+        $count = 1;
+        $batchSize = 250;
+        while (($row = fgetcsv($resource)) !== false) {
+            [$date, $description, $category, $amount] = $row;
+
+            $date     = new \DateTime($date);
+            $category = $categories[strtolower($category)] ?? null;
+            // $category = $this->categoryService->findByName($category); // ! This is BAD, n+1 problem. Unecessary queries, one for each row, instead of a single query returning all categories, beforehand.
+            $amount   = str_replace(['$', ','], '', $amount);
+
+            $transactionData = new TransactionData($description, (float) $amount, $date, $category);
+
+            $this->transactionService->create($transactionData, $user);
+
+            // If the current count/row is a multiple of the batchsize (250, 500, 750, etc), we flush a single time.
+            if ($count % $batchSize === 0) {
+                // flush
+            }
+
+            $count++; 
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+CERTO... MAS ANTES DE PROSSEGUIRMOS COM ESSA LÓGICA,
+
+
+DEVEMOS REMOVER O CALL DE 'flush()'
+
+
+do interior do method de 'update()'....
+
+
+
+
+
+
+
+
+
+ATUALMENTE, ESTÁ ASSIM:
+
+
+
+
+
+
+
+
+
+
+    public function update(Transaction $transaction, TransactionData $transactionData): Transaction
+    {
+        $transaction->setDescription($transactionData->description);
+        $transaction->setAmount($transactionData->amount);
+        $transaction->setDate($transactionData->date);
+        $transaction->setCategory($transactionData->category);
+
+        $this->entityManager->persist($transaction);
+        $this->entityManager->flush();
+
+        return $transaction;
+    }
+
+
+
+
+
+
+
+
+
+-> VAMOS TIRAR ESSA CALL DE '->flush()'...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+    public function update(Transaction $transaction, TransactionData $transactionData): Transaction
+    {
+        $transaction->setDescription($transactionData->description);
+        $transaction->setAmount($transactionData->amount);
+        $transaction->setDate($transactionData->date);
+        $transaction->setCategory($transactionData->category);
+
+        $this->entityManager->persist($transaction);
+
+        return $transaction;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS É CLARO QUE ISSO SIGNIFICA QUE VAMOS TER DE FAZER AJUSTES 
+EM OUTRAS PARTES DE NOSSO CÓDIGO, QUE UTILIZAM ESSES MESMOS METHODS (de 'update')..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS VAMOS CONSERTAR O IMPORTER ANTES, E CONSERTAR O RESTO DEPOIS...
+
+
+
+
+
+
+
+
+
+
+-> O METHOD DE 'flush' DEVE SER CHAMADO DENTRO DE ESSE IF:
+
+
+
+         // If the current count/row is a multiple of the batchsize (250, 500, 750, etc), we flush a single time.
+            if ($count % $batchSize === 0) {
+                // flush
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR ACHA QUE NOSSO CONTROLLER ESTÁ FICANDO MT BLOATED...
+
+
+
+
+
+
+-> ELE ACHA QUE TODA ESTA LÓGICA DEVE SER COLOCADA DENTRO 
+DE 1 METHOD DO TRANSACTIONIMPORTERSERVICE, OU ALGO ASSIM:
+
+
+
+
+
+
+
+
+
+        // Discard the header row
+        fgetcsv($resource);
+
+        $count = 1;
+        $batchSize = 250;
+        while (($row = fgetcsv($resource)) !== false) {
+            [$date, $description, $category, $amount] = $row;
+
+            $date     = new \DateTime($date);
+            $category = $categories[strtolower($category)] ?? null;
+            // $category = $this->categoryService->findByName($category); // ! This is BAD, n+1 problem. Unecessary queries, one for each row, instead of a single query returning all categories, beforehand.
+            $amount   = str_replace(['$', ','], '', $amount);
+
+            $transactionData = new TransactionData($description, (float) $amount, $date, $category);
+
+            $this->transactionService->create($transactionData, $user);
+
+            // If the current count/row is a multiple of the batchsize (250, 500, 750, etc), we flush a single time.
+            if ($count % $batchSize === 0) {
+                // flush
+            }
+
+            $count++; 
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE ELE  CRIA UM 
+
+
+'TransactionImportService'...
+
+
+
+
+
+
+
+
+-> AÍ CRIAMOS ESSA CLASS, TIPO ASSIM:
+
+ 
+
+
+
+ <?php declare(strict_types=1);
+
+namespace App\Services;
+
+
+
+class TransactionImportService
+{
+
+    public function __construct(
+        private readonly TransactionService $transactionService,
+        private readonly CategoryService $categoryService
+    ) {
+
+    }
+
+    public function importFromFile(string $filePath): void
+    {
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS ESSE METHOD VAI IMPORTAR OU:
+
+
+1) FILEPATH 
+
+
+
+2) RESOURCE 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> POR ENQUANTO, VAMOS ACEITAR 1 FILEPATH...
+
+
+
+
+
+PRECISAMOS TAMBÉM DA USER ENTITY, PQ PRECISAMOS ASSOCIAR AS TRANSACTIONS 
+AO USER:
+
+
+
+
+3) USER...
+
+
+
+
+
+
+
+
+
+
+
+fica tipo assim:
+
+
+
+
+
+
+
+
+
+
+    public function importFromFile(string $file, User $user): void
+    {
+
+
+        $resource = fopen($file, 'r');
+        $categories = $this->categoryService->getAllKeyedByName(); // * This is MUCH BETTER than trying to find each category by name, individually.
+
+        // Discard the header row
+        fgetcsv($resource);
+
+        $count = 1;
+        $batchSize = 250;
+        while (($row = fgetcsv($resource)) !== false) {
+            [$date, $description, $category, $amount] = $row;
+
+            $date     = new \DateTime($date);
+            $category = $categories[strtolower($category)] ?? null;
+            // $category = $this->categoryService->findByName($category); // ! This is BAD, n+1 problem. Unecessary queries, one for each row, instead of a single query returning all categories, beforehand.
+            $amount   = str_replace(['$', ','], '', $amount);
+
+            $transactionData = new TransactionData($description, (float) $amount, $date, $category);
+
+            $this->transactionService->create($transactionData, $user);
+
+            // If the current count/row is a multiple of the batchsize (250, 500, 750, etc), we flush a single time.
+            if ($count % $batchSize === 0) {
+                // flush
+            }
+
+            $count++; 
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+FINALMENTE, PODEMOS CHAMAR O METHOD DE 'flush',
+
+do entityManager,
+ 
+
+ diretamente ali...
+
+
+
+
+
+
+ 
+
+ -> tipo assim:
+
+
+
+
+
+
+
+
+
+
+ 
+    public function importFromFile(string $file, User $user): void
+    {
+
+
+        $resource = fopen($file, 'r');
+        $categories = $this->categoryService->getAllKeyedByName(); // * This is MUCH BETTER than trying to find each category by name, individually.
+
+        // Discard the header row
+        fgetcsv($resource);
+
+        $count = 1;
+        $batchSize = 250;
+        while (($row = fgetcsv($resource)) !== false) {
+            [$date, $description, $category, $amount] = $row;
+
+            $date     = new \DateTime($date);
+            $category = $categories[strtolower($category)] ?? null;
+            // $category = $this->categoryService->findByName($category); // ! This is BAD, n+1 problem. Unecessary queries, one for each row, instead of a single query returning all categories, beforehand.
+            $amount   = str_replace(['$', ','], '', $amount);
+
+            $transactionData = new TransactionData($description, (float) $amount, $date, $category);
+
+            $this->transactionService->create($transactionData, $user);
+
+            // If the current count/row is a multiple of the batchsize (250, 500, 750, etc), we flush a single time.
+            if ($count % $batchSize === 0) {
+                $this->entityManager->flush();
+            }
+
+            $count++; 
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    -> CERTO...
+
+
+
+
+
+
+
+
+
+MAS TAMBÉM PRECISAMOS ADICIONAR OUTRA CALL DE 'flush',
+
+PARA TODOS OS RECORDS QUE SOBRAREM, COMO ÚLTIMO 'BATCH' DO LOOP...
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+class TransactionImportService
+{
+
+    public function __construct(
+        private readonly TransactionService $transactionService,
+        private readonly CategoryService $categoryService,
+        private readonly EntityManager $entityManager
+    ) {
+
+    }
+
+    public function importFromFile(string $file, User $user): void
+    {
+
+
+        $resource = fopen($file, 'r');
+        $categories = $this->categoryService->getAllKeyedByName(); // * This is MUCH BETTER than trying to find each category by name, individually.
+
+        // Discard the header row
+        fgetcsv($resource);
+
+        $count = 1;
+        $batchSize = 250;
+        while (($row = fgetcsv($resource)) !== false) {
+            [$date, $description, $category, $amount] = $row;
+
+            $date     = new \DateTime($date);
+            $category = $categories[strtolower($category)] ?? null;
+            // $category = $this->categoryService->findByName($category); // ! This is BAD, n+1 problem. Unecessary queries, one for each row, instead of a single query returning all categories, beforehand.
+            $amount   = str_replace(['$', ','], '', $amount);
+
+            $transactionData = new TransactionData($description, (float) $amount, $date, $category);
+
+            $this->transactionService->create($transactionData, $user);
+
+            // If the current count/row is a multiple of the batchsize (250, 500, 750, etc), we flush a single time.
+            if ($count % $batchSize === 0) {
+                $this->entityManager->flush();
+            }
+
+            $count++; 
+        }
+
+        $this->entityManager->flush();
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS É CLARO QUE NÃO QUEREMOS CHAMAR ESSE METHOD 'SOLTO', NO FINAL...
+
+
+
+
+-> QUEREMOS CHAMÁ-LO __ APENAS__ SE EXISTIREM 'REMAINDERS'...
+
+
+
+
+
+
+
+
+
+-> PQ SENÃO, SERIA REDUNDANTE, 
+    TERÍAMOS 1 CALL INÚTIL...
+
+
+
+
+
+
+
+
+
+--> HÁ MÚLTIPLAS MANEIRAS DE RESOLVER ESSE PROBLEMA DOS REMAINDERS...
+    -> O APPROACH DO PROFESSOR 
+        FAZ O _ _RESET__ DO COUNTER, TODA VEZ QUE 
+
+        ELE CHEGA A 250 e ocorre 1 flush...
+
+
+
+    
+
+
+    --> TIPO ASSIM:
+
+
+
+
+
+
+
+
+    public function importFromFile(string $file, User $user): void
+    {
+
+
+        $resource = fopen($file, 'r');
+        $categories = $this->categoryService->getAllKeyedByName(); // * This is MUCH BETTER than trying to find each category by name, individually.
+
+        // Discard the header row
+        fgetcsv($resource);
+
+        $count = 1;
+        $batchSize = 250;
+        while (($row = fgetcsv($resource)) !== false) {
+            [$date, $description, $category, $amount] = $row;
+
+            $date     = new \DateTime($date);
+            $category = $categories[strtolower($category)] ?? null;
+            // $category = $this->categoryService->findByName($category); // ! This is BAD, n+1 problem. Unecessary queries, one for each row, instead of a single query returning all categories, beforehand.
+            $amount   = str_replace(['$', ','], '', $amount);
+
+            $transactionData = new TransactionData($description, (float) $amount, $date, $category);
+
+            $this->transactionService->create($transactionData, $user);
+
+            // If the current count/row is a multiple of the batchsize (250, 500, 750, etc), we flush a single time.
+            if ($count % $batchSize === 0) {
+                $this->entityManager->flush();
+
+                $count = 1;
+            } else {
+                $count++; 
+            }   
+
+ 
+        }
+
+        $this->entityManager->flush();
+
+    }
+
+
+
+
+
+
+
+
+
+
+NO FINAL, TEMOS 1 CHECK PELO REMAINDER,
+
+PARA VER SE REALMENTE TEMOS LEFTOVERS...
+
+
+
+SE TIVERMOS, RODAMOS O FLUSH FINAL...
+
+
+
+
+
+FICA TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+    public function importFromFile(string $file, User $user): void
+    {
+
+
+        $resource = fopen($file, 'r');
+        $categories = $this->categoryService->getAllKeyedByName(); // * This is MUCH BETTER than trying to find each category by name, individually.
+
+        // Discard the header row
+        fgetcsv($resource);
+
+        $count = 1;
+        $batchSize = 250;
+        while (($row = fgetcsv($resource)) !== false) {
+            [$date, $description, $category, $amount] = $row;
+
+            $date     = new \DateTime($date);
+            $category = $categories[strtolower($category)] ?? null;
+            // $category = $this->categoryService->findByName($category); // ! This is BAD, n+1 problem. Unecessary queries, one for each row, instead of a single query returning all categories, beforehand.
+            $amount   = str_replace(['$', ','], '', $amount);
+
+            $transactionData = new TransactionData($description, (float) $amount, $date, $category);
+
+            $this->transactionService->create($transactionData, $user);
+
+            // If the current count/row is a multiple of the batchsize (250, 500, 750, etc), we flush a single time.
+            if ($count % $batchSize === 0) {
+                // Call flush, then reset the counter, every time we reach 250, 500, 750, etc.
+                $this->entityManager->flush();
+
+                $count = 1;
+            } else {
+                $count++; 
+            }
+
+        }
+        
+        if ($count > 1) {
+            $this->entityManager->flush();
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+IMPORTAMOS AS MESMAS TRANSACTIONS DE NOVO...
+
+
+
+
+
+
+-> DA ÚLTIMA VEZ, O IMPORT DEMOROU 43 SECONDS...
+
+
+
+
+
+
+
+-> AGORA ISSO TOMA MENOS DE 1 SEGUNDO...
+
+
+
+
+
+
+
+
+-> OU SEJA, FOI UMA MELHORA DE PERFORMANCE ____ aBSURDA__...
+
+
+
+ISSO PQ NÃO ESTAMOS MAIS CHAMANDO 'flush()'
+para cada insert....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS AINDA TEMOS 1 ISSUE, AQUI...
+
+
+
+
+
+
+
+
+
+-> ESSA ISSUE TEM RELAÇÃO COM 1 MEMORY LEAK...
+
+    UM MEMORY LEAK QUE TAMBÉM É __ DIFÍCIL DE __TRACK DOWN...
+
+
+
+
+
+
+
+
+
+
+
+
+-->  ESSE PROBLEMA DE MEMORY LEAK TALVEZ NAO SEJA 1 PROBLEMA
+    PARA APPS PEQUENOS,
+     E VC TALVEZ NEM PERCEBA ISSO,
+
+
+
+     MAS O PROFESSOR VAI NOS MOSTRAR COMO PODEMOS TRACK ISSO DOWN,
+
+
+     SE ENCONTRARMOS ESSA ISSUE EM MID E LARGE APPS...
+
+
+
+
+    
+
+
+
+
+
+
+
+-> PARA ISSO, O PROFESSOR FAZ INJECT DO 'CLOCKWORK',
+    da clockwork instance,
+    diretamente no constructor de 'TransactionImportService'..
+
+
+
+
+
+
+
+
+--> ISSO FEITO, VAMOS TRACKAR A MEMORY USAGE _ ANTES__ DO LOOP 
+
+    E __ DEPOIS __ DO LOOP...
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, USAREMOS UM CÓDIGO COMO 
+
+
+"$this->clockwork->log(LogLevel::DEBUG, 'Memory Usage Before: ' . memory_get_usage());"
+
+
+
+
+
+E 
+
+
+
+OUTRO, DEPOIS DO LOOP,
+
+
+TIPO ASSIM:
+
+
+
+
+
+"$this->clockwork->log(LogLevel::DEBUG, 'Memory Usage After: ' . memory_get_usage());"
+
+
+
+
+
+
+
+
+
+
+
+--> também vamos loggar 
+
+''THE UNIT OF WORK'S SIZE, BEFORE AND AFTER THE LOOP''...
+
+
+
+
+
+
+
+CERTO...
+
+
+
+FICA TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+    public function importFromFile(string $file, User $user): void
+    {
+
+
+        $resource = fopen($file, 'r');
+        $categories = $this->categoryService->getAllKeyedByName(); // * This is MUCH BETTER than trying to find each category by name, individually.
+
+        // Discard the header row
+        fgetcsv($resource);
+
+        // Log memory and unit of work usage and detect memory leaks:
+        $this->clockwork->log(LogLevel::DEBUG, 'Memory Usage Before: ' . memory_get_usage(true));
+        $this->clockwork->log(LogLevel::DEBUG, 'Unit of Work Before: ' . $this->entityManager->getUnitOfWork()->size());
+
+        $count = 1;
+        $batchSize = 250;
+        while (($row = fgetcsv($resource)) !== false) {
+            [$date, $description, $category, $amount] = $row;
+
+            $date     = new \DateTime($date);
+            $category = $categories[strtolower($category)] ?? null;
+            // $category = $this->categoryService->findByName($category); // ! This is BAD, n+1 problem. Unecessary queries, one for each row, instead of a single query returning all categories, beforehand.
+            $amount   = str_replace(['$', ','], '', $amount);
+
+            $transactionData = new TransactionData($description, (float) $amount, $date, $category);
+
+            $this->transactionService->create($transactionData, $user);
+
+            // If the current count/row is a multiple of the batchsize (250, 500, 750, etc), we flush a single time.
+            if ($count % $batchSize === 0) {
+                // Call flush, then reset the counter, every time we reach 250, 500, 750, etc.
+                $this->entityManager->flush();
+
+                $count = 1;
+            } else {
+                $count++; 
+            }
+
+        }
+
+        if ($count > 1) {
+            $this->entityManager->flush();
+        }
+
+        // Log memory usage and detect memory leaks:
+        $this->clockwork->log(LogLevel::DEBUG, 'Memory Usage After: ' . memory_get_usage(true));
+        $this->clockwork->log(LogLevel::DEBUG, 'Unit of Work After: ' . $this->entityManager->getUnitOfWork()->size());
+        
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> UNIT OF WORK --> 
+
+
+
+
+''IT IS BASICALLY A CENTRAL OBJECT THAT TRACKS 
+ENTITY CHANGES, AND THAT MANAGES THE PERSISTENCE''...
+
+
+''THE BIGGER THE UNIT OF WORK, THE MORE MEMORY 
+THAT IS USED''...
+
+
+
+
+
+
+
+
+
+
+
+FAZEMOS O IMPORT MAIS UMA VEZ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CHECAMOS A MEMORY USAGE, EM 'Log':
+
+
+
+
+
+
+
+
+fica tipo assim:
+
+
+
+
+
+
+
+
+Memory Usage Before: 10835552
+Unit of Work Before: 62 
+
+
+Memory Usage After: 150355528
+Unit of Work After: 1062 
+
+
+
+
+
+
+
+->  OU SEJA, O NÚMERO AUMENTOU 1 MONTE...
+ 
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR APONTA QUE PARTE 
+
+DE ESSE AUMENTO DE MEMORY É DEVIDO AO LOGGING
+DO CLOCKWORK...
+
+
+
+
+
+--> DEVEMOS DESABILITAR O QUERY LOGGING POR ENQUANTO,
+    PARA TER A CLEAR PICTURE DO QUE ESTÁ ACONTECENDO...
+
+
+--> PARA ISSO, COMENTAMOS PARA FORA O DATA SOURCE 
+DO CLOCKORK,
+
+LÁ NOS CONTAINER_BINDINGS,
+tipo assim:
+
+
+
+
+
+
+
+
+
+    Clockwork::class => function (EntityManager $entityManager) {
+        $clockwork = new Clockwork();
+
+        $clockwork->storage(new FileStorage(STORAGE_PATH . '/clockwork'));
+
+        // We add the Doctrine data source here, so that we can profile every query fired by the doctrine ORM.
+        // $clockwork->addDataSource(new DoctrineDataSource($entityManager));
+
+        return $clockwork;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS MESMO COM ESSE COMMENT OUT,
+
+PERCEBEMOS QUE A MEMORY USAGE AINDA ESTÁ BEM MAIOR DO QUE ANTES...
+
+
+
+--> MESMA COISA COM O NÚMERO DE 'UNIT OF WORK'...
+
+
+
+
+
+
+
+
+--> antes foi 62,
+
+e depois 
+
+
+foi 1062..
+
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE O NÚMERO DE UNIT OF WORKS AUMENTOU EM 1K...
+
+
+ISSO ACONTECEU, NO CASO,
+
+
+POR CONTA DO IMPORT DE 1 FILE COM 1K DE TRANSACTIONS NO INTERIOR..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> COMO VC PODE IMAGINAR,
+    O TAMANHO DO CONSUMO DE MEMORIA PODE AUMENTAR 1 MONTE 
+    SE VC IMPORTAR FILES MAIORES (imagine 1 file com 100k de transactions, etc)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA, É POSSÍVEL PERCEBER QUE TEMOS 1 PROBLEMA DE MEMORY,
+MEMORY CONSUMPTION... PQ NÃO ESTAMOS 
+                        'CLEARING THE MEMORY',
+
+                        E O 
+                        SIZE DOS UNIT OF WORK
+
+                        NÃO ESTÁ ABAIXANDO...
+
+
+
+--> QUER DIZER QUE, APESAR DE ISSO SER OK PARA 1K 
+RECORDS, NÃO SERÁ OK PARA FILES MAIORES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR EXPLICA O QUE ESTÁ ACONTECENDO, AQUI:
+
+
+
+
+
+
+1) QUANDO FAZEMOS PERSIST DE 1 ENTITY,
+    ESSA ENTITY É 
+
+    'ADDED TO THE UNIT OF WORK'...
+
+
+
+
+
+2) THE UNIT OF WORK IS RESPONSIBLE 
+    FOR __ TRACKING CHANGES TO ENTITY AND SYNCHRONIZING 
+    THOSE CHANGES WITH THE DATABASE, WHENEVER WE CALL THE 
+    '->flush()' method...
+
+
+
+
+3) WHEN WE CALL THE '->flush()', 
+    THE ENTITY MANAGER RUNS THE QUERIES, 
+
+    __BUT__ IT STILL KEEPS THE REFERENCES 
+    TO THE MANAGED ENTITIES, IN MEMORY... WHICH 
+    IS WHAT CAUSES THIS SORT OF LEAK...
+
+
+
+
+
+
+4) TO __ FREE UP __ THE MEMORY, WE NEED TO CALL THE 
+    '->clear()' METHOD ON THE ENTITY MANAGER,
+    AFTER CALLING '->flush()'...
+
+
+
+
+
+
+5) THE '->clear()' METHOD 
+    DETACHES ALL THE MANAGED ENTITIES FROM 
+    THE 
+
+    ENTITY MANAGER'S  """PERSISTENCE CONTEXT""",
+
+    AND __CLEARS _ THE ENTITY MANAGER'S INTERNAL STATE...
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE VOLTAMOS AO CÓDIGO DO 
+TRANSACTIONIMPORTERSERVICE,
+
+
+
+E AÍ 
+
+
+
+RODAMOS 
+
+O METHOD DE 
+
+
+"$this->entityManager->clear()'
+
+
+
+LOGO DEPOIS DOS CALL DE 'flush()'...
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+
+
+    public function importFromFile(string $file, User $user): void
+    {
+
+
+        $resource = fopen($file, 'r');
+        $categories = $this->categoryService->getAllKeyedByName(); // * This is MUCH BETTER than trying to find each category by name, individually.
+
+        // Discard the header row
+        fgetcsv($resource);
+
+        // Log memory and unit of work usage and detect memory leaks:
+        $this->clockwork->log(LogLevel::DEBUG, 'Memory Usage Before: ' . memory_get_usage(true));
+        $this->clockwork->log(LogLevel::DEBUG, 'Unit of Work Before: ' . $this->entityManager->getUnitOfWork()->size());
+
+        $count = 1;
+        $batchSize = 250;
+        while (($row = fgetcsv($resource)) !== false) {
+            [$date, $description, $category, $amount] = $row;
+
+            $date     = new \DateTime($date);
+            $category = $categories[strtolower($category)] ?? null;
+            // $category = $this->categoryService->findByName($category); // ! This is BAD, n+1 problem. Unecessary queries, one for each row, instead of a single query returning all categories, beforehand.
+            $amount   = str_replace(['$', ','], '', $amount);
+
+            $transactionData = new TransactionData($description, (float) $amount, $date, $category);
+
+            $this->transactionService->create($transactionData, $user);
+
+            // If the current count/row is a multiple of the batchsize (250, 500, 750, etc), we flush a single time.
+            if ($count % $batchSize === 0) {
+                // Call flush, then reset the counter, every time we reach 250, 500, 750, etc.
+                $this->entityManager->flush();
+                $this->entityManager->clear();
+
+                $count = 1;
+            } else {
+                $count++; 
+            }
+
+        }
+
+        if ($count > 1) {
+            $this->entityManager->flush();
+            $this->entityManager->clear();
+        }
+
+        // Log memory usage and detect memory leaks:
+        $this->clockwork->log(LogLevel::DEBUG, 'Memory Usage After: ' . memory_get_usage(true));
+        $this->clockwork->log(LogLevel::DEBUG, 'Unit of Work After: ' . $this->entityManager->getUnitOfWork()->size());
+        
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS É CLARO QUE 
+
+
+O CALL DE 'clear()'
+
+NEM SEMPRE É NECESSÁRIO,
+
+E PODE 
+
+TRAZER ALGUNS SIDE EFFECTS...
+
+
+
+
+
+
+
+
+
+
+-> TUDO DEPENDE DE:
+
+
+
+
+1) QUANTAS ENTITIES ESTÃO SENDO PERSISTED 
+
+
+
+2) O SIZE DA UNIT OF WORK 
+
+
+
+
+3) THE AVAILABLE MEMORY...
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR SEMPRE ACHA MELHOR EVITAR PREMMATURE 
+OPTIMIZATIONS... E ACHA MELHOR USAR PROFILERS E LOGS,
+PARA SABER O MOMENTO DE TER OPTIMIZATIONS ADICIONAIS...
+
+
+
+
+
+
+
+
+
+NESSE CASO, AQUI, 
+
+FAZ SENTIDO CHAMAR '->clear()'
+
+
+PARA LIMPAR A MEMORIA,
+
+PQ 
+
+ISSO 
+
+PODE AJUDAR COM O IMPORT DE FILES MAIORES...
+
+
+
+
+
+
+
+
+
+
+
+-> o professor volta ao browser,
+
+
+e aí 
+
+
+IMPORTAMOS A FILE MAIS UMA VEZ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ENTRETANTO, COM ISSO,
+AGORA FICAMOS COM 1 ERROR...
+
+
+
+
+
+
+
+
+
+
+O ERRO FOI ESTE:
+
+
+
+
+
+
+
+
+'Message: Multiple non-persisted new entities 
+        were found through the given association graph:'
+
+    
+
+
+*A new entity was found through the relationship 
+    Transaction#user; that was NOT CONFIGURED to 
+    cascade persist operations for entity User.
+
+    To solve this issue: Either explicitly call 
+    EntityManager#persist() on this unknown entity,
+    or configure cascade persist this association 
+    in the mapping for example @ManyToOne()"
+
+
+
+
+
+
+
+
+
+MAS O QUE SIGNIFICA, ISSO TUDO?
+
+
+
+
+
+
+
+
+
+'''WHAT IS HAPPENING IS THAT 
+    THE 'clear()' method DETACHES 
+    all the entities... then 
+    the TRANSACTION.php entity 
+    is PERSISTED, but the USER and 
+    CATEGORY entities have ALSO BEEN 
+    DETACHED by the 'clear()' method, and,
+    therefore, they must be PERSISTED AGAIN,
+    for this to work...'''
+
+
+
+
+
+
+
+---> a SOLUTION sugerida 
+    pela mensagem de erro 
+
+    PODERIA FUNCIONAR, NÓS REALMENTE PODERÍAMOS 
+
+    rodar 'persist()' nessas outras entities,
+    MAS 
+    O PROFESSOR NÃO QUER FAZER ISSO..
+
+
+
+(''I DON'T WANT TO ADD THE CASCADE OPTION TO THE 
+ENTITY, AND I ALSO DON'T WANT TO PERSIST THOSE ENTITIES,
+MANUALLY, AGAIN...''  )
+
+
+
+
+
+
+''THE REASON I DO NOT WANT TO ADD THE CASCADE OPTION TO THE 
+ENTITY IS __ BECAUSE__ I DON'T WANT THAT CASCADE TO BE ENABLED 
+FOR __ EVERY OPERATION__ WE ARE GOING TO DO THAT DEALS WITH THAT 
+ENTITY...''
+
+
+
+
+''INSTEAD, I WANT TO MAKE THIS IMPORTER WORK
+    __WITHOUT__ APPLYING THE CASCADE GLOBALLY TO THAT ENTITY''...
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE O QUE PODEMOS FAZER, EM VEZ DISSO,
+
+É 
+
+'JUST CLEAR() THE TRANSACTIONS FROM THE __ IDENTITY MAP,
+ INSTEAD OF CLEARING ABSOLUTELY EVERYTHING''... 
+  
+
+
+
+
+
+
+
+
+  -> MAS COMO PODEMOS FAZER ISSO?
+
+
+
+
+
+
+
+-> BEM, ESSE METHOD DE 'clear()'
+
+ACTUALLY ACEITA 1 ARGUMENT....
+
+
+
+
+
+
+
+
+
+_> ESSE ARGUMENT É 'A ENTITY QUE QUEREMOS CLEAR,
+                LÁ DO IDENTITY MAP'...
+
+
+
+
+
+
+
+---> COMO, AQUI, ESTAMOS FAZENDO O _ PERSIST__ DE 
+''A BUNCH OF TRANSACTIONS'' e aí estamos fazendo o FLUSH,
+
+NÓS PODEMOS FAZER O CLEAR DE APENAS A ENTITY DE 'Transaction'...
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+         // If the current count/row is a multiple of the batchsize (250, 500, 750, etc), we flush a single time.
+            if ($count % $batchSize === 0) {
+                // Call flush, then reset the counter, every time we reach 250, 500, 750, etc.
+                $this->entityManager->flush();
+                $this->entityManager->clear(Transaction::class);
+
+                $count = 1;
+            } else {
+                $count++; 
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AQUI, PORTANTO:
+
+
+
+
+
+                $this->entityManager->clear(Transaction::class);
+
+
+
+
+
+
+--> isso vai fazer clear de essa entity específica...
+
+
+
+
+
+
+
+
+
+
+-> MAS NÃO VAMOS FAZER ISSO 
+
+NO SEGUNDO call de 'clear()',
+
+ao final,
+
+
+
+pq 
+
+'AT THIS POINT, WE SHOULD BE SAFE TO CLEAR EVERYTHING OUT'...
+
+
+
+
+
+
+
+É POR ISSO QUE O CÓDIGO FICA ASSIM:
+
+
+
+
+
+
+
+    public function importFromFile(string $file, User $user): void
+    {
+
+
+        $resource = fopen($file, 'r');
+        $categories = $this->categoryService->getAllKeyedByName(); // * This is MUCH BETTER than trying to find each category by name, individually.
+
+        // Discard the header row
+        fgetcsv($resource);
+
+        // Log memory and unit of work usage and detect memory leaks:
+        $this->clockwork->log(LogLevel::DEBUG, 'Memory Usage Before: ' . memory_get_usage(true));
+        $this->clockwork->log(LogLevel::DEBUG, 'Unit of Work Before: ' . $this->entityManager->getUnitOfWork()->size());
+
+        $count = 1;
+        $batchSize = 250;
+        while (($row = fgetcsv($resource)) !== false) {
+            [$date, $description, $category, $amount] = $row;
+
+            $date     = new \DateTime($date);
+            $category = $categories[strtolower($category)] ?? null;
+            // $category = $this->categoryService->findByName($category); // ! This is BAD, n+1 problem. Unecessary queries, one for each row, instead of a single query returning all categories, beforehand.
+            $amount   = str_replace(['$', ','], '', $amount);
+
+            $transactionData = new TransactionData($description, (float) $amount, $date, $category);
+
+            $this->transactionService->create($transactionData, $user);
+
+            // If the current count/row is a multiple of the batchsize (250, 500, 750, etc), we flush a single time.
+            if ($count % $batchSize === 0) {
+                // Call flush, then reset the counter, every time we reach 250, 500, 750, etc.
+                $this->entityManager->flush();
+                $this->entityManager->clear(Transaction::class);
+
+                $count = 1;
+            } else {
+                $count++; 
+            }
+
+        }
+
+        if ($count > 1) {
+            $this->entityManager->flush();
+            $this->entityManager->clear();
+        }
+
+        // Log memory usage and detect memory leaks:
+        $this->clockwork->log(LogLevel::DEBUG, 'Memory Usage After: ' . memory_get_usage(true));
+        $this->clockwork->log(LogLevel::DEBUG, 'Unit of Work After: ' . $this->entityManager->getUnitOfWork()->size());
+        
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+In the provided PHP code, the clear() method of the EntityManager is used with and without an argument. Here's what happens in each case:
+
+$this->entityManager->clear(Transaction::class);
+
+When clear() is called with a specific entity class (in this case, Transaction::class), it clears all the managed entities of that class from the EntityManager's internal storage. This means that the EntityManager will no longer keep track of any Transaction entities that were managed before the call to clear(). This is particularly useful when you want to free up memory and prevent a large number of entities from being held in the EntityManager's identity map.
+
+In the context of your code:
+
+The clear(Transaction::class) call is made after every batch of 250 rows has been processed and flushed. This ensures that the EntityManager does not retain a large number of Transaction entities in memory, which helps manage memory usage and improve performance.
+$this->entityManager->clear();
+
+When clear() is called without any arguments, it clears all entities of all classes from the EntityManager's internal storage. This means that all managed entities, regardless of their class, are detached from the EntityManager. It effectively resets the state of the EntityManager, releasing all entities it was managing.
+
+In the context of your code:
+
+The final clear() call (without arguments) is made after the last batch has been processed and flushed. This ensures that any remaining entities that were still managed by the EntityManager are detached, helping to release any residual memory and ensuring that the EntityManager is fully reset after processing all rows.
+In summary, calling clear() with an argument (Transaction::class) clears only the entities of the specified class from the EntityManager, while calling clear() without arguments clears all managed entities. This approach is often used to manage memory more effectively in batch processing scenarios.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok... voltamos ao browser, tentamos mais uma vez...
+
+
+e conseguimos 
+OUTRO ERROR, PARECIDO...
+
+
+
+
+
+
+
+
+
+O ERROR FOI ESTE:
+
+
+
+
+
+
+''Multiple non-persisted new entities were found  through the given association graph:''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OU SEJA, QUASE O MESMO ERROR DE ANTES...
+
+
+
+
+
+
+MAS O ERROR ABAIXO FICOU DIFERENTE:
+
+
+
+
+
+*A new entity was found through the relationship 
+    Category#transactions; that was NOT CONFIGURED to 
+    cascade persist operations for entity User.
+
+    To solve this issue: Either explicitly call 
+    EntityManager#persist() on this unknown entity,
+    or configure cascade persist this association 
+    in the mapping for example @ManyToOne()"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA, AGORA A RELATION É ENTRE 'CATEGORY' E 'TRANSACTIONS',
+
+E NÃO 'TRANSACTION' E 'USER' (como estava antes)...
+
+
+
+
+
+
+
+
+
+--> ISSO PROVAVELMENTE ESTÁ ACONTECENDO 
+
+PQ ESTAMOS 
+
+
+'ADDING THE TRANSACTION TO THE CATEGORY,
+WITHIN THE CATEGORY ENTITY''...
+
+
+
+
+
+
+
+OU SEJA, NESTA PARTE AQUi:
+
+
+
+
+
+
+
+
+    public function addTransaction(Transaction $transaction): Category
+    {
+        $this->transactions->add($transaction);
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+
+DENTRO DE ESSA CATEGORY, ESTAMOS ADICIONANDO 
+
+
+A 'transaction' ao ARRAY DE 'transactions', dentro
+
+
+de 'Category'... E, EM CERTOS CASOS,
+
+
+
+
+O PROFESSOR ACHA QUE NÃO VAMOS QUERER FAZER ISSO...
+
+
+
+
+
+
+
+ESSE METHOD, POR SUA VEZ,
+
+
+É CHAMADO DENTRO DE 'setCategory()',
+
+
+DENTRO 
+
+
+DA ENTITY 'Transaction.php':
+
+
+
+
+
+
+
+
+    public function setCategory(?Category $category): Transaction
+    {
+        if ($category) {
+            $category->addTransaction($this);
+
+            $this->category = $category;
+        } else {
+            $this->category = null;
+        }
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+OK... O PROFESSOR APONTA QUE TALVEZ SEJA MELHOR MOVER ESSA LÓGICA,
+
+
+TIRÁ-LA DAQUI...
+
+
+
+
+
+
+
+
+
+
+
+''IT IS IMPORTANT TO PAY ATTENTION TO THESE 
+INVERSE RELATIONS... AND YOU MAY NOT NEED TO DO THIS 
+FOR EVERY SINGLE CASE''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O QUE O PROFESSOR FAZ, AQUI,
+
+É O COMMENT OUT DE 
+
+
+
+''       $category->addTransaction($this);  ''...
+
+
+
+
+
+
+
+
+
+
+
+E FAZEMOS A MESMA COISA NO METHOD DE 'setUser',
+
+
+em 
+
+'Transaction.php':
+
+
+
+
+
+
+
+    public function setUser(User $user): Transaction
+    {
+        $user->addTransaction($this);
+
+        $this->user = $user;
+
+        return $this;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NÓS COMENTAMOS PARA FORA ESSA PARTE,
+
+
+'         $user->addTransaction($this); '
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TENTAMOS MAIS UMA VEZ, E AGORA O IMPORT DEU CERTO...
+
+
+
+
+
+
+
+
+
+FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Entity;
+
+use App\Entity\Traits\HasTimestamps;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\GeneratedValue;
+use Doctrine\ORM\Mapping\HasLifecycleCallbacks;
+use Doctrine\ORM\Mapping\Id;
+use Doctrine\ORM\Mapping\ManyToOne;
+use Doctrine\ORM\Mapping\OneToMany;
+use Doctrine\ORM\Mapping\Table;
+
+#[Entity, Table('transactions')]
+#[HasLifecycleCallbacks]
+class Transaction
+{
+    use HasTimestamps;
+
+    #[Id, Column(options: ['unsigned' => true]), GeneratedValue]
+    private int $id;
+
+    #[Column]
+    private string $description;
+
+    #[Column]
+    private \DateTime $date;
+
+    #[Column(type: Types::DECIMAL, precision: 13, scale: 3)]
+    private float $amount;
+
+    #[ManyToOne(inversedBy: 'transactions')]
+    private User $user;
+
+    #[ManyToOne(inversedBy: 'transactions')]
+    private ?Category $category;
+
+    #[OneToMany(mappedBy: 'transaction', targetEntity: Receipt::class)]
+    private Collection $receipts;
+
+    public function __construct()
+    {
+        $this->receipts = new ArrayCollection();
+    }
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function getDescription(): string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(string $description): Transaction
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function getDate(): \DateTime
+    {
+        return $this->date;
+    }
+
+    public function setDate(\DateTime $date): Transaction
+    {
+        $this->date = $date;
+
+        return $this;
+    }
+
+    public function getAmount(): float
+    {
+        return $this->amount;
+    }
+
+    public function setAmount(float $amount): Transaction
+    {
+        $this->amount = $amount;
+
+        return $this;
+    }
+
+    public function getUser(): User
+    {
+        return $this->user;
+    }
+
+    public function setUser(User $user): Transaction
+    {
+        // $user->addTransaction($this); // Reduce memory consumption.
+
+        $this->user = $user;
+
+        return $this;
+    }
+
+    public function getCategory(): ?Category
+    {
+        return $this->category ?? null;
+    }
+
+    public function setCategory(?Category $category): Transaction
+    {
+        if ($category) {
+            // $category->addTransaction($this); // Reduce memory consumption.
+
+            $this->category = $category;
+        } else {
+            $this->category = null;
+        }
+
+        return $this;
+    }
+
+    public function getReceipts(): ArrayCollection|Collection
+    {
+        return $this->receipts;
+    }
+
+    public function addReceipt(Receipt $receipt): Transaction
+    {
+        $this->receipts->add($receipt);
+
+        return $this;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TENTAMOS ISSO MAIS UMA VEZ, E AGORA DEMORA APENAS 400ms...
+
+
+
+
+
+
+
+
+-> E PERCEBEMOS QUE A 'UNIT OF WORK' DIMINUIU __ UM MONTE__...
+
+
+
+
+
+
+
+
+
+
+
+
+O LOG NOS MOSTRA:
+
+
+
+
+
+''UNIT OF WORK BEFORE: 62''
+
+
+
+
+''UNIT OF WORK AFTER: 62''...
+
+
+
+
+
+
+
+
+
+
+
+
+QUER DIZER QUE 1 BOCADO DE MEMORY FOI FREED UP...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS A MEMORY USAGE AINDA ESTÁ BEM ALTA...
+
+
+
+
+
+
+--> A MEMORY USAGE AINDA ESTÁ ALTA.. --> O PROFESSOR APONTA QUE 
+
+
+
+
+                        ''BOA PARTE DE ESSA MEMORIA USADA 
+                        É ELIGIBLE FOR GARBAGE COLLECTION''...
+
+
+
+
+
+
+                    --> ISSO QUER DIZER QUE A MEMORY FOI LIMPA 
+                    PELO METHOD DE 'clear()',
+                    MAS ELA AINDA NÃO FOI 'GARBAGE COLLECTED'..
+
+
+
+
+
+                --> BASICAMENTE, ELA ESTÁ 
+
+                'AVAILABLE TO BE ALLOCATED'...
+
+
+
+
+
+            -> PODEMOS PROVAR ISSO POR MEIO DO CALL 
+
+            DA FUNCTION PHP CHAMADA DE 
+
+
+
+            'gc_collect_cycles()',
+
+
+            QUE VAI ACTUALLY _ FORÇAR A GARBAGE COLLECTION 
+
+
+            A ACONTECER...
+
+
+
+
+
+
+
+
+
+
+-> lá no 'TransactionImportService',
+
+
+
+
+LOGO DEPOIS DO LOOP,
+
+CHAMAMOS 
+
+
+
+
+'gc_collect_cycles()',
+
+
+E AÍ TENTAMOS O IMPORT MAIS UMA VEZ...
+
+
+
+
+
+
+
+
+
+
+AGORA FICOU BEM MELHOR...
+
+
+
+
+
+
+
+
+
+O CÓDIGO FICOU ASSIM:
+
+
+
+
+
+
+
+
+    public function importFromFile(string $file, User $user): void
+    {
+
+
+        $resource = fopen($file, 'r');
+        $categories = $this->categoryService->getAllKeyedByName(); // * This is MUCH BETTER than trying to find each category by name, individually.
+
+        // Discard the header row
+        fgetcsv($resource);
+
+        // Log memory and unit of work usage and detect memory leaks:
+        $this->clockwork->log(LogLevel::DEBUG, 'Memory Usage Before: ' . memory_get_usage(true));
+        $this->clockwork->log(LogLevel::DEBUG, 'Unit of Work Before: ' . $this->entityManager->getUnitOfWork()->size());
+
+        $count = 1;
+        $batchSize = 250;
+        while (($row = fgetcsv($resource)) !== false) {
+            [$date, $description, $category, $amount] = $row;
+
+            $date     = new \DateTime($date);
+            $category = $categories[strtolower($category)] ?? null;
+            // $category = $this->categoryService->findByName($category); // ! This is BAD, n+1 problem. Unecessary queries, one for each row, instead of a single query returning all categories, beforehand.
+            $amount   = str_replace(['$', ','], '', $amount);
+
+            $transactionData = new TransactionData($description, (float) $amount, $date, $category);
+
+            $this->transactionService->create($transactionData, $user);
+
+            // If the current count/row is a multiple of the batchsize (250, 500, 750, etc), we flush a single time.
+            if ($count % $batchSize === 0) {
+                // Call flush, then reset the counter, every time we reach 250, 500, 750, etc.
+                $this->entityManager->flush();
+                $this->entityManager->clear(Transaction::class);
+
+                $count = 1;
+            } else {
+                $count++; 
+            }
+
+        }
+
+        if ($count > 1) {
+            $this->entityManager->flush();
+            $this->entityManager->clear();
+        }
+
+        gc_collect_cycles(); // This will allocate the memory that was not yet garbage collected.
+
+        // Log memory usage and detect memory leaks:
+        $this->clockwork->log(LogLevel::DEBUG, 'Memory Usage After: ' . memory_get_usage(true));
+        $this->clockwork->log(LogLevel::DEBUG, 'Unit of Work After: ' . $this->entityManager->getUnitOfWork()->size());
+        
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO PODE NÃO PARECER 1 IMPROVEMENT GRANDE,
+
+
+
+MAS ISSO É PERCEBIDO QUANDO TENTAMOS IMPORTAR 10K transactions...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR DIZ QUE NÃO PRECISÁVAMOS CHAMAR 
+
+'gc_collect_cycles()'..
+
+
+
+
+-> O PROFESSOR SÓ QUERIA NOS MOSTRAR QUE A MEMORY ESTAVA ACTUALLY 
+AVAILABLE,
+ E QUE FOI CLEARED...
+
+
+
+
+
+
+
+
+
+-> NA PRÓXIMA AULA,
+    VAMOS FAZER 1 POUCO DE REFACTORING,
+    PQ, COMO REMOVEMOS O METHOD DE 'flush()'
+
+    lá do method de 'update' das transactions,
+
+
+
+    ADICIONAR TRANSACTIONS MANUALMENTE OU ATUALIZAR 
+    TRANSACTIONS, POR MEIO DO CONTROLLER,
+
+    NÃO FUNCIONARÃO... É POR ISSO QUE PRECISAMOS REFACTOR 
+    ESSES TRECHOS..
