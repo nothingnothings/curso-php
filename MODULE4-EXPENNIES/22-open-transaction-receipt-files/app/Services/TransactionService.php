@@ -80,11 +80,4 @@ class TransactionService
         return $transaction;
     }
 
-    // If possible, try to find the categoryId by name, and then return that value:
-    // public function getCategoryIdByName(string $name): ?int
-    // {
-    //     $category = $this->entityManager->getRepository(Transaction::class)->findOneBy(['category.name' => $name]);
-
-    //     return $category?->getCategory()?->getId();
-    // }
 }

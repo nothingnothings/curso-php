@@ -8,6 +8,7 @@ use App\Contracts\RequestValidatorFactoryInterface;
 use App\DataObjects\TransactionData;
 use App\Entity\Receipt;
 use App\Entity\Transaction;
+use App\Entity\User;
 use App\RequestValidators\TransactionRequestValidator;
 use App\RequestValidators\UploadTransactionRequestValidator;
 use App\ResponseFormatter;
@@ -141,7 +142,7 @@ class TransactionController
 
     public function upload(Request $request, Response $response): Response
     {
-
+        $user = $request->getAttribute('user');
         $data = $this->requestValidatorFactory->make(UploadTransactionRequestValidator::class)->validate($request->getUploadedFiles());
 
         // Transactions will be in a csv. We need to read the csv's contents, using fgetcsv(), to create a single transaction for each row
@@ -153,10 +154,16 @@ class TransactionController
         // Convert CSV string to an array
         $rows = array_map('str_getcsv', explode("\n", $csvContent));
 
-        $user = $request->getAttribute('user');
+        $this->importTransactions($user, $rows);
 
-        // Skip first line:
-        array_shift($rows);
+        return $response;
+    }
+
+
+    private function importTransactions(User $user, array $rows): void
+    {
+        // Skip first line
+        array_shift($rows); 
 
         // Process each row
         foreach ($rows as $index => $row) {
@@ -182,10 +189,5 @@ class TransactionController
                 $user
             );
         }
-
-
-        // $this->transactionService->importTransactions($user, $rows);
-
-        return $response;
     }
 }

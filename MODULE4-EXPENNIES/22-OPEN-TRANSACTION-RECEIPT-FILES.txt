@@ -2654,3 +2654,44 @@ AGORA SÓ PRECISO DE UM CLEANUP BÁSICO,
 
 
 E TAMBÉM COLOCAR O CÓDIGO EM 1 METHOD NO SERVICE ADEQUADO...
+
+
+
+
+
+
+
+
+FICOU TIPO ASSIM:
+
+
+
+
+    public function upload(Request $request, Response $response): Response
+    {
+        $user = $request->getAttribute('user');
+        $data = $this->requestValidatorFactory->make(UploadTransactionRequestValidator::class)->validate($request->getUploadedFiles());
+
+        // Transactions will be in a csv. We need to read the csv's contents, using fgetcsv(), to create a single transaction for each row
+        $csvContent = $data['importFile'];
+
+        // Csv file will be in stream format, so we need to convert it to a string
+        $csvContent = stream_get_contents($csvContent->getStream()->detach());
+
+        // Convert CSV string to an array
+        $rows = array_map('str_getcsv', explode("\n", $csvContent));
+
+        $this->importTransactions($user, $rows);
+
+        return $response;
+    }
+
+
+
+
+
+
+
+CERTO...
+
+bem melhor.
