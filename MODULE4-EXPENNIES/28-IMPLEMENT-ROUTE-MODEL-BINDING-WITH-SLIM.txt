@@ -1,0 +1,1125 @@
+
+
+
+
+
+
+
+
+
+NESSA AULA, IMPLEMENTAREMOS O 'ROUTE MODEL BINDING' 
+
+
+DO LARAVEL, MAS EM NOSSO SLIM APP...
+
+
+
+
+
+
+
+
+
+
+
+
+
+ROUTE MODEL BINDING --> ''IT IS A __CONVENIENT WAY
+                        TO AUTOMATICALLY INJECT THE 
+                        MODEL INSTANCE DIRECTLY IN THE 
+                        ___ ROUTES__ AND IN THE CONTROLLER METHODS''...
+
+                    
+
+
+
+
+
+
+NO NOSSO CASO, EM VEZ DE REALIZARMOS O INJECT DE MODELS,
+REALIZARÍAMOS O INJECT DE ENTITIES, AS NOSSAS ENTITIES 
+ATUAIS...
+
+
+
+
+
+
+POR EXEMPLO, O METHOD DE 'get', no TransactionController,
+
+mudaria sua signature, de isto:
+
+
+
+public function get(Request $request, Response $response, array $args): Response 
+{
+
+}
+
+
+
+
+
+
+PARA ISTO:
+
+
+
+public function get(Request $request, Response $response, Transaction $transaction): Response 
+{
+    
+}
+
+
+
+
+
+
+OU SEJA, O MODEL EM SI SERIA INJETADO...
+
+
+
+
+
+
+
+
+
+--> COM ISTO, NÃO PRECISARÍAMOS MAIS DESTE TRECHO AQUI, DESSE CONTROLLER:
+
+
+
+
+
+
+
+
+
+
+    public function get(Request $request, Response $response, array $args): Response
+    {
+        ///////////////////////////////// THIS WOULD BE REMOVED
+        $transaction = $this->transactionService->getById((int) $args['id']);
+
+        if (! $transaction) {
+            return $response->withStatus(404);
+        }
+        /////////////////////////////////////
+
+        $data = [
+            'id'          => $transaction->getId(),
+            'description' => $transaction->getDescription(),
+            'amount'      => $transaction->getAmount(),
+            'date'        => $transaction->getDate()->format('Y-m-d\TH:i'),
+            'category'    => $transaction->getCategory()->getId(),
+        ];
+
+        return $this->responseFormatter->asJson($response, $data);
+    }
+
+
+
+
+
+
+
+
+
+
+COM ISSO,
+
+
+NOSSO METHOD FICARIA ASSIM:
+
+
+
+
+
+
+
+
+
+
+    public function get(Request $request, Response $response, Transaction $transaction): Response 
+    {
+        $data = [
+            'id'          => $transaction->getId(),
+            'description' => $transaction->getDescription(),
+            'amount'      => $transaction->getAmount(),
+            'date'        => $transaction->getDate()->format('Y-m-d\TH:i'),
+            'category'    => $transaction->getCategory()->getId(),
+        ];
+
+        return $this->responseFormatter->asJson($response, $data);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA, CONSEGUIRÍAMOS NOS LIVRAR DE ESSE BOILERPLATE CODE,
+IMEDIATAMENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+E ISSO FUNCIONARIA, SIM...
+
+
+
+
+
+
+
+
+
+
+
+--> no laravel, esse 
+    formato de código 
+
+
+    funciona 'OUT OF THE BOX',
+
+
+    mas,
+
+    NO NOSSO APP,
+
+
+    _ NÃO FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+
+-> PRECISAMOS DEFINIR UMA 'CUSTOM ROUTE STRATEGY',
+
+    PARA CONSEGUIRMOS INJETAR 'CUSTOM THINGS' EM CONTROLLERS,
+
+    COMO 'ENTITIES', POR EXEMPLO...
+
+
+
+
+
+
+
+
+
+
+--> NO SLIM PHP, A ROUTE CALLBACK SIGNATURE (ou a CONTROLLER SIGNATURE, em outras palavras)
+
+                É DETERMINADA PELA 'ROUTE STRATEGY'...
+
+
+
+
+
+    
+
+
+-> CURRENTLY, ESTAMOS USANDO A STRATEGY DEFAULT,
+    QUE '''APENAS PROVIDENCIA O REQUEST, A RESPONSE E OS ARGUMENTS OPCIONAIS...'''
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> NA DOCUMENTAÇÃO DO SLIM,
+    
+    APONTA-SE QUE É POSSÍVEL USAR DIFERENTES ROUTE STRATEGIES:
+
+
+
+
+
+
+
+https://www.slimframework.com/docs/v4/objects/routing.html#:~:text=Route%20strategies,is%20called%20the%20RequestResponse%20strategy.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA,
+
+PODERÍAMOS MUDAR A ROUTE strategy default,
+
+
+
+assim usando uma outra built-in strategy,
+
+
+ou ATÉ MESMO USAR 
+
+
+
+UMA STRATEGY CUSTOM,
+
+DEFINIDA POR NOS...
+
+
+
+
+
+
+
+
+
+
+--> TEMOS ESTE EXEMPLO:
+
+
+
+
+
+
+
+
+<?php
+use Slim\Factory\AppFactory;
+use Slim\Handlers\Strategies\RequestResponseArgs;
+
+require __DIR__ . '/../vendor/autoload.php';
+
+$app = AppFactory::create();
+
+/**
+ * Changing the default invocation strategy on the RouteCollector component
+ * will change it for every route being defined after this change being applied
+ */
+$routeCollector = $app->getRouteCollector();
+$routeCollector->setDefaultInvocationStrategy(new RequestResponseArgs());
+
+$app->get('/hello/{name}', function ($request, $response, $name) {
+    $response->getBody()->write($name);
+    
+    return $response;
+});
+
+
+
+
+
+
+
+
+
+
+---> esse exemplo é de como DEFINIR UMA STRATEGY PRATICAMENTE 
+    IGUAL à STRATEGY DEFAULT... a strategy de 
+
+    'request, response e args'...
+
+
+
+
+
+
+
+-> a única diferença desse modelo/exemplo aí, em relação ao default,
+
+    é que o default do slim TE PROVIDENCIA OS 'ARGUMENTS' opcionais 
+
+    como um ARRAY,
+
+    e não como 1 single argument ($name, nesse caso)...
+
+
+
+
+
+
+
+
+
+
+AÍ TEMOS AQUELE TRECHO:
+
+
+
+
+
+
+
+
+''You can provide your own route strategy by implementing 
+    the Slim\Interfaces\InvocationStrategyinterface''
+
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA, BASTA IMPLEMENTAR ESSA INTERFACE EM 1 STRATEGY,
+
+E AÍ DEFINIR ESSA STRATEGY COMO NOSSA DEFAULT..
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR CRIA 1 NOVA CLASS,
+
+DE NOME 'RouteEntityBindingStrategy.php'...
+
+
+
+
+
+
+
+
+
+
+ELE DEIXA ESSE ARQUIVO NO ROOT DO PROJETO...
+
+
+
+
+
+
+
+
+
+-> AÍ ELE VAI ESCREVENDO ASSIM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Slim\Interfaces\InvocationStrategyInterface;
+
+class RouteEntityBindingStrategy implements InvocationStrategyInterface
+{
+    public function __invoke(
+        callable $callable,
+        ServerRequestInterface $request,
+        ResponseInterface $response,
+        array $routeArguments
+    ): ResponseInterface {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... AGORA PRECISAMOS PROVIDENCIAR ESSA IMPLEMENTATION...
+
+
+
+
+
+
+
+
+
+
+
+-> por enquanto, rodaremos apenas:
+
+
+
+' return $callable($request, $response, $routeArguments) '
+
+
+
+
+
+
+ISSO É BASICAMENTE A MESMA IMPLEMENTAÇÃO DA ROUTE STRATEGY DEFAULT DO SLIM...
+
+
+
+
+
+FICA TIPO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Slim\Interfaces\InvocationStrategyInterface;
+
+class RouteEntityBindingStrategy implements InvocationStrategyInterface
+{
+    public function __invoke(
+        callable $callable,
+        ServerRequestInterface $request,
+        ResponseInterface $response,
+        array $routeArguments
+    ): ResponseInterface {
+        // return $callable($request, $response, $routeArguments); // * This is the default route strategy implementation of Slim framework (a request and response objects, and optional array of args)
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS O QUE DEVEMOS FAZER, SE QUEREMOS DEIXAR ESSA ROUTE STRATEGY 
+
+COMO A DEFAULT, DE NOSSO APP?
+
+
+
+
+
+
+
+
+
+
+
+
+
+_> DEVEMOS IR ATÉ OS CONTAINER_BINDINGS,
+
+
+
+
+e aí, LOGO DEPOIS DA CREATION DO APP 
+
+
+COM 
+
+
+''$app = AppFactory::create();'',
+
+
+
+
+RODAMOS ISTO:
+
+
+
+
+
+
+$app->getRouteCollector()->setDefaultInvocationStrategy();
+
+
+
+
+
+
+
+
+
+
+--> COMO PARAMETER DESSA FUNCTION, VAMOS PASSAR NOSSA 
+
+'RouteEntityBindingStrategy',
+
+
+que está com aquele código implementado...
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+    App::class => function (ContainerInterface $container) {
+        AppFactory::setContainer($container);
+
+        $addMiddlewares = require CONFIG_PATH . '/middleware.php';
+        $router = require CONFIG_PATH . '/routes/web.php';
+
+        $app = AppFactory::create();
+
+        // How to change the default route strategy (RouteEntityBindingStrategy is provided by us, it's a custom route strategy):
+        $app->getRouteCollector()->setDefaultInvocationStrategy(new RouteEntityBindingStrategy());
+
+        $router($app);
+
+        $addMiddlewares($app);
+
+        return $app;
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+IMPORTAMOS O CÓDIGO, E TESTAMOS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> TUDO FUNCIONA COMO ANTES, EXATAMENTE DA MESMA FORMA...
+
+
+
+
+
+
+OK... MAS AGORA DEVEMOS CONTINUAR COM A IMPLEMENTATION...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+''''WE NEED A WAY TO ___INSPECt__ THE ARGUMENTS 
+    THAT THE CONTROLLER METHOD IS __ EXPECTING...''''
+
+    
+
+
+
+
+
+
+
+
+PARA FAZER ISSO, PODEMOS USAR O ARGUMENTO '$callable':
+
+
+
+
+
+
+
+    public function __invoke(
+        callable $callable,
+        ServerRequestInterface $request,
+        ResponseInterface $response,
+        array $routeArguments
+    ): ResponseInterface {
+        return $callable($request, $response, $routeArguments);  // * This is the default route strategy implementation of Slim framework (a request and response objects, and optional array of args)
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''''''THIS CALLABLE, RIGHT HERE,
+    IS BASICALLY THE __ METHOD CALL/CALLBACK 
+    TO A CONTROLLER METHOD...''''''
+
+
+
+
+
+
+
+
+
+
+-> ou seja, precisamos ser capazes de INSPECIONAR A DEFINITION 
+    DE ESSE 'callable',
+
+
+    PARA VER __ QUAIS __ ARGUMENTS ELE ESTÁ 'EXPECTING'... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> POR EXEMPLO,
+
+
+lá em 'get()',
+
+
+vamos fazer expect de 
+
+
+
+'Request', 'Response' e 'Transaction' (a entity em si)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+NÓS PRECISAMOS SER CAPAZES DE  'INSPECT' ESSA SIGNATURE,
+
+
+
+E SABER QUE 
+
+ELE FAZ EXPECT DE ESSES 3 ARGUMENTS...
+
+
+
+
+
+
+
+
+-> PARA FAZER ISSO, O PROFESSOR VAI USAR 1 POUCO DE 'REFLECTION MAGIC',
+
+
+com a reflection API...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> POR ISSO CRIAMOS 1 NOVO METHOD,
+
+
+chamado de 
+
+
+
+
+'createReflectionForCallable()'...
+
+
+
+
+
+
+
+
+
+
+
+-> ESSE METHOD VAI EXIGIR 'callable' 
+    COMO ARGUMENT...
+
+
+
+
+
+
+
+
+
+--> E, NO CASO, VAI RETORNAR 1 NOVA INSTANCE 
+    DE 'ReflectionMethod'  se o callable for 'array'...
+
+
+
+    VAI RETORNAR UMA 'ReflectionFunctionInstance',
+    se o callable não for um array...
+
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE O PROFESSOR ESCREVE ASSIM:
+
+
+
+
+
+
+
+
+
+
+    // What this does: it creates a ReflectionMethod object for the callable, so that we can get the class name and method name from it.
+    public function createReflectionForCallable(callable $callable)
+    {
+        return is_array($callable)
+            ? new \ReflectionMethod($callable[0], $callable[1])
+            : new \ReflectionFunction($callable);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O '$callable[0]' --> É O CLASS NAME 
+
+  O '$callable[1]' --> É O METHOD NAME...
+
+
+
+
+
+
+
+
+--> é por isso que o primeiro CASE é um METHOD (class, method), e o segundo 
+CASE é uma FUNCTION...
+
+
+
+
+
+
+
+
+
+
+
+
+isso pq o 'ReflectionMethod' funciona tanto para 
+
+
+CLASSES como para CONTROLLERS (pq controllers sempre possuem methods, no interior)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ISSO PQ, SE INSPECIONAMOS NOSSAS ROUTES,
+    CONSTATAMOS QUE TEMOS ESTA ESTRUTURA:
+
+
+
+
+
+        $transactions->get('', [TransactionController::class, 'index']);
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+
+O CALLABLE É SEMPRE 
+
+
+'CLASS, METHOD''....
+
+
+
+
+
+
+
+ 
+
+
+
+-> A maneira alternativa de definir essas routes 
+seria com a sintaxe de 'function',
+
+TIPO ASSIM:
+
+
+
+        $transactions->get('', [TransactionController::class, function() { echo 'ENTERED';}]);
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> E É EXATAMENTE POR ISSO, POR CONTA DESSA SINTAXE ALTERNATIVA,
+
+QUE TEMOS O CASE DE 
+
+
+
+'new ReflectionFunction($callable);'
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> COM ISSO, AMBOS CASES SÃO COBERTOS, POR ESSE METHOD DE 
+
+
+'createReflectionForCallable()'...
+
+
+
+
+
+
+
+-> O PROFESSOR COLOCA O RETURN TYPE DE 'ReflectionFunctionAbstract'...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+    // What this does: it creates a ReflectionMethod object for the callable, so that we can get the class name and method name from it.
+    public function createReflectionForCallable(callable $callable): \ReflectionFunctionAbstract
+    {
+        return is_array($callable)
+            ? new \ReflectionMethod($callable[0], $callable[1])  // Class, Method()
+            : new \ReflectionFunction($callable);  // Function()
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+FINALMENTE, O PROFESSOR CHAMA 
+ESSA FUNCTION DENTRO 
+
+DO MAGIC METHOD de '__invoke',
+
+tipo assim:
+
+
+
+
+
+
+    public function __invoke(
+        callable $callable,
+        ServerRequestInterface $request,
+        ResponseInterface $response,
+        array $routeArguments
+    ): ResponseInterface {
+        $callableReflection = $this->createReflectionForCallable($callable);
+
+        return $callable($request, $response, $routeArguments);  // * This is the default route strategy implementation of Slim framework (a request and response objects, and optional array of args)
+    }
+
+
+    
