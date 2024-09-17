@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types = 1);
+<?php declare(strict_types=1);
 
 namespace App\RequestValidators;
 
@@ -14,11 +12,10 @@ class UpdateCategoryRequestValidator implements RequestValidatorInterface
     {
         $v = new Validator($data);
 
-        $v->rule('required', ['name', 'id']);
+        $v->rule('required', ['name']);
         $v->rule('lengthMax', 'name', 50);
-        $v->rule('integer', 'id');
 
-        if (! $v->validate()) {
+        if (!$v->validate()) {
             throw new ValidationException($v->errors());
         }
 

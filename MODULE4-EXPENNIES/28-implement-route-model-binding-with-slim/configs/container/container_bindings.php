@@ -54,7 +54,7 @@ return [
         $app = AppFactory::create();
 
         // How to change the default route strategy (RouteEntityBindingStrategy is provided by us, it's a custom route strategy):
-        $app->getRouteCollector()->setDefaultInvocationStrategy(new RouteEntityBindingStrategy());
+        $app->getRouteCollector()->setDefaultInvocationStrategy(new RouteEntityBindingStrategy($container->get(EntityManagerServiceInterface::class), $app->getResponseFactory()));
 
         $router($app);
 

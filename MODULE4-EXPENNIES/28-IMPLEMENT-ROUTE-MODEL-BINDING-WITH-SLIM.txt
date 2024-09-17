@@ -1123,3 +1123,2915 @@ tipo assim:
 
 
     
+
+
+
+
+
+
+
+
+
+
+
+    CERTO...
+
+
+
+
+
+
+
+DEPOIS DE ARMAZENAR ISSO NESSA VARIABLE,
+
+
+PRECISAMOS __ FAZER_ _ O RESOLVE _ DOS ARGUMENTS...
+
+
+
+
+
+
+
+
+
+-> PARA FAZER RESOLVE DOS ARGUMENTS, PODEMOS CRIAR 1 ARRAY VAZIO,
+
+
+DE NOME '$resolvedArguments'...
+
+
+
+
+
+
+Ex:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Slim\Interfaces\InvocationStrategyInterface;
+
+class RouteEntityBindingStrategy implements InvocationStrategyInterface
+{
+    public function __invoke(
+        callable $callable,
+        ServerRequestInterface $request,
+        ResponseInterface $response,
+        array $routeArguments
+    ): ResponseInterface {
+        $callableReflection = $this->createReflectionForCallable($callable);
+        $resolvedArguments = [];
+
+        return $callable($request, $response, $routeArguments);  // * This is the default route strategy implementation of Slim framework (a request and response objects, and optional array of args)
+    }
+
+    // What this does: it creates a ReflectionMethod object for the callable, so that we can get the class name and method name from it.
+    public function createReflectionForCallable(callable $callable): \ReflectionFunctionAbstract
+    {
+        return is_array($callable)
+            ? new \ReflectionMethod($callable[0], $callable[1])  // Class, Method()
+            : new \ReflectionFunction($callable);  // Function()
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> e vamos preencher esse array, 1 por 1,
+
+assim que vamos obtendo os arguments...
+
+
+
+
+
+
+
+
+
+
+
+-> O QUE PODEMOS FAZER, AQUI, É 
+
+''LOOP THROUGH ALL THE PARAMETERS OF THE CALLABLE FUNCTION/CONTROLLER METHOD,
+  WHICH WE HAVE CAPTURED, BY REFLECTION, in the '$callableReflection''....
+
+
+
+
+
+
+
+
+
+  -> PODEMOS FAZER ALGO COMO 
+
+
+
+
+
+'
+
+foreach ($callableReflection->getParameters() as $parameter) {
+
+}
+
+'
+
+
+
+
+
+AÍ, PARA CADA PARAMETER,
+
+PODEMOS FAZER O GET DO:
+
+
+
+1) TYPE DO PARAMETER 
+
+
+2) NAME DO PARAMETER 
+
+
+
+
+FINALMENTE, PODEMOS CHECAR 
+
+
+
+
+''if type is not provided,
+    we can SIMPLY SKIP this parameter''..
+
+
+
+
+
+
+EX:
+
+
+
+
+
+'
+
+foreach ($callableReflection->getParameters() as $parameter) {
+
+    $type = $parameter->getType();
+    $name = $parameter->getName();
+
+
+    if (! $type) {
+        continue;
+    }
+
+}
+
+'
+
+
+
+
+
+
+
+
+Ex:
+
+
+
+
+
+
+
+
+
+
+
+
+
+    ): ResponseInterface {
+        $callableReflection = $this->createReflectionForCallable($callable);
+        $resolvedArguments = [];
+
+        foreach ($callableReflection->getParameters() as $parameter) {
+            $type = $parameter->getType();
+            $name = $parameter->getName();
+
+            if (!$type) {
+                continue;
+            }
+        }
+
+        return $callable($request, $response, $routeArguments);  // * This is the default route strategy implementation of Slim framework (a request and response objects, and optional array of args)
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO PQ, SE O PARAMETER NAO TEM 1 TYPE,
+
+''WE CAN'T REALLY DO MUCH ABOUT IT''...
+
+
+
+
+
+
+
+-> TAMBÉM VAMOS CHECAR SE O TYPE É 
+
+'builtIn'...
+
+
+
+
+-> E TAMBÉM VAMOS CHECAR 
+    SE O TYPE É ARRAY,
+
+
+
+
+
+E TAMBÉM CHECAR SE O PARAMETER NAME É 'args'... -> COM ESSE CHECK,
+                                                    AINDA FICAMOS COM
+                                                    SUPORTE A 'INJECT ROUTE PLACEHOLDERS 
+                                                    AS A SINGLE ARRAY' 
+
+
+
+
+                                                (ou seja, argumentos como 'array $args' ainda 
+                                                funcionarão...)
+
+
+                                        
+
+
+
+TIPO ASSIM:
+
+
+
+
+{
+        $callableReflection = $this->createReflectionForCallable($callable);
+        $resolvedArguments = [];
+
+        foreach ($callableReflection->getParameters() as $parameter) {
+            $type = $parameter->getType();
+            $name = $parameter->getName();
+
+            if (!$type) {
+                continue;
+            }
+
+            if ($type->isBuiltin()) {
+                if ($type->getName() === 'array' && $name === 'args') {
+                    $resolvedArguments[] = $routeArguments;
+                }
+            }
+        }
+
+        return $callable($request, $response, $routeArguments);  // * This is the default route strategy implementation of Slim framework (a request and response objects, and optional array of args)
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+ASSIM:
+
+
+
+
+
+
+            if ($type->isBuiltin()) {
+                if ($type->getName() === 'array' && $name === 'args') {
+                    $resolvedArguments[] = $routeArguments;
+                }
+            }
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+
+SE O TYPE É 'BUILT-IN' (como array),
+
+
+
+
+e se É DE TYPE 'array',
+
+
+
+e se o nome é 'args',
+
+
+NÓS VAMOS 
+
+
+COLOCAR ESSE TYPE DENTRO 
+
+
+
+
+do array de 'resolvedArguments'...
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR REFORMATA ISSO PARA DEIXAR 1 POUCO MAIS EXPLÍCITO,
+
+
+
+
+PEGANDO ESTE TRECHO AQUI:
+
+
+
+$type->getName()
+
+
+
+
+
+E COLOCANDO EM 1 VARIABLE LÁ EM CIMA, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+{
+        $callableReflection = $this->createReflectionForCallable($callable);
+        $resolvedArguments = [];
+
+        foreach ($callableReflection->getParameters() as $parameter) {
+            $type = $parameter->getType();
+            $paramName = $parameter->getName();
+            $typeName = $type->getName();
+
+            if (!$type) {
+                continue;
+            }
+
+            if ($type->isBuiltin()) {
+                if ($typeName === 'array' && $paramName === 'args') {
+                    $resolvedArguments[] = $routeArguments;
+                }
+            }
+        }
+
+        return $callable($request, $response, $routeArguments);  // * This is the default route strategy implementation of Slim framework (a request and response objects, and optional array of args)
+    }
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+
+
+
+
+
+-> COMO TYPE PODE SER NULL,
+
+
+    O PROFESSOR MUDA A ORDEM DO CÓDIGO, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+{
+        $callableReflection = $this->createReflectionForCallable($callable);
+        $resolvedArguments = [];
+
+        foreach ($callableReflection->getParameters() as $parameter) {
+            $type = $parameter->getType();
+
+            if (!$type) {
+                continue;
+            }
+
+            $paramName = $parameter->getName();
+            $typeName = $type->getName();
+
+            if ($type->isBuiltin()) {
+                if ($typeName === 'array' && $paramName === 'args') {
+                    $resolvedArguments[] = $routeArguments;
+                }
+            }
+        }
+
+        return $callable($request, $response, $routeArguments);  // * This is the default route strategy implementation of Slim framework (a request and response objects, and optional array of args)
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+A PRÓXIMA COISA QUE PRECISAMOS CHECAR, AQUI,
+
+É 
+
+
+
+
+'''IF THE TYPE IS NOT BUILT-IN,
+    THEN WE NEED THE __ HANDLING FOR THE REQUEST AND RESPONSE OBJECTS,
+
+    SO THAT WE ARE STILL ABLE TO INJECT THE REQUEST AND RESPONSE 
+
+    LIKE
+
+    '(Request, Response, args)'...''
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE 
+    COLOCAMOS UM else case,
+
+
+    em que 
+
+    checamos 
+
+
+
+    ''se typeName é 
+
+    ServerRequestInterface (A class de 'Request)',
+
+
+    NÓS VAMOS ADICIONÁ-LA A LIST DE ARGUMENTS''...
+
+
+
+
+
+
+
+
+--> E FAZEMOS A MESMA COISA COM A RESPONSE,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+{
+        $callableReflection = $this->createReflectionForCallable($callable);
+        $resolvedArguments = [];
+
+        foreach ($callableReflection->getParameters() as $parameter) {
+            $type = $parameter->getType();
+
+            if (!$type) {
+                continue;
+            }
+
+            $paramName = $parameter->getName();
+            $typeName = $type->getName();
+
+            if ($type->isBuiltin()) {
+                if ($typeName === 'array' && $paramName === 'args') {
+                    $resolvedArguments[] = $routeArguments;
+                }
+            } else {
+                if ($typeName === ServerRequestInterface::class) {
+                    $resolvedArguments[] = $request;
+                } elseif ($typeName === ResponseInterface::class) {
+                    $resolvedArguments[] = $response;
+                } else {
+                }
+            }
+        }
+
+        return $callable($request, $response, $routeArguments);  // * This is the default route strategy implementation of Slim framework (a request and response objects, and optional array of args)
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FINALMENTE, NA PARTE DO 'else' final,
+
+
+devemos colocar 1 handling especial,
+
+
+para coisas como NOSSAS ENTITIES,
+
+que não se encaixam em nenhum outro case...
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS ANTES DE FAZER ISSO, O PROFESSOR CONFIRMA QUE O APP NÃO QUEBROU... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> antes disso, o professor muda aquele return final,
+
+que estava assim:
+
+
+
+
+  return $callable($request, $response, $routeArguments);
+
+
+
+
+
+
+
+
+
+
+
+
+agora ele coloca os resolvedArguments,
+
+
+tipo assim:
+
+
+
+
+
+        return $callable(...$resolvedArguments);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OU SEJA, FAZEMOS UNPACK DE TODOS OS RESOLVED ARGUMENTS..
+
+
+
+
+
+
+
+
+
+-> isso também é bom, pq 
+
+AGORA PODEMOS 'INJECT THE REQUEST AND RESPONSE OBJECTS IN ANY ORDER THAT WE WANT'',
+
+
+''AND WE ALSO DON'T NEED TO INJECT THEM, IF WE DON'T NEED THEM''...
+
+
+
+
+
+
+
+
+-> OU SEJA, NAS NOSSAS ROUTES,
+
+PODEMOS SIMPLESMENTE REMOVER as menções a '$request' e '$response',
+
+
+sempre que NÃO FOREM NECESSÁRIAS...
+
+
+
+
+
+
+--> por exemplo,
+
+lá em 'get()',
+
+PODEMOS 
+
+FAZER ASSIM:
+
+
+
+
+
+
+
+
+(ANTES):
+
+
+
+
+
+
+
+
+
+    public function get(Request $request, Response $response, array $args): Response
+    {
+        $transaction = $this->transactionService->getById((int) $args['id']);
+
+        if (! $transaction) {
+            return $response->withStatus(404);
+        }
+
+        $data = [
+            'id'          => $transaction->getId(),
+            'description' => $transaction->getDescription(),
+            'amount'      => $transaction->getAmount(),
+            'date'        => $transaction->getDate()->format('Y-m-d\TH:i'),
+            'category'    => $transaction->getCategory()->getId(),
+        ];
+
+        return $this->responseFormatter->asJson($response, $data);
+    }
+
+
+
+
+
+
+
+
+
+
+(DEPOIS, '$request' parameter foi REMOVIDO):
+
+
+
+
+    public function get(Response $response, array $args): Response
+    {
+        $transaction = $this->transactionService->getById((int) $args['id']);
+
+        if (! $transaction) {
+            return $response->withStatus(404);
+        }
+
+        $data = [
+            'id'          => $transaction->getId(),
+            'description' => $transaction->getDescription(),
+            'amount'      => $transaction->getAmount(),
+            'date'        => $transaction->getDate()->format('Y-m-d\TH:i'),
+            'category'    => $transaction->getCategory()->getId(),
+        ];
+
+        return $this->responseFormatter->asJson($response, $data);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... TESTAMOS NOSSO APP, E ELE FUNCIONA,
+
+
+
+
+MAS AINDA TEMOS QUE IMPLEMENTAR 
+
+
+
+O INJECT DIRETO DE NOSSAS ENTITIES,
+
+ESSA FEATURE 
+
+DE 
+
+
+'Route Model Binding', que é típica do LARAVEL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VOLTAMOS AO CÓDIGO,
+
+
+
+E AÍ 
+
+DEIXAMOS 1 VAR_DUMP NO ELSE,
+
+
+PARA VISUALIZAR 
+
+
+O CONTEÚDO DE '$routeArguments', '$typeName' e '$paramName',
+
+
+
+tipo assim:
+
+
+
+
+
+
+
+
+{
+        $callableReflection = $this->createReflectionForCallable($callable);
+        $resolvedArguments = [];
+
+        foreach ($callableReflection->getParameters() as $parameter) {
+            $type = $parameter->getType();
+
+            if (!$type) {
+                continue;
+            }
+
+            $paramName = $parameter->getName();
+            $typeName = $type->getName();
+
+            if ($type->isBuiltin()) {
+                if ($typeName === 'array' && $paramName === 'args') {
+                    $resolvedArguments[] = $routeArguments;
+                }
+            } else {
+                if ($typeName === ServerRequestInterface::class) {
+                    $resolvedArguments[] = $request;
+                } elseif ($typeName === ResponseInterface::class) {
+                    $resolvedArguments[] = $response;
+                } else {
+                    var_dump($routeArguments, $typeName, $paramName);
+                }
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CLICAMOS EM 'EDIT' (isso dispara a route de 'get' da transaction, para receber a data daquela 
+transaction específica),  e aí
+
+
+
+
+INSPECIONAMOS O DUMP:
+
+
+
+
+
+FICA TIPO ASSIM:
+
+
+
+
+
+
+
+
+array { id => '620012' }  ( este é o ID da transaction)
+
+
+
+'App\Entity\Transaction`  (este é o TYPENAME)
+
+
+'transaction' (é o PARAMNAME....)
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO.... AGORA PRECISAMOS ''MAP THE TRANSACTION ARGUMENT 
+                                TO THIS ID VALUE, SOMEHOW''...
+
+
+
+
+
+
+
+
+
+--> PARA ISSO ,
+
+
+''WE CAN DO THE MAPPING BY __ THE NAME... WE CAN 
+CHANGE THE ID, IN THE PLACEHOLDER, TO BE 'transaction'
+INSTEAD OF ID... IF THE PLACEHOLDER MATCHES THE PARAMETER NAME,
+WE CAN __LOAD__ THE PROPER ENTITY OBJECT''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE O PROFESSOR ABRE AS ROUTES,
+
+
+E AÍ 
+
+
+DECIDE ALTERAR O PARAMETER DO ENDPOINT,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+            // $transactions->get('/{id:[0-9]+}', [TransactionController::class, 'get']);
+        $transactions->get('/{transaction:[0-9]+}', [TransactionController::class, 'get']);
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, NOSSO DUMP FICOU ASSIM, COMO RESULTADO:
+
+
+
+
+
+
+
+
+array { 'transaction' => '620012' }  ( este é o ID da transaction)
+
+
+
+'App\Entity\Transaction`  (este é o TYPENAME)
+
+
+'transaction' (é o PARAMNAME....)
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OU SEJA, AGORA A KEY 
+
+ALI DE CIMA, dos 'routeArguments',
+
+
+
+faz MATCH COM O 'PARAMETER NAME',
+
+O
+'paramName',
+
+
+que é 'transaction'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---> isso basicamente nos permite fazer algumas malandragens...
+
+
+
+
+
+
+
+
+
+--> podemos fazer algo assim, no else case:
+
+
+
+
+
+
+else {
+
+     $entityId = $routeArguments[$paramName] ?? null;
+     var_dump($routeArguments, $typeName, $paramName);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> BASICAMENTE,
+
+    CONSEGUIMOS PEGAR O 'entityId' 
+
+    POR MEIO DO USO DO 'paramName' como indexador/nome da key,
+
+    dentro do array de 'routeArguments'...
+
+
+
+
+
+
+
+
+-> FAZEMOS ISSO, ESSE MAPPING 
+
+''OF THE PARAMETER NAME TO THE PLACEHOLDER NAME'',
+
+
+
+JUSTAMENTE PQ 
+
+
+
+''WE MAY HAVE MULTIPLE RESOURCES/ENTITIES INJECTED 
+IN THE CONTROLLER METHOD''...
+
+
+''WITH THIS TRICK, PHP KNOWS 
+    WHICH __ ID__ TO ASSOCIATE__ WITH EACH PARAMETER''..
+
+
+
+
+
+
+
+
+
+
+
+''WE CAN THROW AN EXCEPTION IF THERE IS NO entityId... ''
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+else {
+                if ($typeName === ServerRequestInterface::class) {
+                    $resolvedArguments[] = $request;
+                } elseif ($typeName === ResponseInterface::class) {
+                    $resolvedArguments[] = $response;
+                } else {
+                    $entityId = (int) $routeArguments[$paramName] ?? null;
+
+                    if (!$entityId) {
+                        throw new \InvalidArgumentException("Unable to resolve argument '$paramName' in the callable.");
+                    }
+                }
+            }
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+CERTO... PODEMOS TAMBÉM FAZER O THROW DE ESSA EXCEPTION 
+
+
+SE 
+
+
+
+''PARAMETER ALLOWS NULL TYPES''...
+
+
+
+
+
+
+
+
+
+
+
+''THIS IS BECAUSE WE CANNOT HAVE NULL ENTITY INJECTIONS,
+IT JUST DOESN'T MAKE ANY SENSE''..
+
+
+
+
+
+
+
+
+
+-> POR ISSO ESCREVEMOS ASSIM:
+
+
+
+
+              if (!$entityId || $parameter->allowsNull()) {
+                        throw new \InvalidArgumentException("Unable to resolve argument '$paramName' in the callable.");
+                    }
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+CASO CONTRÁRIO, SE TIVERMOS O ENTITYID E O PARAMETER NÃO PERMITE NULL,
+
+
+
+PODEMOS 'LOOK UP THE PROPER ENTITY'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+'LOOK UP THE PROPER ENTITY' --> fazemos isso por meio
+                                DO USO DO 'DEFAULT REPOSITORY',
+                                LÁ DO ENTITYMANAGER...
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, PRECISAMOS INJETAR O 'EntityManagerServiceInterface'
+
+    NO CONSTRUCTOR DESSA CLASS...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+    public function __construct(private readonly EntityManagerServiceInterface $entityManagerService) {}
+
+
+
+
+
+
+
+
+
+E ASSIM, LÁ NO ELSE:
+
+
+
+
+
+
+
+$entity = $this->entityManagerService->find($typeName, $entityId); // Get the desired entity (Transaction, Receipt, User, Category, etc)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FINALMENTE, ADICIONAMOS A ENTITY AO ARRAY DE '$resolvedArguments',
+
+
+com este código:
+
+
+
+
+
+
+
+
+
+
+
+
+
+{
+        $callableReflection = $this->createReflectionForCallable($callable);
+        $resolvedArguments = [];
+
+        foreach ($callableReflection->getParameters() as $parameter) {
+            $type = $parameter->getType();
+
+            if (!$type) {
+                continue;
+            }
+
+            $paramName = $parameter->getName();
+            $typeName = $type->getName();
+
+            if ($type->isBuiltin()) {
+                if ($typeName === 'array' && $paramName === 'args') {
+                    $resolvedArguments[] = $routeArguments;
+                }
+            } else {
+                if ($typeName === ServerRequestInterface::class) {
+                    $resolvedArguments[] = $request;
+                } elseif ($typeName === ResponseInterface::class) {
+                    $resolvedArguments[] = $response;
+                } else {
+                    $entityId = (int) $routeArguments[$paramName] ?? null;
+
+                    if (!$entityId || $parameter->allowsNull()) {
+                        throw new \InvalidArgumentException("Unable to resolve argument '$paramName' in the callable.");
+                    }
+
+
+                    $entity = $this->entityManagerService->find($typeName, $entityId); // Get the desired entity (Transaction, Receipt, User, Category, etc)
+
+                    $resolvedArguments[] = $entity;
+                }
+            }
+        }
+
+        // return $callable($request, $response, $routeArguments);  // * This is the default route strategy implementation of Slim framework (a request and response objects, and optional array of args)
+        return $callable(...$resolvedArguments);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS TAMBÉM PRECISAMOS TER HANDLING PARA OS CASES EM QUE 
+
+''THE ENTITY IS NOT FOUND''...
+
+
+
+
+
+
+
+
+
+
+
+
+-> é aqui que vamos triggar aquela response de 404,
+
+se a entity não for found...
+
+
+
+
+
+
+
+
+-> PODEMOS ESCREVER UM IF CASE ASSIM:
+
+
+
+
+
+
+if (!entity) {
+    return 
+}
+
+
+
+
+
+
+
+
+
+
+
+
+-> mas precisamos retornar 1 nova response,
+
+
+
+response de 404... para criar 
+
+essa response,
+
+precisamos da RESPONSE FACTORY,
+
+POR ISSO A INJETAMOS NO CONSTRUCTOR 
+
+DESSA CLASS,
+
+TIPO ASSIM:
+
+
+
+
+
+
+    public function __construct(
+    private readonly EntityManagerServiceInterface $entityManagerService,
+    private readonly ResponseFactoryInterface $responseFactory
+    ) {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS, ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+class RouteEntityBindingStrategy implements InvocationStrategyInterface
+{
+    public function __construct(
+    private readonly EntityManagerServiceInterface $entityManagerService,
+    private readonly ResponseFactoryInterface $responseFactory
+    ) {}
+
+    public function __invoke(
+        callable $callable,
+        ServerRequestInterface $request,
+        ResponseInterface $response,
+        array $routeArguments
+    ): ResponseInterface {
+        $callableReflection = $this->createReflectionForCallable($callable);
+        $resolvedArguments = [];
+
+        foreach ($callableReflection->getParameters() as $parameter) {
+            $type = $parameter->getType();
+
+            if (!$type) {
+                continue;
+            }
+
+            $paramName = $parameter->getName();
+            $typeName = $type->getName();
+
+            if ($type->isBuiltin()) {
+                if ($typeName === 'array' && $paramName === 'args') {
+                    $resolvedArguments[] = $routeArguments;
+                }
+            } else {
+                if ($typeName === ServerRequestInterface::class) {
+                    $resolvedArguments[] = $request;
+                } elseif ($typeName === ResponseInterface::class) {
+                    $resolvedArguments[] = $response;
+                } else {
+                    $entityId = (int) $routeArguments[$paramName] ?? null;
+
+                    if (!$entityId || $parameter->allowsNull()) {
+                        throw new \InvalidArgumentException("Unable to resolve argument '$paramName' in the callable.");
+                    }
+
+
+                    $entity = $this->entityManagerService->find($typeName, $entityId); // Get the desired entity (Transaction, Receipt, User, Category, etc)
+
+                    if (! $entity) {
+                        return $this->responseFactory->createResponse(404); 
+                    }
+
+                    $resolvedArguments[] = $entity;
+                }
+            }
+        }
+
+        // return $callable($request, $response, $routeArguments);  // * This is the default route strategy implementation of Slim framework (a request and response objects, and optional array of args)
+        return $callable(...$resolvedArguments); // * This is our custom Route strategy, with entity injection in the routes.
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS ANTES DE TESTARMOS ISSO, PRECISAMOS 
+
+AJUSTAR 
+
+NOSSAS CONTAINER BINDINGS...
+
+
+
+
+
+
+
+
+
+ISSO É PQ ESTAMOS COLOCANDO 2 DEPENDENCIES NESSE CONSTRUCTOR:
+
+
+
+
+
+
+    public function __construct(
+    private readonly EntityManagerServiceInterface $entityManagerService,
+    private readonly ResponseFactoryInterface $responseFactory
+    ) {}
+
+
+
+
+
+
+
+
+
+
+-> ESTAMOS COM 2 DEPENDENCIES AÍ,
+
+
+    MAS O PROBLEMA É QUE, NAS CONTAINER BINDINGS,
+
+
+    ESTAMOS 
+
+    INSTANCIANDO ESSE 'RouteEntityBindingStrategy'
+
+    DIRETAMENTE,
+
+
+    SEM 
+
+    PASSAR PARAMETER ALGUM,
+    TIPO ASSIM:
+
+
+
+
+
+
+return [
+    App::class => function (ContainerInterface $container) {
+        AppFactory::setContainer($container);
+
+        $addMiddlewares = require CONFIG_PATH . '/middleware.php';
+        $router = require CONFIG_PATH . '/routes/web.php';
+
+        $app = AppFactory::create();
+
+        // How to change the default route strategy (RouteEntityBindingStrategy is provided by us, it's a custom route strategy):
+        $app->getRouteCollector()->setDefaultInvocationStrategy(new RouteEntityBindingStrategy());
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PRECISAMOS COLOCAR 1 NOVA BINDING PARA 'RouteEntityBindingStrategy',
+
+
+uma binding que faça com que 
+esses parameters já sejam passados automaticamente...
+
+
+
+
+
+
+
+tipo assim:
+
+
+ 
+
+
+
+
+
+     RouteEntityBindingStrategy::class => fn(EntityManagerServiceInterface $entityManagerService, ResponseFactoryInterface $responseFactory) => new RouteEntityBindingStrategy($entityManagerService, $responseFactory),
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+acho que fiz certo...
+
+
+
+
+
+
+
+-> MAS O PROFESSOR FEZ DE UMA MANEIRA DIFERENTE,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+return [
+    App::class => function (ContainerInterface $container) {
+        AppFactory::setContainer($container);
+
+        $addMiddlewares = require CONFIG_PATH . '/middleware.php';
+        $router = require CONFIG_PATH . '/routes/web.php';
+
+        $app = AppFactory::create();
+
+        // How to change the default route strategy (RouteEntityBindingStrategy is provided by us, it's a custom route strategy):
+        $app->getRouteCollector()->setDefaultInvocationStrategy(new RouteEntityBindingStrategy($container->get(EntityManagerServiceInterface::class), $app->getResponseFactory()));
+
+
+
+
+
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+
+        // How to change the default route strategy (RouteEntityBindingStrategy is provided by us, it's a custom route strategy):
+        $app->getRouteCollector()->setDefaultInvocationStrategy(new RouteEntityBindingStrategy($container->get(EntityManagerServiceInterface::class), $app->getResponseFactory()));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO.. AÍ TESTAMOS ISSO NO BROWSER...
+
+
+
+
+
+E FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+-> AS TRANSACTIONS CORRETAS ESTÃO SENDO CARREGADAS...
+
+
+
+
+
+
+
+
+-_> DEVEMOS LIMPAR TODO O CONTROLLER 
+
+
+DE 'TransactionController',
+
+
+PARA 
+
+
+GET RID 
+
+
+
+DE TODO O BOILERPLATE CODE...
+
+
+
+
+
+
+
+
+
+
+
+
+-> O CÓDIGO INICIAL ESTÁ ASSIM:
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Contracts\EntityManagerServiceInterface;
+use App\Contracts\RequestValidatorFactoryInterface;
+use App\DataObjects\TransactionData;
+use App\Entity\Receipt;
+use App\Entity\Transaction;
+use App\RequestValidators\TransactionRequestValidator;
+use App\ResponseFormatter;
+use App\Services\CategoryService;
+use App\Services\RequestService;
+use App\Services\TransactionService;
+use DateTime;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Message\ResponseInterface as Response;
+use Slim\Views\Twig;
+
+class TransactionController
+{
+    public function __construct(
+        private readonly Twig $twig,
+        private readonly RequestValidatorFactoryInterface $requestValidatorFactory,
+        private readonly TransactionService $transactionService,
+        private readonly ResponseFormatter $responseFormatter,
+        private readonly RequestService $requestService,
+        private readonly CategoryService $categoryService,
+        private readonly EntityManagerServiceInterface $entityManager
+    ) {}
+
+    public function index(Request $request, Response $response): Response
+    {
+        return $this->twig->render(
+            $response,
+            'transactions/index.twig',
+            ['categories' => $this->categoryService->getCategoryNames()]
+        );
+    }
+
+    public function store(Request $request, Response $response): Response
+    {
+        $data = $this->requestValidatorFactory->make(TransactionRequestValidator::class)->validate(
+            $request->getParsedBody()
+        );
+
+      $transaction = $this->transactionService->create(
+            new TransactionData(
+                $data['description'],
+                (float) $data['amount'],
+                new DateTime($data['date']),
+                $data['category']
+            ),
+            $request->getAttribute('user')
+        );
+
+        $this->entityManager->sync($transaction);
+        
+        return $response;
+    }
+
+    public function delete(Request $request, Response $response, array $args): Response
+    {
+       $transaction = $this->transactionService->getById((int) $args['id']);
+
+       if (! $transaction) {
+           return $response->withStatus(404);
+       }
+
+       $this->entityManager->delete($transaction, true); // 'true' to sync/flush, so changes are applied.
+
+        return $response;
+    }
+
+    public function get(Request $request, Response $response, array $args): Response
+    {
+        $transaction = $this->transactionService->getById((int) $args['id']);
+
+        if (! $transaction) {
+            return $response->withStatus(404);
+        }
+
+        $data = [
+            'id'          => $transaction->getId(),
+            'description' => $transaction->getDescription(),
+            'amount'      => $transaction->getAmount(),
+            'date'        => $transaction->getDate()->format('Y-m-d\TH:i'),
+            'category'    => $transaction->getCategory()->getId(),
+        ];
+
+        return $this->responseFormatter->asJson($response, $data);
+    }
+
+    public function update(Request $request, Response $response, array $args): Response
+    {
+        $data = $this->requestValidatorFactory->make(TransactionRequestValidator::class)->validate(
+            $args + $request->getParsedBody()
+        );
+
+        $id = (int) $data['id'];
+
+        if (! $id || ! ($transaction = $this->transactionService->getById($id))) {
+            return $response->withStatus(404);
+        }
+
+       $transaction = $this->transactionService->update(
+            $transaction,
+            new TransactionData(
+                $data['description'],
+                (float) $data['amount'],
+                new DateTime($data['date']),
+                $data['category']
+            )
+        );
+
+        $this->entityManager->sync($transaction);
+
+
+        return $response;
+    }
+
+    public function load(Request $request, Response $response): Response
+    {
+        $params       = $this->requestService->getDataTableQueryParameters($request);
+        $transactions = $this->transactionService->getPaginatedTransactions($params);
+        $transformer  = function (Transaction $transaction) {
+            return [
+                'id'          => $transaction->getId(),
+                'description' => $transaction->getDescription(),
+                'amount'      => $transaction->getAmount(),
+                'date'        => $transaction->getDate()->format('m/d/Y g:i A'),
+                'category'    => $transaction->getCategory()?->getName(),
+                'wasReviewed' => $transaction->wasReviewed(),
+                'receipts' => $transaction->getReceipts()->map(function (Receipt $receipt) {
+                    return [
+                        'id' => $receipt->getId(),
+                        'name' => $receipt->getFilename(),
+                    ];
+                })->toArray(),
+            ];
+        };
+
+        $totalTransactions = count($transactions);
+
+        return $this->responseFormatter->asDataTable(
+            $response,
+            array_map($transformer, (array) $transactions->getIterator()),
+            $params->draw,
+            $totalTransactions
+        );
+    }
+
+    public function toggleReviewed(Request $request, Response $response, array $args): Response
+    {
+        $id = (int) $args['id'];
+
+        if (! $id || ! ($transaction = $this->transactionService->getById($id))) {
+            return $response->withStatus(404);
+        }
+
+        $this->transactionService->toggleReviewed($transaction);
+
+        $this->entityManager->sync($transaction);
+
+        return $response;
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DO REFACTOR, O CÓDIGO FICA ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Contracts\EntityManagerServiceInterface;
+use App\Contracts\RequestValidatorFactoryInterface;
+use App\DataObjects\TransactionData;
+use App\Entity\Receipt;
+use App\Entity\Transaction;
+use App\RequestValidators\TransactionRequestValidator;
+use App\ResponseFormatter;
+use App\Services\CategoryService;
+use App\Services\RequestService;
+use App\Services\TransactionService;
+use DateTime;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Message\ResponseInterface as Response;
+use Slim\Views\Twig;
+
+class TransactionController
+{
+    public function __construct(
+        private readonly Twig $twig,
+        private readonly RequestValidatorFactoryInterface $requestValidatorFactory,
+        private readonly TransactionService $transactionService,
+        private readonly ResponseFormatter $responseFormatter,
+        private readonly RequestService $requestService,
+        private readonly CategoryService $categoryService,
+        private readonly EntityManagerServiceInterface $entityManager
+    ) {}
+
+    public function index(Response $response): Response
+    {
+        return $this->twig->render(
+            $response,
+            'transactions/index.twig',
+            ['categories' => $this->categoryService->getCategoryNames()]
+        );
+    }
+
+    public function store(Request $request, Response $response): Response
+    {
+        $data = $this->requestValidatorFactory->make(TransactionRequestValidator::class)->validate(
+            $request->getParsedBody()
+        );
+
+      $transaction = $this->transactionService->create(
+            new TransactionData(
+                $data['description'],
+                (float) $data['amount'],
+                new DateTime($data['date']),
+                $data['category']
+            ),
+            $request->getAttribute('user')
+        );
+
+        $this->entityManager->sync($transaction);
+        
+        return $response;
+    }
+
+    public function delete(Response $response, Transaction $transaction): Response
+    {
+       $this->entityManager->delete($transaction, true); // 'true' to sync/flush, so changes are applied.
+
+        return $response;
+    }
+
+    public function get(Response $response, Transaction $transaction): Response
+    {
+        $data = [
+            'id'          => $transaction->getId(),
+            'description' => $transaction->getDescription(),
+            'amount'      => $transaction->getAmount(),
+            'date'        => $transaction->getDate()->format('Y-m-d\TH:i'),
+            'category'    => $transaction->getCategory()->getId(),
+        ];
+
+        return $this->responseFormatter->asJson($response, $data);
+    }
+
+    public function update(Request $request, Response $response, Transaction $transaction): Response
+    {
+        $data = $this->requestValidatorFactory->make(TransactionRequestValidator::class)->validate(
+           $request->getParsedBody()
+        );
+
+       $transaction = $this->transactionService->update(
+            $transaction,
+            new TransactionData(
+                $data['description'],
+                (float) $data['amount'],
+                new DateTime($data['date']),
+                $data['category']
+            )
+        );
+
+        $this->entityManager->sync($transaction);
+
+
+        return $response;
+    }
+
+    public function load(Request $request, Response $response): Response
+    {
+        $params       = $this->requestService->getDataTableQueryParameters($request);
+        $transactions = $this->transactionService->getPaginatedTransactions($params);
+        $transformer  = function (Transaction $transaction) {
+            return [
+                'id'          => $transaction->getId(),
+                'description' => $transaction->getDescription(),
+                'amount'      => $transaction->getAmount(),
+                'date'        => $transaction->getDate()->format('m/d/Y g:i A'),
+                'category'    => $transaction->getCategory()?->getName(),
+                'wasReviewed' => $transaction->wasReviewed(),
+                'receipts' => $transaction->getReceipts()->map(function (Receipt $receipt) {
+                    return [
+                        'id' => $receipt->getId(),
+                        'name' => $receipt->getFilename(),
+                    ];
+                })->toArray(),
+            ];
+        };
+
+        $totalTransactions = count($transactions);
+
+        return $this->responseFormatter->asDataTable(
+            $response,
+            array_map($transformer, (array) $transactions->getIterator()),
+            $params->draw,
+            $totalTransactions
+        );
+    }
+
+    public function toggleReviewed(Response $response, Transaction $transaction): Response
+    {
+        $this->transactionService->toggleReviewed($transaction);
+
+        $this->entityManager->sync($transaction);
+
+        return $response;
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+E ISSO FICOU MT MELHOR...
+
+
+
+1 MONTE DO BOILERPLATE CODE FOI REMOVIDO..
+
+
+
+
+
+
+
+
+''WE NO LONGER NEED TO LOAD THE TRANSACTION ENTITY MANUALLY, IN EACH METHOD...
+AND WE NO LONGER NEED TO CHECK IF THE ENTITY WAS FOUND AND 
+RESPOND WITH 404.... THIS IS NOW HANDLED BY OUR CUSTOM ROUTE ENTITY BINDING 
+STRATEGY''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS ANTES DE PROSSEGUIRMOS, PRECISAMOS, nas routes,
+
+SUBSTITUIR TODOS OS PLACEHOLDERS DE 'id' 
+
+
+COM 'transaction'...
+
+
+
+
+
+
+
+
+
+
+
+--> POR ISSO FICA TIPO ASSIM:
+
+
+
+
+
+
+    $app->group('/transactions', function (RouteCollectorProxy $transactions) {
+        $transactions->get('', [TransactionController::class, 'index']);
+        $transactions->get('/load', [TransactionController::class, 'load']);
+        $transactions->post('', [TransactionController::class, 'store']);
+        $transactions->delete('/{transaction:[0-9]+}', [TransactionController::class, 'delete']);
+        // $transactions->get('/{id:[0-9]+}', [TransactionController::class, 'get']);
+        $transactions->get('/{transaction:[0-9]+}', [TransactionController::class, 'get']);
+        $transactions->post('/{transaction:[0-9]+}', [TransactionController::class, 'update']);
+        $transactions->post('/{transaction:[0-9]+}/receipts', [ReceiptController::class, 'store']);
+        $transactions->get('/{transactionId:[0-9]+}/receipts/{receiptId:[0-9]+}', [ReceiptController::class, 'download']);
+        $transactions->delete('/{transactionId:[0-9]+}/receipts/{receiptId:[0-9]+}', [ReceiptController::class, 'delete']);
+        $transactions->post('/import', [TransactionImporterController::class, 'import']);
+        $transactions->post('/{transaction:[0-9]+}/review', [TransactionController::class, 'toggleReviewed']);
+    })->add(AuthMiddleware::class);
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... RECARREGAMOS A PAGE,
+
+E TUDO FUNCIONA COMO ANTES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> o professor testa a response 404,
+
+
+e isso funciona...
+
+
+
+mas fica sem USER FEEDBACK....
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR DECIDE ADICIONAR 1 FEEDBACK
+
+PARA CASES EM QUE ''NÃO EXISTE TRANSACTION PARA ESSE ID''..
+
+
+
+
+
+
+
+
+
+-> ELE FAZ ISSO COM ESTE CÓDIGO, LÁ NO FRONTEND:
+
+
+
+
+
+
+
+
+
+  return fetch(url, options).then((response) => {
+    if (domElement) {
+      clearValidationErrors(domElement);
+    }
+
+    if (!response.ok) {
+      if (response.status === 422) {
+        response.json().then((errors) => {
+          handleValidationErrors(errors, domElement);
+        });
+      } else if (response.status === 404) {
+        alert(response.statusText);
+      }
+    }
+
+    return response;
+  });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  -> LÁ NO NOSSO 
+
+  CÓDIGO BACKEND,
+
+  O PROFESSOR COLOCA 1 MESSAGE NAQUELE 'createResponse',
+
+
+  TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+            } else {
+                if ($typeName === ServerRequestInterface::class) {
+                    $resolvedArguments[] = $request;
+                } elseif ($typeName === ResponseInterface::class) {
+                    $resolvedArguments[] = $response;
+                } else {
+                    $entityId = (int) $routeArguments[$paramName] ?? null;
+
+                    if (!$entityId || $parameter->allowsNull()) {
+                        throw new \InvalidArgumentException("Unable to resolve argument '$paramName' in the callable.");
+                    }
+
+
+                    $entity = $this->entityManagerService->find($typeName, $entityId); // Get the desired entity (Transaction, Receipt, User, Category, etc)
+
+                    if (! $entity) {
+                        return $this->responseFactory->createResponse(404, 'Resource not found'); 
+                    }
+
+                    $resolvedArguments[] = $entity;
+                }
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+-> E ISSO FUNCIONOU... FICAMOS COM ESSE ALERT, SEMPRE QUE 
+
+O  ID É DE 1 TRANSACTION QUE N FUNCIONA...
+
+
+
+
+
+
+
+
+
+''IDEALLY , WE'D LIKE THE 
+404 GENERATING PART BE THE RESPONSIBILITY 
+OF A MIDDLEWARE,
+ AND NOT THE ROUTING STRATEGY ITSELF''...
+
+
+
+
+
+
+
+
+ -> O PROFESSOR AGORA REFATORA O RESTO DO CÓDIGO,
+
+ DE TODOS CONTROLLERS,
+
+
+ TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+ <?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Contracts\EntityManagerServiceInterface;
+use App\Contracts\RequestValidatorFactoryInterface;
+use App\Entity\Receipt;
+use App\Entity\Transaction;
+use App\Entity\Transaction as EntityTransaction;
+use App\RequestValidators\UploadReceiptRequestValidator;
+use App\Services\ReceiptService;
+use App\Services\TransactionService;
+use League\Flysystem\Filesystem;
+use Psr\Http\Message\ResponseInterface;
+use Slim\Psr7\Request;
+use Slim\Psr7\Response;
+use Slim\Psr7\Stream;
+
+
+class ReceiptController
+{
+
+    public function __construct(
+    private readonly Filesystem $filesystem, 
+    private readonly RequestValidatorFactoryInterface $requestValidatorFactory,
+    private readonly TransactionService $transactionService,
+    private readonly ReceiptService $receiptService,
+    private readonly EntityManagerServiceInterface $entityManager
+    ) {}
+
+
+    public function store(Request $request, Response $response, EntityTransaction $transaction): ResponseInterface
+    {
+
+        $file = $this->requestValidatorFactory->make(UploadReceiptRequestValidator::class)->validate($request->getUploadedFiles())['receipt'];
+
+        $filename = $file->getClientFilename();
+
+
+        $randomFilename = bin2hex(random_bytes(25));
+        
+
+        // * 'write()' + 'getContents()' is GOOD for small files, but bad for large files
+        // * If you want to save large files, you should use 'writeStream()' instead of 'write()'.
+        $this->filesystem->write('receipts/' . $randomFilename, $file->getStream()->getContents());
+
+        $receipt =  $this->receiptService->create($transaction, $filename, $randomFilename, $file->getClientMediaType());
+
+        $this->entityManager->sync($receipt);
+
+        return $response;
+    }
+
+    public function download(Request $request, Response $response, Transaction $transaction, Receipt $receipt): ResponseInterface
+    {
+
+        if ($receipt->getTransaction()->getId() !== $transaction->getId()) {
+            return $response->withStatus(401);
+        }
+
+        // read the stream, using the storageFileName as the filename:
+        $file = $this->filesystem->readStream('receipts/' . $receipt->getStorageFilename());
+
+
+        return $response->withHeader('Content-Type', $receipt->getMediaType())
+                        ->withHeader('Content-Disposition', 'inline; filename=' . $receipt->getFilename()) // 'attachment' will make it so the file is downloaded directly. 'inline' will display the file in the browser window.
+                        ->withBody(new Stream($file));
+    }
+
+    public function delete(Response $response, Transaction $transaction, Receipt $receipt): ResponseInterface
+    {
+
+        if ($receipt->getTransaction()->getId() !== $transaction->getId()) {
+            return $response->withStatus(401);
+        }
+
+        $this->filesystem->delete('receipts/' . $receipt->getStorageFilename());
+
+        $this->entityManager->delete($receipt, true); // 'true' to sync/flush, so changes are applied.
+
+        return $response;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR AJUSTA TODAS AS ROUTES,
+
+
+
+
+substitui 'id' com transaction.. .
+
+
+
+
+
+e 'transactionId' com 'transaction' também...
+
+
+
+
+
+
+
+
+-> os 'id' do receipt são replaced com 'receipt'...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+ $app->group('/transactions', function (RouteCollectorProxy $transactions) {
+        $transactions->get('', [TransactionController::class, 'index']);
+        $transactions->get('/load', [TransactionController::class, 'load']);
+        $transactions->post('', [TransactionController::class, 'store']);
+        $transactions->delete('/{transaction:[0-9]+}', [TransactionController::class, 'delete']);
+        // $transactions->get('/{id:[0-9]+}', [TransactionController::class, 'get']);
+        $transactions->get('/{transaction:[0-9]+}', [TransactionController::class, 'get']);
+        $transactions->post('/{transaction:[0-9]+}', [TransactionController::class, 'update']);
+        $transactions->post('/{transaction:[0-9]+}/receipts', [ReceiptController::class, 'store']);
+        $transactions->get('/{transaction:[0-9]+}/receipts/{receipt:[0-9]+}', [ReceiptController::class, 'download']);
+        $transactions->delete('/{transaction:[0-9]+}/receipts/{receipt:[0-9]+}', [ReceiptController::class, 'delete']);
+        $transactions->post('/import', [TransactionImporterController::class, 'import']);
+        $transactions->post('/{transaction:[0-9]+}/review', [TransactionController::class, 'toggleReviewed']);
+    })->add(AuthMiddleware::class);
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AÍ O PROFESSOR AJUSTA O CONTROLLER DE 'CATEGORYCONTROLLER'...:
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+namespace App\Controllers;
+
+use App\Contracts\EntityManagerServiceInterface;
+use App\Contracts\RequestValidatorFactoryInterface;
+use App\Entity\Category;
+use App\RequestValidators\CreateCategoryRequestValidator;
+use App\RequestValidators\UpdateCategoryRequestValidator;
+use App\ResponseFormatter;
+use App\Services\CategoryService;
+use App\Services\RequestService;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Message\ResponseInterface as Response;
+use Slim\Views\Twig;
+
+class CategoryController
+{
+    public function __construct(
+        private readonly Twig $twig,
+        private readonly RequestValidatorFactoryInterface $requestValidatorFactory,
+        private readonly CategoryService $categoryService,
+        private readonly ResponseFormatter $responseFormatter,
+        private readonly RequestService $requestService,
+        private readonly EntityManagerServiceInterface $entityManagerService
+    ) {
+    }
+
+    public function index(Response $response): Response
+    {
+        return $this->twig->render($response, 'categories/index.twig');
+    }
+
+    public function store(Request $request, Response $response): Response
+    {
+        $data = $this->requestValidatorFactory->make(CreateCategoryRequestValidator::class)->validate(
+            $request->getParsedBody()
+        );
+
+        $category = $this->categoryService->create($data['name'], $request->getAttribute('user'));
+
+        $this->entityManagerService->sync($category);
+
+        return $response->withHeader('Location', '/categories')->withStatus(302);
+    }
+
+    public function delete(Response $response, Category $category): Response
+    {
+
+        $this->entityManagerService->delete($category, true); // 'true' to sync/flush, so changes are applied.
+
+        return $response;
+    }
+
+    public function get(Response $response, Category $category): Response
+    {
+
+        $data = ['id' => $category->getId(), 'name' => $category->getName()];
+
+        return $this->responseFormatter->asJson($response, $data);
+    }
+
+    public function update(Request $request, Response $response, Category $category): Response
+    {
+        $data = $this->requestValidatorFactory->make(UpdateCategoryRequestValidator::class)->validate(
+            $request->getParsedBody()
+        );
+
+        $category = $this->categoryService->update($category, $data['name']);
+
+        $this->entityManagerService->sync($category);
+
+        return $response;
+    }
+
+    public function load(Request $request, Response $response): Response
+    {
+        $params      = $this->requestService->getDataTableQueryParameters($request);
+        $categories  = $this->categoryService->getPaginatedCategories($params);
+        $transformer = function (Category $category) {
+            return [
+                'id'        => $category->getId(),
+                'name'      => $category->getName(),
+                'createdAt' => $category->getCreatedAt()->format('m/d/Y g:i A'),
+                'updatedAt' => $category->getUpdatedAt()->format('m/d/Y g:i A'),
+            ];
+        };
+
+        $totalCategories = count($categories);
+
+        return $this->responseFormatter->asDataTable(
+            $response,
+            array_map($transformer, (array) $categories->getIterator()),
+            $params->draw,
+            $totalCategories
+        );
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+AÍ AJUSTAMOS AS ROUTES DE CATEGORY, TIPO ASSIM:
+
+
+
+
+
+    $app->group('/categories', function (RouteCollectorProxy $categories) {
+        $categories->get('', [CategoryController::class, 'index']);
+        $categories->get('/load', [CategoryController::class, 'load']);
+        $categories->post('', [CategoryController::class, 'store']);
+        $categories->delete('/{category:[0-9]+}', [CategoryController::class, 'delete']);
+        $categories->get('/{category:[0-9]+}', [CategoryController::class, 'get']);
+        $categories->post('/{category:[0-9]+}', [CategoryController::class, 'update']);
+    })->add(AuthMiddleware::class);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO..
+
+
+
+
+
+
+
+
+AÍ EDITAMOS UMA TRANSACTION,
+
+E 1 CATEGORY,
+
+
+
+E TUDO FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA NOSSO CÓDIGO ESTÁ MAIS CLEAN,
+
+E 
+
+ENCONTRAMOS 1 BOM USE-CASE PARA A REFLECTION API...
