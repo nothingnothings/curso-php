@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types = 1);
+<?php declare(strict_types=1);
 
 namespace App\Contracts;
 
@@ -13,4 +11,6 @@ interface UserProviderServiceInterface
     public function getByCredentials(array $credentials): ?UserInterface;
 
     public function createUser(RegisterUserData $data): UserInterface;
+
+    public function verifyUser(UserInterface $user): void;
 }

@@ -80,7 +80,7 @@ class Auth implements AuthInterface
         $this->logIn($user);
 
         // Send verification email to user:
-        $this->signupEmail->send($emailAddress);
+        $this->signupEmail->send($user);
 
         return $user;
     }  

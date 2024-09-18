@@ -2295,3 +2295,2217 @@ DEFINIMOS
 
 
 O NEGÓCIO ASSIM:
+
+
+
+
+
+
+    // * Returns the activationLink
+    private function generateSignedUrl(int $userId, string $email, DateTime $expirationDate): string
+    {
+    // activationLink format: {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}&signature={SIGNATURE}
+
+    $expirationTimestamp = $expirationDate->getTimestamp();
+    $routeParams = [ 'id' => $userId, 'hash' => sha1($email) ];
+    $queryParams = [ 'expiration' => $expirationTimestamp ];
+    $baseUrl = trim($this->config->get('app_url'), '/');
+
+    // {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP} - THIS WILL BE USED TO GENERATE THE SIGNATURE.
+    $url = $baseUrl . $this->routeParser->urlFor('verify', $routeParams, $queryParams);
+
+    // Arguments: 1) hashing algorithm, 2) url, 3) secret key.
+    $signature = hash_hmac('sha256', $url, $this->config->get('app_key'));
+
+    /// {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}&signature={SIGNATURE}
+    $activationLink = $baseUrl . $this->routeParser->urlFor('verify', $routeParams, $queryParams) . '&signature=' . $signature;
+
+    return $activationLink;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+mas o professor quer MODIFICAR ISSO,
+
+
+
+QUER ABSTRAIR ESSA GENERATION,
+
+E AÍ 
+
+QUER 
+
+
+
+
+''ALLOW SIGNED URL GENERATION FOR EVERY SINGLE ROUTE,
+    NOT ONLY FOR THE VERIFY ROUTE''...
+
+
+
+
+
+
+
+
+-> ISSO PQ, ATUALMENTE, ESSE METHOD ESTÁ HARCODADO PARA A 
+
+ROUTE DE 'verify',
+
+
+por conta desta linha:
+
+
+
+
+    // {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP} - THIS WILL BE USED TO GENERATE THE SIGNATURE.
+    $url = $baseUrl . $this->routeParser->urlFor('verify', $routeParams, $queryParams);
+
+
+
+
+
+
+
+
+
+
+
+
+
+PODE SER QUE, NO FUTURO,
+
+
+
+
+NÓS QUEIRAMOS FAZER O GENERATE DE 1 SIGNED URL PARA OUTRAS ROUTES...
+
+
+
+
+É POR ISSO QUE O PROFESSOR QUER MODIFICAR ESSA LÓGICA, DEIXAR MAIS DINÂMICA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O QUE VAMOS FAZER, AQUI,
+É COPIAR TODA ESTA LÓGICA:
+
+
+
+
+
+
+
+
+    // activationLink format: {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}&signature={SIGNATURE}
+
+    $expirationTimestamp = $expirationDate->getTimestamp();
+    $routeParams = [ 'id' => $userId, 'hash' => sha1($email) ];
+    $queryParams = [ 'expiration' => $expirationTimestamp ];
+    $baseUrl = trim($this->config->get('app_url'), '/');
+
+    // {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP} - THIS WILL BE USED TO GENERATE THE SIGNATURE.
+    $url = $baseUrl . $this->routeParser->urlFor('verify', $routeParams, $queryParams);
+
+    // Arguments: 1) hashing algorithm, 2) url, 3) secret key.
+    $signature = hash_hmac('sha256', $url, $this->config->get('app_key'));
+
+    /// {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}&signature={SIGNATURE}
+    $activationLink = $baseUrl . $this->routeParser->urlFor('verify', $routeParams, $queryParams) . '&signature=' . $signature;
+
+    return $activationLink;
+
+
+
+
+
+
+
+
+
+
+
+
+
+    E CRIAR 1 NOVA CLASS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESSA CLASS SERÁ 'SignedUrl'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ELA VAI BASICAMENTE 
+
+'GENERATE A SIGNED URL, FROM A GIVEN ROUTE'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, TEREMOS 1 ÚNICO METHOD DENTRO DELA,
+
+CHAMADO DE 'fromRoute()'...
+
+
+
+
+
+
+fica tipo assim:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+class SignedUrl
+{
+    public function fromRoute()
+    {
+        // activationLink format: {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}&signature={SIGNATURE}
+        $expirationTimestamp = $expirationDate->getTimestamp();
+        $routeParams = ['id' => $userId, 'hash' => sha1($email)];
+        $queryParams = ['expiration' => $expirationTimestamp];
+        $baseUrl = trim($this->config->get('app_url'), '/');
+
+        // {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP} - THIS WILL BE USED TO GENERATE THE SIGNATURE.
+        $url = $baseUrl . $this->routeParser->urlFor('verify', $routeParams, $queryParams);
+
+        // Arguments: 1) hashing algorithm, 2) url, 3) secret key.
+        $signature = hash_hmac('sha256', $url, $this->config->get('app_key'));
+
+        // / {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}&signature={SIGNATURE}
+        $activationLink = $baseUrl . $this->routeParser->urlFor('verify', $routeParams, $queryParams) . '&signature=' . $signature;
+
+        return $activationLink;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ, PRECISAMOS ADAPTAR ESSE CÓDIGO...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Mail;
+
+use App\Config;
+use App\Entity\User;
+use App\SignedUrl;
+use DateTime;
+use Slim\Interfaces\RouteParserInterface;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\BodyRendererInterface;
+
+class SignupEmail
+{
+    public function __construct(
+        private readonly Config $config,
+        private readonly MailerInterface $mailer,
+        private readonly BodyRendererInterface $renderer,
+        private readonly SignedUrl $signedUrl
+    ) {}
+
+
+    public function send(User $user): void
+    {   
+        // ? activationLink format: {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}&signature={SIGNATURE}
+        $userId = $user->getId();
+        $from = $this->config->get('mailer.from');
+        $to = $user->getEmail();
+        $subject = 'Welcome to ' . $this->config->get('app_name');
+        $expirationDate =  new \DateTime('+30 minutes');
+        $activationLink = $this->generateSignedUrl($userId, $to, $expirationDate);
+
+
+        // * Send email to user.
+        $message = (new TemplatedEmail())
+                    ->from($from)
+                    ->to($to)
+                    ->subject($subject)
+                    ->htmlTemplate('/emails/signup.html.twig')
+                    ->context([
+                        'activationLink' => $activationLink,
+                        'expirationDate' => $expirationDate,
+                    ]);
+
+                
+        $this->renderer->render($message);
+
+        $this->mailer->send($message);
+    }
+
+    // * Returns the activationLink
+    private function generateSignedUrl(int $userId, string $email, DateTime $expirationDate): string
+    {
+    $activationLink = $this->signedUrl->fromRoute($userId, $email, $expirationDate);
+
+    return $activationLink;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS O PROFESSOR ADAPTOU MAIS DO QUE ISSO....
+
+
+
+
+
+
+--> ELE QUER SE LIVRAR DE 'verify' como um argument,
+
+por isso ele adaptou assim:
+
+
+
+
+
+
+    public function fromRoute(string $routeName, int $userId, string $email, DateTime $expirationDate): string
+    {
+        // activationLink format: {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}&signature={SIGNATURE}
+        $expirationTimestamp = $expirationDate->getTimestamp();
+        $routeParams = ['id' => $userId, 'hash' => sha1($email)];
+        $queryParams = ['expiration' => $expirationTimestamp];
+        $baseUrl = trim($this->config->get('app_url'), '/');
+
+        // {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP} - THIS WILL BE USED TO GENERATE THE SIGNATURE.
+        $url = $baseUrl . $this->routeParser->urlFor($routeName, $routeParams, $queryParams);
+
+        // Arguments: 1) hashing algorithm, 2) url, 3) secret key.
+        $signature = hash_hmac('sha256', $url, $this->config->get('app_key'));
+
+        // / {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}&signature={SIGNATURE}
+        $activationLink = $baseUrl . $this->routeParser->urlFor($routeName, $routeParams, $queryParams) . '&signature=' . $signature;
+
+        return $activationLink;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> DEPOIS DISSO,
+
+
+
+O PROFESSOR DIZ QUE DEVEMOS 'ACCEPT ROUTEPARAMS, AS AN ARGUMENT' 
+
+
+(pq esses parameters são específicos À route de 'verify', mas queremos que 
+eles sejam reusable e flexible...)
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+ 
+
+
+
+
+     public function fromRoute(string $routeName, array $routeParams, DateTime $expirationDate): string
+    {
+        // activationLink format: {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}&signature={SIGNATURE}
+        $expirationTimestamp = $expirationDate->getTimestamp();
+        $routeParams = ['id' => $userId, 'hash' => sha1($email)];
+        $queryParams = ['expiration' => $expirationTimestamp];
+        $baseUrl = trim($this->config->get('app_url'), '/');
+
+        // {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP} - THIS WILL BE USED TO GENERATE THE SIGNATURE.
+        $url = $baseUrl . $this->routeParser->urlFor($routeName, $routeParams, $queryParams);
+
+        // Arguments: 1) hashing algorithm, 2) url, 3) secret key.
+        $signature = hash_hmac('sha256', $url, $this->config->get('app_key'));
+
+        // / {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}&signature={SIGNATURE}
+        $activationLink = $baseUrl . $this->routeParser->urlFor($routeName, $routeParams, $queryParams) . '&signature=' . $signature;
+
+        return $activationLink;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEIXAMOS A EXPIRATION DATE, POR FIM...
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ PRECISAMOS ADAPTAR AS OUTRAS PARTES,
+
+
+QUE AINDA USAM 
+
+
+'email' e  etc..
+
+
+
+
+
+
+
+
+
+
+
+FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use DateTime;
+use Slim\Interfaces\RouteParserInterface;
+
+class SignedUrl
+{
+
+    public function __construct(
+        private readonly Config $config,
+        private readonly RouteParserInterface $routeParser
+    ) {
+
+    }
+    public function fromRoute(string $routeName, array $routeParams, DateTime $expirationDate): string
+    {
+        // activationLink format: {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}&signature={SIGNATURE}
+        $expirationTimestamp = $expirationDate->getTimestamp();
+        $queryParams = ['expiration' => $expirationTimestamp];
+        $baseUrl = trim($this->config->get('app_url'), '/');
+
+        // {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP} - THIS WILL BE USED TO GENERATE THE SIGNATURE.
+        $url = $baseUrl . $this->routeParser->urlFor($routeName, $routeParams, $queryParams);
+
+        // Arguments: 1) hashing algorithm, 2) url, 3) secret key.
+        $signature = hash_hmac('sha256', $url, $this->config->get('app_key'));
+
+        // / {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}&signature={SIGNATURE}
+        $activationLink = $baseUrl . $this->routeParser->urlFor($routeName, $routeParams, $queryParams) . '&signature=' . $signature;
+
+        return $activationLink;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ, LÁ EM 'SignupEmail',
+
+
+
+podemos escrever assim:
+
+
+
+
+
+
+
+    public function __construct(
+        private readonly Config $config,
+        private readonly MailerInterface $mailer,
+        private readonly BodyRendererInterface $renderer,
+        private readonly SignedUrl $signedUrl
+    ) {}
+
+
+    public function send(User $user): void
+    {   
+        // ? activationLink format: {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}&signature={SIGNATURE}
+        $userId = $user->getId();
+        $from = $this->config->get('mailer.from');
+        $to = $user->getEmail();
+        $subject = 'Welcome to ' . $this->config->get('app_name');
+        $expirationDate =  new \DateTime('+30 minutes');
+        $routeParams = ['id' => $userId, 'hash' => sha1($user->getEmail())];
+        $activationLink = $this->signedUrl->fromRoute('verify',$routeParams, $expirationDate);
+
+
+        // * Send email to user.
+        $message = (new TemplatedEmail())
+                    ->from($from)
+                    ->to($to)
+                    ->subject($subject)
+                    ->htmlTemplate('/emails/signup.html.twig')
+                    ->context([
+                        'activationLink' => $activationLink,
+                        'expirationDate' => $expirationDate,
+                    ]);
+
+                
+        $this->renderer->render($message);
+
+        $this->mailer->send($message);
+    }
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+COM ISSO, CONSEGUIMOS SIMPLIFICAR BASTANTE O CÓDIGO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O USERID é obtido da entity de 'User', sem problemas...
+
+
+
+
+
+
+
+
+
+
+POR FIM, LÁ EM REGISTER, ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public function register(RegisterUserData $data): UserInterface
+    {
+        $user = $this->userProvider->createUser($data);
+
+        $emailAddress = $user->getEmail();
+
+        $this->logIn($user);
+
+        // Send verification email to user:
+        $this->signupEmail->send($user);
+
+        return $user;
+    }  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AÍ TESTAMOS...
+
+
+
+
+
+
+
+
+
+--> VAMOS ATÉ O MAILHOG,
+
+
+
+
+E AÍ ENCONTRAMOS O LINK NO EMAIL..
+
+
+
+
+AGORA O EMAIL CONTÉM O LINK E A EXPIRAITON TIMESTAMP...
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+-> CLICAMOS NO LINK,
+MAS FICAMOS COM UMA PAGE EM BRANCO...
+
+
+
+ISSO FAZ SENTIDO, É PQ AINDA _ NÃO IMPLEMENTAMOS A PAGE DE VERIFICATION...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> A PRÓXIMA ETAPA 
+
+
+É ''BUILD THE VERIFICATION PART''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR EXPLICA QUE 
+
+''YOU SHOULD PROBABLY SPLIT THE VERIFICATION INTO TWO PARTS:''
+
+
+
+
+
+1a PARTE ---> ''WE SHOULD VERIFY THE 
+                VALIDITY OF THE SIGNATURE, IN THE URL...''
+            
+
+
+
+
+
+2a PARTE --> ''WE SHOULD VERIFY THE ACTUAL USER''..
+
+
+
+
+
+
+
+
+
+
+ 
+
+--> A RAZÃO PARA ISSO, NO CASO, É PARA TER 
+
+
+            ''REUSABLE SIGNATURE VERIFICATION'', 
+
+        
+
+        TUDO PARA QUE CONSIGAMOS FAZER O VERIFY DE SIGNATURES 
+        DE OUTRAS URLS QUE TALVEZ TENHAMOS NO FUTURO,
+
+
+        URLS ALÉM DE ''USER VERIFICATION EMAILS''...
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, O PROFESSOR DIZ QUE 
+
+''WE CAN CREATE A NEW MIDDLEWARE, 
+    THAT WE CAN USE TO ___ VALIDATE THE SIGNATURE...''
+
+
+
+
+
+
+
+
+VAMOS CHAMAR ESSE MIDDLEWARE DE 
+
+
+
+
+
+''ValidateSignatureMiddleware''...
+
+
+
+
+
+
+
+
+
+
+
+
+começamos assim:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class ValidateSignatureMiddleware implements MiddlewareInterface {
+
+    public function __construct(
+        private readonly ResponseFactoryInterface $responseFactory
+    ) {}
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {
+
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS PRECISAMOS PEGAR:
+
+
+
+
+
+
+
+
+1) A URI 
+
+
+
+
+2) OS QUERY PARAMETERS, FROM THE REQUEST...
+
+
+
+
+
+
+
+
+
+
+
+-> VAMOS PEGAR ESSAS 2 COISAS LÁ DO REQUEST, E AÍ VAMOS 
+
+ARMAZENAR ESSES VALUES EM VARIABLES...
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class ValidateSignatureMiddleware implements MiddlewareInterface {
+
+    public function __construct(
+        private readonly ResponseFactoryInterface $responseFactory
+    ) {}
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {   
+        $uri = $request->getUri();
+        $queryParams = $request->getQueryParams();
+
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+
+ISSO FEITO,
+
+
+
+PRECISAMOS PEGAR A 'SIGNATURE'
+
+
+E 
+
+'EXPIRATION',
+
+
+
+
+
+de dentro dos params,
+
+e aí 
+
+ARMAZENAR ESSES VALUES EM VARIABLES, TAMBÉM...
+
+
+
+
+
+
+
+
+
+
+
+--> TIPO ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class ValidateSignatureMiddleware implements MiddlewareInterface {
+
+    public function __construct(
+        private readonly ResponseFactoryInterface $responseFactory
+    ) {}
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {   
+        $uri = $request->getUri();
+        $queryParams = $request->getQueryParams();
+        $signature = $queryParams['signature'] ?? null;
+        $expiration = $queryParams['expiration'] ?? null;
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class ValidateSignatureMiddleware implements MiddlewareInterface {
+
+    public function __construct(
+        private readonly ResponseFactoryInterface $responseFactory
+    ) {}
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {   
+        $uri = $request->getUri();
+        $queryParams = $request->getQueryParams();
+        $originalSignature = $queryParams['signature'] ?? '';
+        $expiration = $queryParams['expiration'] ?? 0;
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO,
+
+DEVEMOS 'GENERATE A NEW SIGNATURE',
+
+usando A 
+
+
+
+__ URL... ISSO FEITO,
+
+
+VAMOS COMPARE ESSA NEW SIGNATURE COM A ORIGINAL SIGNATURE,
+
+
+PARA VER SE ESSA ORIGINAL SIGNATURE É VALID....
+
+
+
+
+
+
+
+SE AS DUAS NÃO MATCHEIAM,
+
+
+ISSO QUER DIZER QUE A ORIGINAL URL FOI MODIFICADA/TAMPERED...
+
+
+
+
+
+
+
+
+
+
+
+--> PARA FAZER O GENERATE DA NOVA SIGNATURE,
+
+
+PRECISAMOS USAR NOVAMENTE A FUNCTION DE 
+
+
+'hash_hmac()',
+
+
+
+
+como fizemos na class de 'SignedUrl'...
+
+
+
+
+
+--> BASTA ESCREVER ASSIM:
+
+
+
+
+
+       $signature = hash_hmac('sha256',  (string) $uri, $this->config->get('app_key'));
+
+
+
+
+
+
+
+
+
+
+é importante fazer o cast de '$uri',
+
+
+pq 
+
+
+
+isto:
+
+
+        $uri = $request->getUri();
+
+
+retorna um 'uri object',
+
+
+
+
+e esse tipo de object possui o magic method de '__toString()'...
+
+
+-> quando castamos esse object como STRING,
+
+com '(string)',
+
+
+
+ele automaticamente é convertido na string completa, que queremos utilizar...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO... MAS, AQUI, TEMOS OUTRO DETALHE:
+
+
+
+
+
+
+'''IT'S IMPORTANT TO NOTE THAT WHEN THE ORIGINAL 
+    SIGNED URL WAS GENERATED, 
+    THE SIGNATURE PART WAS __ NOT INCLUDED __ IN THE URL THAT WAS BEING HASHED...
+
+    ''''
+
+
+
+
+
+este trecho aqui:
+
+
+
+        $signature = hash_hmac('sha256', $url, $this->config->get('app_key'));
+
+
+
+
+
+
+
+este trecho não continha a signature em si, dentro da '$url' variable...
+
+
+
+
+
+
+
+
+
+
+
+
+
+ENTRETANTO, NA PARTE DO 'ValidateSignatureMiddleware',
+
+
+
+nessa parte em que estamos GENERATING  the signature,
+
+
+com isto:
+
+
+
+
+
+
+        $signature = hash_hmac('sha256', (string) $uri, $this->config->get('app_key'));
+
+
+
+
+
+
+essa uri aí vai ser 
+
+
+''THE FULL URL OF THE REQUEST'', OU SEJA, 
+
+VAI CONTER A SIGNATURE NA URL completa, como parte da query string...
+
+
+
+
+
+
+
+
+--> ISSO QUER DIZER QUE HASHEAR A URL INTEIRA, INCLUINDO A PARTE DA SIGNATURE,
+    VAI FAZER COM QUE ESSE HASH NÃO MATCHEIE COM A SIGNATURE ORIGINAL... O QUE VAI 
+    CAUSAR UM ERRO...
+
+
+
+
+
+
+
+-> PARA CONSERTAR ISSO, PRECISAMOS  __ EXCLUIR _ A PARTE DA 'ORIGINAL SIGNATURE',   
+    DA URL,
+
+
+    ANTES DE GERARMOS 1 NOVA SIGNATURE COM aquele hash_hmac()
+
+
+
+
+
+
+
+-> para fazer isso, basta 
+
+rodarmos algo como 
+
+
+'unset($queryParams['signature'])',
+
+
+
+PQ ISSO VAI DESTRUIR ESSA SIGNATURE, DOS QUERY PARAMS,
+
+
+E NOS DEIXAR COM APENAS A 'EXPIRATION'... COM ISSO,
+
+EFETIVAMENTE CONSEGUIMOS 
+
+'MIRROR' OS ORIGINAL QUERY PARAMS DAQUELA variable $url em 'SignedUrl',
+
+que usamos PARA GENERATE A ORIGINAL SIGNATURE...
+
+
+
+
+
+
+FICA TIPO ASSIM:
+
+
+
+
+
+
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {   
+        $uri = $request->getUri();
+        $queryParams = $request->getQueryParams();
+        $originalSignature = $queryParams['signature'] ?? '';
+        $expiration = (int) $queryParams['expiration'] ?? 0;
+
+        unset($queryParams['signature']); // we do this so that the original signature and the newly created signature can match.
+
+        // Reconstruct the url, without the signature in the query params.
+        $url = (string) $uri->withQuery($queryParams);
+
+        $signature = hash_hmac('sha256', $url, $this->config->get('app_key'));
+
+        return $handler->handle($request);
+    }
+
+
+
+
+
+CERTO... MAS ESSE 'queryParams' está errado..
+
+
+
+
+
+está errado pq ESTAMOS DANDO 1  ARRAY,
+
+QUANDO DEVERÍAMOS DAR 1 QUERY STRING  ao method de 'withQuery'...
+
+
+
+-> PARA CONSERTAR ISSO, BASTA 
+
+PASSAR ESSE VALUE AO METHOD  DE 'http_build_query()'...
+
+
+
+
+
+EX:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Config;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class ValidateSignatureMiddleware implements MiddlewareInterface {
+
+    public function __construct(
+        private readonly ResponseFactoryInterface $responseFactory,
+        private readonly Config $config
+    ) {}
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {   
+        $uri = $request->getUri();
+        $queryParams = $request->getQueryParams();
+        $originalSignature = $queryParams['signature'] ?? '';
+        $expiration = (int) $queryParams['expiration'] ?? 0;
+
+        unset($queryParams['signature']); // we do this so that the original signature and the newly created signature can match.
+
+        // Reconstruct the url, without the signature in the query params.
+        $url = (string) $uri->withQuery(http_build_query($queryParams));
+
+        $signature = hash_hmac('sha256', $url, $this->config->get('app_key'));
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AGORA QUE TEMOS A OLD SIGNATURE E A NEW SIGNATURE (RECÉM CRIADA),
+
+
+PODEMOS COMPARAR AS 2, 
+
+USANDO A FUNCTION 'hash_equals()',
+
+TIPO ASSIM:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Config;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use RuntimeException;
+
+class ValidateSignatureMiddleware implements MiddlewareInterface {
+
+    public function __construct(
+        private readonly ResponseFactoryInterface $responseFactory,
+        private readonly Config $config
+    ) {}
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {   
+        $uri = $request->getUri();
+        $queryParams = $request->getQueryParams();
+        $originalSignature = $queryParams['signature'] ?? '';
+        $expiration = (int) $queryParams['expiration'] ?? 0;
+
+        unset($queryParams['signature']); // we do this so that the original signature and the newly created signature can match.
+
+        // Reconstruct the url, without the signature in the query params.
+        $url = (string) $uri->withQuery(http_build_query($queryParams));
+
+        $signature = hash_hmac('sha256', $url, $this->config->get('app_key'));
+
+        if (! hash_equals($signature, $originalSignature)) {
+         throw new RuntimeException('Failed to verify signature.');
+        }
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+TAMBÉM PODEMOS CHECAR SE A EXPIRATION JÁ EXPIROU,
+
+COM ISTO:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Config;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use RuntimeException;
+
+class ValidateSignatureMiddleware implements MiddlewareInterface {
+
+    public function __construct(
+        private readonly ResponseFactoryInterface $responseFactory,
+        private readonly Config $config
+    ) {}
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {   
+        $uri = $request->getUri();
+        $queryParams = $request->getQueryParams();
+        $originalSignature = $queryParams['signature'] ?? '';
+        $expiration = (int) $queryParams['expiration'] ?? 0;
+
+        unset($queryParams['signature']); // we do this so that the original signature and the newly created signature can match.
+
+        // Reconstruct the url, without the signature in the query params.
+        $url = (string) $uri->withQuery(http_build_query($queryParams));
+
+        $signature = hash_hmac('sha256', $url, $this->config->get('app_key'));
+
+        if ($expiration <= time() || ! hash_equals($signature, $originalSignature)) {
+         throw new RuntimeException('Failed to verify signature.');
+        }
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+PODERÍAMOS HANDLAR ISSO MAIS GRACEFULLY,
+
+COM O FRONTEND...
+
+MAS NÃO VAMOS FAZER ISSO, POR ENQUANTO...
+
+
+
+
+
+
+SE TUDO MATCHEIA,
+
+
+
+NÓS VAMOS 'MOVE ON ' COM O REQUEST,
+
+
+COM return $handler->handle($request);
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> POR FIM,
+
+
+ADICIONAMOS ESSE MIDDLEWARE
+
+A NOSSAS ROUTES,
+
+COM ISTO:
+
+
+
+
+
+
+
+
+    $app->group('', function (RouteCollectorProxy $group) {
+        $group->post('/logout', [AuthController::class, 'logOut']);
+        $group->get('/verify', [VerifyController::class, 'index']);
+        $group->get('/verify/{id}/{hash}', [VerifyController::class, 'verify'])->setName('verify')->add(ValidateSignatureMiddleware::class);
+    })->add(AuthMiddleware::class);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ESSA SIGNATURE VERIFICATION FORA DO CAMINHO,
+
+
+DEVEMOS VER A PARTE DO CONTROLLER METHOD,
+
+PARA ACTUALLY VERIFICAR O USER..
+
+
+
+
+
+
+
+
+
+-> neste trecho aqui:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Slim\Views\Twig;
+
+class VerifyController
+{
+    public function __construct(private readonly Twig $twig) {}
+
+    public function index(ResponseInterface $response): ResponseInterface
+    {
+        return $this->twig->render($response, 'auth/verify.twig');
+    }
+
+    public function verify(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        
+        return $response;
+    }
+}  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PRECISAMOS IMPLEMENTAR ESSA LÓGICA...
+
+
+
+
+
+
+
+
+
+
+
+''FIRST, WE NEED TO RETRIEVE THE LOGGED-IN USER OBJECT FROM THE REQUEST'':
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Slim\Views\Twig;
+
+class VerifyController
+{
+    public function __construct(private readonly Twig $twig) {}
+
+    public function index(ResponseInterface $response): ResponseInterface
+    {
+        return $this->twig->render($response, 'auth/verify.twig');
+    }
+
+    public function verify(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+
+        $user = $request->getAttribute('user');
+        
+        return $response;
+    }
+}  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS, QUEREMOS VERFIICAR SE O LOGGED-IN USER ID 
+
+
+MATCHEIA COM O USERID QUE É 
+
+PROVIDED NA URL...
+
+
+
+
+
+-> NÓS TAMBÉM QUEREMOS VERIFICAR 
+
+O EMAIL HASH QUE É FORNECIDO NA URL...
+
+
+
+
+
+
+
+--> FAZEMOS ISSO COM O ARGUMENTO DE '$args',
+
+
+QUE SERÁ UM ARRAY CONTENDO OS ROUTE ARGUMENTS 
+
+
+
+
+(que serão o userId e o email hash )
+
+
+EX:
+
+
+
+    public function verify(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+
+        $user = $request->getAttribute('user');
+
+
+        
+        return $response;
+    }
+
+
+
+
+
+
+
+-> VAMOS USAR A FUNCTION DE 'hash_equals()' 
+
+PARA FAZER A COMPARISON,
+
+
+
+PQ QUEREMOS EVITAR 'TIMING ATTACKS'... 
+
+
+
+
+
+
+
+
+--> QUANDO ALGUÉM TENTA 'FIGURE OUT' 1 PEDAÇO DE INFO SAFE 
+    POR MEIO DO MEASURE DE 'QUANTO TEMPO O SISTEMA DEMORA 
+        PARA CHECAR SE SEU GUESS FOI CERTO OU ERRADO''...
+
+
+
+
+
+
+
+---> É POR ISSO QUE USAMOS HASH_EQUALS PARA 
+    FIELDS QUE SÃO SENSITIVE,
+
+    MESMO QUE ISSO SEJA OVERKILL, EM CERTOS CASES...
+
+
+
+
+
+
+
+
+VAMOS CHECAR ASSIM:
+
+
+
+
+
+
+
+
+
+    public function verify(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+
+        $user = $request->getAttribute('user');
+
+        if (! hash_equals((string) $user->getId(), $args['id']) || ! hash_equals(sha1($user->getEmail()), $args['hash'])) {
+           throw new \RuntimeException('Verification failed.');
+        }
+        
+        return $response;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA QUE VERIFICAMOS A SIGNATURE NO MIDDLEWARE E NO USER,
+
+PRECISAMOS SETTAR A 'verifiedAt' date do user,
+
+PARA QUE ELES CONSIGAM UTILIZAR O SITE...
+
+
+
+
+
+
+
+--> PARA ISSO, CHECAMOS SE O USER NÃO 
+
+
+TEM 1 value 
+
+de 
+
+'verifiedAt'...
+
+
+
+
+
+-> SE ELE N TIVER,
+
+
+NÓS SETTAMOS O VALUE,
+
+
+
+COM O METHOD DE 'verifyUser',
+
+que 
+
+ESCREVEMOS DENTRO DO SERVICE DE 'userProviderService'...
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+    public function verify(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+
+        $user = $request->getAttribute('user');
+
+        if (! hash_equals((string) $user->getId(), $args['id']) || ! hash_equals(sha1($user->getEmail()), $args['hash'])) {
+           throw new \RuntimeException('Verification failed.');
+        }
+
+        if (! $user->getVerifiedAt()) {
+           $this->userProviderService->verifyUser($user);
+        }
+        
+        return $response;
+    }
+
+
+
+
+
+
+
+
+    CERTO..
+
+
+
+
+
+
+
+
+    E ESSE METHOD:
+
+
+
+
+
+
+    public function verifyUser(UserInterface $user): void
+    {
+        $user->setVerifiedAt(new \DateTime());
+
+        $this->entityManager->sync($user);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+
+
+FINALMENTE,
+
+
+
+PODEMOS BASICAMENTE REDIRECIONAR O USER à HOMEPAGE,
+
+
+
+
+PQ ELE ESTARÁ VERIFICADO...
+
+
+
+
+
+-> PODEMOS SÓ RODAR ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Contracts\UserProviderServiceInterface;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Slim\Views\Twig;
+
+class VerifyController
+{
+    public function __construct(private readonly Twig $twig, 
+                                private readonly ResponseFactoryInterface $responseFactory,
+                                private readonly UserProviderServiceInterface $userProviderService) {}
+
+    public function index(ResponseInterface $response): ResponseInterface
+    {
+        return $this->twig->render($response, 'auth/verify.twig');
+    }
+
+    public function verify(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+
+        $user = $request->getAttribute('user');
+
+        if (! hash_equals((string) $user->getId(), $args['id']) || ! hash_equals(sha1($user->getEmail()), $args['hash'])) {
+           throw new \RuntimeException('Verification failed.');
+        }
+
+        if (! $user->getVerifiedAt()) {
+           $this->userProviderService->verifyUser($user);
+        }
+        
+        return $response->withHeader('Location', '/')->withStatus(302);
+    }
+}  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+FINALMENTE, COM ISSO, ESTAREMOS VERIFICADOS,
+
+DEPOIS DE ACESSAR ESSA SIGNED URL...
+
+
+
+
+
+
+
+
+
+
+
+
+o professor modifica a url, para mostrar o que acontece quando 
+
+tentamos avacalhar com a signed url...
+
+
+
+
+
+
+
+-> COM ISSO, FICAMOS COM 1 EXCEPTION:
+
+
+''FAILED TO VERIFY SIGNATURE'' --> O QUE QUER DIZER QUE NOSSOS 
+                                    BLOCKS FUNCIONARAM...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO 1 EXERCISE,
+
+O PROFESSOR QUER QUE FAÇAMOS UMA COISA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''WE NEED TO HAVE SOME KIND OF BUTTONS THAT BASICALLY RE-SENDS 
+    THE VERIFICATION EMAIL, 
+    WITH A NEW VERIFICATION URL''..
+
+
+
+
+
+
+-> O PROFESSOR QUER QUE FAÇAMOS ISSO, COMO 1 EXERCISE...
+
+
+
+
+
+
+
+
+--> YOU NEED TO ADD A BUTTON,
+AND THEN MAKE IT SEND AN EMAIL, WHEN IT IS CLICKED...
