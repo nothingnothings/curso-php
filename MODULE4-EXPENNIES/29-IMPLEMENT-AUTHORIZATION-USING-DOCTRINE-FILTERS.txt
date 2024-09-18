@@ -101,6 +101,2597 @@ ETC..
 
 como exemplo disso, o professor usa o controller de 'categoryController',
 
-e o method 'load'
+e o method 'load()'...
 
 
+
+
+
+
+
+
+
+
+
+
+-> NESSE METHOD, nós fazemos o call de 'getPaginatedCategories',
+
+que é um method que SEMPRE NOS DÁ TODAS AS CATEGORIES DO BANCO,
+
+MAS PAGINATED...
+
+
+
+
+
+
+
+
+
+-> ALÉM DE PASSARMOS AQUELE '$params',
+
+
+    devemos passar O ID DO 'CURRENTLY LOGGED-IN USER',
+
+
+    para que então sejam FILTRADAS as categories pertinentes,
+
+    que são daquele user...
+
+
+
+
+
+
+
+
+
+
+O METHOD SERIA MODIFICADO ASSIM:
+
+
+
+
+
+public function load(Request $request, Response $response): Response
+    {   
+        $userId = $request->getAttribute('user')->getId();
+        $params      = $this->requestService->getDataTableQueryParameters($request, $userId);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO...
+
+
+
+
+
+
+
+
+ISSO FEITO, DENTRO DO METHOD,
+
+
+VAMOS ACEITAR ESSE userId
+
+E ADICIONAR ISSO, COMO WHERE CONDITION, TIPO ASSIM:
+
+
+
+
+
+
+    public function getPaginatedCategories(DataTableQueryParams $params, int $userId): Paginator
+    {
+        $query = $this
+            ->entityManager
+            ->getRepository(Category::class)
+            ->createQueryBuilder('c')
+            ->where('c.user = :userId')
+            ->setParameter('userId', $userId)
+            ->setFirstResult($params->start)
+            ->setMaxResults($params->length);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, DEVEM SER CARREGADAS APENAS AS CATEGORIES 
+ASSOCIADAS A ESSE USER...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> E ESSA É A IMPLEMENTATION MAIS BÁSICA POSSÍVEL
+    DE 'AUTHORIZATION'.... E ISSO FUNCIONA, SIM...
+
+
+
+FUNCIONA, MAS VC __ TERIA __ DE ADICIONAR ESSA 
+
+
+CONDITION 
+
+
+
+''''TO EVERY SINGLE ONE OF YOUR QUERIES'''...
+
+
+
+
+
+
+
+
+
+
+''''AND IT WOULD BE EASY TO FORGET THIS CONDITION IN ONE 
+    OF YOUR QUERIES,
+    WHICH WOULD RESULT IN __ DATA LEAKAGE''''''...
+
+
+
+
+
+
+
+
+
+
+
+
+---> HÁ UMA MANEIRA MELHOR PARA FAZER ISSO,
+    E ELA SE CHAMA 'DOCTRINE FILTERS'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> 'DOCTRINE FILTERS' -> ESSA FEATURE 
+
+NOS DEIXA 
+
+
+''''DEFINE OUR FILTERS A SINGLE TIME,
+    REGISTERING IT GLOBALLY''''...
+
+
+
+
+
+
+
+
+
+ 
+
+--> DOCTRINE ORM FILTERS
+    NOS PERMITEM ADICIONAR 
+
+    SQL àS CONDITIONAL CLAUSES
+    DE NOSSAS QUERIES,
+
+    INDEPENDENTEMENTE DE ONDE O SQL 
+    FOI GERADO, DE ONDE FOI GERADO...
+
+
+
+
+
+
+
+--> ''IT BASICALLY FILTERS OUT THE ENTITIES,
+AND PREVENTS FILTERED ENTITIES FROM BEING HYDRATED''
+
+
+
+
+
+
+
+
+
+
+
+
+-> HÁ UM EXEMPLO NOS DOCS QUE ILUSTRA COMO PODEMOS 
+    CRIAR 1 FILTER CLASS:
+
+
+
+
+
+https://www.doctrine-project.org/projects/doctrine-orm/en/3.2/reference/filters.html
+
+
+
+
+
+
+
+
+
+
+
+Doctrine ORM features a filter system that allows the developer 
+to add SQL to the conditional clauses of queries, regardless the place 
+where the SQL is generated (e.g. from a DQL query, or by loading associated entities).
+
+
+
+
+
+
+
+
+The filter functionality works on SQL level. 
+Whether a SQL query is generated in a Persister, during lazy loading,
+ in extra lazy collections or from DQL. Each time the system iterates over 
+ all the enabled filters, adding a new SQL part as a filter returns.
+
+
+
+
+
+
+By adding SQL to the conditional clauses of queries,
+ the filter system filters out rows belonging to the entities at the level of the SQL result set.
+  This means that the filtered entities are never hydrated (which can be expensive).
+
+
+
+
+
+
+
+
+
+
+--> 
+
+Example filter class
+Throughout this document the example MyLocaleFilter class will 
+be used to illustrate how the filter feature works. A filter class 
+must extend the base Doctrine\ORM\Query\Filter\SQLFilter class and implement 
+the addFilterConstraint method. The method receives the ClassMetadata of 
+the filtered entity and the table alias of the SQL table of the entity.
+
+
+
+
+
+
+
+
+
+
+<?php
+namespace Example;
+use Doctrine\ORM\Mapping\ClassMetadata,
+    Doctrine\ORM\Query\Filter\SQLFilter;
+
+class MyLocaleFilter extends SQLFilter
+{
+    public function addFilterConstraint(ClassMetadata $targetEntity, $targetTableAlias): string
+    {
+        // Check if the entity implements the LocalAware interface
+        if (!$targetEntity->reflClass->implementsInterface('LocaleAware')) {
+            return "";
+        }
+
+        return $targetTableAlias.'.locale = ' . $this->getParameter('locale'); // getParameter applies quoting automatically
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+PRECISAMOS FAZER EXTEND DA CLASS DE 'SQLFilter',
+
+e também 
+
+
+
+
+ESCREVER/IMPLEMENTAR O METHOD 
+
+
+'addFilterConstraint'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSE METHOD RECEBE, COMO PRIMEIRO ARGUMENT,
+
+
+
+A 'CLASS METADATA' DA ENTITY COMO PRIMEIRO ARGUMENT,
+
+
+E O 'table alias'
+
+COMO SEGUNDO PARAMETER...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> HÁ UM PUNHADO DE REGRAS QUE DEVEM SER SEGUIDAS QUANDO 
+    QUEREMOS USAR DOCTRINE ORM FILTERS...
+
+
+
+
+
+
+
+
+
+
+
+
+1a REGRA --> ''' PARAMETERS FOR THE QUERY 
+                SHOULD BE SET ON THE __ FILTER OBJECT __ 
+                BY USING THE _ 'setParameter()' method,
+                BEFORE __ THE __ FILTER __ IS USED BY THE ORM'''
+
+
+            (FOR EXAMPLE, YOU MUST NOT SET PARAMETERS INSIDE OF THE 
+                addFilterConstraint() function )...
+
+
+
+
+
+
+
+
+
+
+BASICAMENTE, O QUE ISSO QUER DIZER É QUE NÃO 
+DEVEMOS 
+
+RODAR 'setParameter()'
+
+dentro de este method:
+
+
+
+
+    public function addFilterConstraint(ClassMetadata $targetEntity, $targetTableAlias): string
+    {
+        // Check if the entity implements the LocalAware interface
+        if (!$targetEntity->reflClass->implementsInterface('LocaleAware')) {
+            return "";
+        }
+
+        return $targetTableAlias.'.locale = ' . $this->getParameter('locale'); // getParameter applies quoting automatically
+    }
+
+
+
+
+
+
+
+
+
+
+
+A SEGUNDA REGRA É QUE 
+
+
+''THE FILTER MUST BE DETERMINISTIC''...
+
+
+(OU SEJA, NÃO PODE SER DINÂMICO...)
+
+
+
+
+
+
+
+
+
+--> MAIS PARA BAIXO, ENCONTRAMOS 1 EXAMPLE DE COMO PODEMOS ADICIONAR ESSE FILTER 
+    AO NOSSO ORM...
+
+
+
+
+
+
+
+
+
+
+
+--> DEVEMOS RODAR ASSIM:
+
+
+
+$config->addFilter("locale", "\Doctrine\Tests\ORM\Functional\MyLocaleFilter");
+
+
+
+
+
+
+
+
+
+
+
+
+
+Configuration#addFilter();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... VOLTAMOS AO NOSSO CÓDIGO...
+
+
+
+
+
+
+
+
+
+
+
+
+--> CRIAMOS UM NOVO FOLDER, CHAMADO DE 'Filters'...
+
+
+
+
+
+
+ 
+
+
+
+-> AÍ O PROFESSOR CRIA 1 NOVA CLASS, DE NOME 'UserFilter'...
+
+
+
+
+
+
+
+
+
+
+
+
+-> aí ele faz o extend da class 'SQLFilter',
+
+
+como recomendam os docs:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Filters;
+
+use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\Query\Filter\SQLFilter;
+
+class UserFilter extends SQLFilter
+{
+    public function addFilterConstraint(ClassMetadata $targetEntity , $targetTableAlias) {
+        
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+ AÍ, DENTRO  DESSE METHOD, PODEMOS RETORNAR 1 CONDITIONAL CHECK,
+
+ EM QUE 
+ PODEMOS 
+
+ ''COMPARE THE USERID OF THE TABLE ALIAS 
+    TO __ _THE GIVEN USERID PARAMETER''...
+
+
+
+
+
+
+
+
+
+-_> ou seja,
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+return $targetTableAlias . '.user_id = ' . $this->getParameter('user_id');
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Filters;
+
+use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\Query\Filter\SQLFilter;
+
+class UserFilter extends SQLFilter
+{
+    public function addFilterConstraint(ClassMetadata $targetEntity, $targetTableAlias)
+    {
+        // ? Ex: ''category WHERE user_id = 1 '' --> this gets added to your queries, in the WHERE clause.
+        return $targetTableAlias . '.user_id = ' . $this->getParameter('user_id');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... 
+
+
+
+
+MAS PRECISAMOS REGISTRAR ESSE FILTER NA NOSSA DOCTRIE CONFIGURATION...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, VAMOS ATÉ OS CONTAINER_BINDINGS,
+
+E AÍ 
+
+ADICIONAMOS O FILTER NA CONFIGURATION DO ORM, QUE JÁ EXISTIA ANTES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ANTERIORMENTE, TÍNHAMOS ESCRITO ASSIM:
+
+
+
+
+
+
+
+
+
+    EntityManagerInterface::class => function (Config $config) {
+        $ormConfig = ORMSetup::createAttributeMetadataConfiguration(
+            $config->get('doctrine.entity_dir'),
+            $config->get('doctrine.dev_mode')
+        );
+
+        return new EntityManager(
+            DriverManager::getConnection($config->get('doctrine.connection'), $ormConfig),
+            $ormConfig
+        );
+    },
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ADICIONAR ESSE FILTER,
+
+
+
+DEVEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+
+
+
+    EntityManagerInterface::class => function (Config $config) {
+        $ormConfig = ORMSetup::createAttributeMetadataConfiguration(
+            $config->get('doctrine.entity_dir'),
+            $config->get('doctrine.dev_mode')
+        );
+
+        $ormConfig->addFilter('user', \App\Filters\UserFilter::class);
+
+        return new EntityManager(
+            DriverManager::getConnection($config->get('doctrine.connection'), $ormConfig),
+            $ormConfig
+        );
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+        $ormConfig->addFilter('user', \App\Filters\UserFilter::class);
+
+
+
+
+
+
+
+
+
+
+OU SEJA, PASSAMOS 1 IDENTIFIER AO FILTER,
+
+E ENTÃO 
+
+PASSAMOS O CLASS IDENTIFIER 
+
+
+DO FILTER EM SI... (nesse caso, o 'UserFilter')...
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+
+    EntityManagerInterface::class => function (Config $config) {
+        $ormConfig = ORMSetup::createAttributeMetadataConfiguration(
+            $config->get('doctrine.entity_dir'),
+            $config->get('doctrine.dev_mode')
+        );
+
+        $ormConfig->addFilter('user', UserFilter::class);  // * This is how we add a custom authorization filter to our SQL queries.
+
+        return new EntityManager(
+            DriverManager::getConnection($config->get('doctrine.connection'), $ormConfig),
+            $ormConfig
+        );
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, PRECISAMOS 'ENABLE THE FILTER' 
+
+NO ENTITYMANAGER EM SI,
+
+
+E AÍ 
+
+'PASS DOWN THE CURRENTLY LOGGED-IN USER ID',
+
+
+
+
+
+como PARAMETER...
+
+
+
+
+
+
+
+
+
+
+--> certo...
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, VAMOS ATÉ O method de 'load()', por exemplo,
+
+
+
+no controller de 'categoryController',
+
+e aí 
+
+escrevemos assim:
+
+
+
+
+
+
+
+
+    public function load(Request $request, Response $response): Response
+    {   
+        $this->entityManagerService->getFilters()->enable('user');
+
+        $userId = $request->getAttribute('user')->getId();
+        $params      = $this->requestService->getDataTableQueryParameters($request, $userId);
+        $categories  = $this->categoryService->getPaginatedCategories($params);
+        $transformer = function (Category $category) {
+            return [
+                'id'        => $category->getId(),
+                'name'      => $category->getName(),
+                'createdAt' => $category->getCreatedAt()->format('m/d/Y g:i A'),
+                'updatedAt' => $category->getUpdatedAt()->format('m/d/Y g:i A'),
+            ];
+        };
+
+        $totalCategories = count($categories);
+
+        return $this->responseFormatter->asDataTable(
+            $response,
+            array_map($transformer, (array) $categories->getIterator()),
+            $params->draw,
+            $totalCategories
+        );
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+ESTA LINHA:
+
+
+
+
+
+        $this->entityManagerService->getFilters()->enable('user');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NÓS ENABLAMOS ESSE FILTRO DE 'user',
+
+com isso....
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> DEPOIS DE ENABLAR ESSE FILTER,
+
+    PODEMOS 
+
+    DEFINIR O VALUE DE ESSE PARAMETER,
+
+
+    COM 
+
+
+    '->setParameter()'...
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+    public function load(Request $request, Response $response): Response
+    {   
+        
+        $userId = $request->getAttribute('user')->getId();
+
+        // Make it so that only the user's own categories are returned.
+        $this->entityManagerService->getFilters()->enable('user')->setParameter('user_id', $userId);
+
+        $params      = $this->requestService->getDataTableQueryParameters($request);
+        $categories  = $this->categoryService->getPaginatedCategories($params);
+        $transformer = function (Category $category) {
+            return [
+                'id'        => $category->getId(),
+                'name'      => $category->getName(),
+                'createdAt' => $category->getCreatedAt()->format('m/d/Y g:i A'),
+                'updatedAt' => $category->getUpdatedAt()->format('m/d/Y g:i A'),
+            ];
+        };
+
+        $totalCategories = count($categories);
+
+        return $this->responseFormatter->asDataTable(
+            $response,
+            array_map($transformer, (array) $categories->getIterator()),
+            $params->draw,
+            $totalCategories
+        );
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+COM ISSO, ESSE FILTER SERÁ ADICIONADO, AUTOMATICAMENTE,
+
+
+NA NOSSA QUERY,
+
+
+NA PARTE DO WHERE CLAUSE...
+
+
+
+
+
+
+
+
+--> com isso, FICAMOS COM MENOS BOILERPLATE 
+
+NOS METHODS DE NOSSOS SERVICES...
+
+
+
+
+
+
+
+
+
+
+---> ABRIMOS O BROWSER, E, COMO ANTES,
+
+VISUALIZAMOS APENAS 
+
+
+AS CATEGORIES DE NOSSO USER,
+
+
+
+E NÃO TODAS AS CATEGORIES, DE TODOS OS USERS...
+
+
+
+
+
+
+
+
+
+--> QUER DIZER QUE AQUELA WHERE CLAUSE 
+    FOI ADICIONADA AUTOMATICAMENTE 
+
+    ADICIONADA A NOSSAS QUERIES...
+
+
+
+
+
+
+
+
+
+
+
+-> ISSO TAMBÉM SIGNIFICA QUE ESSE FILTER VAI SER ADICIONADO 
+''TO ALL THE QUERIES, AFTERWARDS'',
+
+
+
+SE NÓS O ENABLARMOS __ DIRETAMENTE  '''IN THE ENTITYMANAGER-LEVEL''
+
+
+
+
+
+
+
+
+-> CERTO... MAS É CLARO QUE O PROFESSOR NÃO GOSTA/NÃO QUER FAZER 
+
+
+ESSE ENABLE DIRETAMENTE NO LEVEL DOS CONTROLLERS,
+
+
+COMO ESTAMOS FAZENDO AQUI:
+
+
+
+
+
+    public function load(Request $request, Response $response): Response
+    {   
+        
+        $userId = $request->getAttribute('user')->getId();
+
+        // Make it so that only the user's own categories are returned.
+        $this->entityManagerService->getFilters()->enable('user')->setParameter('user_id', $userId);
+
+        $params      = $this->requestService->getDataTableQueryParameters($request);
+        $categories  = $this->categoryService->getPaginatedCategories($params);
+        $transformer = function (Category $category) {
+            return [
+                'id'        => $category->getId(),
+                'name'      => $category->getName(),
+                'createdAt' => $category->getCreatedAt()->format('m/d/Y g:i A'),
+                'updatedAt' => $category->getUpdatedAt()->format('m/d/Y g:i A'),
+            ];
+        };
+
+        $totalCategories = count($categories);
+
+        return $this->responseFormatter->asDataTable(
+            $response,
+            array_map($transformer, (array) $categories->getIterator()),
+            $params->draw,
+            $totalCategories
+        );
+    }
+
+
+
+
+
+
+
+
+
+
+em vez disso,
+
+
+
+ELE ACHA 
+
+QUE 
+
+
+
+
+
+''''WE SHOULD ALREADY HAVE THE FILTERS ENABLED, GLOBALLY,
+BEFORE HITTING THE CONTROLLER''...
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR ACHA QUE FAZ SENTIDO COLOCAR ESSE ENABLE, DE ESSE FILTER,
+
+
+EM 1 MIDDLEWARE PRÓPRIO..
+
+
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE ELE PEGA ESSE CÓDIGO,
+
+DE DENTRO DO CONTROLLER,
+
+
+
+E COLOCA EM UM NOVO MIDDLEWARE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ELE APONTA QUE PODERÍAMOS COLOCAR ESSE CÓDIGO EM 1 NOVO MIDDLEWARE,
+
+OU EM 1 MIDDLEWARE JÁ EXISTENTE...
+
+
+
+
+
+
+
+
+
+-> ELE DESTACA QUE JÁ TEMOS 1 MIDDLEWARE DE 'Auth',
+   E QUE 
+
+   DEVEMOS UTILIZÁ-LO PARA IMPLEMENTAR O FILTER, TAMBÉM...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O MIDDLEWARE DE AUTH É ESTE:
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+namespace App\Middleware;
+
+use App\Contracts\AuthInterface;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Slim\Views\Twig;
+
+class AuthMiddleware implements MiddlewareInterface
+{
+    public function __construct(
+        private readonly ResponseFactoryInterface $responseFactory,
+        private readonly AuthInterface $auth,
+        private readonly Twig $twig
+    ) {
+    }
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {
+        if ($user = $this->auth->user()) {
+            $this->twig->getEnvironment()->addGlobal('auth', ['id' => $user->getId(), 'name' => $user->getName()]);
+
+            return $handler->handle($request->withAttribute('user', $user));
+        }
+
+        return $this->responseFactory->createResponse(302)->withHeader('Location', '/login');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ESSE MIDDLEWARE AÍ 
+
+
+JÁ TEM A USER INSTANCE SENDO CRIADA,
+
+
+E JÁ FAZ O PASS DO USER AOS REQUESTS,
+
+
+
+COM ESTA LINHA:
+
+
+
+            return $handler->handle($request->withAttribute('user', $user));
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE PODEMOS ADICIONAR 
+
+
+AQUELA MESMA LÓGICA,
+
+
+LÁ DO CONTROLLER,
+
+NESSE MIDDLEWARE,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+namespace App\Middleware;
+
+use App\Contracts\AuthInterface;
+use App\Contracts\EntityManagerServiceInterface;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Slim\Views\Twig;
+
+class AuthMiddleware implements MiddlewareInterface
+{
+    public function __construct(
+        private readonly ResponseFactoryInterface $responseFactory,
+        private readonly AuthInterface $auth,
+        private readonly Twig $twig,
+        private readonly EntityManagerServiceInterface $entityManagerService
+    ) {
+    }
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {
+        if ($user = $this->auth->user()) {
+
+            $userId = $user->getId();
+
+            $this->twig->getEnvironment()->addGlobal('auth', ['id' => $user->getId(), 'name' => $user->getName()]);
+
+            $this->entityManagerService->getFilters()->enable('user')->setParameter('user_id', $userId);
+
+            return $handler->handle($request->withAttribute('user', $user));
+        }
+
+        return $this->responseFactory->createResponse(302)->withHeader('Location', '/login');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR ACHA QUE ISSO FICOU BEM MELHOR...
+
+
+
+
+
+
+
+
+
+
+AGORA DEVEMOS MELHORAR ESSE MIDDLEWARE DE 'AuthMiddleware' 
+
+um pouco...
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR DECIDE EXTRAIR ESSA LÓGICA
+
+
+DE 
+
+
+
+''
+
+            $this->entityManagerService->getFilters()->enable('user')->setParameter('user_id', $userId);
+
+
+''
+
+
+
+EM 1 METHOD DE 'entityManagerService'
+
+
+
+em si,
+
+
+
+para ficar mais legível..
+
+
+
+
+
+
+
+
+
+-_> OU SEJA,
+
+
+FICA TIPO ASSIM: 
+
+
+
+
+
+class EntityManagerService
+{
+
+    public function enableUserFilter(int $userId): void
+    {
+        $this->entityManager->getFilters()->enable('user')->setParameter('user_id', $userId);
+    }
+
+}
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, O AUTHMIDDLEWARE FICOU ASSIM:
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+namespace App\Middleware;
+
+use App\Contracts\AuthInterface;
+use App\Contracts\EntityManagerServiceInterface;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Slim\Views\Twig;
+
+class AuthMiddleware implements MiddlewareInterface
+{
+    public function __construct(
+        private readonly ResponseFactoryInterface $responseFactory,
+        private readonly AuthInterface $auth,
+        private readonly Twig $twig,
+        private readonly EntityManagerServiceInterface $entityManagerService
+    ) {
+    }
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {
+        if ($user = $this->auth->user()) {
+
+            $userId = $user->getId();
+
+            $this->twig->getEnvironment()->addGlobal('auth', ['id' => $user->getId(), 'name' => $user->getName()]);
+
+            $this->entityManagerService->enableUserFilter($userId);
+
+            return $handler->handle($request->withAttribute('user', $user));
+        }
+
+        return $this->responseFactory->createResponse(302)->withHeader('Location', '/login');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VOLTAMOS AO BROWSER, E TESTAMOS TUDO.... AINDA FUNCIONA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS VAMOS ATÉ A PAGE DE 'TRANSACTIONS',
+
+E AÍ FICAMOS COM 1 ERROR...
+
+
+
+
+
+
+
+
+
+
+--> O ERROR É ALGO QUE EU JÁ ESPERAVA:
+
+
+
+
+''An exception occurred while executing a query: Column not found: 1054 Unknown column 'r2_.user_id''
+
+
+
+
+
+
+
+
+
+
+
+
+r2 --> É A TABLE DE RECEIPTS...
+
+
+
+
+
+
+
+
+--> ISSO ESTÁ ACONTECENDO PQ ESSE FILTER ESTÁ SENDO ADICIONADO A TODAS AS QUERIES,
+DE TODAS AS TABLES... E A TABLE DE 'RECEIPTS' NÃO POSSUI ESSA COLUMN...
+
+
+
+
+
+
+
+--> isso pq RECEIPTS pertencem às transactions,
+    e não aos 'users'...
+
+
+
+
+
+
+
+--> PODEMOS CONSERTAR ISSO... 
+
+
+    BASTA 'ADD THE FILTER ONLY TO THOSE ENTITIES 
+            THAT HAVE THE USER/OWNER''..
+
+
+
+        
+
+
+
+'WE CAN DO THIS BY INTRODUCING SOME SORT OF 
+    INTERFACE, THAT THE ENTITIES WITH THE 'user' 
+    RELATIONSHIP/column cAN IMPLEMENT''...
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS CHAMAR ESSA INTERFACE DE 'OWNABLE' interface,
+    ou algo assim...
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, CRIAMOS 1 NOVA INTERFACE,
+DE NOME 
+
+
+'OwnableInterface'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSA INTERFACE VAI TER 1  METHOD 
+
+    QUE VAI ACTUALLY 'RETURN THE PROPER INSTANCE/OWNER INSTANCE 
+                        OF THAT ENTITY''..
+
+
+
+
+
+
+
+
+
+
+
+
+--> é por isso que escrevemos algo assim:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Contracts;
+
+interface OwnableInterface
+{
+    public function getUser(): UserInterface;
+}
+
+
+
+
+
+
+
+
+
+
+--> AÍ PODEMOS FAZER __ IMPLEMENT__ DE ESSA INTERFACE 
+
+    NAS ENTITIES 
+
+
+
+    DE 'TRANSACTION' E 'CATEGORY',
+
+
+    PQ AMBAS ENTITIES REALMENTE POSSUEM A COLUMN 
+
+
+    'user_id'...
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE ESCREVEMOS ASSIM:
+
+
+
+
+
+class Transaction implements OwnableInterface
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+class Category implements OwnableInterface
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+
+
+
+ISSO PQ AMBAS POSSUEM 'user_id', essa column aí...
+
+
+
+
+
+
+
+
+
+
+-> NÃO PRECISAMOS ESCREVER O METHOD DE 'getUser()'
+
+
+
+NESSAS ENTITIES, PQ JÁ TÍNHAMOS ESCRITO ELE, ANTERIORMENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AGORA, O QUE FAREMOS,
+
+É 
+
+
+
+EDITAR A LÓGICA DE 'UserFilter'...
+
+
+
+
+
+
+
+
+
+
+--> 'UserFilter' --> FAREMOS COM QUE ELE    
+
+
+                    __APENAS__ EXECUTE 
+                    AQUELA LÓGICA DE 
+
+
+
+
+                    ''         return $targetTableAlias . '.user_id = ' . $this->getParameter('user_id'); ''
+
+
+
+                    PARA CLASSES QUE 
+
+                    IMPLEMENTEM 
+
+
+                    A INTERFACE DE 'OwnableInterface'...
+
+
+
+
+
+
+
+
+--> PODEMOS FAZER ISSO COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Filters;
+
+use App\Contracts\OwnableInterface;
+use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\Query\Filter\SQLFilter;
+
+class UserFilter extends SQLFilter
+{
+    public function addFilterConstraint(ClassMetadata $targetEntity, $targetTableAlias)
+    {
+        // ? Ex: ''category WHERE user_id = 1 '' --> this gets added to your queries, in the WHERE clause.
+        // return $targetTableAlias . '.user_id = ' . $this->getParameter('user_id');
+
+        // * If class implements OwnableInterface (in other words, the entity has the user_id field), then add the WHERE clause to the SQL query:
+        if ($targetEntity->getReflectionClass()->implementsInterface(OwnableInterface::class)) {
+            $userId = $this->getParameter('user_id');
+
+            return $targetTableAlias . '.user_id = ' . $userId;
+        } else {
+            return '';
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FAZEMOS ISSO POR MEIO DA 'reflectionClass',
+
+
+
+dessa instance aí...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE VER, É UM CÓDIGO QUASE IGUAL AO EXEMPLO DOS DOCS DO DOCTRINE:
+
+
+
+
+
+
+
+
+
+
+<?php
+namespace Example;
+use Doctrine\ORM\Mapping\ClassMetadata,
+    Doctrine\ORM\Query\Filter\SQLFilter;
+
+class MyLocaleFilter extends SQLFilter
+{
+    public function addFilterConstraint(ClassMetadata $targetEntity, $targetTableAlias): string
+    {
+        // Check if the entity implements the LocalAware interface
+        if (!$targetEntity->reflClass->implementsInterface('LocaleAware')) {
+            return "";
+        }
+
+        return $targetTableAlias.'.locale = ' . $this->getParameter('locale'); // getParameter applies quoting automatically
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... VOLTAMOS AO NOSSO APP,
+
+E AGORA NOSSA PAGE CARREGA SEM ERRORS,
+
+
+
+A PAGE DE TRANSACTIONS,
+
+
+
+PQ 
+
+
+
+AGORA OS RECEIPTS NÃO ESTÃO TENTANDO FILTRAR (where clause) 
+
+POR 1 COLUMN QUE NÃO EXISTE ('user_id')...
+
+
+
+
+
+
+
+
+
+
+
+
+
+QUER DIZER QUE NOSSO FILTER FOI APLICADO, BEHIND THE SCENES,
+A
+ TODAS AS QUERIES de nosso app (com exceção das queries que não 
+ possuem esse field de 'user_id')...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ -> O PROFESSOR APONTA:
+
+
+
+
+
+ ''BUT THERE MAY BE TIMES WHEN 
+    WE MAY WANT TO CHECK ''IF 
+    ___a ___ SPECIFIC GIVEN USER ENTITY__ 
+    CAN MANAGE __ ANOTHER __ SPECIFIC__ ENTITY''....
+
+
+
+
+
+
+
+
+
+
+--> NO MOMENTO, TUDO ISSO FUNCIONA AO REDOR DO 'CURRENTLY LOGGED-IN USER'...
+
+    MAS, WHAT IF 
+
+    ''WE WANTED TO CHECK 
+    IF ANY GIVEN USER CAN MANAGE A SPECIFIC TRANSACTION 
+    OR CATEGORY''?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS FAZER ISSO POR MEIO DE UM NOVO 
+    METHOD,
+    ALGO COMO 
+
+
+
+    'canManage',
+
+
+
+
+    QUE PODEMOS ESCREVER DENTRO DA ENTITY DE 'User'...
+
+
+
+
+
+
+
+
+
+
+
+--> ESCREVEMOS ASSIM:
+
+
+
+
+    public function canManage(OwnableInterface $entity): bool
+    {
+        return $this->getId() === $entity->getUser()->getId();
+    }
+
+
+
+
+
+
+
+ESSA FUNCTION VAI EXIGIR a 'OwnableInterface'
+
+
+
+COMO ARGUMENT... E VAI RETORNAR 'TRUE' OU 'FALSE',
+
+A DEPENDER SE O GIVEN USER PODE, OU NÃO,
+
+FAZER MANAGE 
+
+
+DA ENTITY EM QUESTÃO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+BASICAMENTE, CHECAMOS SE O ID DE ESSA USER ENTITY,
+
+
+
+NÃO INTERESSA O OBJECT,
+
+
+
+É EQUIVALENTE AO ID DA ENTITY QUE IMPLEMENTA ESSA 'OwnableInterface'..
+
+
+
+
+
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+    public function canManage(OwnableInterface $entity): bool
+    {
+        return $this->getId() === $entity->getUser()->getId();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+COM ESSE METHOD, PORTANTO,
+PODEMOS 
+
+
+
+''LOAD ANY USER ENTITY FROM THE DATABASE,
+    AND CHECK IF THAT USER CAN MANAGE ANY 
+    TRANSACTION/CATEGORY ENTITY,
+
+    OR ANY ENTITY THAT IMPLEMENTS THIS INTERFACE 
+
+    OF 'OwnableInterface' ''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> POR FIM,
+
+    HÁ UMA CHANGE QUE O PROFESSOR FEZ,
+
+    POR TRÁS DAS CENAS,
+
+
+
+    NA ENTITY DE 'Transaction'...
+
+
+
+
+
+
+
+
+-> FOI AQUELA OPTION DE 'cascade: ['remove']',
+
+
+
+
+na relation de '$receipts',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+    #[OneToMany(mappedBy: 'transaction', targetEntity: Receipt::class, cascade: ['remove'])]
+    private Collection $receipts;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR FEZ ISSO PQ 
+
+
+ESTÁVAMOS FICANDO COM ERRORS QUANDO 
+
+
+''WE TRY TO REMOVE A TRANSACTION THAT 
+HAD RECEIPTS ASSIGNED TO IT''...
+
+
+
+
+
+
+
+
+
+
+
+--> COM ISSO, SEMPRE QUE DELETARMOS 1 TRANSACTION,
+
+TODOS OS RELATED RECEIPTS SERÃO DELETADOS TAMBÉM...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OUTRA COISA QUE TEMOS QUE SABER:
+
+
+
+
+
+
+
+
+
+
+
+
+NO CONTROLLER DE 'RECEIPTCONTROLLER',
+
+
+
+
+
+
+
+
+TEMOS ESTE TRECHO:
+
+
+
+
+
+
+
+
+
+
+    public function download(Request $request, Response $response, Transaction $transaction, Receipt $receipt): ResponseInterface
+    {
+
+        if ($receipt->getTransaction()->getId() !== $transaction->getId()) {
+            return $response->withStatus(401);
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, 
+
+ESTAMOS COMPARANDO O ID DA TRANSACTION,
+
+DE DENTRO DO RECEIPT,
+
+
+COM 
+
+
+
+O 'TRANSACTION ID'..
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+ COM ISSO, ESTAMOS BASICAMENTE 
+
+ GARANTINDO QUE 
+
+
+
+ '''THE RECEIPT BELONGS TO THE TRANSACTION'''...
+
+
+
+
+
+
+
+
+
+
+ISSO É PQ __ OS RECEIPTS POSSUEM APENAS 1 RELATION COM 
+
+AS TRANSACTIONS,
+
+E NÃO POSSUEM COM OS USERS EM SI...
+
+
+
+
+
+
+
+-> SE O USER FICA 'PLAYING GAMES'
+
+
+E PASSA O ID DE 1 RECEIPT QUE NAÕ PERTENCE A ELE,
+
+
+
+PODEMOS RESPONDER COM 1 ERROR APROPRIADO...
+
+
+
+
+
+--> O LARAVEL IMPLEMENTA ESSE BLOCK COM 1 FEATURE 
+    CHAMADA DE 'POLICIES',
+
+    MAS NÓS NÃO VAMOS TÃO ALÉM 
+
+
+    AQUI, PQ ESTE É APENAS 1 APP BEM SIMPLES... E O PROFESSOR 
+
+    ESTÁ OK COM ESSE CHECK AQUI, PQ 
+
+    APENAS O EXECUTAMOS 2 VEZES...
+
+
+
+
+
+
+
+-. SE VC ESTÁ CONSTRUINDO RAW QUERIES,
+    VC PRECISARÁ 'ADD THE AUTHORIZATION PART'
+
+    POR CONTA PRÓPRIA, POR VOCE MESMO...
+
+
+
+
+
+    MAS SE VC ESTÁ USANDO DOCTRINE ORM E O QUERY BUILDER,
+
+    ESSES FILTERS JÁ SERÃO APLICADOS AUTOMATICAMENTE, COMO VIMOS 
+    ANTERIORMENTE, NESTA AULA...
+
+
+    
