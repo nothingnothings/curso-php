@@ -1,0 +1,2297 @@
+
+
+
+
+
+
+
+
+
+
+--> VAMOS IMPLEMENTAR A LÓGICA DE EMAIL VERIFICATION...
+
+
+
+
+
+
+--> NÓS VAMOS 'GENERATE SIGNED VERIFICATION URLs'...
+
+
+
+
+
+--> UMA 'SIGNED URL'
+
+    É ESSENCIALMENTE UMA URL COMUM,
+
+    MAS COM 'ADDED SECURITY MEASURES'...
+
+
+
+
+
+
+
+
+
+''ADDED SECURITY MEASURES'' ---> SIGNED URLS CONTÊM:
+
+
+
+
+1) EXPIRATION TIMESTAMP 
+
+
+2) SIGNATURE (''a secure seal of authenticity'')
+
+
+
+
+
+
+
+
+
+
+
+-> ESSA SIGNATURE NOS PERMITE VALIDAR A INTEGRIDADE DA URL
+E __GARANTIR__ 
+
+
+
+QUE NENHUMA PARTE DELA FOI MANIPULADA/TAMPERED DURANTE 
+
+O TRANSIT...
+
+
+
+
+
+
+
+
+''SIGNATURE'' --> ''IT'S ESSENTIALLY 
+                        A _ HASH__ OF THE URL'S CONTENTS,
+                        ALONG WITH A SECRET KEY THAT 
+                        IS __ ONLY KNOWN BY THE SERVER''...
+
+
+
+
+
+
+--> QUANDO O SERVER RECEBE O REQUEST,
+    ELE PODE USAR ESSA MESMA 'SECRET KEY'
+    PARA 
+
+
+    ''GENERATE A NEW HASH, FROM THE URL'S CONTENTS'',
+
+
+    PARA ENTÃO 
+
+
+    ''CHECK IF THE NEW HASH __ MATCHES THE PROVIDED SIGNATURE'''... --> DESSA MANEIRA,
+                                                                        TEMOS CERTEZA 
+                                                                        DE QUE 
+
+
+
+                                                                        A URL NÃO 
+                                                                        FOI 'TAMPERED WITH',
+
+                                                                        PQ, CASO CONTRÁRIO,
+
+
+                                                                        OS HASHES NÃO 
+                                                                        MATCHEARIAM...
+
+
+
+FRAMEWORKS COMO O __ LARAVEL__
+
+
+
+
+_ PROVIDENCIAM ESSA FUNCIONLIDADE 'OUT OF THE BOX',
+
+
+
+E 'MAKE IT EASY' 
+
+O IMPLEMENT 
+
+
+DE SIGNED URLS, AUTOMATICAMENTE...
+
+
+
+
+
+
+
+
+
+--> A NOSSA IMPLEMENTATION VAI SER BEM PARECIDA COM A DO LARAVEL,
+NA VERDADE...
+
+
+
+
+
+
+
+
+
+
+--> NA CLASS DE 'SIGNUPEMAIL',
+
+
+EM QUE FAZEMOS O SEND DO EMAIL,
+
+
+
+
+
+COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Mail;
+
+use App\Config;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\BodyRendererInterface;
+
+class SignupEmail
+{
+    public function __construct(
+        private readonly Config $config,
+        private readonly MailerInterface $mailer,
+        private readonly BodyRendererInterface $renderer
+    ) {}
+
+
+    public function send(string $email): void
+    {
+        $from = $this->config->get('mailer.from');
+        $to = $email;
+        $subject = 'Welcome to ' . $this->config->get('app_name');
+
+
+        // * Send email to user.
+        $message = (new TemplatedEmail())
+                    ->from($from)
+                    ->to($to)
+                    ->subject($subject)
+                    ->htmlTemplate('/emails/signup.html.twig')
+                    ->context([
+                        'activationLink' => '#',
+                        'expirationDate' => new \DateTime('+30 minutes'),
+                    ]);
+
+                
+        $this->renderer->render($message);
+
+        $this->mailer->send($message);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NESSE CÓDIGO AÍ,
+
+NÓS PRECISAMOS DO VALUE DO 'activationLink',
+
+precisamos FAZER GENERATE DE ESSE LINK... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, CRIAMOS 1 VARIABLE,
+
+DE NOME '$activationLink'...
+
+
+
+
+
+
+
+
+
+
+
+
+-> NO VALUE DE ESSA VARIABLE,
+
+
+CHAMAMOS 
+
+
+
+'$this->generateSignedLink()'..
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+    public function send(string $email): void
+    {   
+        $activationLink = $this->generateSignedUrl();
+        $from = $this->config->get('mailer.from');
+        $to = $email;
+        $subject = 'Welcome to ' . $this->config->get('app_name');
+
+
+        // * Send email to user.
+        $message = (new TemplatedEmail())
+                    ->from($from)
+                    ->to($to)
+                    ->subject($subject)
+                    ->htmlTemplate('/emails/signup.html.twig')
+                    ->context([
+                        'activationLink' => $activationLink,
+                        'expirationDate' => new \DateTime('+30 minutes'),
+                    ]);
+
+                
+        $this->renderer->render($message);
+
+        $this->mailer->send($message);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+--> Certo, mas que pedaços de info são necessárias,
+    para construir essa signed url?
+
+
+
+
+
+
+
+
+
+
+
+''FIRST, WE MUST DECIDE ON WHAT OUR URL SHOULD LOOK LIKE,
+ AND THEN WE CAN BUILD IT UP, STEP BY STEP''...
+
+
+
+
+
+
+
+
+
+
+A ESTRUTURA VAI SER BASICAMENTE:
+
+
+
+
+
+
+
+
+baseUrl 
+
+
+https://domain.com 
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+--> TIPO ASSIM:
+
+
+
+
+
+{BASE_URL}/
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO,
+
+
+PRECISAMOS DE ALGUM TIPO DE ROUTE...
+
+
+
+
+
+
+
+
+
+
+
+--> NO NOSSO CASO,
+
+JÁ TEMOS A 
+
+ROUTE DE 
+
+
+'get('/verify')'...
+
+
+
+
+
+
+
+--> O PROFESSOR DIZ QUE PODEMOS CRIAR UMA OUTRA 
+
+
+ROUTE,
+
+
+
+COMO 
+
+
+
+''get('/verify/some-additional-info') ''
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+QUER DIZER QUE A URL VAI FICANDO ASSIM:
+
+
+
+
+
+{BASE_URL}/verify
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> DENTRO DESSA URL, PRECISAMOS 
+
+'IDENTIFY THE USER, SOMEHOW',
+
+
+
+pq precisamos 
+
+
+
+'IDENTIFY WHO IS MAKING THAT REQUEST/CLICKING THAT LINK''...
+
+
+
+
+
+--> É POR ISSO QUE VAI FICANDO ASSIM:
+
+
+
+
+
+
+{BASE_URL}/verify/{USER_ID}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É CLARO QUE O PROFESSOR __ SABE__ 
+
+QUE O EXPOSE DO USER_ID 
+
+
+NO EMAIL _ NÃO É UMA BOA PRACTICE,
+
+
+
+PQ _ ISSO PODE EXPOR ALGUMAS INFOS EXTERNAS 
+
+(como ''how many users are there in the system'', por exemplo)...
+
+
+
+
+
+
+
+
+
+
+-> MAS COMO ESTE É UM APP 
+    PEQUENO, N TEM PROBLEMA...
+
+
+
+
+
+
+
+
+
+
+--> SE VC N QUER DEIXAR O ID EXPOSTO,
+
+VC PODE USAR ALGO COMO 'uuid'
+
+
+
+E ENTÃO ADICIONAR ESSA COLUMN à TABLE DE USERS,
+
+E ENTÃO USAR ESSE VALUE DE 'uuid'
+
+
+para verificar/matchear essa signedUrl...
+
+
+
+
+
+
+
+
+-> MAS O PROFESSOR N QUER GASTAR MAIS TEMPO COM ISSO,
+
+    POR ISSO ELE VAI USAR O 'USER_ID' MESMO...
+
+
+
+
+
+
+
+-> certo...
+
+
+    MAS PARA TER MAIS SEGURANÇA,
+
+
+    O PROFESSOR DIZ QUE PODEMOS 'INCLUDE THE EMAIL HASH,
+     IN THE URL'...
+
+
+    
+
+
+
+
+
+--> O FORMATO VAI FICANDO ASSIM:
+
+
+
+
+
+{BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> DEPOIS DISSO, PRECISAMOS 
+
+
+
+DA 
+
+
+
+
+'EXPIRATION TIMESTAMP'...
+
+
+
+
+
+
+
+
+
+
+-> E PODEMOS INCLUIR ISSO COMO PARTE DA QUERY STRING,
+
+TIPO ASSIM:
+
+
+
+
+
+
+{BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A PARTE FINAL DE ESSA URL SERÁ A 'SIGNATURE' em si...
+
+
+
+
+
+
+
+
+
+
+-> A SIGNATURE PODERÁ FAZER PARTE DA QUERY STRING,
+
+
+    TIPO ASSIM:
+
+
+    
+{BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}&signature={SIGNATURE}
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+SERÁ ESSA A APARÊNCIA/ESTRUTURA DA URL FINAL...
+
+
+
+EX:
+
+
+
+
+    // * Returns the activationLink
+    private function generateSignedUrl(): string
+    {
+    // ? activationLink format: {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}&signature={SIGNATURE}
+
+
+        return $url;
+    }
+
+
+
+
+
+
+
+
+MAS COMO PODEMOS OBTER TODAS ESSAS INFOS?
+
+
+
+
+
+
+
+
+
+
+
+1) user_id, email e expiration_timestamp --> PODEM SER ACEITOS COMO _ ARGUMENTS DO METHOD 'generateSignedUrl'...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+    // * Returns the activationLink
+    private function generateSignedUrl(int $userId, string $email, DateTime $expirationTimestamp): string
+    {
+    // ? activationLink format: {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}&signature={SIGNATURE}
+
+
+        return $url;
+    }
+
+
+
+
+
+
+
+
+
+
+CERTO... A PRIMEIRA COISA QUE FAREMOS,
+AQUI,
+
+É 
+
+CONVERTER 
+
+
+
+
+'$expirationDate'
+
+em 1 TIMESTAMP...
+
+
+
+
+
+
+
+
+
+
+-> FAREMOS ISSO JUSTAMENTE PQ __ PRECISAMOS 
+DE 1 TIMESTAMP, PARA A URL...
+
+
+
+
+
+
+
+-> PODEMOS FAZER ISSO TIPO ASSIM:
+
+
+
+
+
+    // * Returns the activationLink
+    private function generateSignedUrl(int $userId, string $email, DateTime $expirationDate): string
+    {
+    // ? activationLink format: {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}&signature={SIGNATURE}
+
+    $expirationTimestamp = $expirationDate->getTimestamp();
+
+        return $url;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO....
+
+
+
+
+
+
+
+
+A PRÓXIMA COISA QUE PRECISAMOS FAZER É 
+
+
+''CONSTRUCT THE ROUTE AND QUERY PARAMETERS''..
+
+
+
+
+
+
+
+
+
+--> OU SEJA,
+
+
+
+ESTA PARTE:
+
+
+
+/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}&signature={SIGNATURE} 
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS ANTES DE FAZERMOS ISSO,
+
+
+
+DEVEMOS CRIAR ESSA ROUTE NO WEB.PHP,
+
+
+NO ARQUIVO DE ROUTES...
+
+
+
+
+
+
+
+
+--> ESCREVEMOS TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+    $app->group('', function (RouteCollectorProxy $group) {
+        $group->post('/logout', [AuthController::class, 'logOut']);
+        $group->get('/verify', [VerifyController::class, 'index']);
+        $group->get('/verify/{id}/{hash}', [VerifyController::class, 'verify']);
+    })->add(AuthMiddleware::class);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+TEREMOS 1 METHOD CHAMADO DE 'verify',
+
+
+dentro do 'VerifyController'...
+
+
+
+
+
+
+
+
+
+
+
+criamos esse method, com este formato:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Slim\Views\Twig;
+
+class VerifyController
+{
+    public function __construct(private readonly Twig $twig) {}
+
+    public function index(ResponseInterface $response): ResponseInterface
+    {
+        return $this->twig->render($response, 'auth/verify.twig');
+    }
+
+    public function verify(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        
+        return $response;
+    }
+}  
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAIS TARDE IMPLEMENTAREMOS ESSE FORMAT ADEQUADAMENTE... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> VOLTAMOS AO 'SignupEmail'...
+
+
+
+
+
+
+
+
+-> VAMOS PEGAR OS ROUTEPARAMS,
+
+COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+
+
+    // * Returns the activationLink
+    private function generateSignedUrl(int $userId, string $email, DateTime $expirationDate): string
+    {
+    // activationLink format: {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}&signature={SIGNATURE}
+
+    $expirationTimestamp = $expirationDate->getTimestamp();
+    $routeParams = [ 'id' => $userId, 'hash' => sha1($email) ];
+    $queryParams = [ 'expiration' => $expirationTimestamp ];
+
+
+        return $url;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+SÓ FALTA A SIGNATURE, MAS VAMOS ADICIONÁ-LA MAIS TARDE...
+
+
+
+ISSO É PQ 
+
+AINDA NÃO SABEMOS COMO FAZER O GENERATE DA SIGNATURE...
+
+
+
+
+
+
+
+
+
+
+--> TEMOS TODOS OS COMPONENTS DA URL,
+
+    EXCETO A 'BASE_URL'
+
+
+
+    E 
+
+
+
+    A SIGNATURE...
+
+
+
+
+
+
+-> PARA OBTER A 'BASE_URL',
+    PODERÍAMOS PARSEAR A 'REQUEST_URI'
+
+    E OBTER A 'BASE_URL' DE LÁ... MAS 
+
+
+    A COISA MAIS FÁCIL A SE FAZER 
+
+
+    É SIMPLESMENTE 
+
+    ARMAZENAR A URL NO CONFIG,
+
+    E AÍ 
+
+    OBTER ESSA URL DE LÁ...
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR JÁ FEZ ISSO POR TRÁS DAS CENAS...
+
+
+
+
+
+
+
+
+
+
+-> LÁ NA CONFIG FILE,
+    TEMOS ESTA PARTE:
+
+
+
+
+
+return [
+    'app_name' => $_ENV['APP_NAME'],
+    'app_version' => $_ENV['APP_VERSION'] ?? '1.0',
+    'app_url' => $_ENV['APP_URL'] ?? 'http://localhost:8000',
+    'app_environment' => $appEnv,
+    'display_error_details' => (bool) ($_ENV['APP_DEBUG'] ?? 0),
+    'log_errors' => true,
+    'log_error_details' => true,
+    'doctrine' => [
+
+
+
+
+
+
+
+
+
+e isso já basta...
+
+
+
+
+
+
+
+
+
+
+no .env,
+
+
+
+temos isto:
+
+
+
+
+
+
+MAILER_DSN=smtp://mailhog:1025
+MAILER_FROM=support@expennies.com
+APP_URL=http://localhost:8000
+
+
+
+
+
+
+
+
+
+OU SEJA, JÁ ESTÁ TUDO CONFIGURADO...
+
+
+
+
+
+
+
+
+
+
+
+-. NO 'SignupEmail',
+
+escrevemos assim:
+
+
+
+
+
+
+
+
+
+
+    // * Returns the activationLink
+    private function generateSignedUrl(int $userId, string $email, DateTime $expirationDate): string
+    {
+    // activationLink format: {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}&signature={SIGNATURE}
+
+    $expirationTimestamp = $expirationDate->getTimestamp();
+    $routeParams = [ 'id' => $userId, 'hash' => sha1($email) ];
+    $queryParams = [ 'expiration' => $expirationTimestamp ];
+    $baseUrl = trim($this->config->get('app_url'), '/');
+
+
+        return $url;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS PARA GERARMOS A SIGNATURE,
+
+
+
+NÓS PRECISAMOS TER A URL COMPLETA....
+
+
+
+
+
+
+
+
+
+
+-> PRECISAMOS DA URL COMPLETA
+
+
+JUSTAMENTE PQ 
+
+A SIGNATURE 
+
+É 
+
+'BASICALLY A HASH 
+    OF THE URL'S contents''...
+
+
+
+
+
+
+
+
+
+
+
+NESSE CASO,
+PRECISAMOS TER ESSA URL INTEIRA,
+
+
+ESTE TRECHO INTEIRO:
+
+
+
+{BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}
+
+
+
+
+para então HASHEAR ESSA STRING,
+
+
+QUE ENTAÕ SERÁ A SIGNATURE...
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO,
+
+    O 'RouteParser'
+
+    TEM 1 METHOD CHAMADO DE 'urlFor()',
+
+
+    QUE FAZ GENERATE DA URL COM BASE 
+
+    NA 'NAMED ROUTE'...
+
+
+
+
+
+
+-> esse method exige:
+
+
+
+1) ROUTE PARAMS 
+
+
+2) QUERY PARAMS...
+
+
+
+
+
+
+
+
+
+-> COM ISSO, COM ESSE METHOD,
+
+NÃO PRECISAMOS BUILDAR A URL MANUALMENTE,
+
+O QUE É BEM ÚTIL...
+
+
+
+
+
+
+
+
+-> mas para que esse method funcione,
+    a primeira coisa que precisamos fazer é 
+
+
+'''NAME OUR ROUTE'',
+
+dar 1 nome a nossa route...
+
+
+
+
+
+
+
+ISSO PQ, ATUALMENTE,
+
+
+ELA NAO TEM NOME:
+
+
+
+
+
+        $group->get('/verify/{id}/{hash}', [VerifyController::class, 'verify']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA DAR 1 NOME A ESSA ROUTE,
+
+BASTA USAR O METHOD 'setName()',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+    $app->group('', function (RouteCollectorProxy $group) {
+        $group->post('/logout', [AuthController::class, 'logOut']);
+        $group->get('/verify', [VerifyController::class, 'index']);
+        $group->get('/verify/{id}/{hash}', [VerifyController::class, 'verify'])->setName('verify');
+    })->add(AuthMiddleware::class);
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+        $group->get('/verify/{id}/{hash}', [VerifyController::class, 'verify'])->setName('verify');
+
+
+
+
+
+
+
+
+
+
+
+
+com isso, o nome de essa route vira 'verify'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> LÁ EM 'SignupEmail',
+
+
+PODEMOS INJETAR 
+
+
+
+A INTERFACE 
+
+
+'RouteParserInterface',
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Mail;
+
+use App\Config;
+use DateTime;
+use Slim\Interfaces\RouteParserInterface;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\BodyRendererInterface;
+
+class SignupEmail
+{
+    public function __construct(
+        private readonly Config $config,
+        private readonly MailerInterface $mailer,
+        private readonly BodyRendererInterface $renderer,
+        private readonly RouteParserInterface $routeParser
+    ) {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA USAR ISSO NO METHOD,
+
+
+BASTA 
+
+
+ESCREVER ASSIM:
+
+
+
+
+
+
+
+
+
+    // * Returns the activationLink
+    private function generateSignedUrl(int $userId, string $email, DateTime $expirationDate): string
+    {
+    // activationLink format: {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}&signature={SIGNATURE}
+
+    $expirationTimestamp = $expirationDate->getTimestamp();
+    $routeParams = [ 'id' => $userId, 'hash' => sha1($email) ];
+    $queryParams = [ 'expiration' => $expirationTimestamp ];
+    $baseUrl = trim($this->config->get('app_url'), '/');
+    $url = $this->routeParser->urlFor('verify', $routeParams, $queryParams);
+
+
+        return $url;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+OS ARGUMENTS SÃO:
+
+
+
+1) THE ROUTE NAME( verify) 
+
+
+2) routeparameters 
+
+
+3) query parameters...
+
+
+
+
+
+
+
+
+
+
+NÓS FAZEMOS PREPEND 
+
+
+DA BASEURL AO INÍCIO,
+
+
+
+pq precisamos dela...
+
+
+
+
+
+
+FICA TIPO ASSIM:
+
+
+
+
+   private function generateSignedUrl(int $userId, string $email, DateTime $expirationDate): string
+    {
+    // activationLink format: {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}&signature={SIGNATURE}
+
+    $expirationTimestamp = $expirationDate->getTimestamp();
+    $routeParams = [ 'id' => $userId, 'hash' => sha1($email) ];
+    $queryParams = [ 'expiration' => $expirationTimestamp ];
+    $baseUrl = trim($this->config->get('app_url'), '/');
+    $url = $baseUrl . $this->routeParser->urlFor('verify', $routeParams, $queryParams);
+
+
+        return $url;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE ESSA URL TODA FICOU TIPO ASSIM:
+
+
+{BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}
+
+
+
+
+
+
+
+
+
+
+
+
+
+agora só faltou a parte da SIGNATURE, ao final...
+
+
+
+
+
+
+
+
+
+-> VAMOS GERAR A SIGNATURE...
+
+
+
+
+
+
+
+
+--> ANTES DE GERAR A SIGNATURE,
+
+    PRECISAMOS ACTUALLY CRIAR 1 ENTRY,
+    NO 
+
+    CONTAINER_BINDINGS.PHP,
+
+
+    para a 
+
+    'RouteParserInterface'...
+
+
+
+
+
+
+
+
+
+
+
+FICA TIPO ASSIM:
+
+
+
+
+
+
+
+    RouteParserInterface::class => fn(App $app) => $app->getRouteCollector()->getRouteParser(),
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, 
+
+
+
+TEMOS UMA URL COM TODAS AS PARTES, MENOS A SIGNATURE...
+
+
+
+
+
+
+
+
+A ÚLTIMA ETAPA É GERAR 1 SIGNATURE PARA A NOSSA URL
+
+
+
+E FAZER APPEND, COMO QUERY PARAMETER,
+
+
+à url inteira...
+
+
+
+
+
+
+
+
+-> PODEMOS FAZER ISSO 
+
+
+COM A FUNCTION 'hash_hmac()'
+
+
+
+
+
+
+
+-> TIPO ASSIM:
+
+
+
+
+
+
+    $signature = hash_hmac('sha256', $url, $this->config->get('app_secret'));
+
+
+
+
+
+
+
+
+
+
+
+Generate a keyed hash value using the HMAC method...
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA O ALGORITMO, USAREMOS 
+
+
+
+'sha256'...
+
+
+
+
+
+
+--> PARA O SEGUNDO ARGUMENT,
+
+USAREMOS A DATA/STRING QUE QUEREMOS  HASHEAR...
+
+
+PASSAMOS A URL... 
+
+
+
+
+
+
+
+
+
+-> O TERCEIRO PARAMETER É A 'SECRET KEY'
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+    // * Returns the activationLink
+    private function generateSignedUrl(int $userId, string $email, DateTime $expirationDate): string
+    {
+    // activationLink format: {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP}&signature={SIGNATURE}
+
+    $expirationTimestamp = $expirationDate->getTimestamp();
+    $routeParams = [ 'id' => $userId, 'hash' => sha1($email) ];
+    $queryParams = [ 'expiration' => $expirationTimestamp ];
+    $baseUrl = trim($this->config->get('app_url'), '/');
+
+    // {BASE_URL}/verify/{USER_ID}/{EMAIL_HASH}?expiration={EXPIRATION_TIMESTAMP} - THIS WILL BE USED TO GENERATE THE SIGNATURE.
+    $url = $baseUrl . $this->routeParser->urlFor('verify', $routeParams, $queryParams);
+
+    // Arguments: 1) hashing algorithm, 2) url, 3) secret key.
+    $signature = hash_hmac('sha256', $url, $this->config->get('app_key'));
+
+    $activationLink = $url . '&signature=' . $signature;
+
+    return $activationLink;
+    }
+
+
+
+
+
+
+
+
+
+
+
+-> quer dizer que hash_hmac()
+
+BASICAMENTE CRIA 1 'HASH OF THE DATA STRING',
+
+
+
+USANDO 
+
+
+
+O ALGORITMO 'SHA256' E UMA SECRET KEY...
+
+
+
+
+
+
+
+
+
+
+
+--> A SECRET KEY, NO CASO,
+
+
+É 
+
+SIMPLESMENTE UMA RANDOM KEY QUE É/SERÁ 
+
+ARMAZENADA NO CONFIG DE NOSSO APP...
+
+
+
+
+
+
+--> PENSE NA SECRET KEY 
+
+
+''AS A SECRET PASSWORD, THAT MUST NOT BE SHARED''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> NO CASO, 
+
+    O PROFESSOR CRIOU 1 COMANDO DOCTRINE,
+    POR TRÁS DAS CENAS,
+
+    QUE TE PERMITE 
+
+    'GENERATE A SECRET KEY'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, PRIMEIRAMENTE ABRIMOS 
+
+'app.php'...
+
+
+
+
+
+
+
+
+-> LÁ DENTRO,
+
+O PROFESSOR ADICIONOU UMA NOVA ENTRY,
+
+CHAMADA DE 'app_key'...
+
+
+
+EX:
+
+
+
+
+
+
+return [
+    'app_key' => $_ENV['APP_KEY'] ?? '',
+    'app_name' => $_ENV['APP_NAME'],
+    'app_version' => $_ENV['APP_VERSION'] ?? '1.0',
+    'app_url' => $_ENV['APP_URL'] ?? 'http://localhost:8000',
+    'app_environment' => $appEnv,
+    'display_error_details' => (bool) ($_ENV['APP_DEBUG'] ?? 0),
+    'log_errors' => true,
+    'log_error_details' => true,
+    'doctrine' => [
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+
+
+
+
+MAS, EM '.env',
+
+O PROFESSOR AINDA NÃO DEFINIU A KEY DE 'APP_KEY'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA TER ESSA SECRET KEY,
+
+VC PODE OU:
+
+
+1) DEFINIR ELA MANUALMENTE (pode ser qualquer string)
+
+
+
+
+
+
+
+
+2) USAR O COMANDO QUE O PROFESSOR PROVIDENCIOU,
+    QUE VAI GERAR ESSA SECRET KEY, AUTOMATICAMENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O CÓDIGO DO COMANDO/ARQUIVO É ESTE:
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+namespace App\Command;
+
+namespace App\Command;
+
+use App\Config;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\ConfirmationQuestion;
+
+class GenerateAppKeyCommand extends Command
+{
+    protected static $defaultName        = 'app:generate-key';
+    protected static $defaultDescription = 'Generates a new APP_KEY';
+
+    public function __construct(private readonly Config $config)
+    {
+        parent::__construct();
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        $hasKey = $this->config->get('app_key');
+
+        if ($hasKey) {
+            $helper = $this->getHelper('question');
+
+            $question = new ConfirmationQuestion(
+                'Generating a new APP_KEY will invalidate any signatures associated with the old key. Are you sure you want to proceed? (y/n)',
+                false
+            );
+
+            if (! $helper->ask($input, $output, $question)) {
+                return Command::SUCCESS;
+            }
+        }
+
+        $key = base64_encode(random_bytes(32));
+
+        $envFilePath = __DIR__ . '/../../.env';
+
+        if (! file_exists($envFilePath)) {
+            throw new \RuntimeException('.env file not found');
+        }
+
+        $envFileContent = file_get_contents($envFilePath);
+
+        $pattern = '/^APP_KEY=.*/m';
+
+        if (preg_match($pattern, $envFileContent)) {
+            $envFileContent = preg_replace($pattern, 'APP_KEY=' . $key, $envFileContent);
+        } else {
+            $envFileContent .= PHP_EOL . 'APP_KEY=' . $key;
+        }
+
+        file_put_contents($envFilePath, $envFileContent);
+
+        $output->writeln('New APP_KEY has been generated & saved');
+
+        return Command::SUCCESS;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK....
+
+
+
+
+
+
+
+
+
+
+
+E, PARA RODAR ESSE COMANDO,
+
+
+
+BASTA 
+
+
+
+rodar 
+
+
+
+'php expennies app:generate-key'..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok, mas... não consegui usar esse command...
+
+
+
+
+
+
+
+
+acho que tenho que ADICIONAR ESSE COMMAND,
+
+lá em 'expennies' (arquivo base em que temos os commands)
+
+
+
+
+
+
+
+
+
+CONSEGUI, FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Commands\GenerateAppKeyCommand;
+
+return [
+    GenerateAppKeyCommand::class,
+];
+
+
+
+
+
+
+
+
+
+
+
+
+
+    E ISSO REALMENTE GEROU 1 NOVA APP_KEY, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+APP_NAME=Expennies
+APP_VERSION=1.0
+APP_DEBUG=1
+APP_ENV=development
+DB_HOST=db
+DB_USER=root
+DB_PASS=root
+DB_NAME=expennies
+MAILER_DSN=smtp://mailhog:1025
+MAILER_FROM=support@expennies.com
+APP_URL=http://localhost:8000
+APP_KEY=zm2L98wnlLfEIyPP1onjj9lzyQslEgRTLKgVopbSDAQ=
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... FECHAMOS TUDO ISSO AÍ,
+E AÍ 
+
+
+
+DEFINIMOS 
+
+
+O NEGÓCIO ASSIM:
