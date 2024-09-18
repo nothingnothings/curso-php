@@ -1,0 +1,2727 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+ VAMOS ADICIONAR EMAIL VERIFICATION...
+
+
+
+
+
+
+
+ -----> SEMPRE QUE O EMAIL CRIAR 1 CONTA,
+
+
+ VAMOS ENVIAR 1 EMAIL,
+
+ PARA QUE ELE CLIQUE EM ALGUM TIPO DE LINK,
+ PARA QUE A CONTA SEJA VERIFICADA...
+
+
+
+
+
+
+
+
+ VAMOS USAR:
+
+
+
+
+
+
+1) MAILHOG ---> É UM EMAIL TESTING TOOL, USADO PARA LOCAL ENVIRONMENTS...
+
+
+
+
+
+
+
+
+2) SYMFONY MAILER PACKAGE --> USADO PARA ACTUALLY ENVIAR OS EMAILS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR VAI SETUPPAR TUDO BEM RÁPIDO,
+    SEM MTOS DETALHES,
+
+
+    PQ 
+
+    JÁ VIMOS ISSO ANTERIORMENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> NÓS JÁ TEMOS AQUELE CONTAINER DO MAILHOG ADICIONADO AO DOCKER-COMPOSE.YML,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: "."
+      dockerfile: Dockerfile
+      args:
+        USER_ID: '${WWWUSER:-1000}'
+        GROUP_ID: '${WWWGROUP:-1000}'
+        USER: '${USER:-whoami}'
+    container_name: expennies-app
+    restart: always
+    working_dir: /var/www/
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "9003:9003"
+    volumes:
+      - ../:/var/www
+      - ./local.ini:/usr/local/etc/php/conf.d/local.ini
+  nginx:
+    image: nginx:1.19-alpine
+    container_name: expennies-nginx
+    restart: always
+    ports:
+      - "8000:80"
+    volumes:
+      - ../:/var/www
+      - ./nginx:/etc/nginx/conf.d
+  db:
+    container_name: expennies-db
+    image: mysql:8.0
+    volumes:
+      - ./storage/mysql:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+  mailhog:
+    container_name: expennies-mailhog
+    image: mailhog/mailhog
+    logging:
+      driver: "none"
+    restart: always
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... AÍ BUILDAMOS NOSSOS CONTAINERS....
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> É CLARO QUE O MAILHOG NÃO É A ÚNICA FERRAMENTA QUE VC PODE UASR...
+
+
+
+
+
+
+
+VC PODE USAR MAILTRAP, ALTERNATIVAMENTE, OU ATÉ MESMO OUTRA TOOL...
+
+
+
+
+
+
+
+
+
+
+
+
+--> A PRIMEIRA COISA QUE PRECISAMOS FAZER, AQUI,
+
+É INSTALAR O SYMFONY MAILER,
+
+
+
+COM ESTE CÓDIGO COMPOSER:
+
+
+
+
+
+
+
+
+composer require symfony/mailer 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO, PRECISAMOS CONFIGURAR ESSE MAILER...
+
+
+
+
+
+
+
+
+FAZEMOS ISSO NOS CONTAINER BINDINGS,
+
+
+
+COM ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+    MailerInterface::class => function () {
+        return new Mailer();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE ESSA MAILER CLASS FAZ EXPECT DE ALGUNS ARGUMENTS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O ARGUMENT:
+
+
+1) UMA 'TRANSPORT' CLASS...
+
+
+
+
+
+
+
+-> PODEMOS CRIAR 1 TRANSPORT 'FROM DSN',
+
+
+
+
+
+com um código parecido com o que já executamos no passado:
+
+
+
+
+
+
+
+
+
+
+    MailerInterface::class => function () {
+        $transport = Transport::fromDsn();
+
+        return new Mailer();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+precisamos, em 'fromDsn()',
+ 
+
+
+A 'DSN STRING',
+
+
+como argumento...
+
+
+
+
+
+
+
+
+-> PODEMOS ARMAZENAR O DSN EM 1 ENVIRONMENT VARIABLE/CONFIG,
+  E AÍ EXTRAIR ISSO DE LÁ...
+
+
+
+
+
+
+
+-> É POR ISSO QUE INJETAMOS O 'Config' como dependency de essa function,
+
+e aí 
+
+rodamos 
+ASSIM:
+
+
+
+
+
+
+
+    MailerInterface::class => function (Config $config) {
+        $transport = Transport::fromDsn($config->get('mailer.dsn'));
+
+        return new Mailer($transport);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+- AGORA PRECISAMOS ADICIONAR 'mailer.dsn'
+
+
+
+nas nossas configurations,
+
+tipo assim, em 'app.php':
+
+
+
+
+
+    'mailer' => [
+        'dsn' => $_ENV['MAILER_DSN'],
+        
+    ],
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS PRECISAMOS DE OUTRA KEY, AQUI,
+
+
+
+que será usada como o 
+
+'DEFAULT 'FROM' email address'',
+
+
+
+que vamos usar nos nossos emails..
+
+
+
+
+
+
+
+
+
+
+--> é por isso que colocamos tipo assim:
+
+
+
+
+
+
+    'mailer' => [
+        'dsn' => $_ENV['MAILER_DSN'],
+        'from' => $_ENV['MAILER_FROM'],
+    ],
+
+
+
+
+
+
+
+
+
+
+
+
+-> depois disso, colocamos esses values na nossa .env file,
+
+
+com os values apropriados,
+
+tipo assim:
+
+
+
+
+MAILER_DSN=smtp://mailhog:1025
+MAILER_FROM=support@expennies.com
+
+
+
+
+
+
+
+
+
+
+
+
+certo..
+
+
+
+
+
+
+A PRÓXIMA ETAPA, NO CASO,
+
+
+
+É 
+
+
+'PREPARE AND SEND AN EMAIL WHENEVER A USER REGISTERS'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> LÁ NA CLASS DE 'Auth',
+
+TEMOS ESTE METHOD:
+
+
+
+
+
+
+    public function register(RegisterUserData $data): UserInterface
+    {
+        $user = $this->userProvider->createUser($data);
+
+        $this->logIn($user);
+
+        return $user;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+ESSE METHOD DE REGISTER FAZ CREATE DO USER,
+
+
+E AÍ FAZ O LOGIN DO USER, COM ESSE CREATED USER...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> LOGO ABAIXO DO LOGIN DO USER,
+
+
+PODEMOS 'SEND AN EMAIL TO THE USER',
+
+
+
+PEDINDO PARA QUE ELE VERIFIQUE O USER...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+    public function register(RegisterUserData $data): UserInterface
+    {
+        $user = $this->userProvider->createUser($data);
+
+        $this->logIn($user);
+
+        // Send verification email to user:
+
+        return $user;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS O PROFESSOR, AQUI, 
+
+APONTA QUE 
+
+__ ELE NÃO VAI QUERER CRIAR O 'EMAIL MESSAGE OBJECT'
+
+
+
+NO INTERIOR DE NOSSA CLASS DE 'AUTH'...
+
+
+
+
+
+
+
+
+-> ELE VAI QUERER CRIAR ESSA MESSAGE PROVAVELMENTE POR MEIO DE 1 SERVICE...
+
+
+
+
+
+
+
+
+
+
+--> ELE QUER ISSO PARA EVITAR O BLOAT DE ESSA CLASS...
+
+
+
+
+
+
+
+
+
+--> ''I WANT DEDICATED EMAIL CLASSES, THAT WILL HANDLE THE EMAIL 
+    PREPARATION AND SENDING''..
+
+
+
+
+
+
+
+  
+
+  -> o professor quer apenas chamar um method de 'send',
+  em 1 object de nome 'signupEmail' ou algo assim...
+
+
+
+
+
+
+
+
+
+
+
+TIPO ALGO ASSIM:
+
+
+
+
+    public function register(RegisterUserData $data): UserInterface
+    {
+        $user = $this->userProvider->createUser($data);
+
+        $this->logIn($user);
+
+        // Send verification email to user:
+        $this->signupEmail->send($user->getEmail());
+
+        return $user;
+    }  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  COM ISSO, ABSTRAÍMOS TODA A LÓGICA DE SEND DE EMAIL PARA LONGE DE ESSE 
+
+  'Auth.php',
+
+
+
+  e para longe de esse method...
+
+
+
+
+
+
+
+
+
+
+
+--> VAMOS ATÉ NOSSO CONSTRUCTOR,
+
+
+
+
+E INJETAMOS 
+
+ 
+'SignupEmail'..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ CRIAMOS ESSA CLASS,
+
+EM 1 NOVO FOLDER,
+
+CHAMADO DE 'Mail'...
+
+
+
+
+
+
+
+
+
+Ex:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Mail;
+
+class SignupEmail
+{
+    public function send(string $email): void {}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Mail;
+
+class SignupEmail
+{
+    public function send(string $email): void
+    {
+        // TODO: Send email to user.
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A PRIMEIRA COISA QUE TEMOS QUE FAZER, AQUI,
+
+É 
+
+
+'CREATE THE EMAIL MESSAGE OBJECT'...
+
+
+
+
+
+
+
+
+
+
+
+--> VAMOS USAR TEMPLATED EMAILS,
+
+  PARA QUE CONSIGAMOS USAR 
+
+  TWIG TEMPLATES COMO NOSSOS EMAIL TEMPLATES,
+
+  EM VEZ DE COLOCAR ALGUM CÓDIGO HTML NO NOSSO CÓDIGO PHP...
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS INSTANCIAR 
+  O TEMPLATED EMAIL OBJECT 
+  ASSIM:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Mail;
+
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+
+class SignupEmail
+{
+    public function send(string $email): void
+    {
+        // * Send email to user.
+        $message = new TemplatedEmail();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+essa class de 'TemplatedEmail'
+
+
+APENAS FAZ O EXTEND DA CLASS DE 'Email'
+
+
+
+DO SYMFONY,
+
+E AÍ PROVIDENCIA ALGUMAS FUNCTIONALITITES EXTRAS...
+
+
+
+
+
+
+
+
+
+
+
+
+-> SETTAMOS ALGUMAS DAS OPTIONS DE ESSE EMAIL..
+
+
+
+
+
+
+
+
+PRIMEIRAMENTE, SETTAMOS O 'from' de esse email...
+
+
+
+
+
+
+FAZEMOS ISSO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Mail;
+
+use App\Config;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+
+class SignupEmail
+{
+    public function __construct(
+        private readonly Config $config
+    ) {}
+
+
+    public function send(string $email): void
+    {
+        // * Send email to user.
+        $message = (new TemplatedEmail())
+                    ->from($this->config->get('mailer.from'));
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+INJETAMOS O CONFIG NO CONSTRUCTOR,
+
+PARA CONSEGUIRMOS ESSE 'from' argument...
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, DEFINIMOS O 'to'...
+
+
+
+
+
+
+
+--> O 'TO' SERÁ O EMAIL DO USER A QUE QUEREMOS ENVIAR 
+
+ O EMAIL...
+
+
+
+
+
+ POR ISSO ESCREVEMOS ASSIM:
+
+
+
+
+
+ 
+    public function send(string $email): void
+    {
+        $from = $this->config->get('mailer.from');
+        $to = $email;
+
+
+        // * Send email to user.
+        $message = (new TemplatedEmail())
+                    ->from($from)
+                    ->to($to);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+  --> DEPOIS DISSO, PRECISAMOS DO ASSUNTO/SUBJECT...
+
+
+
+
+
+
+
+--> COLOCAMOS UMA STRING DE 'Welcome to Expennies'...
+
+
+
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+
+
+
+    public function send(string $email): void
+    {
+        $from = $this->config->get('mailer.from');
+        $to = $email;
+        $subject = 'Welcome to ' . $this->config->get('app_name');
+
+
+        // * Send email to user.
+        $message = (new TemplatedEmail())
+                    ->from($from)
+                    ->to($to)
+                    ->subject($subject);
+    }
+
+
+
+
+
+
+
+
+
+
+
+  --> depois disso, precisamos settar o htmlTemplate...
+
+
+
+
+
+
+
+
+
+--> COMO PARAMETER, EM VEZ DE PASSARMOS 1 TEMPLATE INLINE,
+
+  VAMOS PASSAR O 'PATH' AO NOSSO TWIG TEMPLATE,
+
+  TIPO ASSIM:
+
+
+
+
+
+    public function send(string $email): void
+    {
+        $from = $this->config->get('mailer.from');
+        $to = $email;
+        $subject = 'Welcome to ' . $this->config->get('app_name');
+
+
+        // * Send email to user.
+        $message = (new TemplatedEmail())
+                    ->from($from)
+                    ->to($to)
+                    ->subject($subject)
+                    ->htmlTemplate(VIEW_PATH . '/emails/signup.html.twig');
+    }
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO,
+
+SETTAMOS O 'context' -> O CONTEXT VAI ESSENCIALMENTE 
+
+                        SUBSTITUIR OS PLACEHOLDERS,
+
+                        NO NOSSO TEMPLATE..
+
+
+
+                      
+
+
+
+ESCREVEMOS TIPO ASSIM:
+
+
+
+    public function send(string $email): void
+    {
+        $from = $this->config->get('mailer.from');
+        $to = $email;
+        $subject = 'Welcome to ' . $this->config->get('app_name');
+
+
+        // * Send email to user.
+        $message = (new TemplatedEmail())
+                    ->from($from)
+                    ->to($to)
+                    ->subject($subject)
+                    ->htmlTemplate(VIEW_PATH . '/emails/signup.html.twig')
+                    ->context([]);
+    }
+
+
+
+
+
+
+
+
+
+
+
+    UM ARRAY COM TODAS AS VARIABLES QUE QUEREMOS SUBSTITUIR, NO TEMPLATE...
+
+
+
+
+
+
+
+
+    COLOCAMOS 1 ARRAY VAZIO, MAS MAIS TARDE VAMOS PREENCHÊ-LO...
+
+
+
+
+
+
+
+
+
+
+
+CERTO..
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ CRIAMOS ESSE TWIG TEMPLATE,
+
+
+
+LÁ DENTRO DO FOLDER DE 'emails',
+
+em 'Views'...
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR COLOCA 1 EMAIL BEM SIMPLES,
+COM ESTA ESTRUTURA, NO TEMPLATE:
+
+
+
+
+
+
+
+
+
+
+
+Thank you for signing up to Expennies. Please
+<a href="{{ activationLink }}">click here</a>
+to activate your account.
+
+<br/>
+The link is valid until
+{{ expirationDate|date('m/d/Y g:i A') }}.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... QUER DIZER QUE TEMOS 2 PLACEHOLDERS:
+
+
+
+
+'activationLink'
+
+
+e 
+
+'expirationDate'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS COLOCAR OS 2 ARGUMENTS NO SEND,
+
+
+
+MAS, POR ENQUANTO, COLOCAMOS ALGUNS DEFAULT VALUES,
+TIPO ASSIM:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Mail;
+
+use App\Config;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+
+class SignupEmail
+{
+    public function __construct(
+        private readonly Config $config
+    ) {}
+
+
+    public function send(string $email): void
+    {
+        $from = $this->config->get('mailer.from');
+        $to = $email;
+        $subject = 'Welcome to ' . $this->config->get('app_name');
+
+
+        // * Send email to user.
+        $message = (new TemplatedEmail())
+                    ->from($from)
+                    ->to($to)
+                    ->subject($subject)
+                    ->htmlTemplate('/emails/signup.html.twig')
+                    ->context([
+                        'activationLink' => '#',
+                        'expirationDate' => new \DateTime('+30 minutes'),
+                    ]);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+AGORA QUE TEMOS ESSA EMAIL MESSAGE,
+
+PRECISAMOS FAZER SEND DELA,
+
+
+USANDO O OBJECT DE 'MAILER'....
+
+
+
+
+
+
+
+
+
+
+É POR ISSO QUE INJETAMOS A INTERFACE 
+
+
+DE 'MailerInterface',
+
+
+
+
+E AÍ ESCREVEMOS TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Mail;
+
+use App\Config;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Mailer\MailerInterface;
+
+class SignupEmail
+{
+    public function __construct(
+        private readonly Config $config,
+        private readonly MailerInterface $mailer
+    ) {}
+
+
+    public function send(string $email): void
+    {
+        $from = $this->config->get('mailer.from');
+        $to = $email;
+        $subject = 'Welcome to ' . $this->config->get('app_name');
+
+
+        // * Send email to user.
+        $message = (new TemplatedEmail())
+                    ->from($from)
+                    ->to($to)
+                    ->subject($subject)
+                    ->htmlTemplate('/emails/signup.html.twig')
+                    ->context([
+                        'activationLink' => '#',
+                        'expirationDate' => new \DateTime('+30 minutes'),
+                    ]);
+
+        $this->mailer->send($message);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS ISSO AINDA NÃO VAI FUNCIONAR...
+
+
+
+
+
+
+
+
+
+
+
+
+NÃO VAI FUNCIONAR PQ 
+
+
+''WE ARE NOT USING SYMFONY FRAMEWORK'',
+
+
+O QUE QUER DIZER QUE 
+
+NEM TUDO ESTÁ CONFIGURADO PARA NÓS, OUT OF THE BOX...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O TWIG TEMPLATE PRECISA SER ''ACTUALLY RENDERED INTO A STRING''...
+
+
+
+
+
+
+
+
+
+--> E ISSO TIPICAMENTE OCORRE AUTOMATICAMENTE,
+  POR CONTA DO SYMFONY,
+  POR MEIO DO 'EventDispatcher',
+
+
+  MAS COMO NÃO ESTAMOS USANDO ISSO, E NÃO ESTAMOS 
+
+  INSTANCIANDO O MAILER OBJECT COM ESSE DISPATCHER,
+
+
+  O TWIG TEMPLATE __ NÃO SERÁ RENDERIZADO __ AUTOMATICAMENTE...
+
+
+
+
+
+
+
+
+ 
+--> UM FIX FÁCIL PARA ISSO É 
+
+
+'''SIMPLY RENDER THE MESSAGE, BEFORE SENDING IT OURSELVES''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PODEMOS FAZER ISSO POR MEIO DO INJECT DA INTERFACE 
+
+
+'BodyRenderer' , 
+
+no nosso constructor...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Mail;
+
+use App\Config;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\BodyRendererInterface;
+
+class SignupEmail
+{
+    public function __construct(
+        private readonly Config $config,
+        private readonly MailerInterface $mailer,
+        private readonly BodyRendererInterface $renderer
+    ) {}
+
+
+    public function send(string $email): void
+    {
+        $from = $this->config->get('mailer.from');
+        $to = $email;
+        $subject = 'Welcome to ' . $this->config->get('app_name');
+
+
+        // * Send email to user.
+        $message = (new TemplatedEmail())
+                    ->from($from)
+                    ->to($to)
+                    ->subject($subject)
+                    ->htmlTemplate('/emails/signup.html.twig')
+                    ->context([
+                        'activationLink' => '#',
+                        'expirationDate' => new \DateTime('+30 minutes'),
+                    ]);
+
+        $this->mailer->send($message);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO, LOGO ANTES DE ENVIAR O EMAIL,
+
+
+ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Mail;
+
+use App\Config;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\BodyRendererInterface;
+
+class SignupEmail
+{
+    public function __construct(
+        private readonly Config $config,
+        private readonly MailerInterface $mailer,
+        private readonly BodyRendererInterface $renderer
+    ) {}
+
+
+    public function send(string $email): void
+    {
+        $from = $this->config->get('mailer.from');
+        $to = $email;
+        $subject = 'Welcome to ' . $this->config->get('app_name');
+
+
+        // * Send email to user.
+        $message = (new TemplatedEmail())
+                    ->from($from)
+                    ->to($to)
+                    ->subject($subject)
+                    ->htmlTemplate('/emails/signup.html.twig')
+                    ->context([
+                        'activationLink' => '#',
+                        'expirationDate' => new \DateTime('+30 minutes'),
+                    ]);
+
+                
+        $this->renderer->render($message);
+
+        $this->mailer->send($message);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS AINDA PRECISAMOS ADICIONAR 1 ENTRY,
+
+NO NOSSO CONTAINER_BINDINGS,
+
+
+PARA A INTERFACE DE 
+
+'BodyRenderer',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+    BodyRendererInterface::class => fn(Twig $twig) => new BodyRenderer($twig->getEnvironment()),
+
+
+
+
+
+
+
+
+
+
+NÓS BASICAMENTE INSTANCIAREMOS 1 object de 'BodyRenderer',
+
+
+sempre que essa class for invocada,
+
+e aí 
+
+
+PASSAREMOS 
+
+
+
+
+O PRÓPRIO TWIG ENVIRONMENT, QUE JÁ TÍNHAMOS SETTADO NO NOSSO APP E NO CONTAINER,
+
+
+
+COMO PARAMETER DESSA CLASS (obrigatório)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ENTÃO TESTAMOS ISSO...
+
+
+
+
+
+
+
+
+ 
+
+CRIAMOS UMA NOVA CONTA,
+
+ 
+ E AÍ CHECAMOS, EM 
+
+ 'localhost:8025',
+
+
+ na UI do mailhog,
+
+ SE O EMAIL FOI ENVIADO CORRETAMENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+ -> E SIM, ELE FOI ENVIADO CORRETAMENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> OK... MAS, AGORA, PRECISAMOS, DE ALGUMA FORMA,
+
+
+
+COMUNICAR AO USER, UTILIZANDO A UI,
+
+
+QUE 
+
+__ A CONTA DELE AINDA NÃO FOI ATIVADA...
+
+
+
+
+
+
+
+
+-> E QUEREMOS IMPEDIR O USER DE UTILIZAR O SYSTEM ATÉ QUE 
+   O EMAIL TENHA SIDO VERIFICADO..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PRECISAMOS FAZER ALGUMAS COISAS, ANTES DE VER ISSO FUNCIONANDO...
+
+
+
+
+
+
+--> TESTEI ESSA FEATURE RAPIDAMENTE, E FUNCIONOU...
+
+    --> O EMAIL REALMENTE É ENVIADO,
+
+    COM O LINK DE ACTIVATION...
+
+
+
+  
+
+
+
+
+
+MAS VOLTANDO AO TÓPICO DE 'BLOCK USER IF EMAIL IS NOT VERIFIED':
+
+
+
+
+
+
+
+
+
+
+
+
+1a coisa -->  ''WE NEED TO 
+                STORE SOME SORT OF FLAG/DATE COLUMN,
+                IN THE users TABLE,
+                TO DETERMINE IF THE USER IS ACTIVE OR NOT''...
+
+
+
+
+
+-> O PROFESSOR VAI USAR O APPROACH DO FIELD DE 'date',
+
+  pq ele acha melhor...
+
+
+
+
+
+
+
+--> PARA ISSO, ELE CRIA 1 NOVA PROPERTY/COLUMN 
+
+
+NA ENTITY,
+
+de nome 
+
+
+'$verifiedAt',
+
+
+
+e de type DateTime...
+
+
+
+
+EX:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Entity;
+
+use App\Contracts\OwnableInterface;
+use App\Contracts\UserInterface;
+use App\Entity\Traits\HasTimestamps;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\GeneratedValue;
+use Doctrine\ORM\Mapping\HasLifecycleCallbacks;
+use Doctrine\ORM\Mapping\Id;
+use Doctrine\ORM\Mapping\OneToMany;
+use Doctrine\ORM\Mapping\Table;
+use DateTime;
+
+#[Entity, Table('users')]
+#[HasLifecycleCallbacks]
+class User implements UserInterface
+{
+    use HasTimestamps;
+
+    #[Id, Column(options: ['unsigned' => true]), GeneratedValue]
+    private int $id;
+
+    #[Column]
+    private string $name;
+
+    #[Column]
+    private string $email;
+
+    #[Column]
+    private string $password;
+
+    #[Column]
+    private DateTime $verifiedAt;
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O NAME SERÁ DE 'verified_at'...
+
+
+
+
+
+Ex:
+
+
+
+
+
+
+    #[Column(name: 'verified_at', nullable: true)]
+    private ?DateTime $verifiedAt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA,
+
+
+SERÁ NULLABLE...
+
+
+
+
+
+
+
+--> ESSE VALUE PODERÁ SER NULL... SE ESSA COLUMN ESTIVER COMO 'NULL',
+
+SIGNIFICA QUE O EMAIL DO USER AINDA NÃO FOI VERIFICADO...
+
+
+
+
+
+
+
+
+
+-> CRIAMOS 1 GETTER PARA ESSE METHOD, TAMBÉM...
+
+
+
+    public function getVerifiedAt(): ?DateTime
+    {
+        return $this->verifiedAt;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, RODAMOS 
+
+
+php expennies diff,
+
+
+
+PARA GERAR A MIGRATION QUE VAI ADICIONAR 
+
+
+
+ESSE FIELD 
+
+
+NA TABLE DE 'USERS'...
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO,
+
+RODAMOS A MIGRATION,
+
+
+COM 'PHP EXPENNIES MIGRATE'...
+
+
+
+
+
+
+
+
+
+
+
+CERTO... FUNCIONOU...
+
+
+
+
+
+
+
+
+O PRÓXIMO PASSO, NO CASO,
+
+
+É 
+
+
+
+
+2) ''CREATE THE MIDDLEWARE TO CHECK IF THE USER HAS VERIFIED EMAIL OR NOT...
+
+  IF HE HAS NOT,
+
+  WE NEED TO REDIRECT THE USER TO SOME PAGE, LETTING THEM KNOW THAT THEY MUST 
+  VERIFY THE EMAIL...''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR CRIA 1 NOVO MIDDLEWRE,
+
+
+DE NOME 
+
+
+
+'VerifyEmailMiddleware'....
+
+
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class VerifyEmailMiddleware implements MiddlewareInterface
+{
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA PRECISAMOS DA IMPLEMENTATION DE ESSE METHOD DE 'process'...
+
+
+
+
+
+
+
+
+
+
+-> AQUI, NO CASO,
+
+
+CHECAMOS 
+
+
+
+'IF USER HAS THE verifiedAt date,
+
+  THAT MEANS THAT THE USER HAS VERIFIED THE ACCOUNT...
+
+  IF HE HAS NOT,
+
+  WE REDIRECT''..
+
+
+
+
+
+
+
+-> VAMOS REGISTRAR ESSE MIDDLEWARE DEPOIS DO AUTH MIDDLEWARE,
+O QUE SIGNIFICA QUE O USER OBJECT JÁ ESTARÁ DISPONÍVEL NO REQUEST OBJECT...
+
+
+
+
+
+-> POR ISSO PODEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class VerifyEmailMiddleware implements MiddlewareInterface
+{
+
+    public function __construct(
+        private readonly ResponseFactoryInterface $responseFactory
+    ) {}
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {
+        $user = $request->getAttribute('user');
+
+        if ($user?->getVerifiedAt()) {
+            return $handler->handle($request);
+        }
+
+        return $this->responseFactory->createResponse(302)->withHeader('Location', '/verify');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+
+
+
+AGORA DEVEMOS CRIAR A ROUTE DE '/verify',
+
+
+
+PARA QUE O USER CONSIGA SER REDIRECIONADO A UMA PAGE QUE EXISTA...
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR ESCREVE TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Controllers\AuthController;
+use App\Controllers\CategoryController;
+use App\Controllers\HomeController;
+use App\Controllers\ReceiptController;
+use App\Controllers\TransactionController;
+use App\Controllers\TransactionImporterController;
+use App\Middleware\AuthMiddleware;
+use App\Middleware\GuestMiddleware;
+use Slim\Routing\RouteCollectorProxy;
+use Slim\App;
+
+return function (App $app) {
+    $app->get('/', [HomeController::class, 'index'])->add(AuthMiddleware::class);
+
+    $app->group('/categories', function (RouteCollectorProxy $categories) {
+        $categories->get('', [CategoryController::class, 'index']);
+        $categories->get('/load', [CategoryController::class, 'load']);
+        $categories->post('', [CategoryController::class, 'store']);
+        $categories->delete('/{category}', [CategoryController::class, 'delete']);
+        $categories->get('/{category}', [CategoryController::class, 'get']);
+        $categories->post('/{category}', [CategoryController::class, 'update']);
+    })->add(AuthMiddleware::class);
+
+    $app->group('/transactions', function (RouteCollectorProxy $transactions) {
+        $transactions->get('', [TransactionController::class, 'index']);
+        $transactions->get('/load', [TransactionController::class, 'load']);
+        $transactions->post('', [TransactionController::class, 'store']);
+        $transactions->post('/import', [TransactionImporterController::class, 'import']);
+        $transactions->delete('/{transaction}', [TransactionController::class, 'delete']);
+        // $transactions->get('/{id:[0-9]+}', [TransactionController::class, 'get']);
+        $transactions->get('/{transaction}', [TransactionController::class, 'get']);
+        $transactions->post('/{transaction}', [TransactionController::class, 'update']);
+        $transactions->post('/{transaction}/receipts', [ReceiptController::class, 'store']);
+        $transactions->get('/{transaction}/receipts/{receipt}', [ReceiptController::class, 'download']);
+        $transactions->delete('/{transaction}/receipts/{receipt}', [ReceiptController::class, 'delete']);
+        $transactions->post('/{transaction}/review', [TransactionController::class, 'toggleReviewed']);
+    })->add(AuthMiddleware::class);
+
+    $app->group('', function (RouteCollectorProxy $group) {
+        $group->post('/logout', [AuthController::class, 'logOut'])->add(AuthMiddleware::class);
+    });
+
+    $app->group('', function (RouteCollectorProxy $guest) {
+        $guest->get('/login', [AuthController::class, 'loginView']);
+        $guest->get('/register', [AuthController::class, 'registerView']);
+        $guest->post('/login', [AuthController::class, 'logIn']);
+        $guest->post('/register', [AuthController::class, 'register']);
+    })->add(GuestMiddleware::class);
+};
+
+
+
+
+
+
+
+
+
+
+
+E AÍ ADICIONAMOS A NOVA ROUTE,
+
+DE VERIFY,
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+    $app->group('/transactions', function (RouteCollectorProxy $transactions) {
+        $transactions->get('', [TransactionController::class, 'index']);
+        $transactions->get('/load', [TransactionController::class, 'load']);
+        $transactions->post('', [TransactionController::class, 'store']);
+        $transactions->post('/import', [TransactionImporterController::class, 'import']);
+        $transactions->delete('/{transaction}', [TransactionController::class, 'delete']);
+        // $transactions->get('/{id:[0-9]+}', [TransactionController::class, 'get']);
+        $transactions->get('/{transaction}', [TransactionController::class, 'get']);
+        $transactions->post('/{transaction}', [TransactionController::class, 'update']);
+        $transactions->post('/{transaction}/receipts', [ReceiptController::class, 'store']);
+        $transactions->get('/{transaction}/receipts/{receipt}', [ReceiptController::class, 'download']);
+        $transactions->delete('/{transaction}/receipts/{receipt}', [ReceiptController::class, 'delete']);
+        $transactions->post('/{transaction}/review', [TransactionController::class, 'toggleReviewed']);
+    })->add(VerifyEmailMiddleware::class)->add(AuthMiddleware::class); //////// AQUI
+
+    $app->group('', function (RouteCollectorProxy $group) {
+        $group->post('/logout', [AuthController::class, 'logOut']);
+        $group->get('/verify', [VerifyController::class, 'index']); //// E AQUI
+    })->add(AuthMiddleware::class);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ CRIAMOS ESSE NOVO CONTROLLER,
+
+
+DE 'VerifyController',
+
+
+QUE VAI TER O METHOD DE 'index',
+
+QUE VAI RENDERIZAR 1 TWIG  TEMPLATE INFORMANDO O USER DE QUE 
+
+ELE 
+
+
+DEVE VERIFICAR A CONTA DELE...
+
+
+
+
+
+
+
+
+ESCREVEMOS ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Controllers;
+
+use Psr\Http\Message\ResponseInterface;
+use Slim\Views\Twig;
+
+class VerifyController
+{
+    public function __construct(private readonly Twig $twig) {}
+
+    public function index(ResponseInterface $response): ResponseInterface
+    {
+        return $this->twig->render($response, 'auth/verify.twig');
+    }
+}  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NO FOLDER DE AUTH,
+
+
+
+ESCREVEMOS ESTE TEMPLATE:
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% extends 'layout.twig' %}
+
+
+{% block title %}Verify Email
+{% endblock %}
+
+{% block content %}
+	<div class="container">
+		<div class="alert alert-warning" role="alert">
+			Please check your email to verify & activate your account.
+		</div>
+	</div>
+
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ESSE TEMPLATE, OS USERS FICARÃO CAPAZES DE FAZER LOGOUT 
+OU MUDAR PASSWORD OU ETC,
+
+
+
+
+MAS NÃO PODERÃO 
+
+
+
+ACESSAR AS MAIN ROUTES (de 'Transactions' e 'Categories')...
+
+
+
+
+
+
+--> OK.. COM ISSO, AGORA SEMPRE SOMOS REDIRECIONADOS PARA 
+
+
+UMA PAGE QUE NOS PEDE PARA CHECK EMAIL E ACTIVATE A NOSSA CONTA...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use App\Controllers\AuthController;
+use App\Controllers\CategoryController;
+use App\Controllers\HomeController;
+use App\Controllers\ReceiptController;
+use App\Controllers\TransactionController;
+use App\Controllers\TransactionImporterController;
+use App\Controllers\VerifyController;
+use App\Middleware\AuthMiddleware;
+use App\Middleware\GuestMiddleware;
+use App\Middleware\VerifyEmailMiddleware;
+use Slim\Routing\RouteCollectorProxy;
+use Slim\App;
+
+return function (App $app) {
+    $app->get('/', [HomeController::class, 'index'])->add(AuthMiddleware::class);
+
+    $app->group('/categories', function (RouteCollectorProxy $categories) {
+        $categories->get('', [CategoryController::class, 'index']);
+        $categories->get('/load', [CategoryController::class, 'load']);
+        $categories->post('', [CategoryController::class, 'store']);
+        $categories->delete('/{category}', [CategoryController::class, 'delete']);
+        $categories->get('/{category}', [CategoryController::class, 'get']);
+        $categories->post('/{category}', [CategoryController::class, 'update']);
+    })->add(VerifyEmailMiddleware::class)->add(AuthMiddleware::class);
+
+    $app->group('/transactions', function (RouteCollectorProxy $transactions) {
+        $transactions->get('', [TransactionController::class, 'index']);
+        $transactions->get('/load', [TransactionController::class, 'load']);
+        $transactions->post('', [TransactionController::class, 'store']);
+        $transactions->post('/import', [TransactionImporterController::class, 'import']);
+        $transactions->delete('/{transaction}', [TransactionController::class, 'delete']);
+        // $transactions->get('/{id:[0-9]+}', [TransactionController::class, 'get']);
+        $transactions->get('/{transaction}', [TransactionController::class, 'get']);
+        $transactions->post('/{transaction}', [TransactionController::class, 'update']);
+        $transactions->post('/{transaction}/receipts', [ReceiptController::class, 'store']);
+        $transactions->get('/{transaction}/receipts/{receipt}', [ReceiptController::class, 'download']);
+        $transactions->delete('/{transaction}/receipts/{receipt}', [ReceiptController::class, 'delete']);
+        $transactions->post('/{transaction}/review', [TransactionController::class, 'toggleReviewed']);
+    })->add(VerifyEmailMiddleware::class)->add(AuthMiddleware::class);
+
+    $app->group('', function (RouteCollectorProxy $group) {
+        $group->post('/logout', [AuthController::class, 'logOut']);
+        $group->get('/verify', [VerifyController::class, 'index']);
+    })->add(AuthMiddleware::class);
+
+    $app->group('', function (RouteCollectorProxy $guest) {
+        $guest->get('/login', [AuthController::class, 'loginView']);
+        $guest->get('/register', [AuthController::class, 'registerView']);
+        $guest->post('/login', [AuthController::class, 'logIn']);
+        $guest->post('/register', [AuthController::class, 'register']);
+    })->add(GuestMiddleware::class);
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+A ÚNICA OPTION QUE É POSSÍVEL É 'LOGOUT',
+
+O RESTO DAS ROUTES FICAM BLOQUEADAS, SE ELE N VERIFICOU...
+
+
+
+
+
+
+
+
+
+-> A PRÓXIMA PARTE É FAZER FUNCIONAR A LÓGICA DE VERIFY,
+
+PARA QUE O USER CONSIGA 
+
+
+VERIFICAR SUA ACCOUNT E ACESSAR AS PAGES DE CATEGORIES E TRANSACTIONS...
+
+
+
+
+
+
+
+
+
+
+
+
+-> BASICAMENTE PRECISAMOS PREENCHER OS PLACEHOLDERS DAQUELE EMAIL ('activationLink' e etc)...

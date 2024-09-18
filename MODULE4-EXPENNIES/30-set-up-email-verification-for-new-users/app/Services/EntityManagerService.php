@@ -2,13 +2,14 @@
 
 namespace App\Services;
 
+use App\Contracts\EntityManagerServiceInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
 
 /**
  * @mixin EntityManagerInterface
  */
-class EntityManagerService
+class EntityManagerService implements EntityManagerServiceInterface
 {
     public function __construct(private readonly EntityManagerInterface $entityManager)
     {
