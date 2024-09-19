@@ -1,0 +1,1451 @@
+
+
+
+
+
+
+
+
+---> OK... DEVEMOS CONTINUAR COM O BUILD DA LÓGICA DE '2FA',
+
+QUE COMEÇAMOS NO ÚLTIMO EPISÓDIO..
+
+
+
+
+
+
+
+-> BASICAMENTE, PRECISAMOS IMPLEMENTAR ESTE METHOD,
+
+NO CONTROLLER:
+
+
+
+
+
+
+        $guest->post('/login/two-factor', [AuthController::class, 'twoFactorLogin']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> VAMOS ATÉ O CONTROLLER....
+
+
+
+
+
+
+
+
+
+AÍ CRIAMOS TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public function twoFactorLogin(Request $request, Response $response): Response
+    {
+
+        return $response->withHeader('Location', '/')->withStatus(302);
+    }
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+PODEMOS 'VALIDATE AND GET THE RESPONSE DATA'
+
+
+
+DA MESMA MANEIRA 
+
+
+
+
+UTILIZADA COM AS ROUTES DE 'logIn' e 'register',
+
+
+
+USANDO O 'requestValidatorFactory',
+
+
+e armazenando os values naquela variable de '$data':
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public function twoFactorLogin(Request $request, Response $response): Response
+    {
+
+        $data = $this->requestValidatorFactory->make(UserLoginRequestValidator::class)->validate(
+            $request->getParsedBody()
+        );
+
+        return $response->withHeader('Location', '/')->withStatus(302);
+    }
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS PRECISAMOS DE UM REQUEST VALIDATOR PARA ESSA ROUTE,
+
+POR ISSO 
+
+
+O PROFESSOR 
+
+CRIOU O 'TwoFactorLoginRequestValidator'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> ESSE REQUEST VALIDATOR FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\RequestValidators;
+
+use App\Contracts\RequestValidatorInterface;
+use App\Exception\ValidationException;
+use Valitron\Validator;
+
+class TwoFactorLoginRequestValidator implements RequestValidatorInterface
+{
+    public function validate(array $data): array
+    {
+        $v = new Validator($data);
+
+        $v->rule('required', ['email', 'code']);
+        $v->rule('email', 'email');
+
+        if (!$v->validate()) {
+            throw new ValidationException($v->errors());
+        }
+
+        return $data;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> certo... ambos os fields são required... 
+
+
+
+
+
+
+
+
+
+
+
+
+- DEPOIS DISSO,
+
+FAZEMOS BASICAMENTE A MESMA COISA QUE FIZEMOS COM O METHOD DE 'logIn'...
+
+
+
+ou seja,
+
+
+vamos rodar algo como 'attemptLogin',
+
+tipo assim:
+
+
+
+
+        $status = $this->auth->attemptLogin($data);
+
+
+
+
+
+
+
+
+
+
+
+
+vamos fazer algo do mesmo gênero,
+
+
+mas com algo como 
+
+
+
+''attemptLogin2FA'',
+
+
+ou algo assim...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESCREVEMOS TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public function twoFactorLogin(Request $request, Response $response): Response
+    {
+
+        $data = $this->requestValidatorFactory->make(UserLoginRequestValidator::class)->validate(
+            $request->getParsedBody()
+        );
+
+        $status = $this->auth->attemptTwoFactorLogin($data);
+
+        return $response->withHeader('Location', '/')->withStatus(302);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+COM ISSO, PRECISAMOS ENTRAR NESSA CLASS DE 'AUTH',
+
+e adicionar 
+
+esse novo method...
+
+
+
+
+
+
+
+
+
+
+-> SE ISSO RETORNA FALSE,
+
+VAMOS TRIGGAR ALGUM TIPO DE ERROR,
+
+COMO VALIDATION EXCEPTION...
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+    public function twoFactorLogin(Request $request, Response $response): Response
+    {
+
+        $data = $this->requestValidatorFactory->make(UserLoginRequestValidator::class)->validate(
+            $request->getParsedBody()
+        );
+
+        $status = $this->auth->attemptTwoFactorLogin($data);
+
+        if (! $status) {
+            throw new ValidationException(['code' => ['You have entered an invalid code']]);
+        }
+
+        return $response->withHeader('Location', '/')->withStatus(302);
+    }
+
+
+
+
+
+
+
+
+
+
+--> ADICIONAMOS ESSE METHOD NA INTERFACE,
+
+E DEPOIS NA CLASS,
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Contracts;
+
+use App\DataObjects\RegisterUserData;
+use App\Enum\AuthAttemptStatus;
+
+interface AuthInterface
+{
+    public function user(): ?UserInterface;
+
+    public function attemptLogin(array $credentials): AuthAttemptStatus;
+
+    public function checkCredentials(UserInterface $user, array $credentials): bool;
+
+    public function logOut(): void;
+
+    public function register(RegisterUserData $data): UserInterface;
+
+    public function logIn(UserInterface $user): void;
+
+    public function attemptTwoFactorLogin(array $data): bool;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+E ASSIM (esboço do código):
+
+
+
+
+
+
+
+
+
+
+    public function attemptTwoFactorLogin(array $data): bool
+    {
+        $userId = $this->session->get('2fa');
+
+        if (! $userId) {
+            return false;
+        }
+
+        $user = $this->userProvider->getById($userId);
+
+        if (! $user) {
+            return false;
+        }
+
+        if (! $user->verifyTwoFactorCode($data['code'])) {
+            return false;
+        }
+
+        $this->logIn($user);
+
+        return true;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> LEMBRE-SE:
+
+
+
+
+NAQUELE METHOD DE 'startLoginWith2FA',
+
+
+
+NÓS COLOCAMOS O 'userId' dentro de 1 key de nome '2fa',
+
+
+dentro da SESSION do user...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+  private function startLoginWith2FA(UserInterface $user): void
+    {
+        $this->session->regenerate();
+        $this->session->put('2fa', $user->getId());
+
+        $this->twoFactorAuthEmail->send($this->userLoginCodeService->generate($user));
+    } 
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+AQUI, NO CASO, VAMOS EXTRAIR ESSE userId,
+
+de essa session,
+
+
+com isto:
+
+
+
+
+        $userId = $this->session->get('2fa');
+
+
+
+
+
+
+
+
+
+
+
+--> E, SE O USERID NÃO ESTÁ DEFINIDO NA SESSION,
+    VAMOS RETORNAR false,
+
+    pq isso indica que o user should not be authenticated... 
+
+
+
+
+
+
+
+--> COM ISSO, PODEMOS PEGAR A USER ENTITY,
+    USANDO 
+
+
+    O userId,
+
+    com 'getById'...
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+       $userId = $this->session->get('2fa');
+
+        if (! $userId) {
+            return false;
+        }
+
+        $user = $this->userProvider->getById($userId);
+
+        if (! $user) {
+            return false;
+        }
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+    public function attemptTwoFactorLogin(array $data): bool
+    {
+        $userId = $this->session->get('2fa');
+
+        if (! $userId) {
+            return false;
+        }
+
+        $user = $this->userProvider->getById($userId);
+
+        if (! $user) {
+            return false;
+        }
+
+        if (! $user->verifyTwoFactorCode($data['code'])) {
+            return false;
+        }
+
+        $this->logIn($user);
+
+        return true;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    ---> ALÉM DISSO, O PROFESSOR CHECARÁ 
+
+    SE O EMAIL NESSA 'USER ENTITY'
+
+
+    É REALMENTE 
+
+
+    O MESMO EMAIL QUE ESTÁ SENDO PASSADO 
+
+    NO ARGUMENTO array $data...
+
+
+
+
+    SE NÃO FOR IGUAL,
+
+    VAMOS RETORNAR FALSE...
+
+
+
+
+
+
+--> POR ISSO FICA TIPO ASSIM:
+
+
+
+
+
+
+
+    public function attemptTwoFactorLogin(array $data): bool
+    {
+        $userId = $this->session->get('2fa');
+
+        if (! $userId) {
+            return false;
+        }
+
+        $user = $this->userProvider->getById($userId);
+
+        if (! $user || $user->getEmail() !== $data['email']) {
+            return false;
+        }
+
+        if (! $user->verifyTwoFactorCode($data['code'])) {
+            return false;
+        }
+
+        $this->logIn($user);
+
+        return true;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FAZ BASICAMENTE UMA SIMPLES USER VERIFICATION,
+PARA GARANTIR QUE 
+
+
+
+TEMOS O USER CORRETO TENTANDO 
+
+FAZER LOGIN,
+
+
+COM O 2FA CODE...
+
+
+
+
+
+
+
+
+-> AGORA, A ACTUAL LOGIC 
+
+
+DE CODE VERIFICATION, DO 2FA CODE,
+
+
+NÃO PRECISA IR NESSE METHOD...
+
+
+
+
+
+
+
+
+
+-> PODEMOS COLOCAR ESSA LÓGICA NO SERVICE DE 
+
+'userLoginCodeService',
+
+
+
+QUE CRIAMOS ANTERIORMENTE...
+
+
+
+
+
+
+
+
+
+--> PODEMOS ESCREVER ALGO COMO
+
+
+
+''
+
+
+
+
+        if (!$this->userLoginCodeService->verify($user, $data['code'])) {
+            return false;
+        }
+
+        $this->logIn($user);
+
+        return true;
+
+
+
+''
+
+
+
+
+
+
+
+
+
+
+
+NO FINAL, O CÓDIGO FICA ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+    public function attemptTwoFactorLogin(array $data): bool
+    {
+        $userId = $this->session->get('2fa');
+
+        if (! $userId) {
+            return false;
+        }
+
+        $user = $this->userProvider->getById($userId);
+
+        if (! $user || $user->getEmail() !== $data['email']) {
+            return false;
+        }
+
+        if (!$this->userLoginCodeService->verify($user, $data['code'])) {
+            return false;
+        }
+
+        $this->logIn($user);
+
+        return true;
+    }
+
+
+
+
+
+
+
+
+
+
+
+BASICAMENTE,
+
+O 2FA AGE COMO UM BLOCK EXTRA...
+
+
+
+
+
+
+
+
+
+--> precisamos ADICIONAR ESSE METHOD, 'verify',
+
+
+lá 
+
+
+no service 'userLoginCodeService':
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Contracts\EntityManagerServiceInterface;
+use App\Entity\User;
+use App\Entity\UserLoginCode;
+
+class UserLoginCodeService
+{
+    public function __construct(
+        private readonly EntityManagerServiceInterface $entityManager
+    ) {}
+
+    // * Generates the 2FA code for the user
+    public function generate(User $user): UserLoginCode
+    {
+
+        $userLoginCode = new UserLoginCode();
+
+        $userLoginCode->setUser($user);
+        $userLoginCode->setCode( (string) random_int(100000, 999999));
+        $userLoginCode->setIsActive(true);
+        $userLoginCode->setExpiration(new \DateTime('+10 minutes'));
+
+        $this->entityManager->sync($userLoginCode);
+
+        return $userLoginCode;
+    }
+
+    // * Verifies the 2FA code for the user
+    public function verify(User $user, string $code): bool
+    {
+
+        
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DENTRO DESSE METHOD,
+
+
+''WE CAN BASICALLY LOOK UP THE 
+USERLOGINCODE ENTITY,
+
+BY USING THE USER AND THE GIVEN CODE''...
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+    // * Verifies the 2FA code for the user
+    public function verify(User $user, string $code): bool
+    {
+        $userLoginCode = $this->entityManager->getRepository(UserLoginCode::class)->findOneBy([
+            'user' => $user,
+            'code' => $code,
+            'isActive' => true,
+            'expiration' => new \DateTime('+10 minutes')
+        ]);
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+com isso, vamos encontrar esse userLoginCode
+
+por 'user',
+
+e pelo 'code' que foi providenciado 
+
+
+como parameter...
+
+
+
+
+
+
+
+
+
+--> SE NENHUM USERLOGINCODE
+
+FOR ENCONTRADO, RETORNAMOS 'FALSE':
+
+
+
+
+
+
+
+
+
+
+
+
+    // * Verifies the 2FA code for the user
+    public function verify(User $user, string $code): bool
+    {
+        $userLoginCode = $this->entityManager->getRepository(UserLoginCode::class)->findOneBy([
+            'user' => $user,
+            'code' => $code,
+            'isActive' => true,
+            'expiration' => new \DateTime('+10 minutes')
+        ]);
+
+        if (! $userLoginCode) {
+            return false;
+        }
+
+        if ($userLoginCode->getExpiration() <= new \DateTime()) {
+            return false;
+        }
+
+        return true;
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+SE A EXPIRATION JÁ ERA, TAMBÉM RETORNAMOS FALSE...
+
+
+
+
+
+
+
+SE TUDO 'CHECKS OUT',
+
+
+
+
+
+
+
+RETORNAMOS TRUE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+RECAPITULANDO O QUE ESTAMOS FAZENDO, AQUI:
+
+
+
+
+1) 'WHEN THE USER TRIES TO LOGIN, IF THEY HAVE THE 2FA 
+    FEATURE ENABLED',
+
+    THEY WILL BE PROMPTED WITH A POP-UP TO ENTER THE 
+
+    2FA CODE, THAT IS SENT BY THEM, VIA EMAIL''...
+
+
+
+
+
+
+2) WHEN THEY ENTER THE CODE, THAT WAS PROVIDED BY EMAIL,
+    WE NEED TO VERIFY THAT IT IS THE CORRECT USER, MAKING THAT REQUEST...
+
+
+
+
+
+
+isso tudo é feito COM ESTA PARTE DO CÓDIGO:
+
+
+
+
+
+    private function startLoginWith2FA(UserInterface $user): void
+    {
+        $this->session->regenerate();
+        $this->session->put('2fa', $user->getId());
+
+        $this->twoFactorAuthEmail->send($this->userLoginCodeService->generate($user));
+    } 
+
+
+
+
+
+
+
+
+
+
+isso vai regenerate a session, vai colocar o 2fa 
+code dentro da session do user,
+
+
+e aí 
+
+
+
+vai ENVIAR o email de 2FA ao user...
+
+
+
+
+
+
+
+
+
+3) DEPOIS QUE O USER PEGA O CÓDIGO E COLOCA 
+    NA PÁGINA DE 2FA,
+
+
+É ATIVADO ESTE METHOD:
+
+
+
+
+
+
+
+    public function attemptTwoFactorLogin(array $data): bool
+    {
+        $userId = $this->session->get('2fa');
+
+        if (! $userId) {
+            return false;
+        }
+
+        $user = $this->userProvider->getById($userId);
+
+        if (! $user || $user->getEmail() !== $data['email']) {
+            return false;
+        }
+
+        if (!$this->userLoginCodeService->verify($user, $data['code'])) {
+            return false;
+        }
+
+        $this->logIn($user);
+
+        return true;
+    }
+
+
+
+
+
+
+
+    ELE CHECA SE EXISTE 1 USER COM ESSE USERID,
+
+    E DEPOIS CHECA SE O EMAIL DE ESSE USER É O MESMO EMAIL 
+
+    QUE FOI INSERIDO NESSSA ROUTE, COMO PARAMETER...
+
+
+
+
+FINALMENTE, VERIFICAMOS SE O CODE REALMENTE PERTENCE A ESSE USER:
+
+
+
+
+        if (!$this->userLoginCodeService->verify($user, $data['code'])) {
+            return false;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+OK... A ÚNICA PERGUNTA QUE TENHO É QUANTO AO 'email',
+
+de onde ele vem?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR DIZ QUE DEVEMOS REMOVER O 2fa 
+
+
+da session,
+
+
+DEPOIS QUE OCORRER A VALIDATION COM SUCESSO....
+
+
+
+
+
+
+POR ISSO ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public function attemptTwoFactorLogin(array $data): bool
+    {
+        $userId = $this->session->get('2fa');
+
+        if (! $userId) {
+            return false;
+        }
+
+        $user = $this->userProvider->getById($userId);
+
+        if (! $user || $user->getEmail() !== $data['email']) {
+            return false;
+        }
+
+        if (!$this->userLoginCodeService->verify($user, $data['code'])) {
+            return false;
+        }
+
+        $this->session->forget('2fa');
+
+        $this->logIn($user);
+
+        return true;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... O PROFESSOR ACHA QUE ACABAMOS...
+
+
+
+
+
+
+
+--> ELE TESTA O CÓDIGO... A VALIDATION FUNCIONa,
+
+
+
+E O LOGIN TAMBÉM FUNCIONA...
+
+
+
+
+
+
+
+
+
+-> MAS EU AINDA NÃO ENTENDI 
+
+
+
+    COMO FUNCIONA O PASS DO 'EMAIL',
+
+
+    E NÃO ENTENDI COMO OS VALUES SÃO RETRIEVADOS NO BANCO DE DADOS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+entendi a maneira pela qual é retrievado o email value 
+
+
+
+lá do frontend, na hora de enviar... é uma grande sujeira,
+
+o professor pega o value da login form,
+
+a que o user havia preenchido antes...
+
+
+
+
+
+
+
+
+
+a única pergunta agora é o flow de data antes de confirmar esse 2FA...
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA FINALMENTE FEZ SENTIDO...
+
+
+
+
+
+
+
+-> PARA CONFIRMAR O 2FA,
+
+
+basta entrar em localhost:8025,
+
+
+e aí 
+
+
+checara lista de emails, e entaõ copiar o 2FA code...
+
+
+
+
+
+
+
+ok... mas coloquei o código, e ele ficou inválido, por alguma razão...
+
+
+
+
+
+
+
+RESPONSE:
+
+
+
+
+{"code":["You have entered an invalid code"]}
+
