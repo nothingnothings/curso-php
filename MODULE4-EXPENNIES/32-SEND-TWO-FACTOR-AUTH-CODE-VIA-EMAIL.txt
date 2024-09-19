@@ -1,0 +1,2616 @@
+
+
+
+
+
+
+
+
+
+OK...
+
+
+
+
+
+
+
+
+
+AGORA VAMOS IMPLEMENTAR '2-FACTOR AUTHENTICATION',
+
+
+POR MEIO DO EMAIL....
+
+
+
+
+
+
+
+
+
+
+
+-> O OBJETIVO:
+
+
+'' SEND AN EMAIL TO THE USER, WHENEVER THEY TRY TO LOGIN,
+WITH SOME KIND OF CODE THEY CAN ENTER, TO BE FULLY AUTHENTICATED''..
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, O PROFESSOR FEZ ALGUMAS MUDANÇAS POR TRÁS DAS CENAS,
+
+    E ADICIONOU 1 UI PARA ISSO...
+
+
+
+
+
+
+
+
+
+
+-> SE TENTAMOS FAZER LOGIN,
+
+FICAMOS COM 1 POP-UP,
+
+EM QUE 
+
+
+TEMOS 
+
+QUE ENTER O 'TWO-FACTOR AUTH CODE'...
+
+
+
+
+
+
+
+
+É UM POP-UP COM 
+
+
+
+
+'Two-Factor Authentication 
+
+Please check your email and enter the authentication code below.''
+
+
+
+
+
+
+
+
+
+
+
+-> É CLARO QUE ISSO AINDA NÃO FUNCIONA... PRECISAMOS IMPLEMENTAR ISSO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AS MUDANÇAS:
+
+
+
+
+
+1) O PROFESSOR MODIFICOU O METHOD DE 'attemptLogin',
+    dentro da class de 'Auth'...
+
+
+
+
+
+
+
+
+
+
+ANTES ELE ESTAVA ASSIM:
+
+
+
+
+
+
+    public function attemptLogin(array $credentials): bool
+    {
+        $user = $this->userProvider->getByCredentials($credentials);
+
+        if (! $user || ! $this->checkCredentials($user, $credentials)) {
+            return false;
+        }
+
+        $this->logIn($user);
+
+        return true;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ENTRETANTO, AGORA ELE FICOU ASSIM:
+
+
+
+
+
+
+    public function attemptLogin(array $credentials): AuthAttemptStatus
+    {
+        $user = $this->userProvider->getByCredentials($credentials);
+
+        if (! $user || ! $this->checkCredentials($user, $credentials)) {
+            return AuthAttemptStatus::FAILED;
+        }
+
+        if ($user->hasTwoFactorAuthEnabled()) {
+
+            // TODO
+
+            return AuthAttemptStatus::TWO_FACTOR_AUTH;
+        }
+
+        $this->logIn($user);
+
+        return AuthAttemptStatus::SUCCESS;
+    }
+
+
+
+
+
+
+
+ 
+
+
+
+--> COMO VC PODE VER, 
+
+''WE NO LONGER RETURN TRUE/FALSE...''
+
+
+
+''NOW, WE RETURN EITHER 'AuthAttemptStatus::TWO_FACTOR_AUTH''
+
+
+            or 
+
+            'AuthAttemptStatus::SUCCESS',
+
+
+        these enum cases...
+
+
+
+
+
+
+
+
+
+
+
+--> ESSES ENUM CASES SÃO ESTES:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Enum;
+
+enum AuthAttemptStatus
+{
+    case SUCCESS;
+    case FAILED;
+    case TWO_FACTOR_AUTH;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> NA ENTITY DE USER,
+
+
+
+TEMOS ESSE NOVO METHOD,
+
+
+
+de 'hasTwoFactorAuthEnabled()'...
+
+
+
+
+
+
+ELE AINDA NÃO FOI IMPLEMENTADO:
+
+
+
+
+
+
+
+
+
+
+
+
+    public function hasTwoFactorAuthEnabled(): bool
+    {
+        // TODO
+
+        return true;
+    }
+
+
+
+
+
+
+
+
+
+
+POR ENQUANTO, ELE APENAS FAZ O RETURN DE 'TRUE'..
+
+
+
+
+
+
+
+-> MAS, NO FUTURO,
+
+
+
+
+
+
+''WE CAN IMPLEMENT THIS TO BE PART OF THE USER'S TABLE,
+    AND THEN TOGGLE IT ON/OFF FROM THE USER PROFILE PAGE,
+    WHICH YOU CAN BUILD''...
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ, LÁ EM 'AuthController',
+
+
+
+
+O METHOD DE  'login()'
+
+
+TAMBÉM FOI ALTERADO,
+
+ISSO PQ 
+
+
+AGORA 'attemptLogin'
+
+não faz mais 1 return simples de 'true' ou 'false'...
+
+
+
+
+
+
+
+
+
+ANTES ESTAVA ASSIM:
+
+
+
+
+
+
+    public function logIn(Request $request, Response $response): Response
+    {
+        $data = $this->requestValidatorFactory->make(UserLoginRequestValidator::class)->validate(
+            $request->getParsedBody()
+        );
+
+        if (! $this->auth->attemptLogin($data)) {
+            throw new ValidationException(['password' => ['You have entered an invalid username or password']]);
+        }
+
+        return $response->withHeader('Location', '/')->withStatus(302);
+    }
+
+
+
+
+
+
+
+
+
+MAS AGORA FICOU ASSIM:
+
+
+
+
+
+
+
+
+    public function logIn(Request $request, Response $response): Response
+    {
+        $data = $this->requestValidatorFactory->make(UserLoginRequestValidator::class)->validate(
+            $request->getParsedBody()
+        );
+
+        $status = $this->auth->attemptLogin($data);
+
+        if ($status === AuthAttemptStatus::FAILED) {
+            throw new ValidationException(['password' => ['You have entered an invalid username or password']]);
+        }
+
+        if ($status === AuthAttemptStatus::TWO_FACTOR_AUTH) {
+           return $this->responseFormatter->asJson($response, ['two_factor' => true]);
+        }
+
+        return $this->responseFormatter->asJson($response, []); 
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+namespace App\Controllers;
+
+use App\Contracts\AuthInterface;
+use App\Contracts\RequestValidatorFactoryInterface;
+use App\DataObjects\RegisterUserData;
+use App\Enum\AuthAttemptStatus;
+use App\Exception\ValidationException;
+use App\RequestValidators\RegisterUserRequestValidator;
+use App\RequestValidators\UserLoginRequestValidator;
+use App\ResponseFormatter;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Message\ResponseInterface as Response;
+use Slim\Views\Twig;
+
+class AuthController
+{
+    public function __construct(
+        private readonly Twig $twig,
+        private readonly RequestValidatorFactoryInterface $requestValidatorFactory,
+        private readonly AuthInterface $auth,
+        private readonly ResponseFormatter $responseFormatter
+    ) {
+    }
+
+    public function loginView(Request $request, Response $response): Response
+    {
+        return $this->twig->render($response, 'auth/login.twig');
+    }
+
+    public function registerView(Request $request, Response $response): Response
+    {
+        return $this->twig->render($response, 'auth/register.twig');
+    }
+
+    public function register(Request $request, Response $response): Response
+    {
+        $data = $this->requestValidatorFactory->make(RegisterUserRequestValidator::class)->validate(
+            $request->getParsedBody()
+        );
+
+        $this->auth->register(
+            new RegisterUserData($data['name'], $data['email'], $data['password'])
+        );
+
+        return $response->withHeader('Location', '/')->withStatus(302);
+    }
+
+    public function logIn(Request $request, Response $response): Response
+    {
+        $data = $this->requestValidatorFactory->make(UserLoginRequestValidator::class)->validate(
+            $request->getParsedBody()
+        );
+
+        $status = $this->auth->attemptLogin($data);
+
+        if ($status === AuthAttemptStatus::FAILED) {
+            throw new ValidationException(['password' => ['You have entered an invalid username or password']]);
+        }
+
+        if ($status === AuthAttemptStatus::TWO_FACTOR_AUTH) {
+           return $this->responseFormatter->asJson($response, ['two_factor' => true]);
+        }
+
+        return $this->responseFormatter->asJson($response, []); 
+    }
+
+    public function logOut(Request $request, Response $response): Response
+    {
+        $this->auth->logOut();
+
+        return $response->withHeader('Location', '/')->withStatus(302);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+se O enum retornado é 'TWO_FACTOR_AUTH',
+
+
+NÓS RETORNAMOS UMA RESPONSE COM 1 KEY DE 'two_factor' de value 'true'...
+
+
+
+
+
+
+
+
+
+
+-> E, CASO CONTRÁRIO,
+
+
+
+FAZEMOS O RETURN DE 1 JSON SIMPLES,
+
+
+
+'MAKING SO THAT THE USER IS LOGGED IN''...
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE O PROFESSOR TEVE DE AJUSTAR ISSO NO FRONTEND, TAMBÉM...
+
+
+
+
+
+
+
+
+
+-> ISSO PQ, ANTERIORMENTE,
+    SE VC SE RECORDAR,
+
+    O REQUEST ERA ENVIADO NÃO POR MEIO DE UM AJAX CALL (como fetch, axios, etc),
+
+
+    E SIM 
+
+    ERA ENVIADO POR MEIO DO SUBMIT DE UMA FORM COMUM, COM PAGE RELOAD...
+
+
+
+
+
+--> ERA UMA REGULAR FORM SUBMISSION...
+
+
+
+
+-> O PROFESSOR TEVE DE BASICAMENTE CONVERTER 
+ESSA REGULAR FORM SUBMISSION EM 1 CÓDIGO JAVASCRIPT QUE HANDLA 
+
+O AJAX CALL...
+
+
+
+
+
+
+
+
+--> POR FIM,
+
+
+
+LÁ NO CÓDIGO FRONTEND DE 'auth.js',
+
+
+
+O PROFESSOR TEVE DE ADICIONAR EVENT LISTENERS PARA:
+
+
+
+
+
+1) '.log-in-btn' --> PARA FAZER O INITIAL AJAX CALL, PARA FAZER LOG IN 
+
+
+
+
+
+
+o código ficou assim:
+
+
+
+
+
+
+
+
+import '../css/auth.scss';
+import { post } from './ajax';
+import { Modal } from 'bootstrap';
+
+window.addEventListener('DOMContentLoaded', function () {
+  const twoFactorAuthModal = new Modal(
+    document.getElementById('twoFactorAuthModal')
+  );
+
+  document
+    .querySelector('.log-in-btn')
+    .addEventListener('click', function (event) {
+      const form = this.closest('form');
+      const formData = new FormData(form);
+      const inputs = Object.fromEntries(formData.entries());
+
+      post(form.action, inputs, form)
+        .then((response) => response.json())
+        .then((response) => {
+          if (response.two_factor) {
+            twoFactorAuthModal.show();
+          } else {
+            window.location = '/';
+          }
+        });
+    });
+
+  document
+    .querySelector('.log-in-two-factor')
+    .addEventListener('click', function (event) {
+      const code =
+        twoFactorAuthModal._element.querySelector('input[name="code"]').value;
+      const email = document.querySelector(
+        '.login-form input[name="email"]'
+      ).value;
+
+      post(
+        '/login/two-factor',
+        { email, code },
+        twoFactorAuthModal._element
+      ).then((response) => {
+        if (response.ok) {
+          window.location = '/';
+        }
+      });
+    });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, SE A RESPONSE CONTÉM A KEY DE 'two_factor' COMO TRUE,
+
+
+é mostrado o MODAL DE 'twoFactorAuthModal'....
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> POR FIM, 
+
+TEMOS OUTRO CLICK EVENT LISTENER,
+
+NO BUTTON DO TWO-FACTOR MODAL...
+
+
+
+
+é o 'log-in-two-factor' button
+
+
+
+
+
+
+
+
+
+
+
+-> SE ESSE BUTTON É CLICADO, ELE DISPARA 1 REQUEST 
+
+
+
+
+à ROUTE 
+
+
+
+DE '/login/two-factor' (POST),
+
+e,
+ 
+
+SE ESSE DISPARO É BEM SUCEDIDO, ELE FAZ REDIRECT PARA A HOME PAGE:
+
+
+
+
+  document
+    .querySelector('.log-in-two-factor')
+    .addEventListener('click', function (event) {
+      const code =
+        twoFactorAuthModal._element.querySelector('input[name="code"]').value;
+      const email = document.querySelector(
+        '.login-form input[name="email"]'
+      ).value;
+
+      post(
+        '/login/two-factor',
+        { email, code },
+        twoFactorAuthModal._element
+      ).then((response) => {
+        if (response.ok) {
+          window.location = '/';
+        }
+      });
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE AINDA PRECISAMOS IMPLEMENTAR ESSA ROUTE DE post....
+
+
+
+
+
+
+
+
+-> LÁ EM WEB.PHP,
+
+temos a route especificada:
+
+
+
+
+
+
+
+      $app->group('', function (RouteCollectorProxy $guest) {
+        $guest->get('/login', [AuthController::class, 'loginView']);
+        $guest->get('/register', [AuthController::class, 'registerView']);
+        $guest->post('/login', [AuthController::class, 'logIn']);
+        $guest->post('/register', [AuthController::class, 'register']);
+        $guest->post('/login/two-factor', [AuthController::class, 'twoFactorLogin']);
+    })->add(GuestMiddleware::class);
+
+
+
+
+
+
+
+
+
+
+
+    BASICAMENTE, 
+
+ 
+PRECISAMOS IMPLEMENTAR ESSE METHOD DE 'twoFactorLogin', 
+
+
+LÁ NO CONTROLLER DE 'AuthController'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O QUE REALMENTE IMPORTA É A LÓGICA QUE 'POWERS' 
+
+O 2FA...
+
+
+
+
+
+
+
+
+
+-> É ISSO QUE VEREMOS, AGORA..
+
+
+
+
+
+
+
+
+
+
+
+-> MAS ANTES DE IMPLEMENTARMOS ESSE METHOD,
+
+
+    PRECISAMOS IMPLEMENTAR O TRECHO DENTRO DO METHOD DE 'attemptLogin',
+
+
+    na class de 'Auth':
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   public function attemptLogin(array $credentials): AuthAttemptStatus
+    {
+        $user = $this->userProvider->getByCredentials($credentials);
+
+        if (! $user || ! $this->checkCredentials($user, $credentials)) {
+            return AuthAttemptStatus::FAILED;
+        }
+
+        if ($user->hasTwoFactorAuthEnabled()) {
+
+            // TODO
+
+            return AuthAttemptStatus::TWO_FACTOR_AUTH;
+        }
+
+        $this->logIn($user);
+
+        return AuthAttemptStatus::SUCCESS;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... BASICAMENTE,
+
+SE O USER TEM O 2 FACTOR HABILITADO,
+
+PRECISAMOS 
+
+'DO SOMETHING'
+
+
+
+E SÓ ENTÃO RETORNAR 'AuthAttemptStatus::TWO_FACTOR_AUTH',
+
+
+para afetar o frontend...
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR DECIDE CHAMAR UM METHOD QUE VAI CRIAR DEPOIS,
+DE NOME 
+
+
+'startLoginWith2FA()',
+
+
+E AÍ PASSA A USER INSTANCE, COMO PARAMETER...
+
+
+
+
+
+
+
+Ex:
+
+
+
+
+
+
+
+        if ($user->hasTwoFactorAuthEnabled()) {
+
+            // TODO
+
+            $this->startLoginWith2FA($user);
+
+            return AuthAttemptStatus::TWO_FACTOR_AUTH;
+        }
+
+
+
+
+
+
+
+
+
+
+
+CERTO... DENTRO DE ESSE METHOD,
+
+
+PRECISAMOS DESCOBRIR UMA MANEIRA DE 
+
+
+
+
+
+''SEND AN EMAIL TO THE USER, WITH THE CODE, VERIFICATION CODE''...
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE PRECISAMOS FIGURE OUT ALGUMA COISA, AQUI,
+
+ANTES DE CONTINUARMOS COM O RESTO DA LÓGICA DOS CONTROLLERS...
+
+
+
+
+
+
+
+
+
+
+-> NESSE METHOD,
+PRECISAMOS:
+
+
+
+
+
+1) SEND THE EMAIL WITH THE CODE...
+
+
+
+
+2) WE SHOULD ALSO STORE THE USER_ID WITHIN THE SESSION....
+
+    WE DO THIS SO THAT WE CAN, LATER, CHECK IF THIS USER 
+    NEEDS TO GO THROUGH THE 2FA OR NOT...
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE O PROFESSOR ESCREVE ASSIM:
+
+
+
+
+
+    private function startLoginWith2FA(UserInterface $user): void
+    {
+        $this->session->regenerate();
+        $this->session->put('2fa', $user->getId());
+    }
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, PRECISAMOS FAZER O ACTUAL SEND DO EMAIL...
+
+
+
+
+
+
+
+
+--> para ENVIAR O EMAIL,
+
+
+PODEMOS 'CREATE AN EMAIL CLASS,
+        WHICH WILL BE RESPONSIBLE FOR DRAFTING AND SENDING OUT 
+        THE 2FA VERIFICATION EMAIL''...
+
+
+
+
+
+
+
+
+
+
+
+
+-> BASTA INJETAR OUTRO TIPO DE EMAIL CLASS,
+
+TIPO 
+
+
+'TwoFactorAuthEmail',
+
+
+
+NO CONSTRUCTOR DA CLASS 'Auth',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+class Auth implements AuthInterface
+{
+    private ?UserInterface $user = null;
+
+    public function __construct(
+        private readonly UserProviderServiceInterface $userProvider,
+        private readonly SessionInterface $session,
+        private readonly SignupEmail $signupEmail,
+        private readonly TwoFactorAuthEmail $twoFactorAuthEmail
+    ) {
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+ISSO FEITO,
+
+
+
+VAMOS CRIAR ESSA CLASS, DENTRO DA PASTA DE 'Mail'...
+
+
+
+
+
+
+
+
+
+
+PODEMOS COMEÇAR COM 1 CÓDIGO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Mail;
+
+use App\Config;
+use App\Entity\User;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\BodyRendererInterface;
+
+class TwoFactorAuthEmail
+{
+    public function __construct(
+        private readonly Config $config,
+        private readonly MailerInterface $mailer,
+        private readonly BodyRendererInterface $renderer
+    ) {}
+
+    public function send(User $user): void
+    {
+        $from = $this->config->get('mailer.from');
+        $to = $user->getEmail();
+        $subject = 'Two-factor authentication code';
+
+        // * Send email to user.
+        $message = (new TemplatedEmail())
+                    ->from($from)
+                    ->to($to)
+                    ->subject($subject)
+                    ->htmlTemplate('/emails/two-factor-auth.html.twig')
+                    ->context([
+                        'activationLink' => '#',
+                        'expirationDate' => new \DateTime('+30 minutes'),
+                    ]);
+
+                
+        $this->renderer->render($message);
+
+        $this->mailer->send($message);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+EDITAMOS UM POUCO, E DEIXAMOS ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Mail;
+
+use App\Config;
+use App\Entity\User;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\BodyRendererInterface;
+
+class TwoFactorAuthEmail
+{
+    public function __construct(
+        private readonly Config $config,
+        private readonly MailerInterface $mailer,
+        private readonly BodyRendererInterface $renderer
+    ) {}
+
+    public function send(User $user): void
+    {
+        $from = $this->config->get('mailer.from');
+        $to = $user->getEmail();
+        $subject = 'Your Expennies Verification Code';
+        $expirationDate =  new \DateTime('+30 minutes');
+
+        // * Send email to user.
+        $message = (new TemplatedEmail())
+                    ->from($from)
+                    ->to($to)
+                    ->subject($subject)
+                    ->htmlTemplate('/emails/two_factor.html.twig')
+                    ->context([
+                        'activationLink' => '#',
+                        'expirationDate' => $expirationDate,
+                    ]);
+
+                
+        $this->renderer->render($message);
+
+        $this->mailer->send($message);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR PROVIDENCIOU UM TWIG TEMPLATE PARA ESSE 2FA,
+
+
+QUE É ESTE:
+
+
+
+
+
+
+Please enter the following verification code on the authentication screen to complete your login. This code will expire in 10 minutes.
+<br />
+<br />
+Your verification code is: {{ code }}
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+É CLARO QUE HÁ DIFERENTES MANEIRAS DE FAZER ISSO...
+
+
+
+
+
+
+
+
+
+
+
+
+''SOME LIKE TO HAVE A COLUMN 
+ ON THE USERS TABLE AND STORE THE CODE THERE...
+
+
+ OTHERS PREFER TO HAVE A DEDICATED TABLE, TO STORE THOSE CODES''...
+
+
+
+
+
+
+
+
+
+
+ -> O PROFESSOR PREFERE TER 1 TABLE SEPARADA 
+ PQ 
+
+ ISSO 
+
+ DEIXA O AUDITING E TROUBLESHOOTING MAIS FÁCIL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+ -> É POR ISSO QUE O PROFESSOR VAI MUDAR O METHOD DE 'send',,
+
+ lá em 'TwoFactorAuthEmail'...
+
+
+
+
+
+
+
+
+
+ ELE ESTÁ ASSIM, NO MOMENTO:
+
+
+
+
+
+
+   public function send(User $user): void
+    {
+        $from = $this->config->get('mailer.from');
+        $to = $user->getEmail();
+        $subject = 'Your Expennies Verification Code';
+        $expirationDate =  new \DateTime('+30 minutes');
+
+        // * Send email to user.
+        $message = (new TemplatedEmail())
+                    ->from($from)
+                    ->to($to)
+                    ->subject($subject)
+                    ->htmlTemplate('/emails/two_factor.html.twig')
+                    ->context([
+                        'activationLink' => '#',
+                        'expirationDate' => $expirationDate,
+                    ]);
+
+                
+        $this->renderer->render($message);
+
+        $this->mailer->send($message);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    MAS O PROFESSOR VAI MUDAR ISSO,
+
+
+
+VAI QUERER 1 PARAMETER DE 
+
+
+'UserLoginCode',
+
+
+QUE SERÁ UMA ENTITY DISTINTA...
+
+
+
+O PROFESSOR ENTÃO VAI ACESSAR O VALUE DE ESSE CODE,
+
+NA FUNCTION DE 'send()',
+
+
+com 
+
+
+'$userLoginCode->getCode()'...
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO... MAS, PARA ISSO, PRECISAMOS:
+
+
+
+
+
+
+1) CREATE ESSA ENTITY, COM A PROPERTY DE 'code' (string)
+
+
+
+2) RODAR 'diff', para criar a migration que vai criar a table de 'user_login_codes'...
+
+
+
+
+3) rodar a migration, com 'php expennies migrate'...
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+FICA TIPO ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Entity;
+
+use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\Table;
+
+#[Entity, Table('user_login_codes')]
+class UserLoginCode
+{
+    private int $id;
+
+    private string $code;
+
+    private bool $isActive;
+
+    private \DateTime $expiration;
+
+    private User $user;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+QUEREMOS TER 'isActive'
+
+PQ QUEREMOS TER A OPÇÃO DE 'DISABLE VERIFICATION CODES', se quisermos...
+
+
+
+
+
+
+-> todo verification code terá 1 expirationtime,
+
+por ISSO 
+
+colocamos a property de 'expiration'... 
+
+
+
+
+
+
+
+E CADA verification code 
+
+vai ficar vinculado a 1 user entity...
+
+
+
+ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Entity;
+
+use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\GeneratedValue;
+use Doctrine\ORM\Mapping\Id;
+use Doctrine\ORM\Mapping\ManyToOne;
+use Doctrine\ORM\Mapping\Table;
+
+#[Entity, Table('user_login_codes')]
+class UserLoginCode
+{
+    #[Id, GeneratedValue]
+    private int $id;
+
+    #[Column(length: 6)]
+    private string $code;
+
+    #[Column(type: 'boolean', name: 'is_active')]
+    private bool $isActive;
+
+    #[Column]
+    private \DateTime $expiration;
+
+    #[ManyToOne]
+    private User $user;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, CRIAMOS OS GETTERS E SETTERS:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Entity;
+
+use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\GeneratedValue;
+use Doctrine\ORM\Mapping\Id;
+use Doctrine\ORM\Mapping\ManyToOne;
+use Doctrine\ORM\Mapping\Table;
+
+#[Entity, Table('user_login_codes')]
+class UserLoginCode
+{
+    #[Id, GeneratedValue]
+    private int $id;
+
+    #[Column(length: 6)]
+    private string $code;
+
+    #[Column(type: 'boolean', name: 'is_active')]
+    private bool $isActive;
+
+    #[Column]
+    private \DateTime $expiration;
+
+    #[ManyToOne]
+    private User $user;
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function getCode(): string
+    {
+        return $this->code;
+    }
+
+    public function setCode(string $code): UserLoginCode
+    {
+        $this->code = $code;
+
+        return $this;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->isActive;
+    }
+
+    public function setIsActive(bool $isActive): UserLoginCode
+    {
+        $this->isActive = $isActive;
+
+        return $this;
+    }
+
+    public function getExpiration(): \DateTime
+    {
+        return $this->expiration;
+    }
+
+    public function setExpiration(\DateTime $expiration): UserLoginCode
+    {
+        $this->expiration = $expiration;
+
+        return $this;
+    }
+
+    public function getUser(): User
+    {
+        return $this->user;
+    }
+
+    public function setUser(User $user): UserLoginCode
+    {
+        $this->user = $user;
+
+        return $this;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+AGORA QUE TEMOS A ENTITY,
+DEVEMOS CRIAR 
+
+
+
+A 'SERVICE CLASS',
+
+QUE 
+
+VAI 
+
+NOS DEIXAR 
+
+
+
+''GENERATE THE NEW VERIFICATION CODES''...
+
+
+
+
+
+
+
+
+
+
+
+-> para isso, CRIAMOS O SERVICE 
+
+
+
+'UserLoginCodeService'...
+
+
+
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+class UserLoginCodeService
+{
+    public function __construct() {}
+}
+
+
+
+
+
+
+
+
+
+
+
+INJETAMOS O 'EntityManagerServiceInterface',
+
+
+PQ VAMOS PRECISAR DELE...
+
+
+
+
+
+
+
+
+
+
+
+-> AÍ CRIAMOS 1 NOVO METHOD , DE NOME 'generate()"...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Contracts\EntityManagerServiceInterface;
+use App\Entity\User;
+
+class UserLoginCodeService
+{
+    public function __construct(
+        private readonly EntityManagerServiceInterface $entityManager
+    ) {}
+
+    public function generate(User $user) {
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+NO CASO, ESSE METHOD VAI EXIGIR O ARGUMENT DE 'User', essa entity...
+
+
+
+
+
+
+
+
+->  E O QUE ISSO VAI RETORNAR, NO CASO,
+
+SERÁ O OBJECT 'UserLoginCode':
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Contracts\EntityManagerServiceInterface;
+use App\Entity\User;
+use App\Entity\UserLoginCode;
+
+class UserLoginCodeService
+{
+    public function __construct(
+        private readonly EntityManagerServiceInterface $entityManager
+    ) {}
+
+    public function generate(User $user): UserLoginCode
+    {
+
+        
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> PARA ISSO, PRECISAMOS CRIAR UMA NOVA INSTANCE DE ESSE OBJECT...
+
+
+
+
+
+
+
+
+FAZEMOS ISSO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+    public function generate(User $user): UserLoginCode
+    {
+
+        $userLoginCode = new UserLoginCode();
+
+        $userLoginCode->setUser($user);
+        $userLoginCode->setCode(bin2hex(random_bytes(6)));
+        $userLoginCode->setIsActive(true);
+        $userLoginCode->setExpiration(new \DateTime('+10 minutes'));
+
+        $this->entityManager->sync($userLoginCode);
+
+        return $userLoginCode;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    COM ISSO, NÓS DEFINIMOS VÁRIAS DAS PROPERTIES 
+
+
+    DO 'UserLoginCode',
+
+
+
+    inclusive o expiration time...
+
+
+
+
+
+
+
+
+
+NÓS TAMBÉM ASSOCIAMOS 
+
+ESSE UserLoginCode
+
+COM 1 USER,
+
+
+com 'setUser($user)'...
+
+
+
+
+
+
+--> FINALMENTE, SINCRONIZAMOS ISSO COM A DATABASE,
+
+
+
+Com '->sync()'...
+
+
+
+
+
+
+
+POR FIM,
+
+
+NÓS FAZEMOS RETURN DO  OBJECT '$userLoginCode'...
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS QUANTO AO TÓPICO DO 'UserLoginCode' em si,
+
+
+
+O PROFESSOR APONTA QUE PODERÍAMOS GERAR ISSO DE DIFERENTES FORMAS...
+
+
+
+
+
+
+
+
+
+_> O PROFESSOR VAI USAR A FUNCTION 'random_int()'...
+
+
+
+
+
+
+
+-> COMO MINIMUM, O PROFESSOR VAI QUERER 100_000
+
+
+
+(pq queremos que isso seja 6 digits)...
+
+
+
+
+--> COMO MAXIMUM, O PROFESSOR VAI QUERER 
+
+
+
+
+999_999
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Contracts\EntityManagerServiceInterface;
+use App\Entity\User;
+use App\Entity\UserLoginCode;
+
+class UserLoginCodeService
+{
+    public function __construct(
+        private readonly EntityManagerServiceInterface $entityManager
+    ) {}
+
+    public function generate(User $user): UserLoginCode
+    {
+
+        $userLoginCode = new UserLoginCode();
+
+        $userLoginCode->setUser($user);
+        $userLoginCode->setCode( (string) random_int(100000, 999999));
+        $userLoginCode->setIsActive(true);
+        $userLoginCode->setExpiration(new \DateTime('+10 minutes'));
+
+        $this->entityManager->sync($userLoginCode);
+
+        return $userLoginCode;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEIXAMOS ESSE NUMBER COMO 'STRING',
+
+POR MEIO DO CAST DE '(string)'...
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+AÍ, LÁ NA CLASS DE 'TwoFactorAuthEmail',
+
+ 
+ PODEMOS OBTER O EMAIL DO USER,
+
+ POR MEIO DA RELATION de 'UserLoginCode' com o user,
+
+ TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+ <?php declare(strict_types=1);
+
+namespace App\Mail;
+
+use App\Config;
+use App\Entity\UserLoginCode;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\BodyRendererInterface;
+
+class TwoFactorAuthEmail
+{
+    public function __construct(
+        private readonly Config $config,
+        private readonly MailerInterface $mailer,
+        private readonly BodyRendererInterface $renderer
+    ) {}
+
+    public function send(UserLoginCode $userLoginCode): void
+    {
+        $from = $this->config->get('mailer.from');
+        $to = $userLoginCode->getUser()->getEmail();
+        $subject = 'Your Expennies Verification Code';
+        $expirationDate =  new \DateTime('+30 minutes');
+
+        // * Send email to user.
+        $message = (new TemplatedEmail())
+                    ->from($from)
+                    ->to($to)
+                    ->subject($subject)
+                    ->htmlTemplate('/emails/two_factor.html.twig')
+                    ->context([
+                        'activationLink' => '#',
+                        'expirationDate' => $expirationDate,
+                    ]);
+
+                
+        $this->renderer->render($message);
+
+        $this->mailer->send($message);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+-> MAS NÓS NÃO PRECISAMOS DO ACTIVATION LINK,
+
+
+POR ISSO NOS LIVRAMOS DESTE TRECHo:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Mail;
+
+use App\Config;
+use App\Entity\UserLoginCode;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\BodyRendererInterface;
+
+class TwoFactorAuthEmail
+{
+    public function __construct(
+        private readonly Config $config,
+        private readonly MailerInterface $mailer,
+        private readonly BodyRendererInterface $renderer
+    ) {}
+
+    public function send(UserLoginCode $userLoginCode): void
+    {
+        $from = $this->config->get('mailer.from');
+        $to = $userLoginCode->getUser()->getEmail();
+        $subject = 'Your Expennies Verification Code';
+
+        // * Send email to user.
+        $message = (new TemplatedEmail())
+                    ->from($from)
+                    ->to($to)
+                    ->subject($subject)
+                    ->htmlTemplate('/emails/two_factor.html.twig')
+                    ->context([
+                        'code' => $userLoginCode->getCode(),
+                    ]);
+
+                
+        $this->renderer->render($message);
+
+        $this->mailer->send($message);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok... com isso, 
+
+
+
+devemos chamar esse method de 'send',
+lá na class de 'Auth',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+    private function startLoginWith2FA(UserInterface $user): void
+    {
+        $this->session->regenerate();
+        $this->session->put('2fa', $user->getId());
+
+        $this->twoFactorAuthEmail->send();
+    } 
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS NÓS AINDA PRECISAMOS DO OBJECT/ENTITY 'UserLoginCode',
+
+
+como argument...
+
+
+
+
+
+
+
+PARA CONSEGUIR ESSE OBJECT,
+
+BASTA INJETAR O SERVICE DE 
+
+
+'UserLoginCodeService'
+
+
+NESSA CLASS DE 'Auth',
+
+E AÍ CHAMAR O METHOD  'generate()',
+
+para obter esse object...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    private function startLoginWith2FA(UserInterface $user): void
+    {
+        $this->session->regenerate();
+        $this->session->put('2fa', $user->getId());
+
+        $this->twoFactorAuthEmail->send($this->userLoginCodeService->generate($user));
+    } 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... AÍ TESTAMOS ISSO, PARA VER SE FUNCIONA,
+
+
+VER SE O EMAIL REALMENT É ENVIADO,  COM O GENERATED CODE...
+
+
+
+
+
+
+
+
+
+_> MAS RODAMOS PHP EXPENNIES DIFF,
+
+para criar nossa migration..
+
+
+
+
+
+
+-> DEPOIS DISSO, RODAMOS A MIGRATION... E AÍ FUNCIONA...
+
+
+
+
+
+
+-> MAS AO TENTARMOS FAZER LOGIN,
+
+FICAMOS COM ERROR DE STATUS 500...
+
+
+
+
+
+
+
+
+
+O PROFESSOR DIZ QUE ESTAMOS COM 1 ERROR DE 
+
+'isActive cannot be set as null'...
+
+
+
+
+
+
+
+
+
+
+--> PARA CONSERTAR ISSO,
+
+DEVEMOS COLOCAR 1 CONSTRUCTOR NA NOSSA ENTITY,
+
+
+E
+ AÍ 
+ DEFINIR, DENTRO DELE,
+
+
+ '$this->isActive = true;',
+
+
+ para que 
+ ESSE VALUE FIQUE COM TRUE, POR DEFAULT...
+
+
+
+
+
+
+
+
+
+
+ TIPO ASSIM:
+
+
+
+
+
+
+ <?php declare(strict_types=1);
+
+namespace App\Entity;
+
+use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\GeneratedValue;
+use Doctrine\ORM\Mapping\Id;
+use Doctrine\ORM\Mapping\ManyToOne;
+use Doctrine\ORM\Mapping\Table;
+
+#[Entity, Table('user_login_codes')]
+class UserLoginCode
+{
+    public function __construct()
+    {
+        $this->isActive = true;
+    }
+
+    #[Id, Column(options: ['unsigned' => true]), GeneratedValue]
+    private int $id;
+
+    #[Column(length: 6)]
+    private string $code;
+
+    #[Column(type: 'boolean', name: 'is_active')]
+    private bool $isActive;
+
+    #[Column]
+    private \DateTime $expiration;
+
+    #[ManyToOne]
+    private User $user;
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function getCode(): string
+    {
+        return $this->code;
+    }
+
+    public function setCode(string $code): UserLoginCode
+    {
+        $this->code = $code;
+
+        return $this;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->isActive;
+    }
+
+    public function setIsActive(bool $isActive): UserLoginCode
+    {
+        $this->isActive = $isActive;
+
+        return $this;
+    }
+
+    public function getExpiration(): \DateTime
+    {
+        return $this->expiration;
+    }
+
+    public function setExpiration(\DateTime $expiration): UserLoginCode
+    {
+        $this->expiration = $expiration;
+
+        return $this;
+    }
+
+    public function getUser(): User
+    {
+        return $this->user;
+    }
+
+    public function setUser(User $user): UserLoginCode
+    {
+        $this->user = $user;
+
+        return $this;
+    }
+}
+
+
+
+
+
+
+
+
+CERTO...
+
+
+O SEND DO EMAIL FUNCIONOU,
+
+
+
+MAS A PARTE DA VERIFICATION, AO COPIAR E COLAR O CÓDIGO DO EMAIL,
+
+AINDA NÃO FUNCIONA,
+
+PQ AINDA NÃO A IMPLEMENTAMOS...
+
+VEREMOS ISSO NA PRÓXIMA AULA...
