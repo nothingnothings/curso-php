@@ -30,7 +30,9 @@ services:
       - ./nginx:/etc/nginx/conf.d
   db:
     container_name: expennies-db
-    image: mysql:8.0
+    build:
+      context: ./db_dockerfile
+      dockerfile: Dockerfile
     volumes:
       - ./storage/mysql:/var/lib/mysql
     restart: always

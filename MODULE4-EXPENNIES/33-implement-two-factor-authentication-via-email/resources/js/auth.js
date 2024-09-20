@@ -43,6 +43,7 @@ window.addEventListener('DOMContentLoaded', function () {
         twoFactorAuthModal._element
       ).then((response) => {
         if (response.ok) {
+          console.log("ENTERED");
           window.location = '/';
         }
       });

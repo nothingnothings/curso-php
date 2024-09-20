@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Services;
 
@@ -19,7 +21,7 @@ class UserLoginCodeService
         $userLoginCode = new UserLoginCode();
 
         $userLoginCode->setUser($user);
-        $userLoginCode->setCode( (string) random_int(100000, 999999));
+        $userLoginCode->setCode((string) random_int(100000, 999999));
         $userLoginCode->setIsActive(true);
         $userLoginCode->setExpiration(new \DateTime('+10 minutes'));
 
@@ -34,19 +36,22 @@ class UserLoginCodeService
         $userLoginCode = $this->entityManager->getRepository(UserLoginCode::class)->findOneBy([
             'user' => $user,
             'code' => $code,
-            'isActive' => true,
-            'expiration' => new \DateTime('+10 minutes')
+            'isActive' => 1,
         ]);
 
-        if (! $userLoginCode) {
-            return false;
-        }
+         if (! $userLoginCode) {
+             return false;
+         }
 
         if ($userLoginCode->getExpiration() <= new \DateTime()) {
             return false;
         }
 
         return true;
+    }
 
+    public function deactivateAllActiveCodes(User $user): void {
+
+        
     }
 }

@@ -29,6 +29,7 @@ class VerifyController
         }
 
         if (! $user->getVerifiedAt()) {
+            var_dump($user);
            $this->userProviderService->verifyUser($user);
         }
         

@@ -86,6 +86,6 @@ class AuthController
             throw new ValidationException(['code' => ['You have entered an invalid code']]);
         }
 
-        return $response->withHeader('Location', '/')->withStatus(302);
+        return $response;
     }
 }

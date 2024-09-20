@@ -129,12 +129,10 @@ class Auth implements AuthInterface
         $user = $this->userProvider->getById($userId);
 
         if (! $user || $user->getEmail() !== $data['email']) {
-            echo 'ENTERED 2';
             return false;
         }
 
         if (!$this->userLoginCodeService->verify($user, $data['code'])) {
-            echo 'ENTERED 3';
             return false;
         }
 

@@ -1449,3 +1449,106 @@ RESPONSE:
 
 {"code":["You have entered an invalid code"]}
 
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS O PROFESSOR TAMBÉM FICOU COM O MESMO ERRO...
+
+
+
+
+
+
+
+''EVEN IF I INSERT THE CORRECT CODE, I STILL GET 'INVALID CODE' ''...
+
+
+
+
+
+--> mas isso era pq a versão do professor já havia expirado...
+
+
+
+
+
+
+
+
+--> MAS O PROFESSOR QUER MELHORAR A LÓGICA UM POUCO....
+
+
+
+
+
+
+
+
+ELE QUER 'DEACTIVATE ALL PREVIOUS CODES', SEMPRE QUE 
+
+
+1 NOVO CODE FOR GENERATED...
+
+
+
+
+
+
+ISSO É FEITO PARA REMEDIAR CASES EM QUE 
+
+''USER SENDS 2 2FA EMAILS,
+SO HE GETS 
+
+2 VERIFICATION CODES''.... tecnicamente,
+
+
+AMBOS CÓDIGOS FUNCIONARIAM,
+
+MAS O PROFESSOR QUER FAZER COM QUE APENAS 
+O ÚLTIMO CODE FIQUE REALMENTE VÁLIDO...
+
+
+
+
+
+
+
+''WE NEED TO DEACTIVATE ALL PREVIOUS CODES, BEFORE GENERATING A NEW CODE''...
+
+
+
+
+
+ 
+
+
+
+
+
+ -> PARA ISSO, O PROFESSOR CRIA 1 NOVO METHOD, DENTRO DO SERVICE 
+
+
+
+ UserLoginCodeService....
+
+
+
+
+ ELE ESCREVE TIPO ASSIM:
+
+
+
+
+     public function deactivateAllActiveCodes(User $user): void {
+
+        
+    }
