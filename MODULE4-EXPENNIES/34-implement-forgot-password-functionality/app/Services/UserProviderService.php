@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Services;
 
@@ -12,9 +12,10 @@ use App\Entity\User;
 
 class UserProviderService implements UserProviderServiceInterface
 {
-    public function __construct(private readonly EntityManagerServiceInterface $entityManager)
-    {
-    }
+    public function __construct(
+        private readonly EntityManagerServiceInterface $entityManager,
+        private readonly HashService $hashService
+    ) {}
 
     public function getById(int $userId): ?UserInterface
     {
@@ -32,7 +33,7 @@ class UserProviderService implements UserProviderServiceInterface
 
         $user->setName($data->name);
         $user->setEmail($data->email);
-        $user->setPassword(password_hash($data->password, PASSWORD_BCRYPT, ['cost' => 12]));
+        $user->setPassword($this->hashService->hashPassword($data->password));
 
         $this->entityManager->sync($user);
 

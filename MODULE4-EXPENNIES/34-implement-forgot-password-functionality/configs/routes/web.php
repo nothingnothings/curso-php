@@ -76,9 +76,9 @@ return function (App $app) {
          $guest->get('/forgot-password', [PasswordResetController::class, 'showForgotPasswordForm']);
          $guest->post('/forgot-password', [PasswordResetController::class, 'handleForgotPasswordRequest']);
 
-        // $guest->get('/reset-password/{token}', [PasswordResetController::class, 'showResetPasswordForm'])
-        //     ->setName('password-reset')
-        //     ->add(ValidateSignatureMiddleware::class);
-        // $guest->post('/reset-password/{token}', [PasswordResetController::class, 'resetPassword']);
+        $guest->get('/reset-password/{token}', [PasswordResetController::class, 'showResetPasswordForm'])
+            ->setName('password-reset')
+            ->add(ValidateSignatureMiddleware::class);
+        $guest->post('/reset-password/{token}', [PasswordResetController::class, 'resetPassword']);
     })->add(GuestMiddleware::class);
 };
