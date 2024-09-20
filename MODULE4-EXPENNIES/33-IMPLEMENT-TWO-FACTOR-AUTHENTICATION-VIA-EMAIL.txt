@@ -1552,3 +1552,296 @@ O ÚLTIMO CODE FIQUE REALMENTE VÁLIDO...
 
         
     }
+
+
+
+
+
+
+
+
+
+
+
+CERTO.... CONSERTEI 1 MONTE DE PROBLEMAS QUE TINHA COM O APP...
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR QUER DESATIVAR TODOS OS PREVIOUS CODES 
+
+ASSIM QUE 1 NOVO CODE É GENERATED..
+
+
+
+
+
+
+
+O PROFESSOR ESCREVE ASSIM:
+
+
+
+
+     public function deactivateAllActiveCodes(User $user): void {
+
+        $this->entityManagerService
+        ->getRepository(UserLoginCode::class)
+        ->createQueryBuilder('ulc')
+        ->update()
+        ->set('ulc.isActive', 0)
+        ->where('ulc.user = :user', )
+        ->andWhere('ulc.isActive = 1')
+        ->setParameter('user', $user)
+        ->getQuery()
+        ->execute();
+                                
+    }
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+    public function deactivateAllActiveCodes(User $user): void {
+
+        $this->entityManagerService
+        ->getRepository(UserLoginCode::class)
+        ->createQueryBuilder('ulc')
+        ->update()
+        ->set('ulc.isActive', 0)
+        ->where('ulc.user = :user', )
+        ->andWhere('ulc.isActive = 1')
+        ->setParameter('user', $user)
+        ->getQuery()
+        ->execute();
+    }
+
+
+
+
+
+
+
+
+
+
+
+finalmente, podemos chamar esse method dentro do 
+
+
+
+method 'startLoginWith2FA',
+
+
+ANTES DE FAZER O GENERATE DO NOVO CÓDIGO,
+
+TIPO ASSIM:
+
+
+
+
+
+ private function startLoginWith2FA(UserInterface $user): void
+    {
+        $this->session->regenerate();
+        $this->session->put('2fa', $user->getId());
+
+        $this->userLoginCodeService->deactivateAllActiveCodes($user);
+
+        $this->twoFactorAuthEmail->send($this->userLoginCodeService->generate($user));
+    } 
+
+
+
+
+
+
+
+
+
+    CERTO...
+
+
+
+
+
+
+
+
+
+
+
+AÍ TESTAMOS ISSO....
+
+
+
+
+
+
+--> mas também queremos DEACTIVATE ALL PREVIOUS CODES,
+
+se o code mais recente FOI SUCCESSFUL, no momento do login..
+
+
+
+
+
+
+
+
+
+
+--> É POR ISSO QUE, LÁ EM 'Auth.php',
+
+
+
+O PROFESSOR ESCREVE ASSIM:
+
+
+
+
+
+
+
+
+
+
+    public function attemptTwoFactorLogin(array $data): bool
+    {
+        $userId = $this->session->get('2fa');
+
+        if (! $userId) {
+            return false;
+        }
+
+        $user = $this->userProvider->getById($userId);
+
+        if (! $user || $user->getEmail() !== $data['email']) {
+            return false;
+        }
+
+        if (!$this->userLoginCodeService->verify($user, $data['code'])) {
+            return false;
+        }
+
+ 
+        $this->session->forget('2fa');
+
+        $this->logIn($user);
+
+        $this->userLoginCodeService->deactivateAllActiveCodes($user);
+
+        return true;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK....
+
+
+
+
+
+
+
+
+
+
+AGORA, QUANDO FAZEMOS LOGIN,
+
+TODOS OS CODES ANTERIORES SAO DEACTIVATED,
+
+E SÓ O CODE ATUAL É MARCADO COMO 'ACTIVE'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> se terminamos o login, o code atual também é marcado como 
+
+'deactivated', o que quer dizer que nosso mecanismo FUNCIONOU.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO PODEMOS MELHORAR ISSO?
+
+
+
+
+
+''ADD A BOOL COLUMN 
+TO THE USER TABLE,
+
+WHICH DETERMINES IF USER WANTS TO HAVE 2FA ENABLED OR NOT'..
+
+
+
+
+
+
+''BUILD A BASIC PROFILE PAGE, WHICH 
+ALLOWS THE USER TO UPDATE THEIR NAME 
+
+OR ENABLE/DISABLE 
+
+THE 2FA FEATURE'...
+
+
+
+
+
+
+
+--> O PROFESSOR IMPLEMENTARÁ 
+
+ESSA FEATURE POR TRÁS DAS CENAS,
+
+
+E MOSTRARÁ COMO IMPLEMENTAR, NO PRÓXIMO EPISODIO...
+

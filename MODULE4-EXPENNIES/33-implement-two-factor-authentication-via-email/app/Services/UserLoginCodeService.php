@@ -11,7 +11,7 @@ use App\Entity\UserLoginCode;
 class UserLoginCodeService
 {
     public function __construct(
-        private readonly EntityManagerServiceInterface $entityManager
+        private readonly EntityManagerServiceInterface $entityManagerService
     ) {}
 
     // * Generates the 2FA code for the user
@@ -52,6 +52,15 @@ class UserLoginCodeService
 
     public function deactivateAllActiveCodes(User $user): void {
 
-        
+        $this->entityManagerService
+        ->getRepository(UserLoginCode::class)
+        ->createQueryBuilder('ulc')
+        ->update()
+        ->set('ulc.isActive', 0)
+        ->where('ulc.user = :user', )
+        ->andWhere('ulc.isActive = 1')
+        ->setParameter('user', $user)
+        ->getQuery()
+        ->execute();
     }
 }
