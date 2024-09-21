@@ -8,6 +8,7 @@ use App\Entity\Transaction;
 use App\Entity\User;
 use Clockwork\Clockwork;
 use Clockwork\Request\LogLevel;
+use Psr\SimpleCache\CacheInterface;
 
 class TransactionImportService
 {
@@ -42,7 +43,6 @@ class TransactionImportService
 
             $date     = new \DateTime($date);
             $category = $categories[strtolower($category)] ?? null;
-            // $category = $this->categoryService->findByName($category); // ! This is BAD, n+1 problem. Unecessary queries, one for each row, instead of a single query returning all categories, beforehand.
             $amount   = str_replace(['$', ','], '', $amount);
 
             $transactionData = new TransactionData($description, (float) $amount, $date, $category);
@@ -70,9 +70,7 @@ class TransactionImportService
             $this->entityManagerService->clear();
         }
 
-        // gc_collect_cycles(); // This will allocate the memory that was not yet garbage collected. (but this is done automaticallly by PHP)
-
-        // Log memory usage and detect memory leaks:
+       
         $this->clockwork->log(LogLevel::DEBUG, 'Memory Usage After: ' . memory_get_usage(true));
         $this->clockwork->log(LogLevel::DEBUG, 'Unit of Work After: ' . $this->entityManager->getUnitOfWork()->size());
         

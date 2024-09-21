@@ -1732,3 +1732,2372 @@ CERTO...
 
 
 
+
+
+--> COM O METHOD 'getMultiple',
+
+
+podemos pegar múltiplos values,
+
+
+por meio do provide de múltiplas keys...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+    public function getMultiple(iterable $keys, mixed $default = null): iterable {
+
+        
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+--> AQUI, KEYS SERÃO 'ITERABLE'...
+
+
+
+
+
+
+
+
+-> VAMOS OBTER OS VALUES POR MEIO DO METHOD 
+
+'mGet()'
+
+do redis...
+
+
+
+
+
+
+
+-> AÍ VAMOS CASTAR AS KEYS COMO 1 ARRAY...
+
+
+
+AÍ CRIAMOS 1 NOVO ARRAY, DE NOME 
+
+'$result',
+
+
+e vamos rodar 1 foreach para 
+
+
+
+JOGAR CADA 1 DOS VALUES NESSE ARRAY DE '$result',
+
+QUE ENTÃO SERÁ RETORNADO, AO FINAL...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+    public function getMultiple(iterable $keys, mixed $default = null): iterable
+    {
+
+        $values = $this->redis->mGet((array) $keys);
+        $result = [];
+
+        foreach ($values as $key => $value) {
+            $result[$keys[$key]] = $value === false ? $default : $value;
+        }
+
+        return $result;
+    }
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+RESUMINDO O QUE ESTÁ ACONTECENDO:
+
+
+
+
+
+
+
+1) WE ARE GETTING ALL THE VALUES,
+
+    using the '$keys' from 
+    redis...
+
+
+
+2) WE ARE ITERATING OVER THEM,
+
+
+with 
+
+
+'foreach($values as $i => $value) {
+
+}'
+
+
+
+
+
+
+
+COM ISSO, ESTAMOS PREENCHENDO O ARRAY 
+
+
+
+'$result' 
+
+com as keys que foram entregues...
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, DEVEMOS IMPLEMENTAR O METHOD DE 
+
+'has()'..
+
+
+
+
+
+
+
+
+
+
+
+--> PROVAVELMENTE USAREMOS O METHOD 'isset()'...
+
+
+
+-> NA VERDADE, O PROFESSOR USA O METHOD 'exists()',
+
+dentro do 'redis'..
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+ public function has(string $key): bool {
+        return $this->redis->exists($key);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, OS ÚLTIMOS METHODS QUE FALTARAM
+
+
+FORAM 
+
+'setMultiple'
+
+
+e 
+
+'deleteMultiple'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O deleteMultiple
+
+é bem simples...
+
+
+
+
+
+
+tipo assim:
+
+
+
+
+
+
+    public function deleteMultiple(iterable $keys): bool {
+        $keys = (array) $keys;
+
+        return $this->redis->del($keys) === count($keys);
+    }
+
+
+
+
+
+
+
+
+
+COM ISSO, COMPARAMOS 
+
+
+
+O 'NÚMERO DE KEYS QUE FORAM DELETADAS'
+
+com 
+
+
+''O NÚMERO DE KEYS QUE FORAM FORNECIDAS,
+
+NO ARGUMENT''...
+
+
+SE OS 2 NÚMEROS MATCHEIAM,
+
+ISSO QUER DIZER QUE 
+
+
+A DELETION FOI SUCCESSFUL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FINALMENTE,
+
+TEMOS O METHOD DE 'setMultiple'...
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+    public function setMultiple(iterable $values, \DateInterval|int|null $ttl = null): bool {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok, mas como implementamos isso?
+
+
+
+
+
+
+PRIMEIRAMENTE,
+
+CASTAMOS OS VALUES COMO ARRAY,
+
+
+COMO SEMPRE... 
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO,
+
+
+
+escrevemos tipo assim:
+
+
+
+
+
+
+
+
+
+$result = $this->redis->mSet($values);
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+    public function setMultiple(iterable $values, \DateInterval|int|null $ttl = null): bool {
+
+        $values = (array) $values;
+
+        $result = $this->redis->mSet($values); // mSet is a method that allows you to set multiple keys at once.
+
+        
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, PRECISAMOS DEFINIR O 'TIME TO LEAVE' (ttl)
+
+DE CADA 1 DE ESSES VALUES,
+
+NO REDIS... 
+
+
+
+
+
+
+
+
+PARA FAZER ISSO, PODEMOS USAR O METHOD DE 'expire'
+
+
+no redis client,
+
+
+
+PARA SETTAR A EXPIRATION DE CADA UMA DAS INDIVIDUAL 
+ENTRIES..
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+   public function setMultiple(iterable $values, \DateInterval|int|null $ttl = null): bool
+    {
+
+        $values = (array) $values;
+
+        $result = $this->redis->mSet($values); // mSet is a method that allows you to set multiple keys at once.
+
+        if ($ttl !== null) {
+            foreach (array_keys($values) as $key) {
+                $this->redis->expire($key, $ttl);
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    OK... MAS TAMBÉM PRECISAMOS CHECAR SE 
+
+    'ttl' é INSTANCEOF 'DateInterval'...
+
+
+
+
+
+
+
+
+POR ISSO COLOCAMOS ESTE IF CONDITION:
+
+
+
+
+
+
+
+
+
+    public function setMultiple(iterable $values, \DateInterval|int|null $ttl = null): bool
+    {
+
+        $values = (array) $values;
+        $result = $this->redis->mSet($values); // mSet is a method that allows you to set multiple keys at once.
+
+
+        if ($ttl !== null) {
+            if ($ttl instanceof \DateInterval) {
+                $ttl = (new DateTime('@0'))->add($ttl)->getTimestamp();
+            }
+
+            foreach (array_keys($values) as $key) {
+                $this->redis->expire($key, (int) $ttl);
+            }
+        }
+    }
+
+
+
+
+
+
+
+POR FIM, RETORNAMOS O RESULT....
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+    public function setMultiple(iterable $values, \DateInterval|int|null $ttl = null): bool
+    {
+
+        $values = (array) $values;
+        $result = $this->redis->mSet($values); // mSet is a method that allows you to set multiple keys at once.
+
+
+        if ($ttl !== null) {
+            if ($ttl instanceof \DateInterval) {
+                $ttl = (new DateTime('@0'))->add($ttl)->getTimestamp();
+            }
+
+            foreach (array_keys($values) as $key) {
+                $this->redis->expire($key, (int) $ttl);
+            }
+        }
+
+        return $result;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA QUE TEMOS TODOS ESSES METHODS,
+DEVEMOS 
+
+TESTÁ-LOS...
+
+
+
+
+
+
+
+
+
+---> VAMOS ATÉ O HOME CONTROLLER,
+
+
+E INJETAMOS 
+
+
+
+
+a 'CacheInterface'
+
+
+
+NO CONSTRUCTOR...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+namespace App\Controllers;
+
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\SimpleCache\CacheInterface;
+use Slim\Views\Twig;
+
+class HomeController
+{
+    public function __construct(private readonly Twig $twig, 
+    private readonly CacheInterface $cache)
+    {
+    }
+
+    public function index(Request $request, Response $response): Response
+    {
+        return $this->twig->render($response, 'dashboard.twig');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+AÍ, EM 'index',
+
+
+
+O PROFESSOR 
+
+
+
+CHAMA ESTES METHODS:
+
+
+
+
+
+
+
+
+$this->cache->set('a', 1);
+$this->cache->setMultiple(['b' => 2, 'c' => 3]);
+
+
+
+var_dump($this->cache->get('a'), $this->cache->getMultiple(['b', 'c']));
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+   public function index(Request $request, Response $response): Response
+    {
+        $this->cache->set('a', 1);
+        $this->cache->setMultiple(['b' => 2, 'c' => 3]);
+
+        var_dump($this->cache->get('a'), $this->cache->getMultiple(['b', 'c']));
+
+        return $this->twig->render($response, 'dashboard.twig');
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... É CLARO QUE, PARA QUE ISSO FUNCIONE,
+PRECISAMOS ADICIONAR 1 ENTRY NAS NOSSAS CONTAINER_BINDINGS 
+
+
+PARA 'CacheInterface',
+
+para que ela seja resolved 
+
+como a class de 
+
+'RedisCache.php'...
+
+
+
+
+
+
+
+
+PODEMOS COMEÇAR TIPO ASSIM:
+
+
+
+
+
+
+    CacheInterface::class => function() {
+        $redis = new \Redis();
+        $redis->connect('redis');
+
+        return new RedisCache($redis);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+BASICAMENTE, NÓS OBTEMOS ACESSO DIRETO AO 'REDIS',
+
+
+E AÍ 
+
+RODAMOS 'redis->connect()',
+
+
+PARA NOS CONNECTARMOS AO REDIS....
+
+
+
+
+
+
+
+--> DEPOIS DISSO, USAMOS O REDIS COMO PARAMETER DE NOSSA CLASS 
+
+'RedisCache',
+
+
+QUE TEM ESTE CONSTRUCTOR:
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App;
+
+use DateTime;
+use Psr\SimpleCache\CacheInterface;
+
+class RedisCache implements CacheInterface
+{
+
+    public function __construct(private readonly \Redis $redis) {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS, AQUI,
+
+ESQUECEMOS 1 COISA...
+
+
+
+
+
+
+
+--> O PROFESSOR DIZ QUE PRECISAMOS DE:
+
+
+
+1) 'THE HOST'
+
+
+ 
+2) 'THE PORT'...
+
+
+
+
+
+
+
+
+AMBOS SÃO PARAMETERS DE 'redis->connect()'...
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR FALA QUE PODEMOS OBTER 
+
+
+AMBOS OS PARAMETERS LÁ DE NOSSO 'config'...
+
+
+
+
+--> É POR ISSO QUE INJETAMOS ESSE OBJECT DE 'Config'
+
+nos parameters de essa function,
+tipo assim:
+
+
+
+
+
+
+
+
+    CacheInterface::class => function(Config $config) {
+        $redis = new \Redis();
+        $redis->connect('redis');
+
+        return new RedisCache($redis);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+NÓS VAMOS ADICIONAR AS ENTRIES NA CONFIG FILE MAIS TARDE...
+
+
+
+DIGAMOS QUE JÁ TEMOS ESSES VALUES CONFIGURADOS...
+
+
+
+
+
+
+AÍ CHAMAMOS ASSIM:
+
+
+
+
+
+    CacheInterface::class => function(Config $config) {
+        $redis = new \Redis();
+
+        $config = $config->get('redis');
+
+        $redis->connect($config['host'], (int) $config['port']);
+        $redis->auth($config['password']);
+
+        return new RedisCache($redis);
+    }
+
+
+
+
+
+
+
+
+
+
+COM ISSO, NÓS NOS CONECTAMOS AO REDIS,
+
+NA PORT CORRETA,
+
+E COM O PASSWORD CORRETO...
+
+
+
+
+
+
+
+
+-> certo... até aí, tudo bem...
+
+
+
+
+
+
+
+
+-_> AGORA SÓ PRECISAMOS DE ESSA ENTRY, de 'redis',
+
+NA CONFIG FILE,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+    'redis' => [
+        'host' => $_ENV['REDIS_HOST'] ?? 'localhost',
+        'port' => $_ENV['REDIS_PORT'] ?? 6379,
+        'password' => $_ENV['REDIS_PASSWORD'] ?? '',
+    ]
+
+
+
+
+
+
+
+
+
+
+LÁ NO ARQUIVO .env,
+
+JÁ TEMOS ESSES VALUES,
+TIPO ASSIM:
+
+
+
+
+
+
+APP_NAME=Expennies
+APP_VERSION=1.0
+APP_DEBUG=1
+APP_ENV=development
+DB_HOST=db
+DB_USER=root
+DB_PASS=root
+DB_NAME=expennies
+MAILER_DSN=smtp://mailhog:1025
+MAILER_FROM=support@expennies.com
+APP_URL=http://localhost:8000
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_PASSWORD=mypassword
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+
+
+
+
+
+
+--> VC PODE ESTAR SE PERGUNTANDO
+
+
+'''WHY NOT 'localhost',
+    instead of 'redis', for the 
+    'REDIS_HOST'?''
+
+
+
+
+
+-> É A MESMA RAZÃO DE COLOCARMOS 'db' para 'DB_HOST'...
+    é o docker...
+
+
+
+
+
+    -> ESSE É O DOCKER NAME, 
+
+    SERVICE NAME DE ESSE CONTAINER...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AÍ O PROFESSOR RECARREGA A PAGE DO BROWSER,
+
+
+
+
+
+
+E FICAMOS 
+
+COM 1 PRINT 
+
+
+
+DAQUELE 
+
+
+
+'get' do redis....
+
+
+
+
+
+
+FICAMOS COM 
+
+
+
+'b' => 2 
+
+'c' => 3 
+
+
+
+
+
+
+
+
+
+
+
+CERTO....
+
+
+
+
+
+
+
+
+
+
+MAS VAMOS ADICIONAR O PARAMETER DE 'ttl' 
+
+
+NESSES CALLS, TIPO ASSIM:
+
+
+
+
+
+        $this->cache->set('a', 1, 5);
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, ESSE VALUE VAI FICAR SET 
+
+POR APENAS 5 SEGUNDOS,
+E DEPOIS SERÁ EXPIRADO...
+
+
+
+
+
+
+
+
+O PROFESSOR COMENTA ESSES CÓDIGOS PARA FORA,
+
+
+
+
+E AÍ 
+
+FICAREMOS COM 'NULL',
+
+
+PQ 
+
+
+ESSE VALUE JÁ TERÁ SIDO EXPIRADO....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... AGORA QUE SABEMOS O BÁSICO SOBRE
+CACHING E JÁ CONSEGUIMOS IMPLEMENTAR 1 POUCO 
+
+DO CACHING POR CONTA PRÓPRIA,
+
+
+
+
+
+DEVEMOS VER COISAS QUE JÁ EXISTEM...
+
+
+
+
+
+
+
+
+
+''FRAMEWORKS LIKE LARAVEL AND SYMFONY ALREADY COME 
+WITH CACHING COMPONENTS OUT OF THE BOX... THIS MEANS 
+THAT YOU DON'T HAVE TO REINVENT THE WHEEL AND 
+CREATE THESE CLASSES ON YOUR OWN...''
+
+
+
+
+O PROFESSOR SÓ QUERIA NOS MOSTRAR COMO ISSO FUNCIONA 
+
+POR TRÁS DAS SCENES,
+
+
+
+PARA VC SABER COMO INTERAGIR COM O REDIS CLIENT 
+
+
+DIRETAMENTE....
+
+
+
+
+
+
+
+
+
+
+-> MAS O SYMFONY/CACHE 
+
+
+JÁ ESTAVA COMO DEPENDENCY DE NOSSO APP CONTAINER,
+
+ANTERIORMENTE...
+
+
+
+
+
+
+
+
+OU SEJA,
+
+JÁ TÍNHAMOS O 'REDIS'
+
+
+NO NOSSO APP....
+
+
+
+
+
+
+
+
+
+
+O 'SYMFONY CACHE COMPONENT'
+
+
+
+SUPORTA TANTO O PSR6 COMO O PSR16...
+
+
+
+
+
+VC PODE ESCOLHER QUAL ADAPTER VC QUER USAR,
+
+E QUAL PSR...
+
+
+
+
+
+
+
+
+
+
+--> POR ENQUANTO, VAMOS ATÉ OS CONTAINER_BINDINGS,
+
+E VAMOS AJUSTAR A BINDING DE 'CacheInterface',
+
+
+para que ELA NÃO FAÇA UMA INSTANCE 
+
+
+
+DE NOSSA CUSTOM CLASS 'RedisCache',
+
+
+
+E SIM FAÇA 
+
+
+
+
+DA IMPLEMENTATION DE PSR16 DO SYMFONY...
+
+
+
+
+
+
+
+
+
+-> CONFORME JÁ MENCIONAOD,
+
+O SYMFONY JÁ TEM UMA IMPLEMENTATION PARA O PSR16....
+
+
+
+
+
+
+
+-> PARA INSTANCIAR ESSA VERSÃO DO PSR16,
+
+DO SYMFONY,
+
+BASTA ESCREVER ASSIM ('Psr16Cache')..
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+    CacheInterface::class => function(Config $config) {
+        $redis = new \Redis();
+
+        $config = $config->get('redis');
+
+        $redis->connect($config['host'], (int) $config['port']);
+        $redis->auth($config['password']);
+
+
+        $adapter = new RedisAdapter($redis);
+
+
+        return new Psr16Cache($adapter);
+
+
+
+        // return new RedisCache($redis); // Our custom implementation (without the symfony Cache)
+    }
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+''COMO NÓS ESTAMOS USANDO A CACHEINTERFACE 
+
+NO HOMECONTROLLER,
+
+TUDO DEVE FUNCIONAR DA MESMA FORMA'..
+
+
+
+
+
+
+
+
+
+
+
+
+
+NÃO VAMOS MAIS PRECISAR DO 'RedisCache',
+
+
+nossa custom implementation,
+
+ISSO PQ 
+
+AGORA VAMOS USAR ESSA IMPLEMENTATION 
+
+
+
+DE  CACHE DO SYMFONY, QUE É MELHOR....
+
+
+
+
+
+
+
+
+
+--> AGORA QUE VIMOS ESSES SIMPLE EXAMPLES,
+
+DEVEMOS VER COMO PODEMOS APLICAR ISSO 
+
+
+
+COM NOSSO CURRENT EXPENNIES APP....
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+ --> O PROFESSOR VAI ATÉ O SERVICE DE 
+
+
+ 'TransactionImportService'
+
+
+
+
+
+
+
+
+
+
+
+ O CÓDIGO DE ESSE METHOD ESTÁ ASSIM:
+
+
+
+
+
+
+
+
+
+
+     public function importFromFile(string $file, User $user): void
+    {
+
+
+        $resource = fopen($file, 'r');
+        $categories = $this->categoryService->getAllKeyedByName(); // * This is MUCH BETTER than trying to find each category by name, individually.
+
+        // Discard the header row
+        fgetcsv($resource);
+
+        // Log memory and unit of work usage and detect memory leaks:
+        $this->clockwork->log(LogLevel::DEBUG, 'Memory Usage Before: ' . memory_get_usage(true));
+        $this->clockwork->log(LogLevel::DEBUG, 'Unit of Work Before: ' . $this->entityManager->getUnitOfWork()->size());
+
+        $count = 1;
+        $batchSize = 250;
+        while (($row = fgetcsv($resource)) !== false) {
+            [$date, $description, $category, $amount] = $row;
+
+            $date     = new \DateTime($date);
+            $category = $categories[strtolower($category)] ?? null;
+            // $category = $this->categoryService->findByName($category); // ! This is BAD, n+1 problem. Unecessary queries, one for each row, instead of a single query returning all categories, beforehand.
+            $amount   = str_replace(['$', ','], '', $amount);
+
+            $transactionData = new TransactionData($description, (float) $amount, $date, $category);
+
+            $transaction = $this->transactionService->create($transactionData, $user);
+
+            $this->entityManagerService->persist($transaction);
+
+            // If the current count/row is a multiple of the batchsize (250, 500, 750, etc), we flush a single time.
+            if ($count % $batchSize === 0) {
+                // Call flush, then reset the counter, every time we reach 250, 500, 750, etc.
+                $this->entityManagerService->sync();
+                // $this->entityManagerService->clear(Transaction::class); // ! This was DEPRECATED; we must use the version seen on the line below.
+                $this->entityManagerService->clear(Transaction::class); // * The logic seen in this method, in our custom service class, is not deprecated: https://github.com/doctrine/orm/issues/8460 
+
+                $count = 1;
+            } else {
+                $count++; 
+            }
+
+        }
+
+        if ($count > 1) {
+            $this->entityManagerService->sync();
+            $this->entityManagerService->clear();
+        }
+
+        // gc_collect_cycles(); // This will allocate the memory that was not yet garbage collected. (but this is done automaticallly by PHP)
+
+        // Log memory usage and detect memory leaks:
+        $this->clockwork->log(LogLevel::DEBUG, 'Memory Usage After: ' . memory_get_usage(true));
+        $this->clockwork->log(LogLevel::DEBUG, 'Unit of Work After: ' . $this->entityManager->getUnitOfWork()->size());
+        
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    --> dentro de esse method,
+
+estamos 
+
+
+''FETCHING ALL THE CATEGORIES,
+
+KEYED BY __ NAME''....
+
+
+
+
+
+COM ESTE CÓDIGO:
+
+
+
+
+
+        $categories = $this->categoryService->getAllKeyedByName(); // * This is MUCH BETTER than trying to find each category by name, individually.
+
+
+
+
+
+
+
+
+
+E ISSO, NO CASO,
+
+É ALGO QUE PODERIA SER POTENCIALMENTE __CACHEADO__...
+
+
+
+
+
+
+
+
+
+
+
+--> isso pq 'categories'
+
+NÃO MUDAM COM TANTA FREQUENCIA...
+
+
+
+
+
+
+E, A DEPENDER da frequencia com que fetcheamos 
+
+
+categories e armazenamos em 1 variable,
+
+
+o store no cache talvez seja benéfico...
+
+
+
+
+
+
+TUDO DEPENDE DE:
+
+
+
+
+1) HOW HEAVY THIS METHOD CALL IS 
+
+
+2) THE SIZE OF THE TABLE 
+
+
+3) WHAT SORT OF PERFORMANCE GAIN,   
+    WE WOULD GET, WITH THIS CACHING...
+
+
+
+
+
+
+
+
+
+
+PARA USAR ISSO ALI, ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Contracts\EntityManagerServiceInterface;
+use App\DataObjects\DataTableQueryParams;
+use App\Entity\Category;
+use App\Entity\User;
+use Doctrine\ORM\Tools\Pagination\Paginator;
+use Psr\SimpleCache\CacheInterface;
+
+// class CategoryService extends EntityManagerService
+class CategoryService
+{
+    public function __construct(
+        private readonly EntityManagerServiceInterface $entityManager,
+        private readonly CacheInterface $cache
+    ) {}
+
+    public function create(string $name, User $user): Category
+    {
+        $category = new Category();
+
+        $category->setUser($user);
+
+        return $this->update($category, $name);
+    }
+
+    public function getPaginatedCategories(DataTableQueryParams $params): Paginator
+    {
+        $query = $this
+            ->entityManager
+            ->getRepository(Category::class)
+            ->createQueryBuilder('c')
+            ->setFirstResult($params->start)
+            ->setMaxResults($params->length);
+
+        $orderBy = in_array($params->orderBy, ['name', 'createdAt', 'updatedAt']) ? $params->orderBy : 'updatedAt';
+        $orderDir = strtolower($params->orderDir) === 'asc' ? 'asc' : 'desc';
+
+        if (!empty($params->searchTerm)) {
+            $query->where('c.name LIKE :name')->setParameter('name', '%' . addcslashes($params->searchTerm, '%_') . '%');
+        }
+
+        $query->orderBy('c.' . $orderBy, $orderDir);
+
+        return new Paginator($query);
+    }
+
+    public function getById(int $id): ?Category
+    {
+        return $this->entityManager->find(Category::class, $id);
+    }
+
+    public function update(Category $category, string $name): Category
+    {
+        $category->setName($name);
+
+        return $category;
+    }
+
+    public function getCategoryNames(): array
+    {
+        return $this
+            ->entityManager
+            ->getRepository(Category::class)
+            ->createQueryBuilder('c')
+            ->select('c.id', 'c.name')
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    public function getAllKeyedByName(): array
+    {
+        $categories = $this->entityManager->getRepository(Category::class)->findAll();
+        $categoryMap = [];
+
+        foreach ($categories as $category) {
+            $categoryMap[strtolower($category->getName())] = $category;
+        }
+
+        return $categoryMap;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+AÍ, EM 'getAllKeyedByName',
+
+
+
+
+vamos 
+
+
+
+''CHECK IF THE CATEGORIES EXIST IN THE CACHE...
+
+IF THEY DO,
+
+WE WILL PULL THEM FROM THE CACHE AND RETURN 
+THEM,
+INSTEAD OF MAKING THE DATABASE REQUEST''...
+
+
+
+
+
+
+
+
+
+
+
+
+-> TIPO ASSIM:
+
+
+
+
+
+if($this->cache->has('categories_keyed_by_name')) {
+
+
+}
+
+
+
+
+
+
+
+
+
+SE TIVERMOS ESSA KEY AÍ,
+
+COM ALGUNS VALUES NO INTERIOR DELA,
+
+VAMOS FETCHEÁ-LA...
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+if($this->cache->has('categories_keyed_by_name')) {
+    return $this->cache->get('categories_keyed_by_name');
+}
+
+
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+    public function getAllKeyedByName(): array
+    {
+        // Example of redis implementation (if we have this key in the cache, we return it, without using/resorting to the database):
+        if($this->cache->has('categories_keyed_by_name')) {
+            return $this->cache->get('categories_keyed_by_name');
+        }
+
+        $categories = $this->entityManager->getRepository(Category::class)->findAll();
+        $categoryMap = [];
+
+        foreach ($categories as $category) {
+            $categoryMap[strtolower($category->getName())] = $category;
+        }
+
+        return $categoryMap;
+    }
+
+
+
+
+
+
+
+
+
+
+-_> ok...
+
+
+
+
+
+
+
+
+e, APÓS REALIZARMOS O FETCH DAS CATEGORIES, NA DATABASE,
+
+DEVEMOS ARMAZENAR ESSE VALUE, DAS CATEGORIES,
+
+NO CACHE,
+
+
+
+PARA 
+
+QUE, NA PRÓXIMA VEZ QUE 'getAllKeyedByName' for chamado,
+
+esse value seja puxado do cache,
+e não da database...
+
+
+
+
+
+POR ISSO ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+    public function getAllKeyedByName(): array
+    {
+        // Example of redis implementation (if we have this key in the cache, we return it, without using/resorting to the database):
+        if($this->cache->has('categories_keyed_by_name')) {
+            return $this->cache->get('categories_keyed_by_name');
+        }
+
+        $categories = $this->entityManager->getRepository(Category::class)->findAll();
+        $categoryMap = [];
+
+        foreach ($categories as $category) {
+            $categoryMap[strtolower($category->getName())] = $category;
+        }
+
+        $this->cache->set('categories_keyed_by_name', $categoryMap);
+
+        return $categoryMap;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+E ISSO PODE PARECER BOM, SIM,
+
+
+
+MAS NÓS ACTUALLY TEMOS 1 GRANDE PROBLEMA, AQUI...
+
+
+
+
+
+-_> PRECISAMOS DEFINIR UM 'TTL', time to live...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OUTRO PROBLEEMA:
+
+
+''WE HAVE PER-USER CATEGORIES,
+
+AND PER-USER DATA, IN GENERAL, IN OUR 
+APP....''
+
+
+
+
+
+
+
+
+''IF CATEGORIES ARE CACHED FOR USER A,
+
+ANY OTHER USER WOULD GET USER A's categories,
+which would be terrible''
+
+(we would be exposing USER A's categories 
+
+to other users... a data breach...
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+PARA RESOLVER ISSO,
+
+DEVEMOS 
+
+
+
+
+''CACHE THE DATA SPECIFIC TO THE USER...''
+
+
+
+
+
+
+
+
+
+
+-> E HÁ VÁRIAS MANEIRAS DE FAZER ISSO...
+
+
+
+
+
+
+
+
+--> A MANEIRA MAIS SIMPLES É FAZER ACCEPT DO USER_ID,
+
+COMO PARAMETER.....
+
+
+
+
+
+
+
+
+
+
+--> TIPO ASSIM:
+
+
+
+
+
+
+
+
+    public function getAllKeyedByName(int $userId): array
+    {
+        // Example of redis implementation (if we have this key in the cache, we return it, without using/resorting to the database):
+        if($this->cache->has('categories_keyed_by_name')) {
+            return $this->cache->get('categories_keyed_by_name');
+        }
+
+        $categories = $this->entityManager->getRepository(Category::class)->findAll();
+        $categoryMap = [];
+
+        foreach ($categories as $category) {
+            $categoryMap[strtolower($category->getName())] = $category;
+        }
+
+        $this->cache->set('categories_keyed_by_name', $categoryMap);
+
+        return $categoryMap;
+    }
+
+
+
+
+
+
+    DEPOIS DISSO,
+
+    CONCATENAMOS 
+
+
+    ESSE USER_ID 
+
+
+    NA KEY usada com 'has'..
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+    public function getAllKeyedByName(int $userId): array
+    {
+        // Example of redis implementation (if we have this key in the cache, we return it, without using/resorting to the database):
+        if($this->cache->has('categories_keyed_by_name' . $userId)) {
+            return $this->cache->get('categories_keyed_by_name');
+        }
+
+        $categories = $this->entityManager->getRepository(Category::class)->findAll();
+        $categoryMap = [];
+
+        foreach ($categories as $category) {
+            $categoryMap[strtolower($category->getName())] = $category;
+        }
+
+        $this->cache->set('categories_keyed_by_name', $categoryMap);
+
+        return $categoryMap;
+    }
+
+
+
+
+
+
+
+
+
+    E TAMBÉM NOS 2 OUTROS LUGARES..
+
+
+
+
+
+
+
+
+
+
+-> É MELHOR DEIXAR ISSO EM 1 VARIABLE,
+
+PARA REUTILIZAR...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+   public function getAllKeyedByName(int $userId): array
+    {
+
+        $cacheKey = 'categories_keyed_by_name' . $userId;
+
+
+        // Example of redis implementation (if we have this key in the cache, we return it, without using/resorting to the database):
+        if($this->cache->has($cacheKey)) {
+            return $this->cache->get($cacheKey);
+        }
+
+        $categories = $this->entityManager->getRepository(Category::class)->findAll();
+        $categoryMap = [];
+
+        foreach ($categories as $category) {
+            $categoryMap[strtolower($category->getName())] = $category;
+        }
+
+        $this->cache->set($cacheKey, $categoryMap);
+
+        return $categoryMap;
+    }
+
+
+
+
+
+
+
+
+
+
+
+OK....
+
+
+
+
+
+
+
+
+
+''BUT YOU WOULD HAVE TO MAKE SURE TO DELETE THIS 
+KEY FROM THE CACHE, WHENEVER THE 
+
+CATEGORIES ARE UPDATED/DELETED/created''...
+
+
+
+
+
+
+
+
+
+
+
+-> ESSENCIALMENTE,
+
+TEREMOS QUE __ 'DELETE OUR KEY,
+WHENEVER 
+
+ANY CATEGORY IS CREATED/UPDATED/DELETED'....
+
+
+
+
+
+
+
+O PROFESSOR NAO VAI GASTAR TEMPO IMPLEMENTANDO TUDO ISSO AQUI,
+
+
+
+SÓ QUERIA MENCIONAR TUDO ISSO...
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR ACTUALLY SE LIVRA DO CÓDIGO,
+
+PQ NÓS REALMENTE N VAMOS PRECISASR DE CACHING,
+PARA ESSE SERVICE AÍ...
+
+
+
+
+
+
+
+
+ELE SÓ QUERIA DEMONSTRAR COMO ISSO FUNCIONARIA....
+
+
+
+
+
+
+
+
+
+
+-> SE VC ESTÁ ''CACHING DATA FOR SOME HEAVY OPERATIONS',
+
+
+VC TEM QUE FAZER ISSO,
+
+TEM QUE
+
+''MAKE SURE THAT YOU ARE 
+CACHING THE DATA FOR THE PROPER USER,
+AND MAKE SURE THAT YOU ARE 
+
+
+__DELETING THE CACHE PROPERLY, AFTER UPDATES/DELETES 
+ARE MADE'''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok, mas como podemos decidir se 
+'PRECISAMOS DE CACHE OU NÃO?''
+
+
+
+
+
+DEVEMOS EXAMINAR ALGUNS INDICADORES...
+
+
+
+
+
+SÃO ELES:
+
+
+
+
+
+
+1) ''FREQUENCY OF ACCESS''...
+
+        OU SEJA,
+
+
+        ''HOW OFTEN DO WE ACCESS ]
+            THIS DATA''...
+
+
+
+2) HOW COSTLY IS THE OPERATION/QUERY 
+
+
+
+
+
+3) HOW OFTEN THE DATA CHANGES 
+
+(if the categories change frequently,
+
+storing that in cache  won't be a good idea,
+BECAUSE THEN YOU WOULD HAVE TO MAKE SURE THAT 
+
+THE DATA WOULD CONSTANTLY BE REMOVED, EVERY TIME YOU 
+MAKE UPDATES/DELETES )
+
+
+
+        --> IF THE DATA DOESN'T CHANGE OFTEN,
+        YOU PROBABLY CAN USE CACHING...
+
+
+
+
+
+
+
+    --> ''JUST MAKE SURE THAT YOU TAKE SECURITY INTO 
+    CONSIDERATION,
+
+    TO NOT LEAK DATA FROM ONE USER TO ANOTHER USER''...
+
+
+
+    ''YOU MUST BE CAREFUL WITH YOUR CACHING:
+
+
+
+    1) ADD NECESSARY PREFIXES,
+        TO SEPARATE THE DATA, FOR SPECIFIC USERS 
+
+
+    
+    2) DELETE THE CACHE IF CHANGES ARE MADE TO THE DATA
+
+
+    3) ETC...

@@ -39,11 +39,48 @@ class RedisCache implements CacheInterface
         return $this->redis->flushDB();
     }
 
-    public function getMultiple() {}
+    public function getMultiple(iterable $keys, mixed $default = null): iterable
+    {
 
-    public function setMultiple() {}
+        $values = $this->redis->mGet((array) $keys);
+        $result = [];
 
-    public function deleteMultiple() {}
+        foreach ($values as $key => $value) {
+            $result[$keys[$key]] = $value === false ? $default : $value;
+        }
 
-    public function has() {}
+        return $result;
+    }
+
+    public function setMultiple(iterable $values, \DateInterval|int|null $ttl = null): bool
+    {
+
+        $values = (array) $values;
+        $result = $this->redis->mSet($values); // mSet is a method that allows you to set multiple keys at once.
+
+
+        if ($ttl !== null) {
+            if ($ttl instanceof \DateInterval) {
+                $ttl = (new DateTime('@0'))->add($ttl)->getTimestamp();
+            }
+
+            foreach (array_keys($values) as $key) {
+                $this->redis->expire($key, (int) $ttl);
+            }
+        }
+
+        return $result;
+    }
+
+    public function deleteMultiple(iterable $keys): bool
+    {
+        $keys = (array) $keys;
+
+        return $this->redis->del($keys) === count($keys);
+    }
+
+    public function has(string $key): bool
+    {
+        return $this->redis->exists($key);
+    }
 }
