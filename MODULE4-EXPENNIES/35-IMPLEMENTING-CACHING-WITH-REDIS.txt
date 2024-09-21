@@ -1,0 +1,1734 @@
+
+
+
+
+
+
+
+
+
+
+--> FALAREMOS SOBRE CACHING...
+
+
+
+
+
+
+
+
+
+
+
+--> CACHE...
+
+
+
+
+
+
+
+
+--> EM TERMOS SIMPLES,
+
+
+
+
+CACHING == É QUANDO ARMAZENAMOS 
+            DATA EM ALGUM LUGAR QUE 
+            PODE SER ACESSADO SUPER RAPIDAMENTE...
+
+
+
+
+
+
+
+É COMO QUANDO VC ESTUDA PARA 1 EXAME E VC 
+
+DEIXA TODOS OS MATERIAIS IMPORTANTES 
+
+
+BEM PRÓXIMOS DE VOCÊ,
+
+PARA QUE, QUANDO ESSA DATA FOR NECESSÁRIA,
+
+
+VC NAO PRECISA IR ATÉ O SOURCE MATERIAL..
+
+
+
+
+EM VEZ DE IR ATÉ O SOURCE MATERIAL,
+
+VC TEM ACESSO RÁPIDO A ESSA DATA...
+
+
+
+
+
+
+
+
+
+
+NO NOSSO CASO, ESSA DATA FICA ARMAZENADA NA DATABASE...
+E VC, É CLARO, NEM SEMPRE VAI QUERER BUSCAR 
+ESSA DATA DIRETAMENTE NA DATABASE...
+
+
+
+se vc vai SEMPRE FAZER O FETCH DO MESMO TIPO 
+DE DATA, OVER AND OVER AGAIN,
+
+O MEMCACHED/REDIS PODEM SER ÚTEIS....
+
+
+
+
+
+
+
+
+
+--> AMBOS SÃO 'IN-MEMORY 
+                KEY-VALUE 
+                DATA STORAGE SYSTEMS',
+
+                E PODEM SER UTILIZADOS 
+
+                PARA IMPLEMENTAR _ CACHING__...
+
+
+
+
+-> VAMOS EXPLORAR O 'REDIS'...
+
+
+
+
+
+
+
+
+
+
+
+
+--> O REDIS MANTÉM A DATA 
+    DIRETAMENTE NA MEMÓRIA,
+
+    O QUE É MT MELHOR DO QUE 
+    FETCHEAR ESSA DATA DIRETAMENTE 
+    DO HARDDRIVE,
+
+    BEM MAIS RÁPIDO...
+
+
+
+
+
+
+
+
+
+--> E O REDIS SUPORTA TODO TIPO DE 
+    DATA, DESDE STRINGS ATÉ LISTS 
+    E HASHES...
+
+
+
+
+
+
+
+
+
+-> O REDIS TAMBÉM PODE SER UTILIZADO 
+    PARA IMPLEMENTAR OUTRAS COISAS, ALÉM
+     DE CACHING, COMO
+
+
+     MESSAGING SYSTEMS 
+
+     E 
+
+
+     QUEUES... (caso do fidelizoume, por exemplo)...
+
+
+
+
+
+
+
+
+
+
+
+
+
+A PRIMEIRA COISA QUE PRECISAMOS FAZER, NO CASO,
+É INSTALAR O REDIS...
+
+
+
+
+
+
+
+
+--> OS PASSOS PARA A INSTALAÇÃO DEPENDEM 
+
+DO SEU ENVIRONMENT E DO SEU SETUP...
+
+
+
+
+
+
+
+
+TUDO DEPENDE DE COMO VC TEM SEU LOCAL ENVIRONMENT 
+SETTADO...
+
+
+
+
+    
+
+
+
+
+
+VAMOS INSTALAR O REDIS COM O DOCKER...
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR JÁ ATUALIZOU O DOCKER-COMPOSE.YML E 
+
+DOCKERFILE POR TRÁS DAS CENAS....
+
+
+
+
+
+
+
+
+FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: "."
+      dockerfile: Dockerfile
+      args:
+        USER_ID: '${WWWUSER:-1000}'
+        GROUP_ID: '${WWWGROUP:-1000}'
+        USER: '${USER:-whoami}'
+    container_name: expennies-app
+    restart: always
+    working_dir: /var/www/
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "9003:9003"
+    volumes:
+      - ../:/var/www
+      - ./local.ini:/usr/local/etc/php/conf.d/local.ini
+  nginx:
+    image: nginx:1.19-alpine
+    container_name: expennies-nginx
+    restart: always
+    ports:
+      - "8000:80"
+    volumes:
+      - ../:/var/www
+      - ./nginx:/etc/nginx/conf.d
+  db:
+    container_name: expennies-db
+    build:
+      context: ./db_dockerfile
+      dockerfile: Dockerfile
+    volumes:
+      - ./storage/mysql:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+  mailhog:
+    container_name: expennies-mailhog
+    image: mailhog/mailhog
+    logging:
+      driver: "none"
+    restart: always
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+  redis:
+    image: redis:latest
+    container_name: expennies-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass mypassword
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> como vc pode ver, estamos criando um novo container,
+de nome 
+
+'expennies-redis',
+
+E ESTAMOS MAPPEANDO-O 
+
+à PORT 6379 
+
+
+de nosso localhost...
+
+
+
+
+
+ISSO, NO CASO,
+
+
+PERMITE QUE O NOSSO PHP APP SE 
+
+CONECTE 
+
+AO REDIS...
+
+
+
+
+
+
+OS CONTAINERS DO PROFESSOR JÁ FORAM BUILT
+
+
+E ESTÃO RUNNING...
+
+
+
+RODE 
+
+docker-compose up -d --build
+
+
+
+
+
+
+
+
+
+COM O CONTAINER UP AND RUNNING,
+
+O QUE PRECISAMOS FAZER, AGORA,
+
+ É SE COMUNICAR COM ELE...
+
+
+
+
+FAZER COM QUE O APP PHP CONSIGA SE COMUNICAR 
+
+
+COM ESSE CONTAINER REDIS...
+
+
+
+
+
+
+
+
+
+
+PARA FAZER ISSO, PRECISAMOS DA EXTENSION 
+
+'PHP REDIS EXTENSION',
+
+
+
+ou o 'PHP CLIENT'...
+
+
+
+
+
+
+
+ 
+ --> 'php redis extension for php' 
+
+    é uma EXTENSION C....
+
+
+
+
+
+
+
+
+--> TAMBÉM HÁ 
+    UMA LIBRARY NATIVE DO PHP,
+
+    CHAMADA DE 'PREDIS'...
+
+
+
+
+
+
+
+
+
+
+---> O PROFESSOR EXPLICA QUE A 
+
+'PHP REDIS EXTENSION FOR PHP'
+
+
+
+É MAIS PERFORMANT DO QUE O PREDIS,
+
+
+
+
+
+
+
+
+mas PODEMOS ESCOLHER QUAL QUEREMOS USAR...
+
+
+
+
+
+
+--> É MAIS FÁCIL DE INSTALAR 
+
+A 'NATIVE PHP LIBRARY',
+
+
+O 'PREDIS',
+
+
+
+PQ PODEMOS USAR O COMPOSER... PQ AÍ 
+
+NÃO PRECISAMOS SETUPPAR QUALQUER OUTRA EXTENSION 
+
+OU OUTRA COISA,
+
+
+APENAS USAR O 'COMPOSER REQUIRE PREDIS/PREDIS'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS O PROFESSOR VAI USAR O 
+
+'PHP REDIS EXTENSION FOR PHP',
+
+
+
+PQ ISSO É O QUE ELE GERALMENTE USA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA CONSEGUIRMOS INSTALAR E USAR ESSA EXTENSION,
+    O PROFESSOR REALIZOU ALGUMAS CHANGES 
+
+    NA DOCKERFILE,
+
+    BEHIND THE SCENES...
+
+
+
+
+
+
+
+
+ABRIMOS A DOCKERFILE, E TEMOS ISTO:
+
+
+
+
+
+
+
+
+FROM php:8.1-fpm
+
+ARG USER
+ARG USER_ID
+ARG GROUP_ID
+
+WORKDIR /var/www
+
+RUN apt-get update && apt-get install -y \
+    git \
+    zip \
+    unzip \
+    curl \
+    vim \
+    libicu-dev
+
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash \
+    && apt-get install nodejs -y
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+RUN docker-php-ext-configure intl
+RUN docker-php-ext-install pdo pdo_mysql intl
+
+RUN pecl install xdebug \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && docker-php-ext-enable xdebug
+
+COPY xdebug.ini "${PHP_INI_DIR}/conf.d"
+
+RUN groupadd --force -g $GROUP_ID $USER
+RUN useradd -ms /bin/bash --no-user-group -g $GROUP_ID -u 1337 $USER
+RUN usermod -u $USER_ID $USER
+
+USER $USER
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE VER,
+
+
+
+TEMOS ESTA LINHA:
+
+
+
+
+
+
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+
+
+
+
+
+
+
+COM ISSO, TEMOS:
+
+
+
+
+
+
+1) A INSTALAÇÃO DO REDIS 
+
+
+2) O ENABLE DA EXTENSION DO REDIS, DO PHP REDIS EXTENSION....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ANTES DE CONECTARMOS NOSSO PHP APP 
+AO REDIS,
+
+
+
+O PROFESSOR QUER IMPLEMENTAR UM DOS PSRs,
+
+
+TUDO PARA QUE CONSIGAMOS APRENDER 
+
+
+''HOW TO IMPLEMENT 
+A  ___PROPER__ CACHE CLASS''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR EXPLICA QUE EXISTEM ACTUALLY 
+DOIS PSRs relacionados com CACHING...
+
+
+
+
+
+
+OS PSRS SÃO:
+
+
+
+PSR 6 
+
+
+
+e 
+
+
+PSR 16
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PSR 16 --> É UM CACHE SIMPLES 
+            QUE 
+
+            PROVIDENCIA UMA EASY-TO-USE
+
+            INTERFACE FOR CACHING...
+
+
+
+
+
+
+PSR-6 --> É UM POUCO MAIS COMPLEXA,
+            MAS É MAIS ROBUSTA....
+
+
+
+
+
+
+
+
+
+-> PARA NOSSOS PROPÓSITOS,
+IMPLEMENTAREMOS O PSR16,
+
+ESSA VERSÃO MAIS BÁSICA,
+
+
+
+APENAS PARA MOSTRAR 1 EXEMPLO DE COMO PODEMOS USAR 
+
+O REDIS com nossos php apps...
+
+
+
+
+
+
+
+
+-> PARA CONSEGUIRMOS ACESSO A ESSA INTERFACE,
+
+PSR 16,
+
+PRECISAMOS FAZER O PULL IN DE OUTRA 
+PACKAGE,
+
+
+a package 
+
+
+'psr/simple-cache'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA INSTALAR ISSO, BASTA RODAR 
+
+
+
+
+''''
+
+composer require psr/simple-cache
+
+
+''''
+
+
+
+APÓS ISSO SER INSTALADO, CRIAMOS UMA NOVA CLASS,
+
+
+DE NOME 'RedisCache.php'...
+
+
+
+
+
+
+
+
+
+AÍ O PROFESSOR FAZ O IMPLEMENT 
+
+
+DA 'CacheInterface',
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use Psr\SimpleCache\CacheInterface;
+
+class RedisCache implements CacheInterface
+{
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+AGORA PRECISAMOS IMPLEMENTAR UM MONTE DE METHODS,
+QUE SÃO:
+
+
+
+
+
+1) deleteMultiple 
+
+
+2) set 
+
+
+3) getMultiple 
+
+
+4) get 
+
+
+5) clear 
+
+
+6) setMultiple 
+
+
+7) has 
+
+
+8) delete 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use Psr\SimpleCache\CacheInterface;
+
+class RedisCache implements CacheInterface
+{
+
+    public function get() {
+
+    }
+
+    public function set() {
+
+    }
+
+    public function delete() {
+
+    }   
+
+    public function clear() {
+
+    }
+
+    public function getMultiple() {
+
+    }
+
+    public function setMultiple() {
+
+    }
+
+    public function deleteMultiple() {
+
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS COMO VAMOS IMPLEMENTAR TUDO ISSO?
+
+
+
+
+
+
+BEM, VAMOS __ FAZER ___ INJECT DA CLASS 'Redis'
+
+
+
+no constructor....
+
+
+
+
+
+
+
+
+-> TIPO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App;
+
+use Psr\SimpleCache\CacheInterface;
+
+class RedisCache implements CacheInterface
+{   
+
+    public function __construct(private readonly \Redis $redis) {
+
+    }
+
+    public function get() {
+
+    }
+
+    public function set() {
+
+    }
+
+    public function delete() {
+
+    }   
+
+    public function clear() {
+
+    }
+
+    public function getMultiple() {
+
+    }
+
+    public function setMultiple() {
+
+    }
+
+    public function deleteMultiple() {
+
+    }
+
+    public function has() {
+
+    }
+
+
+}
+
+
+
+
+
+ESSA CLASS 'Redis' 
+
+vem da extension redis, que instalamos lá na Dockerfile..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VAMOS COMEÇAR COM O METHOD DE 'get()'...
+
+
+
+
+
+
+
+
+
+PARA IMPLEMENTÁ-LO,
+
+vamos precisar '$value',
+
+
+lá da class do 'redis'...
+
+
+
+
+
+
+
+
+
+-> NO CASO, PASSAMOS, COMO ARGUMENT,
+
+o parameter '$key'...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+    public function get(string $key, mixed $default = null): mixed
+    {
+        $value = $this->redis->get($key);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+LEMBRE-SE:
+
+
+''''REDIS IS A __KEY-VALUE__ sTORAGE'''....
+
+
+
+
+
+
+
+
+
+isso quer dizer, em outras palavras,
+
+
+
+que ELE RETRIEVA VALUES POR MEIO DE KEYS...
+
+
+
+
+
+
+
+
+PARA CONSEGUIR ALGUM VALUE, 1 KEY É NECESSÁRIA...
+
+
+
+
+
+
+
+--> SE UMA KEY NÃO EXISTE,
+
+
+ESSE METHOD VAI RETORNAR 'false'...
+
+
+SE EXISTIR, VAI RETORNAR O VALUE ASSIGNADO 
+A ESSA KEY...
+
+
+
+
+
+
+
+
+
+
+
+
+POR ISSO QUE O RETURN SERÁ ASSIM:
+
+
+
+
+
+return $value === false ? $default : $value;
+
+
+
+
+
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+    public function get(string $key, mixed $default = null): mixed
+    {
+        $value = $this->redis->get($key);
+
+        return $value === false ? $default : $value;
+    }
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+''OK, MAS O QUE ACONTECE SE 
+ARMAZENARMOS "false" como value? isso 
+não retornaria 'null'? ''
+
+
+
+
+
+
+
+
+-> nesse caso aí,
+
+vc esperaria o return de 'false',
+
+
+MAS VC FICARIA COM 'NULL', teoricamente...
+
+
+
+
+
+
+--> MAS É CLARO QUE NÃO É ISSO QUE ACONTECE,
+    AINDA BEM...
+
+
+
+
+
+
+
+--> TUDO FICA DIFERENTE POR CONTA DA 
+
+    MANEIRA PELA QUAL O REDIS FUNCIONA...
+
+
+
+
+
+
+
+
+''THE WAY REDIS WORKS IS:
+
+IN REDIS, WHEN YOU TRY TO 
+STORE A VALUE OF bool(false),
+
+REDIS STORES IT AS A ___STRING___... and,
+when BOOLEAN FALSE IS CONVERTED INTO STRING,
+IN PHP, IT IS CONVERTED INTO AN EMPTY STRING....''
+
+
+''ON THE OTHER HAND, bool(true) IS CONVERTED 
+INTO 1, IN PHP''...
+
+
+
+
+
+
+
+
+ISSO QUER DIZER, EM OUTRAS PALAVRAS,
+
+QUE 
+
+
+
+$value = $this->redis->get($key);,
+
+
+
+essa variable '$value',
+
+
+
+ficaria como uma EMPTY STRING,
+
+
+
+em casos em que 'bool(false)' foi armazenado...
+
+
+
+
+
+COMO ISSO FICARÁ COMO UMA EMPTY STRING,
+
+
+
+
+
+este statement:
+
+
+
+return $value === false 
+
+
+
+VAI FALHAR,
+
+pq  '' NÃO É COMPLETAMENTE IGUAL A false 
+
+
+
+(por conta do '===' operator)....
+
+
+
+
+
+COMO ISSO ACONTECE,
+
+
+O QUE É RETORNADO É O '$value' 
+
+
+(
+    que será a EMPTY STRING...
+)
+
+
+
+
+
+
+-> EM OUTRAS PALAVRAS, SERÁ RETORNADA UMA EMPTY STRING,
+COMO VALUE...
+
+
+
+
+
+
+
+
+OK... ISSO FEITO, DEVEMOS IMPLEMENTAR O METHOD DE 'set()'...
+
+
+
+
+
+
+
+
+
+PODEMOS RODAR ASSIM:
+
+
+
+
+return $this->redis->set($key, $value, $ttl);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+''''ttl'''' ->>> ''TIME TO LEAVE''
+
+
+
+
+
+
+
+''TIME TO LEAVE''  é uma variable que 
+
+é basicamente 
+
+''THE TIME DURATION UNTIL THE STORED KEY-VALUE PAIR 
+WILL BE AUTOMATICALLY DELETED FROM 
+THE REDIS DATABASE''...
+
+
+
+
+FICA TIPO ASSIM:
+
+
+
+
+
+
+    public function set(string $key, mixed $value, \DateInterval|int|null $ttl = null): bool
+    {
+        return $this->redis->set($key, $value, $ttl);
+    }
+
+
+
+
+
+
+
+
+
+NO CASO,
+
+TIPAMOS 
+
+
+'$ttl'
+
+
+
+como sendo DateInterval 
+
+
+ou 'int', ou até mesmo null...
+
+
+
+
+
+
+--> COMO ISSO PODE SER 'DateInterval',
+
+
+    PRECISAMOS ADICIONAR 1 POUCO DE HANDLING 
+    CONSIDERANDO ESSE CASE...
+
+
+
+
+
+
+
+-> ''IF THIS VARIABLE IS INSTANCEOF 
+
+DATEINTERVAL,
+
+
+WE NEED TO ADD THIS 'DATEINTERVAL' 
+
+TO THE OVERALL TIME TO LEAVE  AMOUNT OF SECONDS''...
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+    public function set(string $key, mixed $value, \DateInterval|int|null $ttl = null): bool
+    {
+        if ($ttl instanceof \DateInterval) {
+            $ttl = $ttl->s;
+        }
+
+        return $this->redis->set($key, $value, $ttl);
+    }
+
+
+
+
+
+
+
+
+
+    ISSO VAI CONVERTER ESSE VALUE DE TYPE 
+
+    'DateInterval'
+
+    EM SEGUNDOS,
+
+    que então serão usados naquele call de 'set()'...
+
+
+
+
+
+
+
+
+
+-> MAS O PROFESSOR ESCREVEU DE FORMA DIFERENTE...
+
+
+
+
+ELE CRIOU 1 NOVO TIMESTAMP,
+
+E AÍ ADICIONOU ESSE VALUE DE 'TTL', EM SECONDS,
+
+A ESSE TIMESTAMP,
+
+TIPO ASSIM:
+
+
+
+
+
+
+        if ($ttl instanceof \DateInterval) {
+            $ttl = (new DateTime('@0'))->add($ttl)->getTimestamp();
+        }
+
+
+
+
+
+
+
+
+
+
+
+new DateTime('@0')
+
+
+
+
+
+-> isso retorna o unix timestamp para 
+
+january 1st 1970...
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+O CÓDIGO FICOU ASSIM:
+
+
+
+
+    public function set(string $key, mixed $value, \DateInterval|int|null $ttl = null): bool
+    {
+        if ($ttl instanceof \DateInterval) {
+            $ttl = (new DateTime('@0'))->add($ttl)->getTimestamp();
+        }
+
+        return $this->redis->set($key, $value, $ttl);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO,
+
+
+
+TEMOS O METHOD DE 'delete()'...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+    public function delete(string $key): bool
+    {
+        return $this->redis->del($key);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS ESSE METHOD RETORNA 
+
+
+''THE NUMBER OF KEYS THAT WERE DELETED''...
+
+
+
+
+
+
+
+
+-> PARA CONSEGUIR RETORNAR BOOL,
+    PODEMOS 
+
+
+
+    COLOCAR 1 CHECK TIPO ASSIM:
+
+
+
+
+return $this->redis->del($key) === 1;
+
+
+
+
+
+
+
+
+
+
+
+Ex:
+
+
+
+
+
+
+
+    public function delete(string $key): bool
+    {
+        return $this->redis->del($key) === 1;
+    }
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ -> para o method de 'clear()',
+
+
+
+ SÓ VAMOS EXECUTAR O METHOD 
+
+ '->flushDB',
+
+ na class de 
+
+
+ 'redis'...
+
+
+
+
+
+
+ EX:
+
+
+
+
+
+
+    public function clear(): bool
+    {
+        return $this->redis->flushDB();
+    }
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
