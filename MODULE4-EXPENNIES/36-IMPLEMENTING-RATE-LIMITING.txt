@@ -1,0 +1,2452 @@
+
+
+
+
+
+
+
+
+NO VIDEO ANTERIOR,
+APRENDEMOS SOBRE 
+CACHING E REDIS...
+
+
+
+
+
+
+
+
+FOI BEM INFORMATIVO...
+
+
+
+
+
+
+
+
+
+-> O REDIS É NECESSÁRIO PARA ENTENDER O TÓPICO DE HOJE,
+
+
+
+'RATE LIMITING', USANDO O __ REDIS__...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'RATE LIMITING' -->  ''IS A TECHNIQUE FOR CONTROLLING THE 
+                        __ RATE AT WHICH _ AN APPLICATION 
+                        OR API __ PROCESSES __ REQUESTS...'''
+
+
+
+
+
+
+
+
+
+
+--> CERTO...
+
+
+
+
+
+
+EM OUTRAS PALAVRAS,
+
+
+
+'''IT'S A WAY OF CONTROLLING HOW OFTEN A CLIENT 
+    (LIKE A USER OR SPECIFIC IP ADDRESS) CAN 
+    MAKE REQUESTS TO THE SERVER...'''
+
+
+
+
+
+
+
+
+''''IT'S A GREAT 
+    WAY __ TO __ PROTECT YOUR APP FROM BEING OVERWHELMED 
+    BY _ TOO MANY REQUESTS AT ONCE'''....
+
+
+
+
+
+
+
+
+
+
+
+
+'''THIS CAN BE ESPECIALLY HELPFUL/IMPORTANT 
+    IF YOU ARE DEALING WITH LIMITED RESOURCES,
+
+    OR IF YOU ARE TRYING TO PREVENT 
+
+    ''DENIAL-OF-SERVICE'' ATTACKS...''
+
+
+
+
+
+
+
+
+
+
+--> ANTES DE PROSSEGUIRMOS COM A IMPLEMENTAÇÃO,
+    É IMPORTANTE RESPONDER A ESTA PERGUNTA:
+
+
+
+
+
+
+
+'''SHOULD WE IMPLEMENT RATE LIMITING FOR EVERY SINGLE REQUEST????'''
+
+
+
+
+
+
+
+
+
+
+-> A RESPOSTA A ISSO É:
+
+
+'''DEPENDE'''...
+
+
+
+
+
+
+
+
+
+
+
+
+RATE LIMITING --> É IMPORTANTE,
+
+
+
+MAS 
+
+
+''IT MAY NOT ALWAYS BE THE BEST 
+FIT, FOR EVERY SITUATION...''
+
+
+
+
+
+''YOU DON'T NEED TO RATE LIMIT EVERY SINGLE REQUEST..''
+
+
+
+
+
+
+''INSTEAD, YOU SHOULD FOCUS ON THE PARTS OF YOUR APP THAT 
+ARE RESOURCE-INTENSIVE,
+ OR 
+ SENSITIVE TO ABUSE''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ '''RESOURCE-INTENSIVE ROUTES'' ->  THEY ARE THE ONES THAT 
+                                    PERFORM COMPLEX OPERATIONS,
+
+                                    THAT MAY INVOLVE COMPLEX DATABASE QUERIES,
+                                    HEAVY COMPUTATIONS AND ETC...
+
+                                
+
+
+
+''ROUTES SENSITIVE TO ABUSE'' -> ROUTES THAT, WHEN MISUSED,
+                                CAN LEAD TO HARMFUL OUTCOMES,
+
+                                LIKE __ SPAMMING_ OR SECURITY BREACHES...
+
+
+                                --> FOR EXAMPLE,
+
+                                ''LOGGING ROUTES'',
+
+                                ''ACCOUNT REGISTRATION''
+
+                                ''PASSWORD RESET ROUTES''
+
+
+                                ETC...
+
+
+
+
+
+
+
+
+
+
+
+
+--> VC TAMBÉM SEMPRE DEVE TER EM MENTE OS 'LEGITIMATE USERS' DE SEU APP...
+
+
+
+
+
+--> SE 1 USER ENCONTRA ERRORS DE RATE-LIMITING 
+    DURANTE NORMAL USAGE, ISSO PODE LEVAR A UMA USER EXPERIENCE NEGATIVA...
+
+
+
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE VC SEMPRE QUER MANTER 1 BALANCE...
+
+
+
+
+
+
+
+
+
+''YOU WANT TO PREVENT MISUSE,
+    BUT AT THE SAME TIME YOU WANT TO PREVENT BAD UX''...
+
+
+
+
+
+
+
+
+
+
+
+
+---> VAMOS IMPLEMENTAR UM RATE LIMITER SIMPLES, USANDO REDIS...
+
+
+
+
+
+
+
+
+
+
+
+
+--> PRIMEIRAMENTE,
+
+DEVEMOS CRIAR 1 NOVO MIDDLEWARE, DE NOME 'RateLimitMiddleware'....
+
+
+
+
+
+
+
+
+
+VAMOS ESCREVENDO ASSIM:
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+use Psr\Http\Server\MiddlewareInterface;
+
+class RateLimitMiddleware implements MiddlewareInterface {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ PRECISAMOS IMPLEMENTAR O METHOD DE 'process()"...
+
+
+
+
+
+
+
+
+
+
+
+
+
+VAI FICANDO TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class RateLimitMiddleware implements MiddlewareInterface
+{
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): \Psr\Http\Message\ResponseInterface
+    {
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+DENTRO DO METHOD DE 'process', precisamos 
+
+
+
+
+''BASICALLY OBTAIN THE 
+
+CLIENT/USER IP ADDRESS,
+
+AND THEN STORE IT, IN _ CACHE_,
+
+
+WITH AN INCREMENTAL VALUE''...
+
+
+
+
+
+
+
+
+-> BASICAMENTE, TODA VEZ QUE 
+    RECEBERMOS 1 REQUEST,
+
+
+    __ VAMOS INCREMENTAR O COUNTER BY 1,
+
+    PARA AQUELE IP ADDRESS ESPECÍFICO... ISSO SE ESTIVER 
+    VINDO DO MESMO IP, DE VERDADE...
+
+
+
+
+
+
+
+
+
+'''THEN, WE CAN HAVE A CHECK TO SEE  IF 
+THE NUMBER OF TOTAL REQUESTS STORED IN CACHE,
+FOR THAT SPECIFIC USER'S IP ADDRESS IS GREATER THAN 
+
+A SPECIFIC THRESHOLD...''
+
+
+
+
+IF IT IS GREATER THAN THE THRESHOLD,
+WE THROW AN EXCEPTION, OR RETURN AN EMPTY RESPONSE WITH 
+
+A STATUS CODE LIKE 429...
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO,
+
+
+VAMOS OBTER O IP ADDRESS,
+DOS SERVER PARAMETERS,
+
+
+
+USANDO A OPTION DE 'REMOTE_ADDR',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+$clientIp = $request->getServerParams()['REMOTE_ADDR'];
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+/**
+ * This middleware will be used to rate limit requests; in other words, users/ips will have a limit of how many requests they can make in a given time period.
+ */
+class RateLimitMiddleware implements MiddlewareInterface
+{
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): \Psr\Http\Message\ResponseInterface
+    {
+        // * Obtain IP address:
+        $ipAddress = $request->getServerParams()['REMOTE_ADDR'];
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO....
+
+
+
+
+
+
+
+
+
+
+
+AÍ, COM ISSO, VAMOS CRIAR UMA 'CACHE KEY',
+
+E AÍ 
+
+
+ARMAZENÁ-LA DENTRO 
+
+
+DO CACHE DO REDIS,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+$cacheKey = 'rate_limit' . $clientIp;
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+/**
+ * This middleware will be used to rate limit requests; in other words, users/ips will have a limit of how many requests they can make in a given time period.
+ */
+class RateLimitMiddleware implements MiddlewareInterface
+{
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): \Psr\Http\Message\ResponseInterface
+    {
+        // * Obtain IP address:
+        $clientIp = $request->getServerParams()['REMOTE_ADDR'];
+
+        $cacheKey = 'rate_limit' . $clientIp;  // One key for each address, with the COUNT of requests made, as a value.
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+certo...
+
+
+
+
+
+isso feito,
+
+
+
+PRECISAMOS DA CLASS 'RedisCache',
+
+
+QUE IMPLEMENTAMOS NA ÚLTIMA AULA...
+
+
+
+
+
+
+ela foi bindada (container_bindings) na 'CacheInterface',
+
+POR ISSO PODEMOS SIMPLESMENTE INJETAR ESSA INTERFACE NO CONSTRUCTOR,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Psr\SimpleCache\CacheInterface;
+
+/**
+ * This middleware will be used to rate limit requests; in other words, users/ips will have a limit of how many requests they can make in a given time period.
+ */
+class RateLimitMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly CacheInterface $cache) {}
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): \Psr\Http\Message\ResponseInterface
+    {
+        // * Obtain IP address:
+        $clientIp = $request->getServerParams()['REMOTE_ADDR'];
+
+        $cacheKey = 'rate_limit' . $clientIp;  // One key for each address, with the COUNT of requests made, as a value.
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO,
+
+
+
+PODEMOS USAR ESSE CACHE,
+
+PARA SETTAR ESSA KEY NO CACHE...
+
+
+
+
+
+
+--> VAMOS RODAR 
+
+
+"$this->cache->set($cacheKey, )",
+
+
+
+
+e, ENTAÕ,
+
+COMO  VALUE,
+
+
+
+
+
+VAMOS 'INCREMENT A COUNT OF NUMBER OF REQUESTS...'''
+
+
+
+
+
+
+
+
+
+-> vamos assumir que estaremos armazenando o número de requests em 1 variable,
+
+de nome '$requests'.. e aí incrementamos, tipo assim:
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Psr\SimpleCache\CacheInterface;
+
+/**
+ * This middleware will be used to rate limit requests; in other words, users/ips will have a limit of how many requests they can make in a given time period.
+ */
+class RateLimitMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly CacheInterface $cache) {}
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): \Psr\Http\Message\ResponseInterface
+    {
+        // * 1) Obtain IP address:
+        $clientIp = $request->getServerParams()['REMOTE_ADDR'];
+
+        $cacheKey = 'rate_limit' . $clientIp;  // One key for each address, with the COUNT of requests made, as a value.
+
+        // * 2) Store the current count of requests made, using 'cacheKey' as the key. The value will be the amount of requests made, incremented by the latest one:
+        $this->cache->set($cacheKey, $requests + 1);
+
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+AÍ, COMO 'TIME TO LIVE',
+
+VAMOS DEIXAR 60 segundos...
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Psr\SimpleCache\CacheInterface;
+
+/**
+ * This middleware will be used to rate limit requests; in other words, users/ips will have a limit of how many requests they can make in a given time period.
+ */
+class RateLimitMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly CacheInterface $cache) {}
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): \Psr\Http\Message\ResponseInterface
+    {
+        // * 1) Obtain IP address:
+        $clientIp = $request->getServerParams()['REMOTE_ADDR'];
+
+        $cacheKey = 'rate_limit' . $clientIp;  // One key for each address, with the COUNT of requests made, as a value.
+
+        // * 2) Store the current count of requests made, using 'cacheKey' as the key. The value will be the amount of requests made, incremented by the latest one:
+        $this->cache->set($cacheKey, $requests + 1, 60);
+
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> '$requests' será 
+
+
+ACTUALLY ''THE VALUE THAT WAS SAVED IN THE CACHE, PREVIOUSLY''...
+
+
+
+
+
+
+
+
+
+
+
+-> OU SEJA,
+
+
+
+SERÁ ESSENCIALMENTE O VALUE QUE VAMOS 
+
+''OBTAIN FROM THE CACHE, USING THE SAME CACHE KEY''....
+
+
+
+
+
+
+
+-> PARA ISSO, ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Psr\SimpleCache\CacheInterface;
+
+/**
+ * This middleware will be used to rate limit requests; in other words, users/ips will have a limit of how many requests they can make in a given time period.
+ */
+class RateLimitMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly CacheInterface $cache) {}
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): \Psr\Http\Message\ResponseInterface
+    {
+        // * 1) Obtain IP address:
+        $clientIp = $request->getServerParams()['REMOTE_ADDR'];
+
+        $cacheKey = 'rate_limit' . $clientIp;  // One key for each address, with the COUNT of requests made, as a value.
+
+        // * 1.5) Check if the key exists in the cache, if it does, get the previous count value:
+        $requests = $this->cache->get($cacheKey);
+
+        // * 2) Store the current count of requests made, using 'cacheKey' as the key. The value will be the amount of requests made, incremented by the latest one:
+        $this->cache->set($cacheKey, $requests + 1, 60);
+
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK... QUER DIZER QUE '$requests' será o NÚMERO DE REQUESTS FEITO POR ESSE IP...
+
+
+
+
+
+
+
+
+
+
+
+-> VAMOS CASTAR ISSO COMO INTEGER,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Psr\SimpleCache\CacheInterface;
+
+/**
+ * This middleware will be used to rate limit requests; in other words, users/ips will have a limit of how many requests they can make in a given time period.
+ */
+class RateLimitMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly CacheInterface $cache) {}
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): \Psr\Http\Message\ResponseInterface
+    {
+        // * 1) Obtain IP address:
+        $clientIp = $request->getServerParams()['REMOTE_ADDR'];
+
+        $cacheKey = 'rate_limit' . $clientIp;  // One key for each address, with the COUNT of requests made, as a value.
+
+        // * 1.5) Check if the key exists in the cache, if it does, get the previous count value:
+        $requests = (int) $this->cache->get($cacheKey);
+
+        // * 2) Store the current count of requests made, using 'cacheKey' as the key. The value will be the amount of requests made, incremented by the latest one:
+        $this->cache->set($cacheKey, $requests + 1, 60);
+
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+É REALMENTE MELHOR CASTAR COMO '(int)',
+
+
+PQ, CASO NÃO EXISTA VALUE ALGUM ANTERIORMENTE,
+
+
+ESSE 'null' será CASTADO COMO 0... aí, esse '0' terá '1' adicionado a si,
+
+
+e não teremos problema algum...
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO...
+
+
+
+LOGO DEPOIS DISSO,
+
+
+PRECISAMOS DA ACTUAL LÓGICA 
+
+
+DE RATE LIMIT... PRECISAMOS DE 1 CHECK PARA CHECAR 
+
+SE O NÚMERO DE REQUESTS EXCEDEU 
+
+
+1 CERTO LIMIT...
+
+
+
+
+
+
+
+
+
+
+-> ANTES DE ARMAZENARMOS O VALUE NO CACHE,
+
+PODEMOS RODAR ASSIM:
+
+
+
+
+
+
+
+if ($requests > 3) {
+    return 
+}
+
+
+
+
+
+
+
+
+
+CASO O NÚMERO DE REQUESTS SEJA SUPERIOR A 3,
+
+EM 1 MESMO MINUTO,
+VAMOS QUERER 
+
+RETORNAR UMA EMPTY RESPONSE...
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Psr\SimpleCache\CacheInterface;
+
+/**
+ * This middleware will be used to rate limit requests; in other words, users/ips will have a limit of how many requests they can make in a given time period.
+ */
+class RateLimitMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly CacheInterface $cache, private readonly ResponseFactoryInterface $responseFactory) {}
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): \Psr\Http\Message\ResponseInterface
+    {
+        // * 1) Obtain IP address:
+        $clientIp = $request->getServerParams()['REMOTE_ADDR'];
+
+        $cacheKey = 'rate_limit' . $clientIp;  // One key for each address, with the COUNT of requests made, as a value.
+
+        // * 1.5) Check if the key exists in the cache, if it does, get the previous count value:
+        $requests = (int) $this->cache->get($cacheKey);
+
+        // ! 2 THIS IS THE RATE LIMITER - If the count is greater than 3, in a single minute, return a empty response,  with status 429.
+        if ($requests > 3) {
+            return $this->responseFactory->createResponse(429, 'Too many requests');
+        }
+
+        // * 3) Store the current count of requests made, using 'cacheKey' as the key. The value will be the amount of requests made, incremented by the latest one:
+        $this->cache->set($cacheKey, $requests + 1, 60);
+
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+OK... COM ISSO, PODEMOS ADICIONAR ESSE MIDDLEWARE 
+
+À ROUTE DE 'LOGIN',
+
+
+NO NOSSO arquivo de routes web.php...
+
+
+
+
+
+
+
+
+
+
+VAMOS ADICIONAR ESSE MIDDLEWARE NESSA ROUTE:
+
+
+
+
+
+
+
+        $guest->post('/login', [AuthController::class, 'logIn']);
+
+
+
+
+
+
+
+
+
+
+-> ESCREVEMOS ASSIM:
+
+
+
+
+
+
+
+
+
+
+        $guest->post('/login', [AuthController::class, 'logIn'])->add(RateLimitMiddleware::class);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+MAS ANTES DE TESTARMOS ISSO, PRECISAMOS DO RETURN STATEMENT NO MIDDLEWARE,
+
+TIPO ASSIM:
+
+
+
+
+
+        return $handler->handle($request);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Psr\SimpleCache\CacheInterface;
+
+/**
+ * This middleware will be used to rate limit requests; in other words, users/ips will have a limit of how many requests they can make in a given time period.
+ */
+class RateLimitMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly CacheInterface $cache, private readonly ResponseFactoryInterface $responseFactory) {}
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): \Psr\Http\Message\ResponseInterface
+    {
+        // * 1) Obtain IP address:
+        $clientIp = $request->getServerParams()['REMOTE_ADDR'];
+
+        $cacheKey = 'rate_limit' . $clientIp;  // One key for each address, with the COUNT of requests made, as a value.
+
+        // * 1.5) Check if the key exists in the cache, if it does, get the previous count value:
+        $requests = (int) $this->cache->get($cacheKey);
+
+        // ! 2 THIS IS THE RATE LIMITER - If the count is greater than 3, in a single minute, return a empty response,  with status 429.
+        if ($requests > 3) {
+            return $this->responseFactory->createResponse(429, 'Too many requests');
+        }
+
+        // * 3) Store the current count of requests made, using 'cacheKey' as the key. The value will be the amount of requests made, incremented by the latest one:
+        $this->cache->set($cacheKey, $requests + 1, 60);
+
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK... AGORA, SE TENTAMOS FAZER LOGIN VÁRIAS VEZES EM 1 
+    MESMO MINUTO,
+
+    EVENTUALMENTE FICAMOS COM O STATUS CODE DE 429,
+    'Too many attempts',
+
+
+    O QUE QUER DIZER QUE FUNCIONOU...
+
+
+
+
+
+
+
+--> NÓS NÃO TEMOS O HANDLING PARA STATUS CODES DE 429
+NO FRONTEND,
+
+E É POR ISSO QUE NADA APARECE PARA O USER,
+
+
+MAS O QUE INTERESSA É QUE 
+
+__ ISSO AÍ FUNCIONOU_...
+
+
+
+
+
+
+
+
+
+
+-> QUER DIZER QUE NOSSO 
+
+
+
+
+RATE LIMITER SUPER BÁSICO ESTÁ FUNCIONANDO...
+
+
+
+
+
+
+
+
+
+
+
+-> MAS E CLARO QUE 
+    NOSSO RATE LIMIT E O THRESHOLD 
+
+
+
+''DEPENDS ON YOUR IMPLEMENTATION AND YOUR APPLICATION... ''
+
+
+
+
+
+''YOU MIGHT DECIDE TO SET IT TO AN HOUR, INSTEAD OF A MINUTE,
+AND YOU MIGHT WANT TO INCREASE THE THRESHOLD TO A 100, OR SOMETHING LIKE THAT''...
+
+
+
+
+
+
+
+
+''YOU MAY ALSO HAVE MORE COMPLEX REQUIREMENTS,
+
+    LIKE TO ONLY RATE LIMIT IN A GIVEN WINDOW OR INTERVALS...''
+
+
+
+
+
+
+
+
+
+
+
+--> NOSSA IMPLEMENTAÇÃO É BEM NAIVE... O PROFESSOR SÓ QUERIA 
+
+    NOS MOSTRAR 
+
+
+    PARA QUE 
+    APRENDÊSSEMOS 
+
+    A MANEIRA PELA QUAL ISSO FUNCIONA...
+
+
+
+
+
+
+
+
+
+--> ELE VAI ACTUALLY 
+
+    USAR UMA PACKAGE,
+
+
+    QUE É MAIS ROBUSTA,
+
+    DO SYMFONY,
+
+    CHAMADA DE
+
+
+    'SYMFONY-RATE-LIMITER'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> MAS ANTES DE TROCARMOS PARA O 'SYMFONY-RATE-LIMITER',
+
+
+O PROFESSOR DIZ QUE DEVEMOS REVISAR A VARIABLE DE 'clientIp'
+que estamos usando aqui:
+
+
+
+
+
+
+
+        $clientIp = $request->getServerParams()['REMOTE_ADDR'];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+BEM... NO NOSSO APPROACH, NÓS ESTAMOS FETCHEANDO O IP ADDRESS 
+
+
+POR MEIO DE ESSA VARIABLE DE 'REMOTE_ADDR',
+
+
+
+
+DE REMOTE ADDRESS...
+
+
+
+
+
+
+
+
+
+''ON THE SURFACE, THIS SEEMS STRAIGHTFORWARD 
+    ENOUGH, AND WORKS LIKE EXPECTED''...
+
+
+
+
+
+
+
+
+
+
+-> OK, MAS O QUE ACONTECE/ACONTECERIA 
+
+SE 
+
+UM PROXY OU _ LOAD __ BALANCER ESTIVESSE ENVOLVIDO 
+
+COM SEU APP?
+
+
+
+
+
+
+
+NESSE CENÁRIO,
+
+O REMOTE_ADDR 
+
+
+
+__ VAI _ TE DAR _ APENAS 
+
+
+
+O IP ADDRESS DO PROXY/LOAD BALANCER...
+
+
+
+
+
+
+
+
+
+
+
+
+HÁ ALGUMAS ETAPAS NECESSÁRIAS PARA 
+CONSEGUIR 'OBTAIN  THE IP ADDRESS PROPERLY....''
+
+
+
+
+
+
+
+
+
+
+E O PROFESSOR IMPLEMENTOU 1 METHOD, POR TRÁS DAS CENAS,
+
+
+QUE LOGO VAI NOS EXPLICAR...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR ESCREVEU ESSE METHOD DENTRO DA CLASS DE 
+'RequestService',
+
+E ELE É TIPO ASSIM:
+
+
+
+
+
+
+    public function getClientIp(ServerRequestInterface $request, array $trustedProxies): ?string {
+
+        $serverParams = $request->getServerParams();
+
+        if (in_array($serverParams['REMOTE_ADDR'], $trustedProxies, true)
+            && isset($serverParams['HTTP_X_FORWARDED_FOR'])) {
+            $ips = explode(',', $serverParams['HTTP_X_FORWARDED_FOR']);
+
+            return trim($ips[0]);
+            }
+
+            return $serverParams['REMOTE_ADDR'] ?? null;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+EXPLICAÇÃO:
+
+
+
+
+
+
+
+1) ELE FAZ EXPECT DO REQUEST OBJECT, E ''THE LIST OF TRUSTED PROXIES...''
+
+
+
+
+
+
+2) ''HTTP_X_FORWARDED_FOR'' -> É UM HEADER 
+                                QUE __ PODE CONTER_ 
+                                O IP ADDRESS 
+
+                                DO ORIGINAL CLIENT,
+
+
+
+                                E É _ GERALMENTE_ USADO, POR PROXIES,
+
+
+
+                                PARA __ 'PASS' O ORIGINAL IP... 
+
+
+
+
+3) AINDA ASSIM,
+
+
+
+    'HTTP_X_FORWARDED_FOR''
+
+    PODE _ SER FACILMENTE_ MANIPULADO 
+
+    PELO CLIENT... UM CLIENT MALICIOSO PODE SETTAR ISSO 
+
+
+    COMO SENDO QUALQUER OUTRO VALUE DESEJADO,
+
+
+    PARA ENTÃO TENTAR SPOOF O IP ADDRESS QUE FAZ O REQUEST...
+
+
+
+
+
+
+
+
+3) É EXATAMENTE POR ISSO QUE NÃO PODEMOS CONFIAR APENAS 
+EM  'HTTP_X_FORWARDED_FOR'...
+
+
+
+
+
+
+
+4) APENAS CONSIDERAMOS O 'HTTP_X_FORWARDED_FOR' 
+    SE ELE FOR PROVENIENTE DE UM 'KNOWN, TRUSTED PROXY'... 
+
+
+
+
+    --> no caso, checamos se o request foi feito por 1 trusted  
+        proxy por meio de 
+
+        '' in_array($serverParams['REMOTE_ADDR'], $trustedProxies, true) ''
+
+
+
+
+
+
+    
+    -> SE O REMOTE ADDRESS REALMENTE FAZ PARTE DA LISTA DE KNOWN TRUSTED PROXIES,
+
+
+
+        SE ELE FAZ PARTE E SE O 
+
+        'HTTP_X_FORWARDED_FOR'
+
+
+        ESTIVER SETTADO,
+
+
+        PODEMOS REALMENTE RETORNAR O CLIENTIP,
+
+
+
+        COM ISTO:
+
+
+
+            $ips = explode(',', $serverParams['HTTP_X_FORWARDED_FOR']);
+
+            return trim($ips[0]);
+
+
+
+
+
+
+
+
+    --> COMO ESSE 'HTTP_X_FORWARDED_FOR'
+
+
+    PODE CONTER VÁRIOS ADDRESSES,
+
+    NÓS SIMPLESMENTE 
+
+    PEGAMOS O __ PRIMEIRO IP ADDRESS,
+
+
+    E O CONSIDERAMOS 
+
+
+    COMO 'ORIGINAL SENDER',
+
+
+
+    E AÍ FAZEMOS RETURN DELE, COMO VALUE...
+
+
+
+
+    (
+                  ''  return trim($ips[0]); ''
+
+    )
+
+
+
+
+
+
+
+
+
+
+5) SE NOS NÃO PODEMOS CONFIAR  NO PROXY,
+
+    OU SE NÃO HÁ O HEADER DE 'HTTP_X_FORWARDED_FOR' NO 
+
+    REQUEST,
+
+
+    NÓS FAZEMOS FALLBACK 
+
+    AO VALUE DE 
+
+    'REMOTE_ADDR',
+
+
+
+    com isto:
+
+
+                return $serverParams['REMOTE_ADDR'] ?? null;
+
+
+
+
+
+
+
+
+-> ESSA TALVEZ NÃO SEJA A MELHOR IMPLEMENTAÇÃO DO MUNDO,
+
+    MAS BASTA PARA O NOSSO APP....
+
+
+
+
+
+
+
+
+
+
+-> FRAMEWORKS POPULARES  
+    POSSUEM UMA LÓGICA PARECIDA COM ESTA BUILT-IN,
+
+
+    AÍ VC NAO TEM QUE PREOCUPAR COM ESSAS IMPLEMENTAÇÕES 
+
+    VOCê MESMO...
+
+
+
+
+
+-> O PROFESSOR QUER USAR ESSE 'getClientIp'
+
+
+    NO METHOD DE 'process',
+
+
+    TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Middleware;
+
+use App\Services\RequestService;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Psr\SimpleCache\CacheInterface;
+
+/**
+ * This middleware will be used to rate limit requests; in other words, users/ips will have a limit of how many requests they can make in a given time period.
+ */
+class RateLimitMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly CacheInterface $cache, 
+                                private readonly ResponseFactoryInterface $responseFactory,
+                                private readonly RequestService $requestService) {}
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): \Psr\Http\Message\ResponseInterface
+    {
+        // * 1) Obtain IP address:
+        // $clientIp = $request->getServerParams()['REMOTE_ADDR'];
+        $clientIp = $this->requestService->getClientIp($request, ['127.0.0.1']);
+
+
+        $cacheKey = 'rate_limit' . $clientIp;  // One key for each address, with the COUNT of requests made, as a value.
+
+        // * 1.5) Check if the key exists in the cache, if it does, get the previous count value:
+        $requests = (int) $this->cache->get($cacheKey);
+
+        // ! 2 THIS IS THE RATE LIMITER - If the count is greater than 3, in a single minute, return a empty response,  with status 429.
+        if ($requests > 3) {
+            return $this->responseFactory->createResponse(429, 'Too many requests');
+        }
+
+        // * 3) Store the current count of requests made, using 'cacheKey' as the key. The value will be the amount of requests made, incremented by the latest one:
+        $this->cache->set($cacheKey, $requests + 1, 60);
+
+
+        return $handler->handle($request);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+O SEGUNDO ARGUMENT 
+
+
+É O 'TRUSTED PROXIES ARRAY'...
+
+
+
+
+
+
+
+-> COMO O PROFESSOR NÃO TEM NENHUM TRUSTED PROXY,
+
+
+
+
+    ELE DEIXA 1 ARRAY VAZIO...
+
+
+
+
+
+
+--> ELE NOS EXPLICA QUE ESSE ARRAY PODE VIR DE NOSSA CONFIGURATION,
+
+
+DE 'config'...
+
+
+
+
+
+
+
+
+
+
+
+
+-> É POR ISSO QUE PODEMOS INJETAR O CONFIG OBJECT,
+
+
+E AÍ ESCREVER TIPO ASSIM:
+
+
+
+
+
+
+
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): \Psr\Http\Message\ResponseInterface
+    {
+        // * 1) Obtain IP address:
+        // $clientIp = $request->getServerParams()['REMOTE_ADDR'];
+        $clientIp = $this->requestService->getClientIp($request, $this->config->get('trusted_proxies'));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> OK...
+
+
+
+
+
+
+AÍ PODEMOS ADICIONAR ISSO, NO NOSSO 'app.php'
+
+usado com o config..
+
+
+
+EX:
+
+
+
+
+
+    'redis' => [
+        'host' => $_ENV['REDIS_HOST'] ?? 'localhost',
+        'port' => $_ENV['REDIS_PORT'] ?? 6379,
+        'password' => $_ENV['REDIS_PASSWORD'] ?? '',
+    ],
+    'trusted_proxies' => [],
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+AGORA DEVEMOS VER COMO PODEMOS SUBSTITUIR NOSSA SIMPLES 
+
+IMPLEMENTAÇÃO DE RATE LIMITER COM A VERSAO
+
+
+
+DO PACKAGE 'RATE LIMITER' DO SYMFONY... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''''O RATE LIMITER DO SYMFONY 
+    IMPLEMENTA ALGUMAS COMMON POLICIES...'''
+
+
+
+
+
+
+ALGUMAS DELAS:
+
+
+
+1) FIXED WINDOW RATE LIMITER 
+
+
+
+2) SLIDING WINDOW RATE LIMITER 
+
+
+3) TOKEN BUCKET RATE LIMITER...
+
+
+
+
+
+
+
+-> VAMOS USAR O RATE LIMITER 'FIXED WINDOW',
+
+    QUE É A VERSÃO MAIS SIMPLES,
+
+
+
+
+
+    QUE É BASICAMENTE 
+
+    '''A HUNDRED REQUESTS PER MINUTE'',
+
+    E COISAS DO GÊNERO...
+
+
+
+    ''5 LOGIN ATTEMPTS EVERY 10 MINUTES, ETC''...
+
+
+
+
+
+
+https://symfony.com/doc/current/rate_limiter.html
+
+
+
+
+VC PODE LER OS DOCS,
+
+PARA 
+
+
+
+DESCOBRIR QUAL 
+
+
+
+SE ENCAIXA MELHOR AO SEU APP...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> E O PROFESSOR JÁ 
+    ADICIONOU O SYMFONY RATE LIMITER COMO DEPENDENCY 
+
+
+    DO 'COMPOSER.JSON'..
+
+
+
+
+
+
+
+--> DEVEMOS RODAR 
+
+
+
+composer require symfony/rate-limiter 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO,
+
+VAMOS INJETAR O RATE LIMITER FACTORY
+
+
+DENTRO DO CONSTRUCTOR DO 'RateLimitMiddleware'...
+
+
+
+
+
+
+
+
+
+VAMOS ESCREVENDO ASSIM:
+
+
+
+
+
+
+
+
+
+// * This is the version with the Symfony RateLimiter package:
+class RateLimitMiddleware implements MiddlewareInterface
+{
+    public function __construct(private readonly CacheInterface $cache, 
+                                private readonly ResponseFactoryInterface $responseFactory,
+                                private readonly RequestService $requestService,
+                                private readonly Config $config,
+                                private readonly RateLimiterFactory $rateLimiterFactory
+                                ) {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+BASICAMENTE, INJETAMOS ESSA 'RateLimiterFactory'...
+
+
+
+
+
+
+ISSO FEITO,
+
+
+DENTRO DO METHOD DE 'process',
+
+
+
+VAMOS 
+CRIAR 1 
+
+
+'LIMITER OBJECT',
+
+
+
+POR MEIO DO call do method 'create()',
+
+
+EM CIMA DA FACTORY..
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): \Psr\Http\Message\ResponseInterface
+    {
+        // * 1) Obtain IP address:
+        // $clientIp = $request->getServerParams()['REMOTE_ADDR'];
+        $clientIp = $this->requestService->getClientIp($request, $this->config->get('trusted_proxies'));
+
+        $cacheKey = 'rate_limit' . $clientIp;  // One key for each address, with the COUNT of requests made, as a value.
+
+        $limiter = $this->rateLimiterFactory->create($cacheKey);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+NO CASO, O METHOD 
+
+
+'create()'
+
+
+EXIGE UMA __ KEY__ como argument...
+
+
+
+
+--> passaremos 
+    
+
+    o clientIp
+
+    como key, no nosso caso...
+
+
+
+
+
+
+
+
+--> AÍ VAMOS NOS LIVRAR DAQUELE if com o $requests...
+
+
+
+
+
+
+-> EM VEZ DISSO:
+
+
+
+
+
+
+        // ! 2 THIS IS THE RATE LIMITER - If the count is greater than 3, in a single minute, return a empty response,  with status 429.
+        if ($requests > 3) {
+            return $this->responseFactory->createResponse(429, 'Too many requests');
+        }
+
+    
+
+
+
+
+
+TEREMOS ISTO:
+
+
+
+
+
+
+
+        if ($limiter->consume()) {
+            return $this->responseFactory->createResponse(429, 'Too many requests');
+        }
+
+    
+
+
+
+
+
+
+
+''consume()'' --> ELE BASICAMENTE '''CONSUMES THE NUMBER OF TRIES/TOKENS''...
+
+
+
+
+
+
+
+
+
+
+
+
+'''THE TOKEN CAN BE CONSIDERED A REQUEST... 
+    THIS MEANS THAT WE ARE CONSUMING A SINGLE REQUEST'''
+
+
+
+
+
+
+
+'''IF YOU WANT TO, YOU CAN CONSUME MORE THAN A SINGLE TOKEN, 
+    TO IMPLEMENT CUSTOM LOGICS... BUT, IN THIS SPECIFIC SCENARIO,
+    WE ARE CONSUMING A SINGLE REQUEST'''..
+
+
+
+
+
+
+
+
+
+
+
+-> o call de '$limiter-consume()'
+
+
+
+RETORNA UM 'RATE LIMITER OBJECT'... -->  NESSE RATE LIMITER OBJECT,
+
+                                        PODEMOS CHAMAR O METHOD 'isAccepted()',
+
+                                        PARA CHECAR _ SE JÁ CHEGAMOS AO LIMIT 
+                                        OU NÃO...
+
+
+                                    
+
+                                    -> SE O 'isAccepted()" RETORNA FALSE,
+
+                                        VAMOS QUERER RETORNAR 
+
+
+                                        A RESPONSE COM STATUS DE 429, TOO MANY REQUESTS..
+
+
+
+
+                                    TIPO ASSIM:
+
+
+
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): \Psr\Http\Message\ResponseInterface
+    {
+        // * 1) Obtain IP address:
+        // $clientIp = $request->getServerParams()['REMOTE_ADDR'];
+        $clientIp = $this->requestService->getClientIp($request, $this->config->get('trusted_proxies'));
+
+        $limiter = $this->rateLimiterFactory->create($clientIp);
+
+        // ! 2) THIS IS THE USAGE OF THE SYMFONY RATE LIMITER - If the count is greater than 3, in a single minute, return a empty response,  with status 429.
+        if ($limiter->consume()->isAccepted() === false) {
+            return $this->responseFactory->createResponse(429, 'Too many requests');
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OK...
