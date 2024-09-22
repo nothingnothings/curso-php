@@ -8,6 +8,7 @@ use App\DataObjects\DataTableQueryParams;
 use App\DataObjects\TransactionData;
 use App\Entity\Transaction;
 use App\Entity\User;
+use Brick\Money\Money;
 use DateTime;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 
@@ -83,9 +84,37 @@ class TransactionService implements TransactionServiceInterface
 
     public function getTotals(DateTime $startDate, DateTime $endDate): array
     {
+        // Create the query to calculate total income and expenses
+        $query = $this->entityManager
+            ->getRepository(Transaction::class)
+            ->createQueryBuilder('t')
+            ->select('
+                SUM(CASE WHEN t.amount > 0 THEN t.amount ELSE 0 END) AS total_income,
+                SUM(CASE WHEN t.amount < 0 THEN ABS(t.amount) ELSE 0 END) AS total_expense'
+            )
+            ->where('t.date >= :startDate')
+            ->andWhere('t.date <= :endDate')
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate)
+            ->getQuery();
+    
+        // Execute the query and get the result
+        $result = $query->getSingleResult();
+    
+        // Use Brick\Money for precise calculations
+        $totalIncome = Money::of($result['total_income'], 'USD'); // Adjust currency as needed
+        $totalExpense = Money::of($result['total_expense'], 'USD');
+    
+        // Calculate net income
+        $netIncome = $totalIncome->minus($totalExpense);
 
-        return ['net' => 800, 'income' => 3000, 'expense' => 2200];
-    }
+        // Format and return the totals
+        return [
+            'net' => $netIncome->getAmount()->toInt(),  // Convert to integer
+            'income' => $totalIncome->getAmount()->toInt(),
+            'expense' => $totalExpense->getAmount()->toInt(),
+        ];
+    }    
 
     public function getRecentTransactions(int $limit): array 
     {

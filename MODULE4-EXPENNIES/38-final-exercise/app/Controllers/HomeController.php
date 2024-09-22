@@ -28,7 +28,7 @@ class HomeController
         $startDate = DateTime::createFromFormat('Y-m-d', date('Y-m-01'));
         $endDate   = new DateTime('now');
         $totals = $this->transactionService->getTotals($startDate, $endDate);
-        $recentTransactions = $this->transactionService->getRecentTransactions(6);
+        $recentTransactions = $this->transactionService->getRecentTransactions(10);
         $topSpendingCategories = $this->categoryService->getTopSpendingCategories(4);
 
         return $this->twig->render($response, 'dashboard.twig', [
