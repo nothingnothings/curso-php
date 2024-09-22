@@ -25,5 +25,5 @@ interface TransactionServiceInterface
 
     public function getRecentTransactions(int $limit): array;
 
-    public function getMonthlySummary(int $year): array;
+    public function getMonthlySummary(int $year, int $userId): array;
 }

@@ -11,11 +11,13 @@ use App\Entity\User;
 use Brick\Money\Money;
 use DateTime;
 use Doctrine\ORM\Tools\Pagination\Paginator;
+use Psr\SimpleCache\CacheInterface;
 
 class TransactionService implements TransactionServiceInterface
 {
 
-    public function __construct(private readonly EntityManagerServiceInterface $entityManager) {}
+    public function __construct(private readonly EntityManagerServiceInterface $entityManager,
+                                private readonly CacheInterface $cache) {}
     
     
     public function create(TransactionData $transactionData, User $user): Transaction
@@ -133,8 +135,17 @@ class TransactionService implements TransactionServiceInterface
         
     }
 
-    public function getMonthlySummary(int $year): array
+    public function getMonthlySummary(int $year, int $userId): array
     {
+
+        // Create a unique cache key based on the year and user ID
+        $cacheKey = 'monthly_summary_' . $userId . '_' . $year;
+
+        // Check if the data is already cached
+        if ($this->cache->has($cacheKey)) {
+            return $this->cache->get($cacheKey);
+        }
+
         // Create the query to sum incomes and expenses grouped by month
         $query = $this->entityManager
             ->getRepository(Transaction::class)
@@ -162,6 +173,9 @@ class TransactionService implements TransactionServiceInterface
                 'm' => (int) $row['month'],
             ];
         }
+
+        // Cache the result for future use
+        $this->cache->set($cacheKey, $monthlySummary);
     
         return $monthlySummary;
     }

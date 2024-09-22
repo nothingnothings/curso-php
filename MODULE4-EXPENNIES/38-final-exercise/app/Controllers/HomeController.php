@@ -10,6 +10,7 @@ use App\Services\TransactionService;
 use DateTime;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\SimpleCache\CacheInterface;
+use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\Twig;
 
 class HomeController
@@ -39,9 +40,12 @@ class HomeController
     }
 
 
-    public function getYearToDateStatistics(Response $response): Response
-    {
-        $data = $this->transactionService->getMonthlySummary((int) date('Y'));
+    public function getYearToDateStatistics(Request $request, Response $response): Response
+    {   
+        // Get the user's id:
+        $userId = $request->getAttribute('user')->getId();
+
+        $data = $this->transactionService->getMonthlySummary((int) date('Y'), $userId);
 
         return $this->responseFormatter->asJson($response, $data);
     }
