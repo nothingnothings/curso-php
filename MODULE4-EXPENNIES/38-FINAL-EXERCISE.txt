@@ -1,0 +1,2125 @@
+
+
+
+HOJE FALAREMOS SOBRE O EXERCÍCIO FINAL...
+
+
+
+
+
+
+
+
+
+-> é a última aula desta série...
+
+
+
+
+
+
+
+
+
+--> NO ÚLTIMO EXERCISE,
+
+O PROFESSOR QUER 
+
+A CONSTRUÇÃO/IMPLMENT 
+
+
+DA PARTE DO BACKEND 
+
+
+
+DO DASHBOARD...
+
+
+
+
+
+
+
+
+
+
+
+
+--> JÁ CONSTRUÍMOS AS PAGES PARA O MANAGE DE TRANSACTIONS,
+    RECEIPTS, CATEGORIES, AUTHENTICATION,
+    REGISTRATION, FILE UPLOADS,
+
+
+    E 1 MONTE DE OUTRAS COISAS..
+
+
+
+
+
+
+
+
+
+
+
+--> COBRIMOS TODOS OS TÓPICOS NECESSÁRIOS 
+    PARA CONSTRUIR ESSE DASHBOARD...
+
+
+
+
+
+
+
+
+
+
+
+
+-> antes de prosseguirmos, o professor quer nos mostrar 
+    alguns dos updates que ele fez, por trás das cenas...
+
+
+
+
+
+
+
+
+
+
+
+--> A PRIMEIRA COISA QUE ELE FEZ FOI O UPDATE DO PHP PARA A VERSAO 8.2-fpm...
+
+
+
+
+
+
+
+
+
+
+--> OK...
+
+
+
+
+
+
+
+
+-> A OUTRA COISA QUE ELE UPDATOU FOII A NODE VERSION,
+
+
+QUE AGORA ESTÁ COMO 18...
+
+
+
+
+--> ELE TAMBÉM 
+
+
+    CONSERTOU A NAVBAR DO PROJETO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> SE VAMOS ATÉ A PAGE DE TRANSACTIONS,
+
+    A OPTION DE TRANSACTIONS É HIGHLIGHTED...
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+FROM php:8.2-fpm
+
+ARG USER
+ARG USER_ID
+ARG GROUP_ID
+
+WORKDIR /var/www
+
+RUN apt-get update && apt-get install -y \
+    git \
+    zip \
+    unzip \
+    curl \
+    vim \
+    libicu-dev
+
+RUN curl -sL https://deb.nodesource.com/setup_18.x | bash \
+    && apt-get install nodejs -y
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+RUN docker-php-ext-configure intl
+RUN docker-php-ext-install pdo pdo_mysql intl
+
+RUN pecl install xdebug \
+    && pecl install redis \
+    && docker-php-ext-enable xdebug redis
+
+COPY xdebug.ini "${PHP_INI_DIR}/conf.d"
+
+RUN groupadd --force -g $GROUP_ID $USER
+RUN useradd -ms /bin/bash --no-user-group -g $GROUP_ID -u 1337 $USER
+RUN usermod -u $USER_ID $USER
+
+USER $USER
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+O FIX PARA A NAVBAR FOI BEM SIMPLES...
+
+
+
+
+
+
+
+
+--> A PRIMEIRA COISA QUE O PROFESSOR FEZ FOII O NAME DAS ROUTES...
+
+
+
+
+
+
+
+
+O NAME DAS ROUTES QUE SÃO GOVERNADAS PELA NAVBAR...
+
+
+
+
+
+
+ou seja,
+
+'home', 'transactions', 'categories',
+
+
+todas de 'get',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    $app->group('', function (RouteCollectorProxy $group) {
+        $group->get('/', [HomeController::class, 'index'])->setName('home');
+
+        $group->group('/categories', function (RouteCollectorProxy $categories) {
+            $categories->get('', [CategoryController::class, 'index'])->setName('categories');
+            $categories->get('/load', [CategoryController::class, 'load']);
+            $categories->post('', [CategoryController::class, 'store']);
+            $categories->delete('/{category}', [CategoryController::class, 'delete']);
+            $categories->get('/{category}', [CategoryController::class, 'get']);
+            $categories->post('/{category}', [CategoryController::class, 'update']);
+        });
+
+        $group->group('/transactions', function (RouteCollectorProxy $transactions) {
+            $transactions->get('', [TransactionController::class, 'index'])->setName('transactions');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO..
+
+
+
+
+
+
+
+
+
+AÍ, LÁ NO TEMPLATE DE layout.twig',
+
+
+
+O PROFESSOR COLOCOU CHECKS COMO ESTE:
+
+
+
+
+
+
+          <ul class="nav nav-pills align-items-center">
+                    <li class="nav-item">
+                        <a href="/" class="nav-link fw-bold fs-5 {{ current_route == 'home' ? 'active' : '' }}" aria-current="page">Overview</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/transactions" class="nav-link fw-bold fs-5 {{ current_route == 'transactions' ? 'active' : '' }}" aria-current="page">Transactions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/categories" class="nav-link fw-bold fs-5 {{ current_route == 'categories' ? 'active' : '' }}" aria-current="page">Categories</a>
+                    </li>
+                </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... 
+
+
+NADA DE MAIS...
+
+
+
+
+
+
+--> MAS COMO FAZEMOS GET DA 'current_route'?
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR ESTÁ PASSANDO ISSO GLOBALMENTE, AOS TWIG TEMPLATES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ELE FEZ ISSO LÁ NO 'AuthMiddleware'...
+
+
+
+mas vc poderia criar 1 middleware independente para isso...
+
+
+
+
+
+
+
+
+--> o middleware ficou tipo assim:
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types = 1);
+
+namespace App\Middleware;
+
+use App\Contracts\AuthInterface;
+use App\Contracts\EntityManagerServiceInterface;
+use Psr\Http\Message\ResponseFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Slim\Routing\RouteContext;
+use Slim\Views\Twig;
+
+class AuthMiddleware implements MiddlewareInterface
+{
+    public function __construct(
+        private readonly ResponseFactoryInterface $responseFactory,
+        private readonly AuthInterface $auth,
+        private readonly Twig $twig,
+        private readonly EntityManagerServiceInterface $entityManagerService
+    ) {
+    }
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {
+        if ($user = $this->auth->user()) {
+
+            $userId = $user->getId();
+
+            $this->twig->getEnvironment()->addGlobal('auth', ['id' => $user->getId(), 'name' => $user->getName()]);
+            $this->twig->getEnvironment()->addGlobal('current_route', RouteContext::fromRequest($request)->getRoute()->getName());
+            $this->entityManagerService->enableUserFilter($userId);
+
+            return $handler->handle($request->withAttribute('user', $user));
+        }
+
+        return $this->responseFactory->createResponse(302)->withHeader('Location', '/login');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+com isso, estamos passando a current_route variable 
+
+ali...
+
+
+
+
+
+
+
+
+
+
+
+
+AGORA DEVEMOS ANALISAR O EXERCISE,
+
+
+
+
+VER O QUE PRECISA SER IMPLEMENTADO POR CONTA PRÓPRIA..
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR PROVIDENCIA A DASHBOARD UI...
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR DEU 
+
+
+1 CHART, PROVIDENCIADA POR 1 DAS 
+
+LIBRARIES DE CHARTS DO JAVASCRIPT,
+
+
+O 'chart.js'...
+
+
+
+
+
+
+
+
+--> CERTO... TUDO ISSO ESTÁ CONFIGURADO PARA NÓS..
+
+
+
+
+
+
+-> SÓ PRECISAMOS CONSTRUIR A PARTE DO BACKEND, 
+    PARA FETCHEAR A DATA ADEQUADAMENTE...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> ATUALMENTE, OS NUMBERS TODOS ESTÃO HARDCODED...
+
+
+
+
+
+-> QUEREMOS QUE A DATA SEJA FETCHEADA....
+
+
+
+
+
+
+-> O CÓDIGO NOVO É:
+
+
+
+
+
+
+
+
+1) O CHART.JS,
+
+que foi adicionado no package.json...
+
+
+
+
+
+
+
+npm install chart.js 
+
+
+
+
+
+
+
+
+
+
+
+2) NO ARQUIVO 'dashboard.js',
+
+
+
+TEMOS ESTE CÓDIGO:
+
+
+
+
+
+
+
+
+import "../css/dashboard.scss"
+import Chart   from 'chart.js/auto'
+import { get } from './ajax'
+
+window.addEventListener('DOMContentLoaded', function () {
+    const ctx = document.getElementById('yearToDateChart')
+
+    get('/stats/ytd').then(response => response.json()).then(response => {
+        let expensesData = Array(12).fill(null)
+        let incomeData   = Array(12).fill(null)
+
+        response.forEach(({m, expense, income}) => {
+            expensesData[m - 1] = expense
+            incomeData[m - 1]   = income
+        })
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Dec'],
+                datasets: [
+                    {
+                        label: 'Expense',
+                        data: expensesData,
+                        borderWidth: 1,
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                    },
+                    {
+                        label: 'Income',
+                        data: incomeData,
+                        borderWidth: 1,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                    }
+                ]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        })
+    })
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, ESTAMOS FAZENDO 1 GET REQUEST AO 
+
+ENDPOINT 
+
+
+'/stats/ytd'...
+
+
+
+
+
+
+
+
+
+
+
+'ytd' --> YEAR TO DATE...
+
+
+
+
+
+
+
+
+
+-> ISSO ESSENCIALMENTE 
+    FAZ FETCH DA DATA PARA O CHART...
+
+
+
+
+
+
+
+
+
+
+
+-> ELE EXPECTS 
+
+
+O 'expensesData'
+
+
+e  'incomeData'
+
+
+
+PRESENTES NA RESPONSE,
+
+
+
+
+
+
+
+com o NÚMERO DO MÊS sendo a key..
+
+
+
+
+
+
+
+
+
+
+
+
+
+JAN --> 1 
+
+
+FEB --> 2 ,
+
+
+
+ETC...
+
+
+
+
+
+
+
+
+
+
+INICIALIZAMOS EMPTY ARRAYS PARA CADA 1 DOS MONTHS:
+
+
+
+
+
+        let expensesData = Array(12).fill(null)
+        let incomeData   = Array(12).fill(null)
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ISTO ADICIONA 
+
+
+O EXPENSEDATA E INCOMEDATA A CADA MES:
+
+
+
+
+
+
+
+
+        response.forEach(({m, expense, income}) => {
+            expensesData[m - 1] = expense
+            incomeData[m - 1]   = income
+        })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FINALMENTE,
+
+LÁ 
+
+
+
+
+NO TEMPLATE DO DASHBOARD,
+
+VC VERÁ ALGUMAS CHANGES:
+
+
+
+
+
+
+
+
+
+
+
+
+{% extends 'layout.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('dashboard') }}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('dashboard') }}
+{% endblock %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="top-container mb-4 row g-0 rounded-4">
+            <div class="col-8 border-end border-3">
+                <div class="row text-center">
+                    <div class="col p-4 pb-0 fs-1">{{ "now" | date('M, Y') }}</div>
+                </div>
+                <div class="row justify-content-between text-center">
+                    <div class="col p-4 pb-0 fs-2">
+                        <div>Expense</div>
+                        <div class="fw-bold text-danger">${{ totals.expense | number_format(2) }}</span></div>
+                    </div>
+                    <div class="col p-4 pb-0 fs-2">
+                        <div>Income</div>
+                        <div class="fw-bold text-success">${{ totals.income | number_format(2) }}</div>
+                    </div>
+                    <div class="col p-4 pb-0 fs-2">
+                        <div>Net</div>
+                        <div class="fw-bold {{ totals.net >= 0 ? 'text-success' : 'text-danger' }}">
+                            ${{ totals.net | number_format(2) }}
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col p-4">
+                        <div class="fs-1 text-center mb-2">{{ "now" | date('Y') }} Summary</div>
+                        <canvas id="yearToDateChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col p-4">
+                <h4>Recent Transactions</h4>
+                <table class="table">
+                    <tbody>
+                        {% for transaction in transactions %}
+                            <tr>
+                                <td>{{ transaction.description[0:20] }}</td>
+                                <td class="{{ transaction.amount > 0 ? 'text-success fw-bold' : '' }}">
+                                    {{ transaction.amount < 0 ? '-' : '' }}${{ transaction.amount | abs | number_format(2) }}
+                                </td>
+                                <td>
+                                    <div>{{ transaction.category ? transaction.category.name : 'N/A' }}</div>
+                                    <div>{{ transaction.date | date('m/d/Y') }}</div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="categories-container row">
+            {% for spendingCategory in topSpendingCategories %}
+                <div class="col">
+                    <div class="category-card p-4 text-center d-flex align-items-center justify-content-center">
+                        <div>
+                            <h6 class="fs-6 fw-normal">{{ spendingCategory.name }}</h6>
+                            <h1 class="fs-1 text-danger text-opacity-75">${{ spendingCategory.total }}</h1>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+BASICAMENTE,
+
+
+ESTAMOS:
+
+
+
+
+
+
+1) FAZENDO DISPLAY DO CURRENT MONTH AND YEAR,
+    NA PARTE DE CIMA:
+
+
+    
+
+
+
+
+  <div class="col p-4 pb-0 fs-1">{{ "now" | date('M, Y') }}</div>
+
+
+
+
+
+
+
+
+
+2) ESTAMOS PEGANDO 'totals.expense',
+
+    'totals.income' 
+
+
+    e 
+
+
+    'totals.net'
+
+
+
+    LÁ DO 
+
+
+
+    ARRAY DE 'totals',
+
+
+
+    COM ISTO:
+
+
+
+
+
+
+
+
+                <div class="row justify-content-between text-center">
+                    <div class="col p-4 pb-0 fs-2">
+                        <div>Expense</div>
+                        <div class="fw-bold text-danger">${{ totals.expense | number_format(2) }}</span></div>
+                    </div>
+                    <div class="col p-4 pb-0 fs-2">
+                        <div>Income</div>
+                        <div class="fw-bold text-success">${{ totals.income | number_format(2) }}</div>
+                    </div>
+                    <div class="col p-4 pb-0 fs-2">
+                        <div>Net</div>
+                        <div class="fw-bold {{ totals.net >= 0 ? 'text-success' : 'text-danger' }}">
+                            ${{ totals.net | number_format(2) }}
+                        </div>
+                    </div>
+                </div>
+
+
+
+
+
+
+
+
+
+
+    E ESSES VALUES ESTÃO SENDO FORMATADOS COMO 'NUMBER'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> DEPOIS DISSO, 
+
+TEMOS UMA SECTION PARA O 'yearToDateChart',
+
+
+AQUI:
+
+
+
+
+
+
+             <div class="row">
+                    <div class="col p-4">
+                        <div class="fs-1 text-center mb-2">{{ "now" | date('Y') }} Summary</div>
+                        <canvas id="yearToDateChart"></canvas>
+                    </div>
+                </div>
+
+
+
+
+
+
+
+
+
+
+
+
+ESSA SECTION SERÁ O ALVO DAQUELA LIB...
+
+
+
+
+
+
+
+
+--> FINALMENTE, NA PARTE DA DIREITA,
+
+TEMOS A PARTE DAS TRANSACTIONS,
+
+
+QUE FAZ 1 LOOP POR DENTRO DE TODAS AS TRANSACTIONS,
+
+tipo assim:
+
+
+
+
+
+
+
+          <div class="col p-4">
+                <h4>Recent Transactions</h4>
+                <table class="table">
+                    <tbody>
+                        {% for transaction in transactions %}
+                            <tr>
+                                <td>{{ transaction.description[0:20] }}</td>
+                                <td class="{{ transaction.amount > 0 ? 'text-success fw-bold' : '' }}">
+                                    {{ transaction.amount < 0 ? '-' : '' }}${{ transaction.amount | abs | number_format(2) }}
+                                </td>
+                                <td>
+                                    <div>{{ transaction.category ? transaction.category.name : 'N/A' }}</div>
+                                    <div>{{ transaction.date | date('m/d/Y') }}</div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+ELE EXPECTS ESSA TRANSACTION COMO UMA 'TRANSACTION ENTITY',
+
+E AÍ FAZ DISPLAY DE CADA TRANSACTION...
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> AÍ, NA PARTE BEM DE BAIXO,
+
+
+
+
+temos as 'topSpendingCategories':
+
+
+
+
+
+
+
+
+
+
+        <div class="categories-container row">
+            {% for spendingCategory in topSpendingCategories %}
+                <div class="col">
+                    <div class="category-card p-4 text-center d-flex align-items-center justify-content-center">
+                        <div>
+                            <h6 class="fs-6 fw-normal">{{ spendingCategory.name }}</h6>
+                            <h1 class="fs-1 text-danger text-opacity-75">${{ spendingCategory.total }}</h1>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+
+
+
+
+
+
+
+
+
+LOOPAMOS POR DENTRO DELAS,
+
+E AÍ 
+
+FAZEMOS DISPLAY DO NAME E DO TOTAL...
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR EXPLICA:
+
+
+
+
+
+
+''CONTROLLER METHODS, ALONG WITH THE SERVICE METHODS,
+
+ARE ALREADY CREATED FOR YOU,
+
+THEY ONLY 
+
+RETURN 
+
+PLACEHOLDERS AND HARDCODED DATA''..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> LÁ NO CONTROLLER DE 'HomeController',
+
+
+O PROFESSOR ESCREVEU ASSIM:
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Contracts\TransactionServiceInterface;
+use DateTime;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\SimpleCache\CacheInterface;
+use Slim\Views\Twig;
+
+class HomeController
+{
+    public function __construct(
+        private readonly Twig $twig,
+        private readonly CacheInterface $cache,
+        private readonly TransactionServiceInterface $transactionService
+    ) {}
+
+    public function index(Request $request, Response $response): Response
+    {
+
+        $startDate = DateTime::createFromFormat('Y-m-d', 'Y-m-01');
+        $endDate   = new DateTime('now');
+        $totals = $this->transactionService->getTotals($startDate, $endDate);
+        $recentTransactions = $this->transactionService->getRecentTransactions(10);
+        $topSpendingCategories = $this->transactionService->getTopSpendingCategories(4);
+
+        return $this->twig->render($response, 'dashboard.twig', [
+            'totals' => $totals,
+            'transactions' => $recentTransactions,
+            'topSpendingCategories' => $topSpendingCategories,
+        ]);
+    }
+}
+
+
+
+
+
+
+
+
+BASICAMENTE,
+
+3 METHOD CALLS... E AÍ SEUS VALUES ESTÃO SENDO 
+PASSADOS AO TEMPLATE...
+
+
+
+
+
+
+
+
+
+-> TEMOS TAMBEM ESTE OUTRO METHOD,
+
+
+'getYearToDateStatistics':
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Contracts\TransactionServiceInterface;
+use App\ResponseFormatter;
+use DateTime;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\SimpleCache\CacheInterface;
+use Slim\Views\Twig;
+
+class HomeController
+{
+    public function __construct(
+        private readonly Twig $twig,
+        private readonly CacheInterface $cache,
+        private readonly TransactionServiceInterface $transactionService,
+        private readonly ResponseFormatter $responseFormatter
+    ) {}
+
+    public function index(Response $response): Response
+    {
+
+        $startDate = DateTime::createFromFormat('Y-m-d', 'Y-m-01');
+        $endDate   = new DateTime('now');
+        $totals = $this->transactionService->getTotals($startDate, $endDate);
+        $recentTransactions = $this->transactionService->getRecentTransactions(10);
+        $topSpendingCategories = $this->transactionService->getTopSpendingCategories(4);
+
+        return $this->twig->render($response, 'dashboard.twig', [
+            'totals' => $totals,
+            'transactions' => $recentTransactions,
+            'topSpendingCategories' => $topSpendingCategories,
+        ]);
+    }
+
+
+    public function getYearToDateStatistics(Response $response): Response
+    {
+        $data = $this->transactionService->getMonthlySummary((int) date('Y'));
+
+        return $this->responseFormatter->asJson($response, $data);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+-> AÍ DEVEMOS TER ESSES METHODS,
+
+NO TRANSACTION SERVICE..
+
+
+
+
+
+
+
+
+
+
+se INSPECIONAMOS ESSES METHODS,
+
+VEREMOS QUE ELES ESTÃO HARDCODADOS...
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+    public function getTotals(DateTime $startDate, DateTime $endDate): array
+    {
+
+    }
+
+    public function getRecentTransactions(int $limit): array 
+    {
+
+        return [];
+    }
+
+    public function getMonthlySummary(int $year): array
+    {
+        return [];
+    }
+
+
+
+
+
+
+
+
+
+
+
+--> PRECISAMOS IMPLEMENTAR ESSAS COISAS POR CONTA PRÓPRIA,
+
+E RETORNAR A DATA NESTE FORMATO:
+
+
+
+
+
+
+
+
+
+
+
+
+    public function getTotals(DateTime $startDate, DateTime $endDate): array
+    {
+
+        return ['net' => 800, 'income' => 3000, 'expense' => 2200];
+    }
+
+    public function getRecentTransactions(int $limit): array 
+    {
+
+        return [];
+    }
+
+    public function getMonthlySummary(int $year): array
+    {
+        return [
+            ['income' => 1500, 'expense' => 1100, 'm' => 3],
+            ['income' => 2000, 'expense' => 1200, 'm' => 4],
+            ['income' => 2500, 'expense' => 1300, 'm' => 5],
+            ['income' => 3000, 'expense' => 1400, 'm' => 6],
+            ['income' => 3500, 'expense' => 1500, 'm' => 7],
+            ['income' => 4000, 'expense' => 1600, 'm' => 8],
+            ['income' => 4500, 'expense' => 1700, 'm' => 9],
+            ['income' => 5000, 'expense' => 1800, 'm' => 10],
+            ['income' => 5500, 'expense' => 1900, 'm' => 11],
+            ['income' => 6000, 'expense' => 2000, 'm' => 12],
+        ];
+    }
+
+
+
+
+
+
+
+
+
+    CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+ATÉ AÍ, TUDO BEM...
+
+
+
+
+
+
+
+o 'm' significa o DÍGITO DO MêS (3 é march, 4 é april, etc)...
+
+
+
+
+
+
+
+
+
+
+
+ESSA É A MAIN PART DESSE EXERCISE...
+
+
+
+
+
+
+
+
+
+
+-> PRECISAREMOS 
+
+
+''WRITE DOCTRINE ORM QUERIES'',
+
+
+
+
+
+OU EM FORMATO 'DQL' (RAW),
+
+
+
+OU COM O QUERY BUILDER...
+
+
+
+
+
+
+
+
+
+
+
+
+-> PODEMOS PEGAR ESSA DATA DA MANEIRA QUE QUISERMOS...
+
+
+
+
+--> O PROFESSOR JÁ PROVIDENCIOU VÁRIOS DOS PARAMETERS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEVEMOS PRESTAR ATENÇÃO NO CLOCKWORK, 
+
+PARA EVITAR 
+
+
+PROBLEMAS DE 'N+1'...
+
+
+
+
+
+
+
+
+
+
+
+--> TAMBÉM DEVEMOS GARANTIR QUE O MESMO FORMAT 
+É RETORNADO SEMPRE,
+
+NO FRONTEND, PARA EVITAR BREAKS NO FRONTEND...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> HÁ MAIS 1 METHOD QUE O PROFESSOR QUER QUE IMPLEMENTEMOS...
+
+
+
+
+
+
+
+
+
+
+
+-> É UM METHOD QUE EXISTIRÁ 
+
+
+
+NO 'CategoryService',
+
+CHAMADO 
+
+
+de 
+
+
+'getTopSpendingCategories
+'...
+
+
+
+
+
+
+
+ex:
+
+
+
+
+
+
+
+    public function getTopSpendingCategories(int $limit): array
+    {
+        return [
+            ['name' => 'Category 1', 'total' => 700],
+            ['name' => 'Category 2', 'total' => 600],
+            ['name' => 'Category 3', 'total' => 500],
+            ['name' => 'Category 4', 'total' => 400],
+            ['name' => 'Category 5', 'total' => 300],
+        ];
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+
+
+
+
+
+FAZ SENTIDO...
+
+
+
+
+
+
+
+
+
+
+-> ESSA É A PARTE 1 DO EXERCISE...
+
+
+
+
+
+
+
+
+
+
+
+
+--> VC TEM QUE FILL IN ESSES METHODS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> A PARTE 2:
+
+
+
+
+
+
+'''POPULATE THE 
+
+    TRANSACTIONS TABLE WITH 
+
+
+    MAYBE 100.000 ROWS,
+
+    OR MAYBE A MILLION ROWS,
+
+
+    AND THEN LOAD  
+
+    THE DASHBOARD PAGE, AND SEE IF IT 
+
+    TAKES A LONG TIME TO LOAD''....
+
+
+
+
+
+
+
+
+
+--> SE A PAGE DEMORAR MT TEMPO PARA CARREGAR, VC 
+    DEVE INTRODUZIR CACHING... 
+
+
+
+
+    ''YOU SHOULD BE ABLE TO CACHE SOME OF THE DATA,
+    TO PRACTICE YOUR SKILLS... ESPECIALLY THE DATA 
+
+    FOR THE CHART'''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> BASICAMENTE, TEMOS 2 PARTES NESSE EXERCISE..
+
+
+
+
+
+
+
+
+
+
+
+
+MAS TEMOS MAIS 1 PARTE, EXTRA...
+
+
+
+
+
+
+
+
+
+A PARTE 3 
+
+
+
+
+SERIA 
+
+
+
+
+
+
+
+''ADD YOUR OWN TOUCH TO THIS APPLICATION...''
+
+
+
+
+
+
+
+
+
+
+
+--> Jul 2023
+
+
+
+2023 Summary 
+
+
+
+
+
+
+--> ESSAS COISAS ESTÃO 'HARDCODED' ao current 
+
+
+date and year...
+
+
+
+
+
+
+
+
+-> ESTAMOS PASSANDO O CURRENT YEAR, COMO DEFAULT...
+
+
+
+
+
+
+
+
+
+--> MAS ISSO, IDEALMENTE, TERIA DE VIR DO FRONTEND...
+
+
+
+
+
+
+
+
+
+--> VC IDEALMENTE TERIA 1 DATE PICKER OU YEAR PICKER,
+
+
+E AÍ 
+
+VC FETCHEARIA A DATA, COM BASE NA DATE QUE FOI SELECIONADA PELO USER...
+
+
+
+
+
+
+
+
+
+
+-> ISSO NÃO É ALGO SIMPLES DE SE IMPLEMENTAR...
+
+
+
+--> É APENAS UM BONUS...
+
+
+
+
+
+
+
+-> A PARTE 1 E 2 PODEM SER IMPLEMENTADAS 
+    POR CONTA PRÓPRIA...
+
+
+
+
+
+
+
+    -> A PARTE 3 PODE SER 1 POUCO MAIS DIFÍCIL...
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR ADICIONOU 1 NOVA DEPENDENCY AO PROJECT,
+
+
+    PARA NOS DAR 1 HINT...
+
+
+
+
+
+
+
+É UMA DEPENDENCY DO COMPOSER,
+
+
+CHAMADA DE 
+
+
+'beberlei/doctrineextensions'...
+
+
+
+
+
+
+
+
+
+MAS PQ ESSA DEPENDENCY?
+
+
+
+
+
+
+
+
+
+'''' IN DQL, YOU WON'T BE ABLE TO USE 
+        ALL OF MYSQL FUNCTIONS THAT YOU WOULD NEED 
+
+        TO CORRECTLY AGGREGATE THINGS...'''
+
+
+    
+
+
+
+
+''THIS PACKAGE BASICALLY 
+    PROVIDES EXTENSIONS THAT ADD CERTAIN FUNCTIONS...
+
+    YOU JUST NEED TO ___REGISTER THE PROPER __ EXTENSIONS, 
+    IN THE CONTAINER BINDINGS...''
+
+
+
+
+
+
+
+''YOU CAN CHECK THE LIST
+    OF AVAILABLE FUNCTIONS IN THE DOCS,
+    AND TO, ENABLE THEM,
+    YOU CAN CHECK 'container_bindings'...'''
+
+
+
+
+
+
+
+
+
+
+---> NOS CONTAINER BINDINGS,
+
+COMO EXEMPLO,
+O PROFESSOR ADICIONOU 3 FUNCTIONS 
+
+PARA NÓS,
+
+
+QUE SERVEM DE EXEMPLO....
+
+
+
+
+
+
+ELAS FORAM ADICIONADAS ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    ),
+    EntityManagerInterface::class => function (Config $config) {
+        $ormConfig = ORMSetup::createAttributeMetadataConfiguration(
+            $config->get('doctrine.entity_dir'),
+            $config->get('doctrine.dev_mode')
+        );
+
+        $ormConfig->addFilter('user', UserFilter::class);  // * This is how we add a custom authorization filter to our SQL queries.
+
+        if (class_exists('DoctrineExtensions\Query\Mysql\Year')) {
+            $ormConfig->addCustomDatetimeFunction('YEAR', Year::class);
+        }
+
+        if (class_exists('DoctrineExtensions\Query\Mysql\Month')) {
+            $ormConfig->addCustomDatetimeFunction('MONTH', Month::class);
+        }
+
+        if (class_exists('DoctrineExtensions\Query\Mysql\DateFormat')) {
+            $ormConfig->addCustomDatetimeFunction('DATE_FORMAT', DateFormat::class);
+        }
+
+        return new EntityManager(
+            DriverManager::getConnection($config->get('doctrine.connection'), $ormConfig),
+            $ormConfig
+        );
+    },
+
+
+
+
+
+
+
+
+
+
+
+OU SEJA, ESTAMOS ADICIONANDO 3 NOVAS EXTENSIONS NO NOSSO ORMCONFIG.....
+
+
+
+
+
+
+
+COM ISSO, USARÍAMOS ESSAS FUNCTIONS DENTRO DO 'DQL',
+
+SEM PROBLEMA ALGUM...
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR VAI PROVIDENCIAR 
+
+
+A SOLUÇÃO 
+
+
+
+
+NAS BRANCHES ADICIONAIS...
+
+
+
+
+
+
+
+
+
+-> A PARTE 2 DEVE SER FEITA SOMENTE POR NÓS...
