@@ -1,0 +1,1068 @@
+
+
+
+
+
+
+
+ATUALMENTE, NÓS ARMAZENAMOS NOSSAS UPLOADED FILES,
+
+COMO RECEIPTS,
+
+LOCALMENTE..
+
+
+
+
+
+
+
+
+
+
+--> IDEALMENTE, VC ARMAZENARIA SUAS FILES EM 1 REMOTE FILE STORAGE,
+
+COMO S3...
+
+
+
+
+
+
+
+--> NÓS VAMOS USAR 'DIGITALOCEAN SPACES'
+
+NESSA LESSON,
+
+
+
+MAS VC PODE USAR QUALQUER REMOTE FILE STORAGE SOLUTION...
+
+
+
+
+
+
+
+
+
+
+-> ISSO NÃO É UM REQUISITO PARA ESTE PROJECT,
+    MAS O PROFESSOR QUER MOSTRAR COMO FUNCIONA, MESMO ASSIM...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-->  A API 
+
+
+
+DO DIGITAL OCEAN É 
+
+''S3-COMPATIBLE'',
+
+
+
+O QUE QUER DIZER QUE 
+
+
+PODERÍAMOS USAR O S3 CLIENT E AWS ADAPTER,
+
+LÁ DO FLY SYSTEM LIBRARY,
+
+QUE ATUALMENTE UTILIZAMOS...
+
+
+
+
+https://flysystem.thephpleague.com/docs/adapter/aws-s3-v3/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> SE CLICAMOS NISSO,
+
+TEMOS AS INSTRUCTIONS DE INSTALAÇÃO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEVEMOS INSTALAR A DEPENDENCY COM O COMPOSER, TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+composer require league/flysystem-aws-s3-v3:^3.0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, VAMOS NAS CONTAINER_BINDINGS,
+
+
+
+PQ É LÁ QUE TEMOS A ENTRY PARA A CLASS DE 'Filesystem',
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+    \League\Flysystem\Filesystem::class => function (Config $config) {
+        $adapter = match ($config->get('storage.driver')) {
+            StorageDriver::Local => new LocalFilesystemAdapter(STORAGE_PATH),
+        };
+        $filesystem = new Filesystem($adapter);
+
+        return $filesystem;
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AÍ, NESSE NEGÓCIO, TEMOS A MATCH EXPRESSION,
+
+
+
+
+
+EM QUE ''WE GET THE PROPER ADAPTER,
+        AND WE PASS THAT TO THE FILESYSTEM OBJECT''...
+
+
+    
+
+
+    EX:
+
+
+
+            $adapter = match ($config->get('storage.driver')) {
+            StorageDriver::Local => new LocalFilesystemAdapter(STORAGE_PATH),
+        };
+        $filesystem = new Filesystem($adapter);
+
+        return $filesystem;
+
+
+
+
+
+
+
+
+
+
+
+
+COMO VC PODE VER, ATUALMENTE ESTAMOS SUPPORTANDO 
+
+APENAS O ADAPTER DE 'Local',
+
+o local file system...
+
+
+
+
+
+
+
+
+
+
+
+-> BASTA ADICIONARMOS OUTRA ENTRY, AQUI,
+
+    PARA CONSEGUIR ACESSAR A FILE STORAGE DO DIGITAL OCEAN..
+
+
+
+
+
+
+
+
+
+
+
+
+--> PARA ISSO, ESCREVEMOS UM NOVO ENUM,
+
+TIPO ASSIM:
+
+
+
+
+
+
+<?php declare(strict_types=1);
+
+namespace App\Enum;
+
+enum StorageDriver
+{
+    case Local;
+    case Remote_DO;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+DEIXAMOS COMO 'Remote_DO',
+
+que significa 'remote digital ocean'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+_> DEPOIS DISSO,
+
+
+
+
+
+VAMOS QUERER INSTANCIAR O ADAPTER ADEQUADO AO AWS S3...
+
+
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+    \League\Flysystem\Filesystem::class => function (Config $config) {
+        $adapter = match ($config->get('storage.driver')) {
+            StorageDriver::Local => new LocalFilesystemAdapter(STORAGE_PATH),
+            StorageDriver::Remote_DO => new ...
+        };
+        $filesystem = new Filesystem($adapter);
+
+        return $filesystem;
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VAMOS PRECISAR DO ADAPTER,
+
+
+QUE É 
+
+
+
+'AwsS3V3Adapter'....
+
+
+
+
+
+O CÓDIGO DOS DOCS É ESTE:
+
+
+
+
+
+
+
+/** @var Aws\S3\S3ClientInterface $client */
+$client = new Aws\S3\S3Client($options);
+
+// The internal adapter
+$adapter = new League\Flysystem\AwsS3V3\AwsS3V3Adapter(
+    // S3Client
+    $client,
+    // Bucket name
+    'bucket-name'
+);
+
+// The FilesystemOperator
+$filesystem = new League\Flysystem\Filesystem($adapter)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> ESSA CLASS DE ADAPTER EXPECTS:
+
+
+
+
+
+1) O CLIENT, COMO PRIMEIRO ARGUMENTO....
+
+
+
+
+
+2) O NOME DO BUCKET, COMO SEGUNDO ARGUMENTO...
+
+
+
+
+
+--> PODEMOS INSTANCIAR O CLIENT COM ESTA LINHA:
+
+
+
+$client = new Aws\S3\S3Client($options);
+
+
+
+
+
+
+
+
+
+
+
+--> VAMOS ESCREVENDO AQUI:
+
+
+
+
+
+
+
+
+
+
+
+
+
+    \League\Flysystem\Filesystem::class => function (Config $config) {
+        $client = new Aws\S3\S3Client($options);
+
+        $adapter = match ($config->get('storage.driver')) {
+            StorageDriver::Local => new LocalFilesystemAdapter(STORAGE_PATH),
+            StorageDriver::Remote_DO => new \League\Flysystem\AwsS3V3\AwsS3V3Adapter(
+                // S3Client
+                $client,
+                // Bucket name
+                'bucket-name'
+            )
+        };
+        $filesystem = new Filesystem($adapter);
+
+        return $filesystem;
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAS, AQUI, FICARÍAMOS COM 1 PROBLEMA,
+
+
+PQ 
+
+
+
+''WE WOULD BE INSTANTIATING THE 
+  S3 CLIENT AND ADAPTER REGARDLESS IF 
+    THE STORAGE DRIVER WAS SET TO REMOTEDO OR NOT...''
+
+
+
+
+
+''EVEN IF WE 
+    SET IT TO LOCAL,
+
+    THE S3 WOULD STILL BE INSTANTIATED...''
+
+
+
+
+
+
+
+
+
+
+
+
+--> A SOLUÇÃO, NO CASO,
+
+É COLOCAR TODO O CÓDIGO EM 1 CLOSURE,
+
+
+E AÍ CHAMAR O CLOSURE DENTRO 
+
+
+DO 'match',
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+    \League\Flysystem\Filesystem::class => function (Config $config) {
+        $digitalOcean = function () {
+            $client = new Aws\S3\S3Client($options);
+
+            return new \League\Flysystem\AwsS3V3\AwsS3V3Adapter(
+                // S3Client
+                $client,
+                // Bucket name
+                'bucket-name'
+            );
+        };
+
+        $adapter = match ($config->get('storage.driver')) {
+            StorageDriver::Local => new LocalFilesystemAdapter(STORAGE_PATH),
+            StorageDriver::Remote_DO => $digitalOcean(),
+        };
+
+        return new Filesystem($adapter);
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+podemos adaptar 1 pouco mais esse código, para que ele faça o accept de 1 array de options,
+
+tipo assim:
+
+
+
+
+    // The FileSystem service (to be able to handle file uploads):
+    \League\Flysystem\Filesystem::class => function (Config $config) {
+        $digitalOcean = function (array $options) {
+            $client = new Aws\S3\S3Client($options);
+
+            return new \League\Flysystem\AwsS3V3\AwsS3V3Adapter(
+                // S3Client
+                $client,
+                // Bucket name
+                'bucket-name'
+            );
+        };
+
+        $adapter = match ($config->get('storage.driver')) {
+            StorageDriver::Local => new LocalFilesystemAdapter(STORAGE_PATH),
+            StorageDriver::Remote_DO => $digitalOcean($options),
+        };
+
+        return new Filesystem($adapter);
+    },
+
+
+
+
+
+
+
+
+
+
+
+    DENTRO DO 'S3Client',
+
+
+
+
+    AS OPTIONS SÃO TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+    // The FileSystem service (to be able to handle file uploads):
+    \League\Flysystem\Filesystem::class => function (Config $config) {
+        $digitalOcean = function (array $options) {
+            $client = new Aws\S3\S3Client([
+                'credentials' => [
+                    'key' => $options['key'],
+                    'secret' => $options['secret'],
+                ],
+                'region' => $options['region'],
+                'version' => 'latest',
+                'endpoint' => [
+                    'host' => $options['host'],
+                    'port' => $options['port'],
+                ]
+            ]);
+
+            return new \League\Flysystem\AwsS3V3\AwsS3V3Adapter(
+                // S3Client
+                $client,
+                // Bucket name
+                $options['bucket'],
+            );
+        };
+
+        $adapter = match ($config->get('storage.driver')) {
+            StorageDriver::Local => new LocalFilesystemAdapter(STORAGE_PATH),
+            StorageDriver::Remote_DO => $digitalOcean($config->get('storage.s3')),
+        };
+
+        return new Filesystem($adapter);
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ISSO FEITO, VAMOS ATÉ O 'app.php',
+
+
+
+
+EM QUE VAMOS ADICIONAR NOVAS KEYS E VALUES...
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+    'storage' => [
+        'driver' => StorageDriver::Local,
+        's3' => [
+            'key' => $_ENV['S3_KEY'],
+            'secret' => $_ENV['S3_SECRET'],
+            'region' => $_ENV['S3_REGION'],
+            'version' => $_ENV['S3_VERSION'],
+            'endpoint' => $_ENV['S3_ENDPOINT'],
+            'bucket' => $_ENV['S3_BUCKET'],
+        ]
+    ],
+
+
+
+
+
+
+
+
+CERTO....
+
+
+
+
+
+estamos pegando todos esses values de essa config file....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> O PROFESSOR APONTA QUE 'PRECISAMOS 
+
+CRIAR O DIGITAL OCEAN SPACE'',
+
+
+
+
+PARA PEGAR OS PROPER  VALUES 
+
+
+
+E COLOCÁ-LOS NO NOSSO ARQUIVO '.env'...
+
+
+
+
+
+
+
+
+
+--> CRIAMOS NOSSO DIGITAL OCEAN...
+
+
+
+
+
+
+-_> podemos qualquer outra api compatível com o s3...
+
+
+
+
+
+
+
+----> ASSIM QUE VC LOGGAR,
+
+VC PODE IR ATÉ 'SPACES'...
+
+
+
+
+
+
+
+
+
+--> CRIE 1 NOVO 'SPACE BUCKET'...
+
+
+
+
+
+
+
+--> DIGITE 1 BUCKET NAME...
+
+
+
+
+
+-> 'expennies-recipets'...
+
+
+
+
+
+--> criamos o project...
+
+
+
+
+
+
+
+
+--> assim que o project é criado,
+
+    podemos FAZER GENERATE DA API KEY,
+
+
+    TUDO PARA QUE 
+
+    CONSIGAMOS CONECTAR A ESSE BUCKET E ACTUALLY UPLOADAR AS FILES...
+
+
+
+
+
+
+
+
+
+
+--> VOLTAMOS AO SPACES OBJECT STORAGE,
+
+
+    CLICAMOS NA 'API PAGE'...
+
+
+
+
+
+
+
+
+
+
+--> AÍ PODEMOS GENERATE 1 NOVA ACCESS KEY, PARA OS SPACES...
+
+
+
+
+
+COPIE A 'KEY',
+
+E DEPOIS O SECRET...
+
+
+
+
+
+
+
+-> AÍ COLE ISSO LÁ NA '.env' file...
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, 
+
+O PROFESSOR COLOCA A REGION E VERSION...
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+APP_NAME=
+APP_VERSION=
+APP_DEBUG=
+APP_ENV=
+DB_HOST=
+DB_USER=
+DB_PASS=
+DB_NAME=
+MAILER_DSN=
+MAILER_FROM=
+APP_URL=
+REDIS_HOST=
+REDIS_PORT=
+REDIS_PASSWORD=
+S3_KEY=dummy
+S3_SECRET=dummy
+S3_VERSION=latest
+S3_ENDPOINT=https://nyc3.digitaloceanspaces.com
+S3_BUCKET=expennies-receipts
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO...
+
+
+
+
+
+
+PARA ESCOLHER O DIGITAL OCEAN COMO STORAGE DRIVER DE NOSSO APP,
+
+
+
+BASTA IR ATÉ O 'app.php'
+
+
+E TROCAR ESTA LINHA:
+
+
+
+
+        'driver' => StorageDriver::Local,
+
+
+
+
+POR ESTE VALUE:
+
+
+
+
+
+        'driver' => StorageDriver::Remote_DO,
+
+
+
+
+
+
+
+
+
+EX:
+
+
+
+
+
+
+
+
+
+
+
+
+
+    'storage' => [
+        'driver' => StorageDriver::Local,
+        // 'driver' => StorageDriver::Remote_DO, // * For S3 storage, replace the above line with this one:
+        's3' => [
+            'key' => $_ENV['S3_KEY'],
+            'secret' => $_ENV['S3_SECRET'],
+            'region' => $_ENV['S3_REGION'],
+            'version' => $_ENV['S3_VERSION'],
+            'endpoint' => $_ENV['S3_ENDPOINT'],
+            'bucket' => $_ENV['S3_BUCKET'],
+        ]
+    ],
+
+
+
+
+
+
+
+
+
+
+
+
+DEPOIS DISSO, TENTAMOS O FILE UPLOAD...
+
+
+
+
+
+
+
+
+
+-> TENTAMOS FAZER O UPLOAD DE ALGUMA FILE,
+
+
+MAS NÃO FUNCIONA...
+
+
+
+
+
+
+--> ERA PQ O PROFESSOR TINHA 1 TYPO, 'regions' em vez de 'region'...
+
+
+
+
+
+-> O FILE UPLOAD FOI CONCLUÍDO, E FUNCIONOU...
+
+
+
+
+
+--> DENTRO DE NOSSO BUCKET,
+FICAMOS COM 1 FOLDER,
+
+
+COM NOSSOS FILES NO INTERIOR...
+
+
+
+
+
+
+
+
+
+
+--> SE DELETAMOS ESSA FILE, ELA TAMBÉM É DELETADA, LÁ DO DIGITAL OCEAN...
+
+
+
+
+
+
+
+
+CONSEGUIMOS ARMAZENAR NOSSAS FILES EM UM REMOTE S3 BUCKET...
