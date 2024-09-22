@@ -167,19 +167,16 @@ return [
         $redis->connect($config['host'], (int) $config['port']);
         $redis->auth($config['password']);
 
+        // echo $redis->ping();  // If it responds with '1', the connection is successful.
+
         $adapter = new RedisAdapter($redis);
 
         return $adapter;
     },
     CacheInterface::class => fn(RedisAdapter $redisAdapter) => new Psr16Cache($redisAdapter),
-    RateLimiterFactory::class => function (RedisAdapter $redisAdapter) {
+    RateLimiterFactory::class => function (RedisAdapter $redisAdapter, Config $config) {
         $storage = new CacheStorage($redisAdapter);
 
-        return new RateLimiterFactory([
-            'id' => 'default',
-            'policy' => 'fixed_window',
-            'limit' => 3,
-            'interval' => '60',
-        ], $storage);
+        return new RateLimiterFactory($config->get('rate_limiter'), $storage);
     }
 ];

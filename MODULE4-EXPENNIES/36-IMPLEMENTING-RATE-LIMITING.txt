@@ -2999,3 +2999,615 @@ Code: 0
 Message: DI\Definition\Source\DefinitionFile::{closure}(): Argument #1 ($redisAdapter) must be of type Symfony\Component\Cache\Adapter\RedisAdapter, Symfony\Component\Cache\Psr16Cache given
 File: /var/www/configs/container/container_bindings.php
 Line: 174
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Ok... depois de bastante debugging, consegui fazer funcionar...
+
+
+
+
+
+
+
+
+O PROFESSOR FEZ ESSA PARTE DA CONFIG DO 'LIMITER'
+
+
+SER EXTRAÍDO LÁ DO app.php do config,
+
+tipo assim:
+
+
+
+
+
+
+    RateLimiterFactory::class => function (RedisAdapter $redisAdapter, Config $config) {
+        $storage = new CacheStorage($redisAdapter);
+
+        return new RateLimiterFactory($config->get('rate_limiter'), $storage);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--> O PROFESSOR TAMBÉM ADICIONA ESSE MIDDLEWARE DE RATE LIMITER 
+
+A OUTRAS ROUTES,
+
+COMO 
+
+
+
+
+
+'register' 
+
+
+
+e 
+
+'login/two-factor/',
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+    $app->group('', function (RouteCollectorProxy $guest) {
+        $guest->get('/login', [AuthController::class, 'loginView']);
+        $guest->get('/register', [AuthController::class, 'registerView']);
+        $guest->post('/login', [AuthController::class, 'logIn'])->add(RateLimitMiddleware::class);
+        $guest->post('/register', [AuthController::class, 'register'])->add(RateLimitMiddleware::class);
+        $guest->post('/login/two-factor', [AuthController::class, 'twoFactorLogin'])->add(RateLimitMiddleware::class);
+        $guest->get('/forgot-password', [PasswordResetController::class, 'showForgotPasswordForm']);
+        $guest->post('/forgot-password', [PasswordResetController::class, 'handleForgotPasswordRequest'])->add(RateLimitMiddleware::class);
+
+        $guest
+            ->get('/reset-password/{token}', [PasswordResetController::class, 'showResetPasswordForm'])
+            ->setName('password-reset')
+            ->add(ValidateSignatureMiddleware::class);
+        $guest->post('/reset-password/{token}', [PasswordResetController::class, 'resetPassword'])->add(RateLimitMiddleware::class);
+    })->add(GuestMiddleware::class);
+
+
+
+
+
+
+
+
+
+
+
+
+TODAS ESSAS ROUTES 
+
+aí,
+
+
+de 'reset password',
+
+'forgot password',
+
+'login'
+
+
+
+e 
+
+'register',
+
+
+
+são 
+
+
+routes sensíveis,
+que podem ser protegidas por esse rate limiter...
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR TAMBÉM COLOCA NA ROUTE DE VERIFY,
+
+
+
+DO 'RESEND OF THE VERIFICATION EMAIL',
+
+tipo assim:
+
+
+
+
+
+
+
+
+
+
+
+    $app->group('', function (RouteCollectorProxy $group) {
+        $group->post('/logout', [AuthController::class, 'logOut']);
+        $group->get('/verify', [VerifyController::class, 'index']);
+        $group
+            ->get('/verify/{id}/{hash}', [VerifyController::class, 'verify'])
+            ->setName('verify')
+            ->add(ValidateSignatureMiddleware::class);
+        $group->post('/verify', [VerifyController::class, 'resend'])->add(RateLimitMiddleware::class);
+    })->add(AuthMiddleware::class);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+UM PROBLEMA, AQUI, QUE ENFRENTAREMOS,
+
+É O FATO DE QUE 
+
+
+
+
+'''WE ARE USING THE SAME RATE LIMITER  __FOR __ ALL OF THESE ROUTES''...
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> quer dizer que 
+
+
+
+
+
+
+
+ESSAS ROUTES TODAS ESTÃO COMPARTILHANDO 
+
+
+O MESMO RATE LIMITER... 
+
+
+
+(ex: usei a route de login, route de register e route de 'handleForgotPasswordRequest'...
+
+
+
+a próxima route que eu visitar, dessas aí, tomarei UM BLOCK... pq todas elas 
+estão compartilhando o mesmo limiter... )
+
+
+
+
+
+
+
+
+
+
+
+MAS COMO PODEMOS CONSERTAR ESSE PROBLEMA?
+
+
+
+
+
+
+--> TEMOS QUE ALTERAR A LÓGICA DE 'clientIp',
+
+
+
+tipo aqui:
+
+
+
+
+
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): \Psr\Http\Message\ResponseInterface
+    {
+        // $clientIp = $request->getServerParams()['REMOTE_ADDR'];
+        $clientIp = $this->requestService->getClientIp($request, $this->config->get('trusted_proxies'));
+
+        $limiter = $this->rateLimiterFactory->create($clientIp);
+
+      
+        if ($limiter->consume()->isAccepted() === false) {
+            return $this->responseFactory->createResponse(429, 'Too many requests');
+        }
+
+
+        return $handler->handle($request);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+O PROFESSOR EXPLICA:
+
+
+
+
+''WE CAN BASICALLY APPEND SOME SORT OF _ _STRING KEY, in our middleware,
+TO THE CLIENT IP''...
+
+
+
+
+
+
+
+
+
+FAREMOS ISSO PARA EVITAR BLOCKS 
+
+
+
+POR CONTA DO SHARE DO MESMO RATE LIMITER PARA ESSAS ROUTES...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> 
+
+
+''IDEALLY, WHAT WE SHOULD DO IT __ APPLY THE RATE LIMITING 
+TO __ SPECIFIC ROUTES...''
+
+
+
+
+
+''THE RATE LIMIT ON THE LOGIN ROUTE SHOULD NOT HAVE AN EFFECT 
+ON THE RATE LIMITING OF THE RESET PASSWORD ROUTE, ETC ETC''...
+
+
+
+
+
+
+
+
+
+
+--> O QUE PODEMOS FAZER, AQUI,
+
+
+É 
+
+
+
+''APPEND THE __ ROUTE NAME__ TO THE 'clientIp' key...
+
+
+THAT WAY, EACH KEY WILL BE __ UNIQUE __ PER ROUTE..''
+
+
+
+
+
+
+-> A PRIMEIRA COISA QUE PRECISAMOS FAZER, PARA IMPLEMENTAR ISSO,
+
+
+É DEFINIR NAMES PARA TODAS AS ROUTES,
+
+com '->setName()',
+
+
+
+lá em 'web.php',
+
+
+TIPO ASSIM:
+
+
+
+
+        $group->post('/verify', [VerifyController::class, 'resend'])->setName('resendVerification')->add(RateLimitMiddleware::class);
+
+
+
+
+
+
+
+
+
+
+E ASSIM:
+
+
+
+
+
+
+
+
+    $app->group('', function (RouteCollectorProxy $group) {
+        $group->post('/logout', [AuthController::class, 'logOut']);
+        $group->get('/verify', [VerifyController::class, 'index']);
+        $group
+            ->get('/verify/{id}/{hash}', [VerifyController::class, 'verify'])
+            ->setName('verify')
+            ->add(ValidateSignatureMiddleware::class);
+        $group->post('/verify', [VerifyController::class, 'resend'])->setName('resendVerification')->add(RateLimitMiddleware::class);
+    })->add(AuthMiddleware::class);
+
+    $app->group('', function (RouteCollectorProxy $guest) {
+        $guest->get('/login', [AuthController::class, 'loginView']);
+        $guest->get('/register', [AuthController::class, 'registerView']);
+        $guest->post('/login', [AuthController::class, 'logIn'])->setName('logIn')->add(RateLimitMiddleware::class);
+        $guest->post('/register', [AuthController::class, 'register'])->setName('register')->add(RateLimitMiddleware::class);
+        $guest->post('/login/two-factor', [AuthController::class, 'twoFactorLogin'])->setName('twoFactorLogin')->add(RateLimitMiddleware::class);
+        $guest->get('/forgot-password', [PasswordResetController::class, 'showForgotPasswordForm']);
+        $guest->post('/forgot-password', [PasswordResetController::class, 'handleForgotPasswordRequest'])->setName('handleForgotPassword')->add(RateLimitMiddleware::class);
+
+        $guest
+            ->get('/reset-password/{token}', [PasswordResetController::class, 'showResetPasswordForm'])
+            ->setName('password-reset')
+            ->add(ValidateSignatureMiddleware::class);
+        $guest->post('/reset-password/{token}', [PasswordResetController::class, 'resetPassword'])->setName('resetPassword')->add(RateLimitMiddleware::class);
+    })->add(GuestMiddleware::class);
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO... AÍ, LÁ NO RateLimitMiddleware,
+
+
+PRECISAMOS FAZER ACCESS DE ESSES ROUTE NAMES...
+
+
+
+
+
+
+
+-> PODEMOS FAZER ISSO com a class 
+
+'RouteContext',
+
+
+DO slim php FRAMEWORK... ISSO VAI NOS DAR O ROUTE CONTEXT DO REQUEST,
+
+PARA AÍ CONSEGUIRMOS 
+
+A ROUTE 
+
+E O NAME DA ROUTE, DE ESSE OBJECT...
+
+
+
+
+
+
+
+
+
+TIPO ASSIM:
+
+
+
+
+
+$routeContext = RouteContext::fromRequest($request);
+$route = $routeContext->getRoute();
+
+
+
+
+
+
+
+
+
+
+AÍ, VAMOS PEGAR ESSE STRING VALUE 
+
+
+E O CONCATENAR COM O CLIENT IP,
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): \Psr\Http\Message\ResponseInterface
+    {
+        // * 1) Obtain IP address:
+        // $clientIp = $request->getServerParams()['REMOTE_ADDR'];
+        $clientIp = $this->requestService->getClientIp($request, $this->config->get('trusted_proxies'));
+        $routeContext = RouteContext::fromRequest($request);
+        $route = $routeContext->getRoute(); // we get the route name, so that we can make sure that each route gets limited individually (rate limiter will not be shared between routes).
+
+        $clientIpWithEachRoute = $route . '_' . $clientIp;
+
+        $limiter = $this->rateLimiterFactory->create($clientIpWithEachRoute);
+
+        // ! 2) THIS IS THE USAGE OF THE SYMFONY RATE LIMITER - If the count is greater than 3, in a single minute, return a empty response,  with status 429.
+        if ($limiter->consume()->isAccepted() === false) {
+            return $this->responseFactory->createResponse(429, 'Too many requests');
+        }
+
+
+        return $handler->handle($request);
+    }
+
+
+
+
+
+
+
+    CERTO...
+
+
+
+
+
+
+
+
+
+AÍ TESTAMOS MAIS UMA VEZ...
+
+
+
+
+
+COM ESSA MUDANÇA,
+
+NOSSO RATE LIMIT PARA DE SER COMPARTILHADO ENTRE ROUTES,
+
+
+
+ QUE É O QUE QUERÍAMOS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+RATE LIMITERS DEVEM SER CONFIGURADOS A PARTIR DE SUAS NECESSIDADES...
+
+
+
+
+
+
+
+
+
+
+
+
+OK... ACABAMOS COM ESTA LESSON.

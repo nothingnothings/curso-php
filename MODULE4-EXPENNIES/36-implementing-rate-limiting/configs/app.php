@@ -48,4 +48,10 @@ return [
         'password' => $_ENV['REDIS_PASSWORD'] ?? '',
     ],
     'trusted_proxies' => [],
+    'rate_limiter' => [
+        'id' => 'default',
+        'policy' => 'fixed_window',
+        'limit' => 3,
+        'interval' => '1 minute',
+    ]
 ];

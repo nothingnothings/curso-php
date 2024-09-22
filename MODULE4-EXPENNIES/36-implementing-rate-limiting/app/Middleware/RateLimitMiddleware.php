@@ -9,6 +9,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\SimpleCache\CacheInterface;
+use Slim\Routing\RouteContext;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 
 /** This middleware will be used to rate limit requests; in other words, users/ips will have a limit of how many requests they can make in a given time period. */
@@ -59,10 +60,12 @@ class RateLimitMiddleware implements MiddlewareInterface
         // * 1) Obtain IP address:
         // $clientIp = $request->getServerParams()['REMOTE_ADDR'];
         $clientIp = $this->requestService->getClientIp($request, $this->config->get('trusted_proxies'));
+        $routeContext = RouteContext::fromRequest($request);
+        $route = $routeContext->getRoute(); // we get the route name, so that we can make sure that each route gets limited individually (rate limiter will not be shared between routes).
 
-        $limiter = $this->rateLimiterFactory->create($clientIp);
+        $clientIpWithEachRoute = $route . '_' . $clientIp;
 
-        echo 'ENTERED';
+        $limiter = $this->rateLimiterFactory->create($clientIpWithEachRoute);
 
         // ! 2) THIS IS THE USAGE OF THE SYMFONY RATE LIMITER - If the count is greater than 3, in a single minute, return a empty response,  with status 429.
         if ($limiter->consume()->isAccepted() === false) {
