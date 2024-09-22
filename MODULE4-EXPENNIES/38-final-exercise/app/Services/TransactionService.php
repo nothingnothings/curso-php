@@ -84,8 +84,17 @@ class TransactionService implements TransactionServiceInterface
 
     }
 
-    public function getTotals(DateTime $startDate, DateTime $endDate): array
+    public function getTotals(DateTime $startDate, DateTime $endDate, int $userId): array
     {
+
+        // Create a unique cache key based on the start and end dates
+        $cacheKey = 'totals_' . $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d') . '_' . $userId;
+
+        // Check if the data is already cached
+        if ($this->cache->has($cacheKey)) {
+            return $this->cache->get($cacheKey);
+        }
+
         // Create the query to calculate total income and expenses
         $query = $this->entityManager
             ->getRepository(Transaction::class)
@@ -109,6 +118,13 @@ class TransactionService implements TransactionServiceInterface
     
         // Calculate net income
         $netIncome = $totalIncome->minus($totalExpense);
+
+        // Cache the result for future use
+        $this->cache->set($cacheKey, [
+            'net' => $netIncome->getAmount()->toInt(),  // Convert to integer
+            'income' => $totalIncome->getAmount()->toInt(),
+            'expense' => $totalExpense->getAmount()->toInt(),
+        ]);
 
         // Format and return the totals
         return [

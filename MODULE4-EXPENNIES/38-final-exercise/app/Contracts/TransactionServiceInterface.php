@@ -21,7 +21,7 @@ interface TransactionServiceInterface
 
     public function toggleReviewed(Transaction $transaction): void;
 
-    public function getTotals(DateTime $startDate, DateTime $endDate): array;
+    public function getTotals(DateTime $startDate, DateTime $endDate, int $userId): array;
 
     public function getRecentTransactions(int $limit): array;
 

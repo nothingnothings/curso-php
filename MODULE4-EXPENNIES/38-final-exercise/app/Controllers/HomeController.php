@@ -23,12 +23,14 @@ class HomeController
         private readonly ResponseFormatter $responseFormatter
     ) {}
 
-    public function index(Response $response): Response
+    public function index(Request $request, Response $response): Response
     {
+        // Get the user's id:
+        $userId = $request->getAttribute('user')->getId();
 
         $startDate = DateTime::createFromFormat('Y-m-d', date('Y-m-01'));
         $endDate   = new DateTime('now');
-        $totals = $this->transactionService->getTotals($startDate, $endDate);
+        $totals = $this->transactionService->getTotals($startDate, $endDate, $userId);
         $recentTransactions = $this->transactionService->getRecentTransactions(10);
         $topSpendingCategories = $this->categoryService->getTopSpendingCategories(4);
 
