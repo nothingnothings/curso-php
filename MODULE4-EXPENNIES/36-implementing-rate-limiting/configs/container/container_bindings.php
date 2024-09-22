@@ -16,7 +16,6 @@ use App\Services\UserProviderService;
 use App\Auth;
 use App\Config;
 use App\Csrf;
-use App\RedisCache;
 use App\RouteEntityBindingStrategy;
 use App\Session;
 use Clockwork\DataSource\DoctrineDataSource;
@@ -26,6 +25,7 @@ use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMSetup;
+use Illuminate\Support\Facades\Redis;
 use League\Flysystem\Local\LocalFilesystemAdapter;
 use League\Flysystem\Filesystem;
 use Psr\Container\ContainerInterface;
@@ -47,6 +47,8 @@ use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mailer\Transport;
 use Symfony\Component\Mime\BodyRendererInterface;
+use Symfony\Component\RateLimiter\Storage\CacheStorage;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\WebpackEncoreBundle\Asset\EntrypointLookup;
 use Symfony\WebpackEncoreBundle\Asset\TagRenderer;
 use Symfony\WebpackEncoreBundle\Twig\EntryFilesTwigExtension;
@@ -157,7 +159,7 @@ return [
     },
     BodyRendererInterface::class => fn(Twig $twig) => new BodyRenderer($twig->getEnvironment()),
     RouteParserInterface::class => fn(App $app) => $app->getRouteCollector()->getRouteParser(),
-    CacheInterface::class => function(Config $config) {
+    RedisAdapter::class => function (Config $config) {
         $redis = new \Redis();
 
         $config = $config->get('redis');
@@ -165,14 +167,19 @@ return [
         $redis->connect($config['host'], (int) $config['port']);
         $redis->auth($config['password']);
 
-
         $adapter = new RedisAdapter($redis);
 
+        return $adapter;
+    },
+    CacheInterface::class => fn(RedisAdapter $redisAdapter) => new Psr16Cache($redisAdapter),
+    RateLimiterFactory::class => function (RedisAdapter $redisAdapter) {
+        $storage = new CacheStorage($redisAdapter);
 
-        return new Psr16Cache($adapter);
-
-
-
-        // return new RedisCache($redis); // Our custom implementation (without the symfony Cache)
+        return new RateLimiterFactory([
+            'id' => 'default',
+            'policy' => 'fixed_window',
+            'limit' => 3,
+            'interval' => '60',
+        ], $storage);
     }
 ];

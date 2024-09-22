@@ -24,8 +24,7 @@ RUN docker-php-ext-install pdo pdo_mysql intl
 
 RUN pecl install xdebug \
     && pecl install redis \
-    && docker-php-ext-enable redis \
-    && docker-php-ext-enable xdebug
+    && docker-php-ext-enable xdebug redis
 
 COPY xdebug.ini "${PHP_INI_DIR}/conf.d"
 

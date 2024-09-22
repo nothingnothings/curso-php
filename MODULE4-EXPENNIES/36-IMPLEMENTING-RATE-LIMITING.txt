@@ -2449,4 +2449,553 @@ RETORNA UM 'RATE LIMITER OBJECT'... -->  NESSE RATE LIMITER OBJECT,
 
 
 
-OK...
+OK... 
+
+
+
+
+
+
+
+O PRÓXIMO PASSO É 
+
+
+
+
+FAZERMOS O BIND DO 'RATELIMITER'
+
+
+DO SYMFONY,
+
+NAS CONTAINER_BINDINGS,
+
+
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+    RateLimiterFactory::class => function () {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> CERTO... 
+
+
+
+
+
+
+
+
+MAS ESSE 'RateLimiterFactory'
+
+
+
+expects:
+
+
+
+
+
+
+1) CONFIG 
+
+
+2) STORAGE 
+
+
+
+
+COMO ARGUMENTS...
+
+
+
+
+
+
+
+
+
+-> CERTO...
+
+
+
+
+
+
+
+
+
+
+
+--> COMO STORAGE, PODEMOS USAR 
+
+O REDIS EM SI... 
+
+
+PARA USAR O REDIS,
+
+
+DEVEMOS 'CREATE THE CACHE STORAGE OBJECT'
+
+A SER PASSADO...
+
+
+
+
+
+
+
+
+-> PARA ISSO, PODEMOS ESCREVER ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+    RateLimiterFactory::class => function () {
+        $storage = new CacheStorage();
+
+        return new RateLimiterFactory($storage);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... MAS O 'CACHESTORAGE'
+
+
+EM SI 
+
+
+
+FAZ EXPECT DE 'CacheItemPoolInterface'... essa interface 
+
+É BASICAMENTE O ADAPTER,
+
+O REDIS ADAPTER...
+
+
+
+
+
+
+
+--> NOSSO REDIS ADAPTER INSTANCE É ESTE:
+
+
+        $adapter = new RedisAdapter($redis);
+
+
+
+
+
+
+QUEREMOS PASSAR ISSO COMO 1 ARGUMENT,
+PARA DENTRO DO 'CACHESTORAGE'...
+
+
+
+
+
+
+
+
+
+
+
+
+MAS AQUI TEMOS 1 PROBLEMA,
+
+
+PQ O PROFESSOR QUER EVITAR O CREATE DE 2 STORAGE ADAPTERS,
+
+
+
+
+
+
+UM EM CADA BIND...
+
+
+
+
+
+
+
+
+
+-> PARA EVITAR ISSO, O PROFESSOR CRIA 1 NOVA ENTRY PARA O REDIS ADAPTER,
+NAS CONTAINER_BINDINGS,
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+    RedisAdapter::class => function (Config $config) {
+        $redis = new \Redis();
+
+        $config = $config->get('redis');
+
+        $redis->connect($config['host'], (int) $config['port']);
+        $redis->auth($config['password']);
+
+        $adapter = new RedisAdapter($redis);
+
+        return new RedisAdapter($adapter);
+    },
+    CacheInterface::class => fn(RedisAdapter $redisAdapter) => new Psr16Cache($redisAdapter),
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, PODEMOS INJETAR O REDISADAPTER DENTRO 
+
+
+
+
+DAQUELA 'CACHESTORAGE',
+TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+    RedisAdapter::class => function (Config $config) {
+        $redis = new \Redis();
+
+        $config = $config->get('redis');
+
+        $redis->connect($config['host'], (int) $config['port']);
+        $redis->auth($config['password']);
+
+        $adapter = new RedisAdapter($redis);
+
+        return new Psr16Cache($adapter);
+    },
+    CacheInterface::class => fn(RedisAdapter $redisAdapter) => new Psr16Cache($redisAdapter),
+    RateLimiterFactory::class => function (RedisAdapter $redisAdapter) {
+        $storage = new CacheStorage($redisAdapter);
+
+        return new RateLimiterFactory([], $storage);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+COM ISSO, FINALMENTE FICAMOS 'GOOD TO GO'...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-> MAS HÁ MAIS UMA COISA QUE PRECISAMOS CONFIGURAR...
+
+
+
+
+
+
+
+É O 'CONFIGURATION ARRAY'
+
+PARA AQUELE 'RateLimiterFactory'...
+
+
+
+ou seja,
+
+o primeiro parameter...
+
+
+
+
+
+
+
+
+
+
+-> PRECISAMOS 
+    DEFINIR A OPTION DE 'id',
+
+
+
+    que deixamos como 'default'...
+
+
+
+
+
+
+
+--> DEPOIS DISSO, PRECISAMOS DEFINIR A POLICY...
+
+DEIXAMOS COMO 'fixed_window'...
+
+
+
+
+
+-> DEPOIS DISSO, PRECISAMOS DO INTERVAL... O PROFESSOR DEIXA COMO 
+
+'1 minute'...
+
+
+
+
+
+
+
+
+-> FINALMENTE, TEMOS O 'limit',
+
+que deixamos como '3',
+
+que era o que tínhamos antes...
+
+
+
+
+
+
+FICOU TIPO ASSIM:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    RedisAdapter::class => function (Config $config) {
+        $redis = new \Redis();
+
+        $config = $config->get('redis');
+
+        $redis->connect($config['host'], (int) $config['port']);
+        $redis->auth($config['password']);
+
+        $adapter = new RedisAdapter($redis);
+
+        return new Psr16Cache($adapter);
+    },
+    CacheInterface::class => fn(RedisAdapter $redisAdapter) => new Psr16Cache($redisAdapter),
+    RateLimiterFactory::class => function (RedisAdapter $redisAdapter) {
+        $storage = new CacheStorage($redisAdapter);
+
+        return new RateLimiterFactory([
+            'id' => 'default',
+            'policy' => 'fixed_window',
+            'limit' => 3,
+            'interval' => 60,
+        ], $storage);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CERTO... ENTÃO VOLTAMOS AO BROWSER,
+
+E TENTAMOS FAZER LOGIN...
+
+
+
+
+
+
+--> NA QUARTA TENTATIVA,
+
+
+
+FICAMOS COM O FAIL,
+
+
+COM O CÓDIGO DE 429... sinal que deu certo...
+
+
+
+
+
+
+
+-> AGORA O PROFESSOR QUER ADICIONAR ESSE MESMO MIDDLEWARE 
+
+DE 
+'
+RateLimitMiddleware',
+
+
+mas a outras routes...
+
+
+
+
+
+
+
+
+
+
+
+OK... MAS MINHA VERSÃO NÃO DEU CERTO...
+
+
+
+
+
+
+
+
+
+
+
+
+
+consegui este error:
+
+
+
+
+
+
+
+
+
+
+The application could not run because of the following error:
+
+Details
+Type: RedisException
+Code: 0
+Message: Connection refused
+File: /var/www/configs/container/container_bindings.php
+Line: 167
+
+
+
+
+
+é pq eu tinha me esquecido disto:
+
+
+
+
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_PASSWORD=mypassword 
+
+
+
+
+
+
+
+
+
+
+
+
+MAS GANHEI OUTRO ERROR:
+
+
+
+
+
+
+The application could not run because of the following error:
+
+Details
+Type: TypeError
+Code: 0
+Message: DI\Definition\Source\DefinitionFile::{closure}(): Argument #1 ($redisAdapter) must be of type Symfony\Component\Cache\Adapter\RedisAdapter, Symfony\Component\Cache\Psr16Cache given
+File: /var/www/configs/container/container_bindings.php
+Line: 174

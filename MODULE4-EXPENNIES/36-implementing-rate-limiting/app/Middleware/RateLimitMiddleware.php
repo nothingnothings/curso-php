@@ -62,13 +62,12 @@ class RateLimitMiddleware implements MiddlewareInterface
 
         $limiter = $this->rateLimiterFactory->create($clientIp);
 
+        echo 'ENTERED';
+
         // ! 2) THIS IS THE USAGE OF THE SYMFONY RATE LIMITER - If the count is greater than 3, in a single minute, return a empty response,  with status 429.
         if ($limiter->consume()->isAccepted() === false) {
             return $this->responseFactory->createResponse(429, 'Too many requests');
         }
-
-        // * 3) Store the current count of requests made, using 'cacheKey' as the key. The value will be the amount of requests made, incremented by the latest one:
-        $this->cache->set($cacheKey, $requests + 1, 60);
 
 
         return $handler->handle($request);
