@@ -2123,3 +2123,285 @@ NAS BRANCHES ADICIONAIS...
 
 
 -> A PARTE 2 DEVE SER FEITA SOMENTE POR NÓS...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TERMINEI A PARTE DO 'recent transactions':
+
+
+
+
+
+
+
+    public function getRecentTransactions(int $limit): array 
+    {
+
+        // Get user's most recent transactions:
+        $recentTransactions = $this->entityManager
+                                    ->getRepository(Transaction::class)
+                                    ->createQueryBuilder('t')
+                                    ->select('t')
+                                    ->orderBy('t.date', 'DESC')
+                                    ->setMaxResults($limit)
+                                    ->getQuery()
+                                    ->getResult();
+
+        return $recentTransactions;
+        
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+AGORA FALTAM AS OUTRAS ROUTES...
+
+
+
+
+
+
+
+
+
+A ROUTE DE 'getMonthlySummary' também:
+
+
+
+
+
+
+
+
+
+    public function getMonthlySummary(int $year): array
+    {
+        // Create the query to sum incomes and expenses grouped by month
+        $query = $this->entityManager
+            ->getRepository(Transaction::class)
+            ->createQueryBuilder('t')
+            ->select('MONTH(t.date) AS month, 
+                      SUM(CASE WHEN t.amount > 0 THEN t.amount ELSE 0 END) AS income, 
+                      SUM(CASE WHEN t.amount < 0 THEN ABS(t.amount) ELSE 0 END) AS expense')
+            ->where('t.date >= :startDate')
+            ->andWhere('t.date <= :endDate')
+            ->setParameter('startDate', new DateTime($year . '-01-01'))
+            ->setParameter('endDate', new DateTime($year . '-12-31'))
+            ->groupBy('month')
+            ->orderBy('month', 'ASC')
+            ->getQuery();
+    
+        // Execute the query and get the result
+        $result = $query->getArrayResult();
+    
+        // Format the result to match the desired output structure
+        $monthlySummary = [];
+        foreach ($result as $row) {
+            $monthlySummary[] = [
+                'income' => (int) $row['income'],
+                'expense' => (int) $row['expense'],
+                'm' => (int) $row['month'],
+            ];
+        }
+    
+        return $monthlySummary;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+faltaram mais algumas...
+
+
+
+
+
+
+
+
+
+
+
+
+FALTOU ESTA:
+
+
+
+
+
+
+
+
+    public function getTotals(DateTime $startDate, DateTime $endDate): array
+    {
+
+        return ['net' => 800, 'income' => 3000, 'expense' => 2200];
+    }
+
+
+
+
+
+
+
+E ESTA:
+
+
+
+
+
+
+
+
+    public function getTopSpendingCategories(int $limit): array
+    {
+        return [
+            ['name' => 'Category 1', 'total' => 700],
+            ['name' => 'Category 2', 'total' => 600],
+            ['name' => 'Category 3', 'total' => 500],
+            ['name' => 'Category 4', 'total' => 400],
+            ['name' => 'Category 5', 'total' => 300],
+        ];
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FALTOU TAMBÉM A IMPLEMENTAÇÃO DO REDIS...
+
+
+
+
+
+
+
+
+
+
+
+ESTA TAMBÉM ESTÁ PRONTA:
+
+
+
+
+
+
+
+
+
+
+   public function getTopSpendingCategories(int $limit): array
+    {
+        // Create the query to sum income grouped by category
+        $query = $this->entityManager
+            ->getRepository(Transaction::class)
+            ->createQueryBuilder('t')
+            ->select('c.id AS category_id, c.name AS category_name, 
+                      SUM(CASE WHEN t.amount > 0 THEN t.amount ELSE 0 END) AS total_income')
+            ->innerJoin('t.category', 'c') // Join with the Category entity
+            ->groupBy('c.id, c.name')
+            ->orderBy('total_income', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery();
+    
+        // Execute the query and get the result
+        $result = $query->getArrayResult();
+    
+        // Format the result to match the desired output structure
+        $topCategories = [];
+        foreach ($result as $row) {
+            $topCategories[] = [
+                'name' => $row['category_name'],
+                'total' => (int) $row['total_income'],
+            ];
+        }
+    
+        return $topCategories;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Faltou o 'getTotals',
+
+e o redis:
+
+
+
+
+
+
+
+
+
+    public function getTotals(DateTime $startDate, DateTime $endDate): array
+    {
+
+        return ['net' => 800, 'income' => 3000, 'expense' => 2200];
+    }
+
+

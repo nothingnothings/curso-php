@@ -30,6 +30,10 @@ return function (App $app) {
             $categories->post('/{category}', [CategoryController::class, 'update']);
         });
 
+        $group->group('/stats', function (RouteCollectorProxy $stats) {
+            $stats->get('/ytd', [HomeController::class, 'getYearToDateStatistics']);
+        });
+
         $group->group('/transactions', function (RouteCollectorProxy $transactions) {
             $transactions->get('', [TransactionController::class, 'index'])->setName('transactions');
             $transactions->get('/load', [TransactionController::class, 'load']);

@@ -106,17 +106,34 @@ class TransactionService implements TransactionServiceInterface
 
     public function getMonthlySummary(int $year): array
     {
-        return [
-            ['income' => 1500, 'expense' => 1100, 'm' => 3],
-            ['income' => 2000, 'expense' => 1200, 'm' => 4],
-            ['income' => 2500, 'expense' => 1300, 'm' => 5],
-            ['income' => 3000, 'expense' => 1400, 'm' => 6],
-            ['income' => 3500, 'expense' => 1500, 'm' => 7],
-            ['income' => 4000, 'expense' => 1600, 'm' => 8],
-            ['income' => 4500, 'expense' => 1700, 'm' => 9],
-            ['income' => 5000, 'expense' => 1800, 'm' => 10],
-            ['income' => 5500, 'expense' => 1900, 'm' => 11],
-            ['income' => 6000, 'expense' => 2000, 'm' => 12],
-        ];
+        // Create the query to sum incomes and expenses grouped by month
+        $query = $this->entityManager
+            ->getRepository(Transaction::class)
+            ->createQueryBuilder('t')
+            ->select('MONTH(t.date) AS month, 
+                      SUM(CASE WHEN t.amount > 0 THEN t.amount ELSE 0 END) AS income, 
+                      SUM(CASE WHEN t.amount < 0 THEN ABS(t.amount) ELSE 0 END) AS expense')
+            ->where('t.date >= :startDate')
+            ->andWhere('t.date <= :endDate')
+            ->setParameter('startDate', new DateTime($year . '-01-01'))
+            ->setParameter('endDate', new DateTime($year . '-12-31'))
+            ->groupBy('month')
+            ->orderBy('month', 'ASC')
+            ->getQuery();
+    
+        // Execute the query and get the result
+        $result = $query->getArrayResult();
+    
+        // Format the result to match the desired output structure
+        $monthlySummary = [];
+        foreach ($result as $row) {
+            $monthlySummary[] = [
+                'income' => (int) $row['income'],
+                'expense' => (int) $row['expense'],
+                'm' => (int) $row['month'],
+            ];
+        }
+    
+        return $monthlySummary;
     }
 }

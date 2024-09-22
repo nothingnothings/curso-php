@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Contracts\EntityManagerServiceInterface;
 use App\DataObjects\DataTableQueryParams;
 use App\Entity\Category;
+use App\Entity\Transaction;
 use App\Entity\User;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Psr\SimpleCache\CacheInterface;
@@ -97,12 +98,30 @@ class CategoryService
 
     public function getTopSpendingCategories(int $limit): array
     {
-        return [
-            ['name' => 'Category 1', 'total' => 700],
-            ['name' => 'Category 2', 'total' => 600],
-            ['name' => 'Category 3', 'total' => 500],
-            ['name' => 'Category 4', 'total' => 400],
-            ['name' => 'Category 5', 'total' => 300],
-        ];
+        // Create the query to sum income grouped by category
+        $query = $this->entityManager
+            ->getRepository(Transaction::class)
+            ->createQueryBuilder('t')
+            ->select('c.id AS category_id, c.name AS category_name, 
+                      SUM(CASE WHEN t.amount > 0 THEN t.amount ELSE 0 END) AS total_income')
+            ->innerJoin('t.category', 'c') // Join with the Category entity
+            ->groupBy('c.id, c.name')
+            ->orderBy('total_income', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery();
+    
+        // Execute the query and get the result
+        $result = $query->getArrayResult();
+    
+        // Format the result to match the desired output structure
+        $topCategories = [];
+        foreach ($result as $row) {
+            $topCategories[] = [
+                'name' => $row['category_name'],
+                'total' => (int) $row['total_income'],
+            ];
+        }
+    
+        return $topCategories;
     }
 }
